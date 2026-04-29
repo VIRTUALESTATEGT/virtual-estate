@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Virtual Estate — CRM Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root {
+      --bg:     #0D1A14; --bg2: #111F17; --bg3: #1E3028; --bg4: #162820;
+      --gold:   #C19259; --gold-lt: #D4A96A;
+      --white:  #F5F0E8; --gray: #7A8D85; --border: rgba(193,146,89,.15);
+      --green:  #2A7A4A; --red: #8B2C2C; --amber: #8B6020;
+      --sidebar-w: 240px;
+    }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--white); font-family:'Montserrat',sans-serif; font-size:14px; display:flex; height:100vh; overflow:hidden; }
+
+    /* ── SIDEBAR ────────────────────────── */
+    .sidebar {
+      width: var(--sidebar-w); background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      flex-shrink: 0; overflow-y: auto;
+    }
+    .sidebar-logo {
+      padding: 1.2rem 1rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sidebar-logo img { width: 130px; height: auto; display: block; }
+    .logo-text { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; }
+    .sidebar-section { padding: .6rem 0; }
+    .sidebar-label {
+      padding: .5rem 1.2rem; font-size: .58rem; letter-spacing: .2em;
+      text-transform: uppercase; color: var(--gray);
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: .7rem;
+      padding: .65rem 1.2rem; cursor: pointer;
+      color: rgba(245,240,232,.6); font-size: .8rem;
+      transition: all .2s; border-left: 2px solid transparent;
+    }
+    .nav-item i { width: 16px; text-align: center; color: var(--gray); font-size: .85rem; }
+    .nav-item:hover { color: var(--white); background: rgba(193,146,89,.06); }
+    .nav-item.active {
+      color: var(--gold); border-left-color: var(--gold);
+      background: rgba(193,146,89,.08);
+    }
+    .nav-item.active i { color: var(--gold); }
+    .nav-badge {
+      margin-left: auto; background: var(--gold); color: var(--bg);
+      font-size: .58rem; font-weight: 600; padding: .15rem .45rem;
+      border-radius: 10px;
+    }
+    .sidebar-footer {
+      margin-top: auto; padding: 1rem 1.2rem;
+      border-top: 1px solid var(--border);
+    }
+    .user-pill {
+      display: flex; align-items: center; gap: .7rem;
+    }
+    .user-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--bg3); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-size: .8rem;
+    }
+    .user-name { font-size: .75rem; font-weight: 500; }
+    .user-role { font-size: .65rem; color: var(--gray); }
+
+    /* ── MAIN ───────────────────────────── */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* ── TOPBAR ─────────────────────────── */
+    .topbar {
+      padding: .8rem 1.6rem; border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .topbar-title { font-size: 1rem; font-family: 'Raleway', sans-serif; font-weight: 600; letter-spacing: .04em; }
+    .topbar-actions { margin-left: auto; display: flex; gap: .7rem; align-items: center; }
+    .topbar-btn {
+      padding: .45rem 1rem; border-radius: 3px; font-size: .72rem;
+      font-family: 'Montserrat', sans-serif; cursor: pointer; border: none;
+      display: flex; align-items: center; gap: .4rem; transition: .2s;
+    }
+    .btn-primary { background: var(--gold); color: var(--bg); font-weight: 500; }
+    .btn-primary:hover { background: var(--gold-lt); }
+    .btn-sec { background: transparent; color: var(--gray); border: 1px solid var(--border); }
+    .btn-sec:hover { color: var(--white); border-color: var(--gray); }
+    .search-box {
+      background: rgba(255,255,255,.04); border: 1px solid var(--border);
+      border-radius: 3px; padding: .4rem .8rem;
+      display: flex; align-items: center; gap: .5rem; color: var(--gray);
+    }
+    .search-box input {
+      background: none; border: none; outline: none;
+      color: var(--white); font-size: .78rem; font-family: 'Montserrat', sans-serif;
+      width: 180px;
+    }
+    .search-box input::placeholder { color: var(--gray); }
+
+    /* ── CONTENT ─────────────────────────── */
+    .content { flex: 1; overflow-y: auto; padding: 1.6rem; }
+
+    /* ── KPI CARDS ───────────────────────── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; margin-bottom: 1.6rem; }
+    .kpi-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1.2rem 1.4rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .kpi-icon {
+      width: 40px; height: 40px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+    }
+    .kpi-label { font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--gray); margin-bottom: .2rem; }
+    .kpi-value { font-size: 1.7rem; font-family: 'Raleway', sans-serif; font-weight: 700; }
+    .kpi-sub { font-size: .68rem; color: var(--gray); margin-top: .1rem; }
+    .kpi-sub.up { color: #4EB87C; }
+    .kpi-sub.down { color: #E06060; }
+    .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.4rem; }
+    .kpi-val { font-size:1.5rem; font-family:'Raleway',sans-serif; font-weight:700; }
+    .btn-outline { background:transparent; color:var(--gray); border:1px solid var(--border); font-family:'Montserrat',sans-serif; }
+    .btn-outline:hover { color:var(--white); border-color:var(--gray); }
+    .active-period { color:var(--gold) !important; border-color:var(--gold) !important; }
+
+    /* ── TABLE ───────────────────────────── */
+    .section-title {
+      font-size: .68rem; letter-spacing: .16em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: .8rem;
+    }
+    .table-wrap {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 4px; overflow: hidden; margin-bottom: 1.4rem;
+    }
+    .table-head {
+      padding: .8rem 1.2rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .table-head-title { font-size: .82rem; font-weight: 500; }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      padding: .6rem 1rem; text-align: left;
+      font-size: .62rem; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--gray); border-bottom: 1px solid var(--border);
+      font-weight: 500;
+    }
+    td {
+      padding: .7rem 1rem; font-size: .78rem;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      color: rgba(245,240,232,.85);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(193,146,89,.04); }
+    .td-bold { font-weight: 500; color: var(--white); }
+    .td-gold { color: var(--gold); font-family: 'Montserrat', sans-serif; font-size: .82rem; font-weight: 600; }
+
+    /* ── BADGES ──────────────────────────── */
+    .badge {
+      display: inline-flex; align-items: center; gap: .3rem;
+      padding: .2rem .6rem; border-radius: 20px;
+      font-size: .62rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+    }
+    .badge::before { content:''; width:5px; height:5px; border-radius:50%; }
+    .badge-new       { background:rgba(60,130,220,.15); color:#6EAAFF; }
+    .badge-new::before { background:#6EAAFF; }
+    .badge-contact   { background:rgba(200,180,50,.15);  color:#C8C05A; }
+    .badge-contact::before { background:#C8C05A; }
+    .badge-quote     { background:rgba(193,146,89,.18);  color:var(--gold); }
+    .badge-quote::before { background:var(--gold); }
+    .badge-won       { background:rgba(60,180,100,.15);  color:#5AE08A; }
+    .badge-won::before { background:#5AE08A; }
+    .badge-lost      { background:rgba(220,80,80,.15);   color:#E08080; }
+    .badge-lost::before { background:#E08080; }
+    .badge-active    { background:rgba(60,180,100,.15);  color:#5AE08A; }
+    .badge-active::before { background:#5AE08A; }
+    .badge-process   { background:rgba(193,146,89,.18);  color:var(--gold); }
+    .badge-process::before { background:var(--gold); }
+    .badge-done      { background:rgba(130,200,255,.15); color:#80CCFF; }
+    .badge-done::before { background:#80CCFF; }
+    .badge-venta     { background:rgba(60,130,220,.12);  color:#6EAAFF; }
+    .badge-venta::before { background:#6EAAFF; }
+    .badge-renta     { background:rgba(193,146,89,.15);  color:var(--gold); }
+    .badge-renta::before { background:var(--gold); }
+
+    /* ── ACTION BUTTONS ──────────────────── */
+    .action-btns { display:flex; gap:.4rem; }
+    .act-btn {
+      width:26px; height:26px; border-radius:3px; border:1px solid var(--border);
+      background:transparent; color:var(--gray); cursor:pointer;
+      display:flex; align-items:center; justify-content:center; font-size:.7rem;
+      transition:.15s;
+    }
+    .act-btn:hover { border-color:var(--gold); color:var(--gold); }
+    .act-btn.danger:hover { border-color:#E08080; color:#E08080; }
+
+    /* ── DASHBOARD GRID ──────────────────── */
+    .dash-grid { display:grid; grid-template-columns:1.3fr 1fr; gap:1.2rem; margin-bottom:1.4rem; }
+
+    /* ── ACTIVITY FEED ───────────────────── */
+    .activity-item {
+      display:flex; gap:.8rem; padding:.7rem 0;
+      border-bottom:1px solid rgba(255,255,255,.04);
+    }
+    .activity-item:last-child { border-bottom:none; }
+    .act-dot {
+      width:8px; height:8px; border-radius:50%; background:var(--gold);
+      margin-top:.35rem; flex-shrink:0;
+    }
+    .act-text { font-size:.78rem; color:rgba(245,240,232,.7); line-height:1.4; }
+    .act-time { font-size:.65rem; color:var(--gray); margin-top:.2rem; }
+
+    /* ── CALENDAR EMBED PLACEHOLDER ──────── */
+    .cal-placeholder {
+      background:var(--bg3); border:1px dashed var(--border); border-radius:4px;
+      padding:2.5rem; text-align:center; color:var(--gray);
+    }
+    .cal-placeholder i { font-size:2rem; color:var(--gold); margin-bottom:.8rem; }
+    .cal-placeholder p { font-size:.8rem; line-height:1.6; }
+    .cal-placeholder a { color:var(--gold); text-decoration:underline; }
+
+    /* ── PANEL ───────────────────────────── */
+    .panel { background:var(--bg2); border:1px solid var(--border); border-radius:4px; overflow:hidden; }
+    .panel-head {
+      padding:.8rem 1.2rem; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+
+    /* ── VIEWS ───────────────────────────── */
+    .view { display:none; }
+    .view.active { display:block; }
+
+    /* ── TABS ────────────────────────────── */
+    .filter-tabs { display:flex; gap:.4rem; margin-bottom:1rem; flex-wrap:wrap; }
+    .f-tab {
+      padding:.35rem .9rem; border-radius:20px; font-size:.7rem;
+      cursor:pointer; border:1px solid var(--border); color:var(--gray);
+      transition:.2s;
+    }
+    .f-tab.active, .f-tab:hover { border-color:var(--gold); color:var(--gold); background:rgba(193,146,89,.08); }
+
+    /* ── MODAL ───────────────────────────── */
+    .modal-overlay {
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,.7);
+      z-index:1000; align-items:center; justify-content:center;
+    }
+    .modal-overlay.open { display:flex; }
+    .modal {
+      background:var(--bg2); border:1px solid var(--border); border-radius:6px;
+      padding:2rem; width:min(560px,90vw); max-height:85vh; overflow-y:auto;
+    }
+    .modal-title { font-family:'Raleway',sans-serif; font-size:1.3rem; font-weight:600; letter-spacing:.04em; margin-bottom:1.4rem; }
+    .form-group { margin-bottom:1rem; }
+    .form-label { display:block; font-size:.65rem; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin-bottom:.4rem; }
+    .form-control {
+      width:100%; padding:.65rem .85rem; background:rgba(255,255,255,.04);
+      border:1px solid var(--border); border-radius:3px; color:var(--white);
+      font-family:'Montserrat',sans-serif; font-size:.82rem;
+    }
+    .form-control:focus { outline:none; border-color:var(--gold); }
+    .form-control option { background:var(--bg2); }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+    .modal-actions { display:flex; gap:.7rem; margin-top:1.4rem; }
+    textarea.form-control { min-height:80px; resize:vertical; }
+
+    /* ── PROGRESS BAR ────────────────────── */
+    .prog-wrap { background:rgba(255,255,255,.06); border-radius:20px; height:5px; }
+    .prog-bar  { height:5px; border-radius:20px; background:var(--gold); }
+
+    /* ── RESPONSIVE ──────────────────────── */
+    @media(max-width:768px) {
+      .sidebar { display:none; }
+      .kpi-grid { grid-template-columns:1fr 1fr; }
+      .dash-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ─────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <img src="assets/logo-letras.png" alt="Virtual Estate"/>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Principal</div>
+    <div class="nav-item active" onclick="showView('dashboard', this)">
+      <i class="fas fa-chart-line"></i> Dashboard
+    </div>
+    <div class="nav-item" onclick="showView('leads', this)">
+      <i class="fas fa-funnel-dollar"></i> Leads
+      <span class="nav-badge">3</span>
+    </div>
+    <div class="nav-item" onclick="showView('clientes', this)">
+      <i class="fas fa-users"></i> Clientes
+    </div>
+    <div class="nav-item" onclick="showView('constructores', this)">
+      <i class="fas fa-hard-hat"></i> Constructores
+    </div>
+    <div class="nav-item" onclick="showView('cotizaciones', this)">
+      <i class="fas fa-file-invoice-dollar"></i> Cotizaciones
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Operaciones</div>
+    <div class="nav-item" onclick="showView('proyectos', this)">
+      <i class="fas fa-tasks"></i> Proyectos
+      <span class="nav-badge">2</span>
+    </div>
+    <div class="nav-item" onclick="showView('propiedades', this)">
+      <i class="fas fa-building"></i> Propiedades
+    </div>
+    <div class="nav-item" onclick="showView('reportes', this)">
+      <i class="fas fa-chart-bar"></i> Reportes
+    </div>
+    <div class="nav-item" onclick="showView('calendario', this)">
+      <i class="fas fa-calendar-alt"></i> Calendario
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Configuración</div>
+    <div class="nav-item" onclick="showView('precios', this)">
+      <i class="fas fa-tags"></i> Precios
+    </div>
+    <div class="nav-item" onclick="showView('promos', this)">
+      <i class="fas fa-ticket-alt"></i> Códigos Promo
+    </div>
+    <div class="nav-item" onclick="showView('agentes', this)">
+      <i class="fas fa-id-badge"></i> Agentes / Referidos
+      <span class="nav-badge" id="agt-badge">2</span>
+    </div>
+    <div class="nav-item" onclick="showView('config', this)">
+      <i class="fas fa-cog"></i> Configuración
+    </div>
+    <div class="nav-item">
+      <i class="fas fa-external-link-alt"></i>
+      <a href="index.html" style="color:inherit;">Ver Sitio Web</a>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="user-avatar"><i class="fas fa-user"></i></div>
+      <div>
+        <div class="user-name">Hector Rodas</div>
+        <div class="user-role">Super Admin</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN ────────────────────────────────────────────── -->
+<div class="main">
+  <div class="topbar">
+    <span class="topbar-title" id="topbar-title">Dashboard</span>
+    <div class="search-box">
+      <i class="fas fa-search" style="font-size:.75rem;"></i>
+      <input type="text" placeholder="Buscar leads, clientes, proyectos..."/>
+    </div>
+    <div class="topbar-actions">
+      <button class="topbar-btn btn-sec"><i class="fas fa-bell"></i></button>
+      <button class="topbar-btn btn-primary" onclick="openModal()">
+        <i class="fas fa-plus"></i> Nuevo Lead
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── DASHBOARD VIEW ─────────────────── -->
+    <div class="view active" id="view-dashboard">
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">Leads Activos</div>
+            <div class="kpi-value">12</div>
+            <div class="kpi-sub up"><i class="fas fa-arrow-up"></i> +3 esta semana</div>
+          </div>
+          <div class="kpi-icon" style="background:rgba(110,170,255,.1); color:#6EAAFF;"><i class="fas fa-funnel-dollar"></i></div>
+        </div>
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">Proyectos Activos</div>
+            <div class="kpi-value">5</div>
+            <div class="kpi-sub">2 en proceso</div>
+          </div>
+          <div class="kpi-icon" style="background:rgba(193,146,89,.12); color:var(--gold);"><i class="fas fa-tasks"></i></div>
+        </div>
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">Facturado (mes)</div>
+            <div class="kpi-value gold">$4,850</div>
+            <div class="kpi-sub up"><i class="fas fa-arrow-up"></i> vs mes anterior</div>
+          </div>
+          <div class="kpi-icon" style="background:rgba(90,224,138,.1); color:#5AE08A;"><i class="fas fa-dollar-sign"></i></div>
+        </div>
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">Propiedades</div>
+            <div class="kpi-value">8</div>
+            <div class="kpi-sub">3 en portafolio</div>
+          </div>
+          <div class="kpi-icon" style="background:rgba(193,146,89,.1); color:var(--gold);"><i class="fas fa-building"></i></div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <!-- Leads recientes -->
+        <div class="panel">
+          <div class="panel-head">
+            <span class="table-head-title">Leads Recientes</span>
+            <button class="topbar-btn btn-sec" onclick="showView('leads', document.querySelector('[onclick*=\"leads\"]'))">Ver todos</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th><th>Servicio</th><th>Estado</th><th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="td-bold">Ana García</span><br/><span style="color:var(--gray);font-size:.68rem;">Inmobiliaria XYZ</span></td>
+                <td>Tour Virtual</td>
+                <td><span class="badge badge-new">Nuevo</span></td>
+                <td>Hoy</td>
+              </tr>
+              <tr>
+                <td><span class="td-bold">Carlos Méndez</span><br/><span style="color:var(--gray);font-size:.68rem;">Independiente</span></td>
+                <td>AS BUILT</td>
+                <td><span class="badge badge-quote">Cotizado</span></td>
+                <td>Ayer</td>
+              </tr>
+              <tr>
+                <td><span class="td-bold">Sofía Barrios</span><br/><span style="color:var(--gray);font-size:.68rem;">Desarrolladora Sur</span></td>
+                <td>Paquete Premium</td>
+                <td><span class="badge badge-contact">Contactado</span></td>
+                <td>20 Abr</td>
+              </tr>
+              <tr>
+                <td><span class="td-bold">Roberto Lima</span><br/><span style="color:var(--gray);font-size:.68rem;">Constructora Norte</span></td>
+                <td>Construcción</td>
+                <td><span class="badge badge-won">Ganado</span></td>
+                <td>18 Abr</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Actividad reciente -->
+        <div class="panel">
+          <div class="panel-head">
+            <span class="table-head-title">Actividad Reciente</span>
+          </div>
+          <div style="padding:.8rem 1.2rem;">
+            <div class="activity-item">
+              <div class="act-dot"></div>
+              <div>
+                <div class="act-text">Nuevo lead desde formulario web — <strong>Ana García</strong> <span style="font-size:.6rem;color:var(--gold);border:1px solid var(--border);padding:.05rem .3rem;border-radius:3px;margin-left:.3rem;">IA</span></div>
+                <div class="act-time">Hoy, 10:32 AM</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="act-dot" style="background:#6EAAFF;"></div>
+              <div>
+                <div class="act-text">Cotización enviada a <strong>Carlos Méndez</strong> — $850</div>
+                <div class="act-time">Ayer, 3:15 PM</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="act-dot" style="background:#5AE08A;"></div>
+              <div>
+                <div class="act-text">Proyecto <strong>PRY-26-0004</strong> marcado como entregado</div>
+                <div class="act-time">19 Abr, 6:00 PM</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="act-dot" style="background:var(--gold);"></div>
+              <div>
+                <div class="act-text">Propiedad <strong>PRO-26-0003</strong> agregada al portafolio</div>
+                <div class="act-time">18 Abr, 11:00 AM</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="act-dot" style="background:#C8C05A;"></div>
+              <div>
+                <div class="act-text">Visita de campo agendada — <strong>Sofía Barrios</strong>, 22 Abr 10 AM</div>
+                <div class="act-time">17 Abr, 9:00 AM</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Proyectos en curso -->
+      <div class="panel">
+        <div class="panel-head">
+          <span class="table-head-title">Proyectos en Curso</span>
+          <button class="topbar-btn btn-sec" onclick="showView('proyectos', document.querySelector('[onclick*=\"proyectos\"]'))">Ver todos</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Proyecto</th><th>Cliente</th><th>Servicio</th><th>M² Const.</th><th>Avance</th><th>Entrega</th><th>Estado</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="td-bold">PRY-26-0005</td>
+              <td>Roberto Lima</td>
+              <td>Tour Virtual</td>
+              <td>320 m²</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:.6rem;">
+                  <div class="prog-wrap" style="width:80px;"><div class="prog-bar" style="width:65%;"></div></div>
+                  <span style="font-size:.7rem;color:var(--gray);">65%</span>
+                </div>
+              </td>
+              <td style="color:var(--gray);">25 Abr</td>
+              <td><span class="badge badge-process">En proceso</span></td>
+            </tr>
+            <tr>
+              <td class="td-bold">PRY-26-0004</td>
+              <td>Sofía Barrios</td>
+              <td>AS BUILT</td>
+              <td>180 m²</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:.6rem;">
+                  <div class="prog-wrap" style="width:80px;"><div class="prog-bar" style="width:30%;background:#6EAAFF;"></div></div>
+                  <span style="font-size:.7rem;color:var(--gray);">30%</span>
+                </div>
+              </td>
+              <td style="color:var(--gray);">28 Abr</td>
+              <td><span class="badge badge-process">En proceso</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── LEADS VIEW ──────────────────────── -->
+    <div class="view" id="view-leads">
+      <div class="filter-tabs">
+        <div class="f-tab active">Todos (12)</div>
+        <div class="f-tab">Nuevos (3)</div>
+        <div class="f-tab">Contactados (4)</div>
+        <div class="f-tab">Cotizados (3)</div>
+        <div class="f-tab">Ganados (2)</div>
+        <div class="f-tab">Perdidos (0)</div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head">
+          <span class="table-head-title">Pipeline Comercial</span>
+          <button class="topbar-btn btn-primary" onclick="openModal()"><i class="fas fa-plus"></i> Nuevo Lead</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Nombre</th><th>Empresa</th><th>Servicio</th><th>Fuente</th><th>Presupuesto</th><th>Estado</th><th>Seguimiento</th><th>Acciones</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color:var(--gray);">LEAD-26-0012</td>
+              <td><span class="td-bold">Ana García</span><br/><span style="color:var(--gray);font-size:.68rem;">ana@correo.com · +502 5000-0001</span></td>
+              <td>Inmobiliaria XYZ</td>
+              <td>Tour Virtual</td>
+              <td>Formulario web</td>
+              <td class="td-gold">$450–600</td>
+              <td><span class="badge badge-new">Nuevo</span></td>
+              <td style="color:var(--gray);">21 Abr</td>
+              <td><div class="action-btns"><button class="act-btn" title="Ver"><i class="fas fa-eye"></i></button><button class="act-btn" title="Editar"><i class="fas fa-pen"></i></button><button class="act-btn danger" title="Eliminar"><i class="fas fa-trash"></i></button></div></td>
+            </tr>
+            <tr>
+              <td style="color:var(--gray);">LEAD-26-0011</td>
+              <td><span class="td-bold">Carlos Méndez</span><br/><span style="color:var(--gray);font-size:.68rem;">carlos@arq.com · +502 5000-0002</span></td>
+              <td>Independiente</td>
+              <td>AS BUILT</td>
+              <td>Referido</td>
+              <td class="td-gold">$850</td>
+              <td><span class="badge badge-quote">Cotizado</span></td>
+              <td style="color:var(--gray);">22 Abr</td>
+              <td><div class="action-btns"><button class="act-btn"><i class="fas fa-eye"></i></button><button class="act-btn"><i class="fas fa-pen"></i></button><button class="act-btn danger"><i class="fas fa-trash"></i></button></div></td>
+            </tr>
+            <tr>
+              <td style="color:var(--gray);">LEAD-26-0010</td>
+              <td><span class="td-bold">Sofía Barrios</span><br/><span style="color:var(--gray);font-size:.68rem;">sofia@dev.com · +502 5000-0003</span></td>
+              <td>Desarrolladora Sur</td>
+              <td>Paquete Premium</td>
+              <td>Instagram</td>
+              <td class="td-gold">$1,000</td>
+              <td><span class="badge badge-contact">Contactado</span></td>
+              <td style="color:var(--gray);">22 Abr</td>
+              <td><div class="action-btns"><button class="act-btn"><i class="fas fa-eye"></i></button><button class="act-btn"><i class="fas fa-pen"></i></button><button class="act-btn danger"><i class="fas fa-trash"></i></button></div></td>
+            </tr>
+            <tr>
+              <td style="color:var(--gray);">LEAD-26-0009</td>
+              <td><span class="td-bold">Roberto Lima</span><br/><span style="color:var(--gray);font-size:.68rem;">roberto@cnorte.com · +502 5000-0004</span></td>
+              <td>Constructora Norte</td>
+              <td>Construcción</td>
+              <td>WhatsApp</td>
+              <td class="td-gold">$2,800</td>
+              <td><span class="badge badge-won">Ganado</span></td>
+              <td style="color:var(--gray);">—</td>
+              <td><div class="action-btns"><button class="act-btn"><i class="fas fa-eye"></i></button><button class="act-btn"><i class="fas fa-pen"></i></button><button class="act-btn danger"><i class="fas fa-trash"></i></button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── COTIZACIONES VIEW ───────────────── -->
+    <div class="view" id="view-cotizaciones">
+      <div class="table-wrap">
+        <div class="table-head">
+          <span class="table-head-title">Cotizaciones</span>
+          <button class="topbar-btn btn-primary"><i class="fas fa-plus"></i> Nueva Cotización</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Cliente</th><th>Servicio</th><th>M² Const.</th><th>Total</th><th>Anticipo</th><th>Estado</th><th>Válida hasta</th><th>Acciones</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color:var(--gray);">COT-26-0008</td>
+              <td class="td-bold">Carlos Méndez</td>
+              <td>AS BUILT — Planos PDF + 3D</td>
+              <td>180 m²</td>
+              <td class="td-gold">$990</td>
+              <td style="color:var(--gray);">$495</td>
+              <td><span class="badge badge-quote">Enviada</span></td>
+              <td style="color:var(--gray);">27 Abr</td>
+              <td><div class="action-btns"><button class="act-btn"><i class="fas fa-download"></i></button><button class="act-btn"><i class="fas fa-pen"></i></button></div></td>
+            </tr>
+            <tr>
+              <td style="color:var(--gray);">COT-26-0007</td>
+              <td class="td-bold">Roberto Lima</td>
+              <td>Tour Virtual Grande</td>
+              <td>320 m²</td>
+              <td class="td-gold">$560</td>
+              <td style="color:var(--gray);">$280</td>
+              <td><span class="badge badge-won">Aprobada</span></td>
+              <td style="color:var(--gray);">—</td>
+              <td><div class="action-btns"><button class="act-btn"><i class="fas fa-download"></i></button><button class="act-btn"><i class="fas fa-pen"></i></button></div></td>
+            </tr>
+            <tr>
+              <td style="color:var(--gray);">COT-26-0006</td>
+              <td class="td-bold">Sofía Barrios</td>
+              <td>Paquete PREMIUM</td>
+              <td>—</td>
+              <td class="td-gold">$1,000</td>
+              <td style="color:var(--gray);">$500</td>
+              <td><span class="badge badge-contact">Pendiente</span></td>
+              <td style="color:var(--gray);">25 Abr</td>
+              <td><div class="action-btns"><button class="act-btn"><i class="fas fa-download"></i></button><button class="act-btn"><i class="fas fa-pen"></i></button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── CLIENTES VIEW ──────────────────── -->
+    <div class="view" id="view-clientes">
+      <div class="table-wrap">
+        <div class="table-head">
+          <span class="table-head-title">Base de Clientes</span>
+          <button class="topbar-btn btn-primary"><i class="fas fa-plus"></i> Nuevo Cliente</button>
+        </div>
+        <table>
+          <thead><tr><th>ID</th><th>Nombre</th><th>Empresa</th><th>Tipo</th><th>Email</th><th>Teléfono</th><th>Alta</th><th>Acciones</th></tr></thead>
+          <tbody>
+            <tr>
+              <td style="color:var(--gray);">CLI-26-0001</td>
+              <td class="td-bold">Roberto Lima</td>
+              <td>Constructora Norte</td>
+              <td>Empresa</td>
+              <td style="color:var(--gray);">roberto@cnorte.com</td>
+              <td style="color:var(--gray);">+502 5000-0004</td>
+              <td style="color:var(--gray);">18 Abr 2026</td>
+              <td><div class="action-btns"><button class="act-btn"><i class="fas fa-eye"></i></button><button class="act-btn"><i class="fas fa-pen"></i></button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── CONSTRUCTORES VIEW ───────────────── -->
+    <div class="view" id="view-constructores">
+      <div class="table-wrap">
+        <div class="table-head">
+          <span class="table-head-title">Constructores / Aliados</span>
+          <button class="topbar-btn btn-primary"><i class="fas fa-plus"></i> Nuevo Constructor</button>
+        </div>
+        <table>
+          <thead><tr><th>ID</th><th>Nombre / Empresa</th><th>Especialidad</th><th>Email</th><th>Teléfono</th><th>Proyectos</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody>
+            <tr>
+              <td style="color:var(--gray);">CON-26-0001</td>
+              <td><span class="td-bold">Constructora Norte</span><br/><span style="color:var(--gray);font-size:.68rem;">Roberto Lima</span></td>
+              <td>Construcción residencial</td>
+              <td style="color:var(--gray);">roberto@cnorte.com</td>
+              <td style="color:var(--gray);">+502 5000-0004</td>
+              <td style="text-align:center;">2</td>
+              <td><span class="badge badge-active">Activo</span></td>
+              <td><div class="action-btns"><button class="act-btn"><i class="fas fa-eye"></i></button><button class="act-btn"><i class="fas fa-pen"></i></button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── PROYECTOS VIEW ─────────────────── -->
+    <div class="view" id="view-proyectos">
+      <div class="table-wrap">
+        <div class="table-head">
+          <span class="table-head-title">Proyectos Activos</span>
+          <button class="topbar-btn btn-primary"><i class="fas fa-plus"></i> Nuevo Proyecto</button>
+        </div>
+        <table>
+          <thead><tr><th>ID</th><th>Cliente</th><th>Servicio</th><th>M² Const.</th><th>Inicio</th><th>Entrega Est.</th><th>Avance</th><th>Valor</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="td-bold">PRY-26-0005</td>
+              <td>Roberto Lima</td>
+              <td>Tour Virtual Grande</td>
+              <td>320 m²</td>
+              <td style="color:var(--gray);">18 Abr</td>
+              <td style="color:var(--gray);">25 Abr</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:.5rem;">
+                  <div class="prog-wrap" style="width:70px;"><div class="prog-bar" style="width:65%;"></div></div>
+                  <span style="font-size:.7rem;color:var(--gray);">65%</span>
+                </div>
+              </td>
+              <td class="td-gold">$560</td>
+              <td><span class="badge badge-process">En proceso</span></td>
+            </tr>
+            <tr>
+              <td class="td-bold">PRY-26-0004</td>
+              <td>Sofía Barrios</td>
+              <td>AS BUILT Completo</td>
+              <td>180 m²</td>
+              <td style="color:var(--gray);">20 Abr</td>
+              <td style="color:var(--gray);">28 Abr</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:.5rem;">
+                  <div class="prog-wrap" style="width:70px;"><div class="prog-bar" style="width:30%;background:#6EAAFF;"></div></div>
+                  <span style="font-size:.7rem;color:var(--gray);">30%</span>
+                </div>
+              </td>
+              <td class="td-gold">$1,350</td>
+              <td><span class="badge badge-process">En proceso</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── PROPIEDADES VIEW ───────────────── -->
+    <div class="view" id="view-propiedades">
+      <div class="table-wrap">
+        <div class="table-head">
+          <span class="table-head-title">Listado de Propiedades</span>
+          <button class="topbar-btn btn-primary" onclick="abrirFormPropiedad()"><i class="fas fa-plus"></i> Nueva Propiedad</button>
+        </div>
+        <table>
+          <thead><tr><th>Código</th><th>Título</th><th>Tipo</th><th>Modalidad</th><th>Precio</th><th>M² Const.</th><th>Zona</th><th>Tour 3D</th><th>Estado CRM</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="td-bold">PRO-26-0001</td>
+              <td>Apartamento Zona 14</td>
+              <td>Apartamento</td>
+              <td><span class="badge badge-venta">Venta</span></td>
+              <td class="td-gold">$185,000</td>
+              <td>145 m²</td>
+              <td>Zona 14</td>
+              <td><i class="fas fa-check-circle" style="color:#5AE08A;"></i> Activo</td>
+              <td><span class="badge badge-active">Publicado</span></td>
+            </tr>
+            <tr>
+              <td class="td-bold">PRO-26-0002</td>
+              <td>Casa Colonia Oakland</td>
+              <td>Casa</td>
+              <td><span class="badge badge-venta">Venta</span></td>
+              <td class="td-gold">$320,000</td>
+              <td>290 m²</td>
+              <td>Villa Nueva</td>
+              <td><i class="fas fa-check-circle" style="color:#5AE08A;"></i> Activo</td>
+              <td><span class="badge badge-active">Publicado</span></td>
+            </tr>
+            <tr>
+              <td class="td-bold">PRO-26-0003</td>
+              <td>Oficina Pradera T4</td>
+              <td>Oficina</td>
+              <td><span class="badge badge-renta">Renta</span></td>
+              <td class="td-gold">$1,200/mes</td>
+              <td>95 m²</td>
+              <td>Zona 10</td>
+              <td><i class="fas fa-check-circle" style="color:#5AE08A;"></i> Activo</td>
+              <td><span class="badge badge-active">Publicado</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── CALENDARIO VIEW ────────────────── -->
+    <div class="view" id="view-calendario">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="table-head-title">Google Calendar — Citas y Visitas</span>
+          <a href="https://calendar.google.com" target="_blank" class="topbar-btn btn-primary" style="text-decoration:none;">
+            <i class="fab fa-google"></i> Abrir Google Calendar
+          </a>
+        </div>
+        <div style="padding:1.4rem;">
+          <div class="cal-placeholder">
+            <i class="fas fa-calendar-alt"></i>
+            <p>
+              Aquí se integrará tu <strong>Google Calendar</strong> mediante embed o API.<br/>
+              Todas las visitas agendadas desde la web aparecerán automáticamente.<br/><br/>
+              <strong>Para integrar:</strong><br/>
+              1. Ve a Google Calendar → Configuración → Integrar calendario<br/>
+              2. Copia el código de embed y reemplaza este bloque<br/>
+              3. O conecta via Google Calendar API para lectura/escritura completa<br/><br/>
+              <a href="https://calendar.google.com/calendar/embed?" target="_blank">Configurar integración →</a>
+            </p>
+          </div>
+
+          <div style="margin-top:1.4rem;">
+            <div class="section-title">Próximas Citas</div>
+            <table>
+              <thead><tr><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Cliente</th><th>Servicio</th><th>Dirección / Link</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td class="td-bold">22 Abr 2026</td>
+                  <td>10:00 AM</td>
+                  <td><span class="badge badge-process">Visita campo</span></td>
+                  <td>Sofía Barrios</td>
+                  <td>AS BUILT</td>
+                  <td style="color:var(--gray);">Zona 10, Guatemala</td>
+                </tr>
+                <tr>
+                  <td class="td-bold">23 Abr 2026</td>
+                  <td>2:00 PM</td>
+                  <td><span class="badge badge-new">Virtual</span></td>
+                  <td>Ana García</td>
+                  <td>Tour Virtual</td>
+                  <td style="color:var(--gray);"><a href="#" style="color:var(--gold);">meet.google.com/abc-xyz</a></td>
+                </tr>
+                <tr>
+                  <td class="td-bold">25 Abr 2026</td>
+                  <td>9:00 AM</td>
+                  <td><span class="badge badge-process">Escaneo</span></td>
+                  <td>Roberto Lima</td>
+                  <td>Tour Virtual 320 m²</td>
+                  <td style="color:var(--gray);">Villa Nueva, Guatemala</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PRECIOS VIEW ───────────────────── -->
+    <div class="view" id="view-precios">
+      <div class="table-wrap">
+        <div class="table-head">
+          <span class="table-head-title">Tabla de Precios Oficial</span>
+        </div>
+        <table>
+          <thead><tr><th>#</th><th>Categoría</th><th>Servicio / Descripción</th><th>Precio</th><th>Unidad</th><th>Condición</th></tr></thead>
+          <tbody>
+            <tr><td colspan="6" style="background:var(--bg3); color:var(--gold); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; padding:.5rem 1rem;">1. Tours Virtuales</td></tr>
+            <tr><td style="color:var(--gray);">1.1</td><td>Tour Virtual</td><td>Pequeña (hasta 120 m²)</td><td class="td-gold">$3.00/m²</td><td>m²</td><td style="color:var(--gray);">Mínimo $250</td></tr>
+            <tr><td style="color:var(--gray);">1.2</td><td>Tour Virtual</td><td>Mediana (120–250 m²)</td><td class="td-gold">$2.50/m²</td><td>m²</td><td style="color:var(--gray);">—</td></tr>
+            <tr><td style="color:var(--gray);">1.3</td><td>Tour Virtual</td><td>Grande (250 m²+)</td><td class="td-gold">$1.75/m²</td><td>m²</td><td style="color:var(--gray);">—</td></tr>
+            <tr><td colspan="6" style="background:var(--bg3); color:var(--gold); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; padding:.5rem 1rem;">2. Paquetes Inmobiliarios</td></tr>
+            <tr><td style="color:var(--gray);">2.1</td><td>Paquete BÁSICO</td><td>Fotos 360° + Video recorrido</td><td class="td-gold">$250</td><td>fijo</td><td style="color:var(--gray);">Precio mínimo</td></tr>
+            <tr><td style="color:var(--gray);">2.2</td><td>Paquete INTERMEDIO</td><td>360° + Gemelo 3D + Planos PDF</td><td class="td-gold">$500</td><td>fijo</td><td style="color:var(--gray);">Planos a $3.50/m²</td></tr>
+            <tr><td style="color:var(--gray);">2.3</td><td>Paquete PREMIUM</td><td>360° + Foto prof. + Gemelo + Dollhouse + Planos PDF</td><td class="td-gold">$1,000</td><td>fijo</td><td style="color:var(--gray);">Foto según alianza</td></tr>
+            <tr><td colspan="6" style="background:var(--bg3); color:var(--gold); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; padding:.5rem 1rem;">3. AS BUILT</td></tr>
+            <tr><td style="color:var(--gray);">3.1</td><td>AS BUILT</td><td>Planos PDF</td><td class="td-gold">$3.00/m²</td><td>m²</td><td style="color:var(--gray);">—</td></tr>
+            <tr><td style="color:var(--gray);">3.2</td><td>AS BUILT</td><td>Planos PDF</td><td class="td-gold">$3.50/m²</td><td>m²</td><td style="color:var(--gray);">$15 por plano en portal</td></tr>
+            <tr><td style="color:var(--gray);">3.3</td><td>AS BUILT</td><td>Cotas / Muros / Anotaciones</td><td class="td-gold">$0.40/m²</td><td>m²</td><td style="color:var(--gray);">Cada uno</td></tr>
+            <tr><td style="color:var(--gray);">3.4</td><td>AS BUILT</td><td>Levantamiento 3D</td><td class="td-gold">$2.00/m²</td><td>m²</td><td style="color:var(--gray);">—</td></tr>
+            <tr><td style="color:var(--gray);">3.5</td><td>AS BUILT</td><td>Modelo con toma de medidas</td><td class="td-gold">$0.40/m²</td><td>m²</td><td style="color:var(--gray);">—</td></tr>
+            <tr><td style="color:var(--gray);">3.6</td><td>AS BUILT</td><td>Vistas dollhouse</td><td class="td-gold">$0.40/m²</td><td>m²</td><td style="color:var(--gray);">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── CODIGOS PROMO VIEW ────────────────── -->
+    <div class="view" id="view-promos">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.4rem;">
+        <!-- Generador -->
+        <div class="panel">
+          <div class="panel-head">
+            <span class="table-head-title">Generar Nuevo Código</span>
+          </div>
+          <div style="padding:1.2rem;">
+            <div class="form-group">
+              <label class="form-label">Prefijo del código</label>
+              <input type="text" class="form-control" id="promo-prefix" placeholder="Ej: VEAPR" style="text-transform:uppercase;letter-spacing:.08em;"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tipo de descuento</label>
+              <select class="form-control" id="promo-tipo">
+                <option value="porcentaje">Porcentaje (%)</option>
+                <option value="fijo">Monto fijo (USD)</option>
+                <option value="servicio">Servicio específico</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Valor / descripción</label>
+              <input type="text" class="form-control" id="promo-valor" placeholder="Ej: 15 (para 15%) ó 50 (para $50)"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Válido hasta</label>
+              <input type="date" class="form-control" id="promo-fecha"/>
+            </div>
+            <button class="topbar-btn btn-primary" style="width:100%;justify-content:center;" onclick="generarPromo()">
+              <i class="fas fa-magic"></i> Generar código
+            </button>
+            <div id="promo-result" style="margin-top:.8rem;min-height:2em;"></div>
+          </div>
+        </div>
+
+        <!-- Info box -->
+        <div class="panel">
+          <div class="panel-head"><span class="table-head-title">Cómo funcionan los códigos</span></div>
+          <div style="padding:1.2rem;font-size:.78rem;color:rgba(245,240,232,.65);line-height:1.8;">
+            <p style="margin-bottom:.8rem;">Los clientes pueden ingresar el código en el cotizador del sitio web antes de enviar su solicitud. El código se incluye automáticamente en el mensaje de cotización.</p>
+            <div style="display:flex;flex-direction:column;gap:.5rem;">
+              <div style="display:flex;align-items:center;gap:.5rem;"><i class="fas fa-check-circle" style="color:var(--gold);font-size:.7rem;"></i> Activa/desactiva desde esta pantalla</div>
+              <div style="display:flex;align-items:center;gap:.5rem;"><i class="fas fa-check-circle" style="color:var(--gold);font-size:.7rem;"></i> Define descuento por % o monto fijo</div>
+              <div style="display:flex;align-items:center;gap:.5rem;"><i class="fas fa-check-circle" style="color:var(--gold);font-size:.7rem;"></i> Aplica a servicios específicos</div>
+              <div style="display:flex;align-items:center;gap:.5rem;"><i class="fas fa-check-circle" style="color:var(--gold);font-size:.7rem;"></i> Define fecha de vencimiento</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de códigos -->
+      <div class="table-wrap">
+        <div class="table-head">
+          <span class="table-head-title">Códigos Activos</span>
+        </div>
+        <table id="promo-table">
+          <thead>
+            <tr><th>Código</th><th>Descripción</th><th>Tipo</th><th>Valor</th><th>Vence</th><th>Estado</th><th>Acciones</th></tr>
+          </thead>
+          <tbody id="promo-tbody">
+            <tr>
+              <td style="color:var(--gold);font-weight:600;letter-spacing:.08em;">VIRTUAL10</td>
+              <td>10% de descuento en cualquier servicio</td>
+              <td>Porcentaje</td>
+              <td class="td-gold">10%</td>
+              <td style="color:var(--gray);">30 Jun 2026</td>
+              <td><span class="badge badge-active">Activo</span></td>
+              <td><div class="action-btns"><button class="act-btn" title="Desactivar" onclick="togglePromo(this)"><i class="fas fa-pause"></i></button><button class="act-btn danger"><i class="fas fa-trash"></i></button></div></td>
+            </tr>
+            <tr>
+              <td style="color:var(--gold);font-weight:600;letter-spacing:.08em;">WELCOME</td>
+              <td>Descuento de bienvenida — $50 primer servicio</td>
+              <td>Monto fijo</td>
+              <td class="td-gold">$50</td>
+              <td style="color:var(--gray);">31 May 2026</td>
+              <td><span class="badge badge-active">Activo</span></td>
+              <td><div class="action-btns"><button class="act-btn" title="Desactivar" onclick="togglePromo(this)"><i class="fas fa-pause"></i></button><button class="act-btn danger"><i class="fas fa-trash"></i></button></div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── AGENTES / REFERIDOS VIEW ──────── -->
+    <div class="view" id="view-agentes">
+
+      <!-- KPI de agentes -->
+      <div class="kpi-grid" style="margin-bottom:1.4rem;">
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">Solicitudes pendientes</div>
+            <div class="kpi-value" style="color:#F0C040;">2</div>
+            <div class="kpi-sub">Por revisar</div>
+          </div>
+          <div class="kpi-icon" style="background:rgba(240,192,64,.1);color:#F0C040;"><i class="fas fa-clock"></i></div>
+        </div>
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">Agentes activos</div>
+            <div class="kpi-value">3</div>
+            <div class="kpi-sub">Con código autorizado</div>
+          </div>
+          <div class="kpi-icon" style="background:rgba(90,224,138,.1);color:#5AE08A;"><i class="fas fa-id-badge"></i></div>
+        </div>
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">Comisiones pendientes</div>
+            <div class="kpi-value" style="color:var(--gold);">$350</div>
+            <div class="kpi-sub">2 pagos por realizar</div>
+          </div>
+          <div class="kpi-icon"><i class="fas fa-hand-holding-usd"></i></div>
+        </div>
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">Total pagado a agentes</div>
+            <div class="kpi-value" style="font-size:1.3rem;color:var(--white);">$800</div>
+            <div class="kpi-sub">Acumulado 2026</div>
+          </div>
+          <div class="kpi-icon" style="background:rgba(110,170,255,.1);color:#6EAAFF;"><i class="fas fa-check-circle"></i></div>
+        </div>
+      </div>
+
+      <!-- Solicitudes pendientes -->
+      <div class="table-wrap" style="margin-bottom:1.4rem;">
+        <div class="table-head">
+          <span class="table-head-title">Solicitudes de código de agente</span>
+          <span style="font-size:.68rem;color:var(--gray);">Pendientes de autorización</span>
+        </div>
+        <table id="agt-solicitudes-table">
+          <thead>
+            <tr><th>Fecha</th><th>Cliente</th><th>Código Solicitado</th><th>Tipo de Red</th><th>Estado</th><th>Acciones</th></tr>
+          </thead>
+          <tbody>
+            <tr id="agt-row-001">
+              <td style="color:var(--gray);">19 Abr 2026</td>
+              <td>
+                <div style="font-weight:500;">María López</div>
+                <div style="font-size:.68rem;color:var(--gray);">CLI-26-0005 · maria@correo.com</div>
+              </td>
+              <td style="color:var(--gold);font-weight:700;letter-spacing:.1em;">AGT-0001</td>
+              <td style="color:var(--gray);font-size:.78rem;">Agentes inmobiliarios</td>
+              <td><span class="badge" style="background:rgba(240,192,64,.12);color:#F0C040;">● Pendiente</span></td>
+              <td>
+                <div class="action-btns">
+                  <button class="act-btn" title="Autorizar" style="color:#5AE08A;" onclick="autorizarAgente('agt-row-001','AGT-0001','María López')">
+                    <i class="fas fa-check"></i>
+                  </button>
+                  <button class="act-btn danger" title="Rechazar" onclick="rechazarAgente('agt-row-001')">
+                    <i class="fas fa-times"></i>
+                  </button>
+                  <button class="act-btn" title="WhatsApp" onclick="window.open('https://wa.me/50200000001','_blank')">
+                    <i class="fab fa-whatsapp"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr id="agt-row-002">
+              <td style="color:var(--gray);">20 Abr 2026</td>
+              <td>
+                <div style="font-weight:500;">Carlos Morales</div>
+                <div style="font-size:.68rem;color:var(--gray);">CLI-26-0008 · carlos@correo.com</div>
+              </td>
+              <td style="color:var(--gold);font-weight:700;letter-spacing:.1em;">AGT-0002</td>
+              <td style="color:var(--gray);font-size:.78rem;">Arquitectos / Constructores</td>
+              <td><span class="badge" style="background:rgba(240,192,64,.12);color:#F0C040;">● Pendiente</span></td>
+              <td>
+                <div class="action-btns">
+                  <button class="act-btn" title="Autorizar" style="color:#5AE08A;" onclick="autorizarAgente('agt-row-002','AGT-0002','Carlos Morales')">
+                    <i class="fas fa-check"></i>
+                  </button>
+                  <button class="act-btn danger" title="Rechazar" onclick="rechazarAgente('agt-row-002')">
+                    <i class="fas fa-times"></i>
+                  </button>
+                  <button class="act-btn" title="WhatsApp" onclick="window.open('https://wa.me/50200000002','_blank')">
+                    <i class="fab fa-whatsapp"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Agentes activos y comisiones -->
+      <div class="table-wrap">
+        <div class="table-head">
+          <span class="table-head-title">Agentes Activos — Comisiones</span>
+          <button onclick="exportarComisiones()" class="topbar-btn btn-sec" style="padding:.4rem .9rem;font-size:.65rem;">
+            <i class="fas fa-download"></i> Exportar
+          </button>
+        </div>
+        <table id="agt-comisiones-table">
+          <thead>
+            <tr><th>Agente</th><th>Código</th><th>Referidos</th><th>Cerrados</th><th>Comisión Total</th><th>Pendiente</th><th>Estado pago</th><th>Acción</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div style="font-weight:500;">Roberto Vásquez</div>
+                <div style="font-size:.68rem;color:var(--gray);">roberto@correo.com</div>
+              </td>
+              <td style="color:var(--gold);font-weight:700;letter-spacing:.1em;">AGT-0003</td>
+              <td style="text-align:center;">6</td>
+              <td style="text-align:center;color:#5AE08A;font-weight:600;">3</td>
+              <td class="td-gold">$450</td>
+              <td style="color:#F0C040;font-weight:600;">$0</td>
+              <td><span class="badge badge-active" style="background:rgba(90,224,138,.1);color:#5AE08A;">Al día</span></td>
+              <td><button class="act-btn" onclick="showToast('Contactando a Roberto Vásquez...')"><i class="fab fa-whatsapp"></i></button></td>
+            </tr>
+            <tr>
+              <td>
+                <div style="font-weight:500;">Sofía Herrera</div>
+                <div style="font-size:.68rem;color:var(--gray);">sofia@correo.com</div>
+              </td>
+              <td style="color:var(--gold);font-weight:700;letter-spacing:.1em;">AGT-0004</td>
+              <td style="text-align:center;">4</td>
+              <td style="text-align:center;color:#5AE08A;font-weight:600;">2</td>
+              <td class="td-gold">$350</td>
+              <td style="color:#E08080;font-weight:600;">$200</td>
+              <td>
+                <span class="badge" style="background:rgba(224,128,128,.1);color:#E08080;">Pendiente</span>
+              </td>
+              <td>
+                <div class="action-btns">
+                  <button class="act-btn" title="Marcar como pagado" style="color:#5AE08A;" onclick="marcarPagado(this,'AGT-0004')">
+                    <i class="fas fa-check-circle"></i>
+                  </button>
+                  <button class="act-btn" onclick="showToast('Contactando a Sofía Herrera...')">
+                    <i class="fab fa-whatsapp"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div style="font-weight:500;">Luis Castillo</div>
+                <div style="font-size:.68rem;color:var(--gray);">luis@correo.com</div>
+              </td>
+              <td style="color:var(--gold);font-weight:700;letter-spacing:.1em;">AGT-0005</td>
+              <td style="text-align:center;">2</td>
+              <td style="text-align:center;color:#5AE08A;font-weight:600;">1</td>
+              <td class="td-gold">$150</td>
+              <td style="color:#E08080;font-weight:600;">$150</td>
+              <td>
+                <span class="badge" style="background:rgba(224,128,128,.1);color:#E08080;">Pendiente</span>
+              </td>
+              <td>
+                <div class="action-btns">
+                  <button class="act-btn" title="Marcar como pagado" style="color:#5AE08A;" onclick="marcarPagado(this,'AGT-0005')">
+                    <i class="fas fa-check-circle"></i>
+                  </button>
+                  <button class="act-btn" onclick="showToast('Contactando a Luis Castillo...')">
+                    <i class="fab fa-whatsapp"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- /view-agentes -->
+
+    <!-- ── CONFIGURACIÓN VIEW ─────────────────── -->
+    <div class="view" id="view-config">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;">
+
+        <!-- Empresa -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;">
+          <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem;"><i class="fas fa-building"></i> Datos de la empresa</div>
+          <div class="form-group">
+            <label class="form-label">Nombre empresa</label>
+            <input type="text" class="form-control" value="Virtual Estate GT"/>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">NIT</label>
+              <input type="text" class="form-control" value="CF"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Teléfono</label>
+              <input type="tel" class="form-control" value="+502 3990-2399"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Correo corporativo</label>
+            <input type="email" class="form-control" value="info@virtualestategt.com"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sitio web</label>
+            <input type="text" class="form-control" value="https://virtualestategt.com"/>
+          </div>
+          <button onclick="showToast('✅ Datos de empresa guardados')" style="width:100%;padding:.65rem;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:.2s;" onmouseover="this.style.background='var(--gold-lt)'" onmouseout="this.style.background='var(--gold)'">
+            <i class="fas fa-save" style="margin-right:.4rem;"></i> Guardar datos empresa
+          </button>
+        </div>
+
+        <!-- Usuarios y acceso -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;">
+          <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem;"><i class="fas fa-users-cog"></i> Usuarios del CRM</div>
+          <div style="display:flex;flex-direction:column;gap:.7rem;margin-bottom:1.2rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:.75rem;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);">
+              <div style="display:flex;align-items:center;gap:.7rem;">
+                <div style="width:32px;height:32px;border-radius:50%;background:var(--bg2);border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:.75rem;font-weight:700;">HR</div>
+                <div>
+                  <div style="font-size:.78rem;font-weight:600;">Hector Rodas</div>
+                  <div style="font-size:.6rem;color:var(--gray);">Super Admin · hrodas494@gmail.com</div>
+                </div>
+              </div>
+              <span style="font-size:.6rem;background:rgba(193,146,89,.15);color:var(--gold);padding:.15rem .55rem;border-radius:10px;font-weight:700;">Activo</span>
+            </div>
+          </div>
+          <button onclick="showToast('Función disponible próximamente')" style="width:100%;padding:.65rem;background:transparent;border:1.5px dashed var(--border);color:var(--gray);border-radius:var(--r);font-size:.7rem;cursor:pointer;font-family:'Montserrat',sans-serif;transition:.2s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--gray)'">
+            <i class="fas fa-user-plus" style="margin-right:.4rem;"></i> Agregar usuario
+          </button>
+        </div>
+
+        <!-- Notificaciones -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;">
+          <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem;"><i class="fas fa-bell"></i> Notificaciones</div>
+          <div style="display:flex;flex-direction:column;gap:.8rem;">
+            <label style="display:flex;align-items:center;justify-content:space-between;font-size:.78rem;cursor:pointer;">
+              <span>Nuevo lead recibido</span>
+              <input type="checkbox" checked style="accent-color:var(--gold);width:16px;height:16px;"/>
+            </label>
+            <label style="display:flex;align-items:center;justify-content:space-between;font-size:.78rem;cursor:pointer;">
+              <span>Nueva cotización solicitada</span>
+              <input type="checkbox" checked style="accent-color:var(--gold);width:16px;height:16px;"/>
+            </label>
+            <label style="display:flex;align-items:center;justify-content:space-between;font-size:.78rem;cursor:pointer;">
+              <span>Pago recibido en portal</span>
+              <input type="checkbox" checked style="accent-color:var(--gold);width:16px;height:16px;"/>
+            </label>
+            <label style="display:flex;align-items:center;justify-content:space-between;font-size:.78rem;cursor:pointer;">
+              <span>Solicitud de código de agente</span>
+              <input type="checkbox" checked style="accent-color:var(--gold);width:16px;height:16px;"/>
+            </label>
+            <label style="display:flex;align-items:center;justify-content:space-between;font-size:.78rem;cursor:pointer;">
+              <span>Resumen semanal por email</span>
+              <input type="checkbox" style="accent-color:var(--gold);width:16px;height:16px;"/>
+            </label>
+          </div>
+          <button onclick="showToast('✅ Preferencias de notificación guardadas')" style="width:100%;margin-top:1.2rem;padding:.65rem;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:.2s;" onmouseover="this.style.background='var(--gold-lt)'" onmouseout="this.style.background='var(--gold)'">
+            <i class="fas fa-save" style="margin-right:.4rem;"></i> Guardar
+          </button>
+        </div>
+
+        <!-- Comisiones -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;">
+          <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem;"><i class="fas fa-percent"></i> Estructura de comisiones</div>
+          <p style="font-size:.75rem;color:var(--gray);line-height:1.6;margin-bottom:1.1rem;font-weight:400;">
+            Define el porcentaje de la comisión interna de VE que se asigna a los agentes referidos. Este porcentaje <strong style="color:var(--white);">nunca modifica el precio al cliente</strong> — solo redistribuye la comisión de VE.
+          </p>
+          <div class="form-group">
+            <label class="form-label">Comisión estándar para agentes (%)</label>
+            <input type="number" class="form-control" value="8" min="0" max="100" id="cfg-comision-pct" oninput="actualizarEjemploComision()"/>
+            <div style="font-size:.65rem;color:var(--gray);margin-top:.3rem;">De la comisión total de VE en cada proyecto cerrado.</div>
+          </div>
+          <!-- Ejemplo dinámico de comisión -->
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1.2rem;margin-bottom:1rem;">
+            <div style="font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.9rem;"><i class="fas fa-calculator" style="margin-right:.4rem;"></i>Ejemplo de cálculo</div>
+            <div style="font-size:.72rem;color:var(--gray);margin-bottom:.8rem;line-height:1.5;">Para un proyecto de <strong style="color:var(--white);">$2,000 USD</strong> con comisión de VE del 25%:</div>
+            <div style="display:grid;gap:.5rem;">
+              <div style="display:flex;justify-content:space-between;font-size:.75rem;padding:.45rem .8rem;background:rgba(255,255,255,.03);border-radius:var(--r);">
+                <span style="color:var(--gray);">Precio del proyecto</span>
+                <span style="color:var(--white);font-weight:600;">$2,000</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:.75rem;padding:.45rem .8rem;background:rgba(255,255,255,.03);border-radius:var(--r);">
+                <span style="color:var(--gray);">Comisión de VE (25%)</span>
+                <span style="color:var(--white);font-weight:600;">$500</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:.75rem;padding:.45rem .8rem;background:rgba(193,146,89,.08);border:1px solid rgba(193,146,89,.2);border-radius:var(--r);">
+                <span style="color:var(--gray);">Comisión del agente (<span id="ej-pct">8</span>% de $500)</span>
+                <span style="color:var(--gold);font-weight:700;" id="ej-agente">$40</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:.75rem;padding:.45rem .8rem;background:rgba(255,255,255,.03);border-radius:var(--r);">
+                <span style="color:var(--gray);">VE retiene</span>
+                <span style="color:var(--white);font-weight:600;" id="ej-ve">$460</span>
+              </div>
+            </div>
+            <div style="margin-top:.8rem;font-size:.65rem;color:var(--gray);line-height:1.5;"><i class="fas fa-info-circle" style="color:var(--gold);margin-right:.3rem;"></i>El cliente siempre paga <strong style="color:var(--white);">$2,000</strong> — la comisión del agente proviene exclusivamente de la comisión interna de VE.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Días de pago (ciclo)</label>
+            <select class="form-control">
+              <option>Primeros 5 días del mes siguiente</option>
+              <option>Al cierre del proyecto</option>
+              <option>Quincenal</option>
+            </select>
+          </div>
+          <button onclick="showToast('✅ Estructura de comisiones actualizada')" style="width:100%;padding:.65rem;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:.2s;" onmouseover="this.style.background='var(--gold-lt)'" onmouseout="this.style.background='var(--gold)'">
+            <i class="fas fa-save" style="margin-right:.4rem;"></i> Guardar estructura
+          </button>
+        </div>
+
+        <!-- Integraciones -->
+        <div style="grid-column:1/-1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;">
+          <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem;"><i class="fas fa-plug"></i> Integraciones</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
+            <div style="padding:1rem;border:1px solid var(--border);border-radius:var(--r);text-align:center;">
+              <i class="fas fa-envelope" style="font-size:1.4rem;color:var(--gold);margin-bottom:.6rem;display:block;"></i>
+              <div style="font-size:.75rem;font-weight:700;margin-bottom:.3rem;">Email SMTP</div>
+              <div style="font-size:.65rem;color:var(--gray);margin-bottom:.8rem;">Para envío de cotizaciones y notificaciones</div>
+              <span style="font-size:.6rem;background:rgba(255,120,100,.12);color:#FF8870;padding:.15rem .5rem;border-radius:10px;font-weight:700;">Sin configurar</span>
+            </div>
+            <div style="padding:1rem;border:1px solid var(--border);border-radius:var(--r);text-align:center;">
+              <i class="fab fa-whatsapp" style="font-size:1.4rem;color:#25D366;margin-bottom:.6rem;display:block;"></i>
+              <div style="font-size:.75rem;font-weight:700;margin-bottom:.3rem;">WhatsApp Business</div>
+              <div style="font-size:.65rem;color:var(--gray);margin-bottom:.8rem;">Enlace directo al número corporativo</div>
+              <span style="font-size:.6rem;background:rgba(60,180,100,.12);color:#5AE08A;padding:.15rem .5rem;border-radius:10px;font-weight:700;">Activo (+502 3990-2399)</span>
+            </div>
+            <div style="padding:1rem;border:1px solid var(--border);border-radius:var(--r);text-align:center;">
+              <i class="fab fa-google" style="font-size:1.4rem;color:#4285F4;margin-bottom:.6rem;display:block;"></i>
+              <div style="font-size:.75rem;font-weight:700;margin-bottom:.3rem;">Google Calendar</div>
+              <div style="font-size:.65rem;color:var(--gray);margin-bottom:.8rem;">Sincronización de citas y agenda</div>
+              <span style="font-size:.6rem;background:rgba(255,120,100,.12);color:#FF8870;padding:.15rem .5rem;border-radius:10px;font-weight:700;">Sin configurar</span>
+            </div>
+          </div>
+          <p style="font-size:.7rem;color:var(--gray);margin-top:1rem;line-height:1.5;"><i class="fas fa-info-circle" style="color:var(--gold);margin-right:.3rem;"></i>Las integraciones se configuran en la versión de producción con credenciales reales de cada servicio.</p>
+        </div>
+
+      </div>
+
+    </div><!-- /view-config -->
+
+    <!-- ── REPORTES VIEW (#3) ─────────────────── -->
+    <div class="view" id="view-reportes">
+      <!-- Period quick-select -->
+      <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1.4rem;flex-wrap:wrap;">
+        <span class="label" style="margin-right:.4rem;">Período:</span>
+        <button onclick="setPeriodo('week',this)" class="topbar-btn btn-outline rpt-period active-period">Esta semana</button>
+        <button onclick="setPeriodo('biweek',this)" class="topbar-btn btn-outline rpt-period">Quincena</button>
+        <button onclick="setPeriodo('month',this)" class="topbar-btn btn-outline rpt-period">Este mes</button>
+        <button onclick="setPeriodo('year',this)" class="topbar-btn btn-outline rpt-period">Este año</button>
+        <button onclick="setPeriodo('custom',this)" class="topbar-btn btn-outline rpt-period">Personalizado</button>
+        <div id="rpt-custom-dates" style="display:none;display:flex;gap:.5rem;align-items:center;">
+          <input type="date" id="rpt-from" class="form-control" style="width:140px;padding:.4rem .6rem;font-size:.72rem;"/>
+          <span style="color:var(--gray);font-size:.78rem;">→</span>
+          <input type="date" id="rpt-to" class="form-control" style="width:140px;padding:.4rem .6rem;font-size:.72rem;"/>
+        </div>
+      </div>
+      <!-- Type checkboxes -->
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.2rem;margin-bottom:1.4rem;">
+        <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.9rem;">Incluir en el reporte</div>
+        <div style="display:flex;flex-wrap:wrap;gap:1.2rem;">
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.78rem;cursor:pointer;"><input type="checkbox" class="rpt-check" value="Ventas cerradas" checked style="accent-color:var(--gold);"/> Ventas cerradas</label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.78rem;cursor:pointer;"><input type="checkbox" class="rpt-check" value="Propiedades activas" checked style="accent-color:var(--gold);"/> Propiedades activas</label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.78rem;cursor:pointer;"><input type="checkbox" class="rpt-check" value="Propiedades enlistadas" checked style="accent-color:var(--gold);"/> Propiedades enlistadas</label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.78rem;cursor:pointer;"><input type="checkbox" class="rpt-check" value="Leads recibidos" checked style="accent-color:var(--gold);"/> Leads recibidos</label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.78rem;cursor:pointer;"><input type="checkbox" class="rpt-check" value="Cotizaciones" checked style="accent-color:var(--gold);"/> Cotizaciones</label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.78rem;cursor:pointer;"><input type="checkbox" class="rpt-check" value="Agentes activos" style="accent-color:var(--gold);"/> Agentes activos</label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.78rem;cursor:pointer;"><input type="checkbox" class="rpt-check" value="Comisiones" checked style="accent-color:var(--gold);"/> Comisiones</label>
+        </div>
+        <button onclick="generarReporte()" class="topbar-btn btn-primary" style="margin-top:1rem;">
+          <i class="fas fa-chart-bar"></i> Generar Reporte
+        </button>
+      </div>
+      <!-- KPI summary -->
+      <div class="kpi-row" id="rpt-kpis" style="display:none;">
+        <div class="kpi-card"><div class="kpi-label">Ventas cerradas</div><div class="kpi-val" id="rpt-ventas">—</div><div class="kpi-sub" id="rpt-ventas-sub"></div></div>
+        <div class="kpi-card"><div class="kpi-label">Ingresos período</div><div class="kpi-val" id="rpt-ingresos">—</div><div class="kpi-sub">Facturado</div></div>
+        <div class="kpi-card"><div class="kpi-label">Leads recibidos</div><div class="kpi-val" id="rpt-leads">—</div><div class="kpi-sub" id="rpt-leads-sub"></div></div>
+        <div class="kpi-card"><div class="kpi-label">Comisiones agentes</div><div class="kpi-val" id="rpt-comisiones">—</div><div class="kpi-sub">Generadas</div></div>
+      </div>
+      <!-- Report table -->
+      <div id="rpt-table-wrap" style="display:none;">
+        <div class="table-wrap" style="margin-bottom:1.2rem;">
+          <div class="table-head">
+            <span class="table-head-title" id="rpt-title">Reporte generado</span>
+            <button onclick="exportarReporte()" class="topbar-btn btn-outline"><i class="fas fa-download"></i> Exportar CSV</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th><th>Código</th><th>Tipo</th><th>Concepto</th><th>Cliente</th><th>Monto</th><th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="rpt-tbody">
+            </tbody>
+          </table>
+        </div>
+        <div style="padding:.9rem 1.2rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);font-size:.75rem;color:var(--gray);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
+          <span id="rpt-footer-text">—</span>
+          <span style="color:var(--gold);font-weight:700;" id="rpt-total-text">—</span>
+        </div>
+      </div>
+    </div><!-- /view-reportes -->
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ── MODAL: NUEVO LEAD ──────────────────────────────────── -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title">Nuevo Lead</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Nombre *</label>
+        <input type="text" class="form-control" placeholder="Nombre"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Apellido</label>
+        <input type="text" class="form-control" placeholder="Apellido"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Email *</label>
+        <input type="email" class="form-control" placeholder="correo@ejemplo.com"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Teléfono</label>
+        <input type="tel" class="form-control" placeholder="+502 0000-0000"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Empresa</label>
+      <input type="text" class="form-control" placeholder="Nombre de empresa (opcional)"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Servicio de interés</label>
+        <select class="form-control">
+          <option value="">— Seleccionar —</option>
+          <option>Tour Virtual</option>
+          <option>AS BUILT</option>
+          <option>Paquete BÁSICO</option>
+          <option>Paquete INTERMEDIO</option>
+          <option>Paquete PREMIUM</option>
+          <option>Construcción / Remodelación</option>
+          <option>Real Estate</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fuente</label>
+        <select class="form-control">
+          <option>Formulario web</option>
+          <option>WhatsApp</option>
+          <option>Instagram</option>
+          <option>Facebook</option>
+          <option>Referido</option>
+          <option>Evento / Feria</option>
+          <option>LinkedIn</option>
+          <option>Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Estado</label>
+        <select class="form-control">
+          <option>Nuevo</option>
+          <option>Contactado</option>
+          <option>En seguimiento</option>
+          <option>Cotizado</option>
+          <option>Ganado</option>
+          <option>Perdido</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Presupuesto aprox. (USD)</label>
+        <input type="text" class="form-control" placeholder="Ej: 500-1000"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notas</label>
+      <textarea class="form-control" placeholder="Información adicional del lead..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="topbar-btn btn-primary" onclick="saveModal()" style="flex:1; justify-content:center;">
+        <i class="fas fa-save"></i> Guardar Lead
+      </button>
+      <button class="topbar-btn btn-sec" onclick="closeModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: NUEVA PROPIEDAD (#6) ──────────────────────────── -->
+<div class="modal-overlay" id="propModalOverlay" style="align-items:flex-start;padding:1.5rem;overflow-y:auto;">
+  <div class="modal" style="max-width:760px;width:100%;max-height:none;">
+    <div class="modal-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span><i class="fas fa-building" style="color:var(--gold);margin-right:.5rem;"></i>Nueva Propiedad</span>
+      <button onclick="cerrarFormPropiedad()" style="background:none;border:none;color:var(--gray);font-size:1rem;cursor:pointer;"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- Sección: Información básica -->
+    <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;margin-top:.4rem;"><i class="fas fa-info-circle" style="margin-right:.3rem;"></i>Información básica</div>
+    <div class="form-group">
+      <label class="form-label">Título de la propiedad *</label>
+      <input type="text" class="form-control" id="prop-titulo" placeholder="Ej: Apartamento moderno Zona 14"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Tipo de propiedad *</label>
+        <select class="form-control" id="prop-tipo">
+          <option value="">— Seleccionar —</option>
+          <option>Apartamento</option>
+          <option>Casa</option>
+          <option>Penthouse</option>
+          <option>Local comercial</option>
+          <option>Terreno</option>
+          <option>Bodega / Galera</option>
+          <option>Oficina</option>
+          <option>Finca</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Operación</label>
+        <select class="form-control" id="prop-operacion">
+          <option>Venta</option>
+          <option>Renta</option>
+          <option>Venta / Renta</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Sección: Ubicación -->
+    <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;margin-top:.6rem;"><i class="fas fa-map-marker-alt" style="margin-right:.3rem;"></i>Ubicación</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Zona / Sector</label>
+        <input type="text" class="form-control" id="prop-zona" placeholder="Ej: Zona 10"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Municipio</label>
+        <select class="form-control" id="prop-municipio">
+          <option>Guatemala</option>
+          <option>Mixco</option>
+          <option>Villa Nueva</option>
+          <option>San Miguel Petapa</option>
+          <option>Santa Catarina Pinula</option>
+          <option>Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Dirección / Referencia</label>
+      <input type="text" class="form-control" id="prop-direccion" placeholder="Dirección o referencia de ubicación"/>
+    </div>
+
+    <!-- Sección: Especificaciones físicas -->
+    <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;margin-top:.6rem;"><i class="fas fa-ruler-combined" style="margin-right:.3rem;"></i>Especificaciones</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;">
+      <div class="form-group">
+        <label class="form-label">Área (m²)</label>
+        <input type="number" class="form-control" id="prop-area" placeholder="120"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Habitaciones</label>
+        <input type="number" class="form-control" id="prop-habs" placeholder="3" min="0"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Baños</label>
+        <input type="number" class="form-control" id="prop-banos" placeholder="2" min="0"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Año construcción</label>
+        <input type="number" class="form-control" id="prop-anio" placeholder="2022"/>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;">
+      <div class="form-group" style="display:flex;align-items:center;gap:.5rem;margin-bottom:0;">
+        <input type="checkbox" id="feat-parqueo" style="accent-color:var(--gold);"/>
+        <label for="feat-parqueo" style="font-size:.72rem;cursor:pointer;">Parqueo</label>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:.5rem;margin-bottom:0;">
+        <input type="checkbox" id="feat-piscina" style="accent-color:var(--gold);"/>
+        <label for="feat-piscina" style="font-size:.72rem;cursor:pointer;">Piscina</label>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:.5rem;margin-bottom:0;">
+        <input type="checkbox" id="feat-gym" style="accent-color:var(--gold);"/>
+        <label for="feat-gym" style="font-size:.72rem;cursor:pointer;">Gimnasio</label>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:.5rem;margin-bottom:0;">
+        <input type="checkbox" id="feat-seg" style="accent-color:var(--gold);"/>
+        <label for="feat-seg" style="font-size:.72rem;cursor:pointer;">Seguridad 24/7</label>
+      </div>
+    </div>
+
+    <!-- Sección: Precio -->
+    <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;margin-top:1rem;"><i class="fas fa-dollar-sign" style="margin-right:.3rem;"></i>Precio</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Precio publicado *</label>
+        <input type="text" class="form-control" id="prop-precio" placeholder="Ej: 185000"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Moneda</label>
+        <select class="form-control" id="prop-moneda">
+          <option>USD</option>
+          <option>GTQ</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Precio mínimo (negociación interna)</label>
+        <input type="text" class="form-control" id="prop-precio-min" placeholder="Solo para uso interno"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Comisión VE (%)</label>
+        <input type="number" class="form-control" id="prop-comision-ve" placeholder="25" value="25"/>
+      </div>
+    </div>
+
+    <!-- Sección: Media -->
+    <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;margin-top:.6rem;"><i class="fas fa-photo-video" style="margin-right:.3rem;"></i>Media</div>
+    <div class="form-group">
+      <label class="form-label">URLs de fotos (una por línea)</label>
+      <textarea class="form-control" id="prop-fotos" placeholder="https://... (1 URL por línea)" style="min-height:70px;"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Link Tour Virtual 3D</label>
+        <input type="url" class="form-control" id="prop-tour" placeholder="https://matterport.com/..."/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Video / Drone (YouTube)</label>
+        <input type="url" class="form-control" id="prop-video" placeholder="https://youtube.com/..."/>
+      </div>
+    </div>
+
+    <!-- Sección: Descripción -->
+    <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;margin-top:.6rem;"><i class="fas fa-align-left" style="margin-right:.3rem;"></i>Descripción</div>
+    <div class="form-group">
+      <label class="form-label">Descripción completa</label>
+      <textarea class="form-control" id="prop-descripcion" placeholder="Describe el inmueble con todos sus atributos y puntos de valor..." style="min-height:90px;"></textarea>
+    </div>
+
+    <!-- Sección: Estado CRM -->
+    <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;margin-top:.6rem;"><i class="fas fa-tasks" style="margin-right:.3rem;"></i>Estado CRM</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Estado de publicación</label>
+        <select class="form-control" id="prop-estado">
+          <option>Activa — en portafolio</option>
+          <option>Borrador</option>
+          <option>En revisión</option>
+          <option>Vendida</option>
+          <option>Rentada</option>
+          <option>Archivada</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Agente responsable</label>
+        <select class="form-control" id="prop-agente">
+          <option value="">— Sin asignar —</option>
+          <option>Admin VE</option>
+          <option>AGT-0003 — Cliente referido</option>
+          <option>AGT-0005 — Agente externo</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Notas internas</label>
+      <textarea class="form-control" id="prop-notas" placeholder="Notas de uso interno (no visibles al cliente)..." style="min-height:60px;"></textarea>
+    </div>
+
+    <div class="modal-actions" style="margin-top:1.4rem;">
+      <button class="topbar-btn btn-primary" onclick="guardarPropiedad()" style="flex:1;justify-content:center;">
+        <i class="fas fa-save"></i> Guardar propiedad
+      </button>
+      <button class="topbar-btn btn-sec" onclick="cerrarFormPropiedad()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showView(name, el) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+    if (el) el.classList.add('active');
+    const titles = {
+      dashboard:'Dashboard', leads:'Leads', clientes:'Clientes',
+      constructores:'Constructores', cotizaciones:'Cotizaciones',
+      proyectos:'Proyectos', propiedades:'Propiedades', reportes:'Reportes',
+      calendario:'Calendario', precios:'Precios', promos:'Códigos Promo', agentes:'Agentes / Referidos',
+      config:'Configuración'
+    };
+    document.getElementById('topbar-title').textContent = titles[name] || name;
+  }
+
+  function openModal() {
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+  function saveModal() {
+    closeModal();
+    // Aquí conectar con backend / base de datos
+  }
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  /* ── GENERADOR DE PROMOS ─────────────────────────────── */
+  function generarPromo(){
+    const prefix = document.getElementById('promo-prefix').value.trim().toUpperCase() || 'VE';
+    const tipo = document.getElementById('promo-tipo').value;
+    const valor = document.getElementById('promo-valor').value.trim();
+    const fecha = document.getElementById('promo-fecha').value;
+    if(!valor){ document.getElementById('promo-result').innerHTML='<span style="color:#E08080;">Ingresa el valor del descuento.</span>'; return; }
+    const suffix = Math.random().toString(36).substr(2,4).toUpperCase();
+    const code = prefix + suffix;
+    const tipoLabel = tipo==='porcentaje'?'Porcentaje':tipo==='fijo'?'Monto fijo':'Servicio específico';
+    const valLabel = tipo==='porcentaje'?`${valor}%`:`$${valor}`;
+    document.getElementById('promo-result').innerHTML=`
+      <div style="background:rgba(193,146,89,.1);border:1px solid var(--border);border-radius:3px;padding:.8rem;margin-top:.4rem;">
+        <div style="font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:.3rem;">Código generado</div>
+        <div style="font-size:1.1rem;font-weight:700;color:var(--gold);letter-spacing:.14em;">${code}</div>
+        <div style="font-size:.72rem;color:rgba(245,240,232,.6);margin-top:.3rem;">${tipoLabel} · ${valLabel}${fecha?' · Vence '+fecha:''}</div>
+      </div>`;
+    // Add to table
+    const tbody = document.getElementById('promo-tbody');
+    const tr = document.createElement('tr');
+    tr.innerHTML=`
+      <td style="color:var(--gold);font-weight:600;letter-spacing:.08em;">${code}</td>
+      <td>${tipoLabel} — ${valor}${tipo==='porcentaje'?'%':' USD'}</td>
+      <td>${tipoLabel}</td>
+      <td class="td-gold">${valLabel}</td>
+      <td style="color:var(--gray);">${fecha||'—'}</td>
+      <td><span class="badge badge-active">Activo</span></td>
+      <td><div class="action-btns"><button class="act-btn" title="Desactivar" onclick="togglePromo(this)"><i class="fas fa-pause"></i></button><button class="act-btn danger"><i class="fas fa-trash"></i></button></div></td>`;
+    tbody.prepend(tr);
+  }
+
+  function togglePromo(btn){
+    const row = btn.closest('tr');
+    const badge = row.querySelector('.badge');
+    const isActive = badge.classList.contains('badge-active');
+    badge.className = isActive ? 'badge badge-lost' : 'badge badge-active';
+    badge.textContent = isActive ? 'Inactivo' : 'Activo';
+    btn.querySelector('i').className = isActive ? 'fas fa-play' : 'fas fa-pause';
+  }
+
+  /* ── AGENTES ──────────────────────────────────────── */
+  function autorizarAgente(rowId, code, nombre){
+    const row = document.getElementById(rowId);
+    if(!row) return;
+    const badge = row.querySelector('.badge');
+    badge.style.background='rgba(90,224,138,.12)';
+    badge.style.color='#5AE08A';
+    badge.textContent='● Autorizado';
+    const btns = row.querySelector('.action-btns');
+    btns.innerHTML=`<button class="act-btn" onclick="window.open('https://wa.me/50239902399','_blank')"><i class="fab fa-whatsapp"></i></button>`;
+    // Update badge count
+    const nb = document.getElementById('agt-badge');
+    const cnt = parseInt(nb.textContent||'0');
+    if(cnt>1) nb.textContent=cnt-1; else nb.style.display='none';
+    showToast(`✅ Código ${code} autorizado para ${nombre}`);
+  }
+
+  function rechazarAgente(rowId){
+    const row = document.getElementById(rowId);
+    if(!row) return;
+    const badge = row.querySelector('.badge');
+    badge.style.background='rgba(224,128,128,.12)';
+    badge.style.color='#E08080';
+    badge.textContent='● Rechazado';
+    const btns = row.querySelector('.action-btns');
+    btns.innerHTML='';
+    const nb = document.getElementById('agt-badge');
+    const cnt = parseInt(nb.textContent||'0');
+    if(cnt>1) nb.textContent=cnt-1; else nb.style.display='none';
+    showToast('Solicitud rechazada');
+  }
+
+  function marcarPagado(btn, code){
+    const row = btn.closest('tr');
+    const pendiente = row.cells[5];
+    const estadoBadge = row.cells[6].querySelector('.badge, span');
+    const accionBtns = row.cells[7].querySelector('.action-btns');
+    pendiente.textContent='$0';
+    pendiente.style.color='#5AE08A';
+    if(estadoBadge){
+      estadoBadge.style.background='rgba(90,224,138,.1)';
+      estadoBadge.style.color='#5AE08A';
+      estadoBadge.textContent='Al día';
+    }
+    if(accionBtns) accionBtns.innerHTML=`<button class="act-btn" onclick="showToast('WhatsApp...')"><i class="fab fa-whatsapp"></i></button>`;
+    showToast(`✅ Comisión de ${code} marcada como pagada`);
+  }
+
+  function exportarComisiones(){
+    showToast('Generando reporte de comisiones (CSV)...');
+    // In production: generate and download CSV with agent data
+  }
+
+  /* ── COMISIÓN EJEMPLO DINÁMICO (#4) ─────────────────── */
+  function actualizarEjemploComision(){
+    const pct = parseFloat(document.getElementById('cfg-comision-pct').value) || 0;
+    const veComision = 500; // 25% de $2000
+    const agente = (veComision * pct / 100).toFixed(2);
+    const veRetiene = (veComision - agente).toFixed(2);
+    document.getElementById('ej-pct').textContent = pct;
+    document.getElementById('ej-agente').textContent = '$' + agente;
+    document.getElementById('ej-ve').textContent = '$' + veRetiene;
+  }
+
+  /* ── REPORTES (#3) ───────────────────────────────────── */
+  let rptPeriodo = 'week';
+  const RPT_SAMPLE = [
+    {f:'07 Abr 2026', cod:'COT-26-0009', tipo:'Cotización', concepto:'Tour Virtual 3D — Zona 10', cliente:'Carlos Muñoz', monto:850, estado:'Ganado'},
+    {f:'10 Abr 2026', cod:'COT-26-0010', tipo:'Cotización', concepto:'Paquete PREMIUM — Cayalá', cliente:'Sofía Pérez', monto:1800, estado:'Ganado'},
+    {f:'12 Abr 2026', cod:'PRO-26-0005', tipo:'Propiedad', concepto:'Apartamento Zona 14 — enlistado', cliente:'—', monto:0, estado:'Activa'},
+    {f:'14 Abr 2026', cod:'LEA-26-0022', tipo:'Lead', concepto:'Formulario web — AS BUILT', cliente:'Marcos López', monto:0, estado:'Nuevo'},
+    {f:'15 Abr 2026', cod:'COM-26-0003', tipo:'Comisión', concepto:'Agente AGT-0003 · COT-26-0010', cliente:'—', monto:144, estado:'Pendiente'},
+    {f:'17 Abr 2026', cod:'COT-26-0011', tipo:'Cotización', concepto:'AS BUILT + Video Drone', cliente:'Laura Reyes', monto:1200, estado:'En proceso'},
+    {f:'18 Abr 2026', cod:'LEA-26-0024', tipo:'Lead', concepto:'Instagram — Tour Virtual', cliente:'Diego Castro', monto:0, estado:'Contactado'},
+    {f:'20 Abr 2026', cod:'PRO-26-0006', tipo:'Propiedad', concepto:'Casa Villa Nueva — enlistada', cliente:'—', monto:0, estado:'Activa'},
+    {f:'21 Abr 2026', cod:'COM-26-0004', tipo:'Comisión', concepto:'Agente AGT-0005 · COT-26-0009', cliente:'—', monto:68, estado:'Pagado'},
+    {f:'22 Abr 2026', cod:'COT-26-0012', tipo:'Cotización', concepto:'Paquete BÁSICO — Mixco', cliente:'Ana González', monto:600, estado:'Enviada'},
+  ];
+  const TIPO_MAP = {
+    'Ventas cerradas':'Cotización','Propiedades activas':'Propiedad','Propiedades enlistadas':'Propiedad',
+    'Leads recibidos':'Lead','Cotizaciones':'Cotización','Agentes activos':'Agente','Comisiones':'Comisión'
+  };
+  const STATUS_COLORS = {
+    'Ganado':'rgba(90,224,138,.12)|#5AE08A','Activa':'rgba(90,224,138,.12)|#5AE08A',
+    'Pendiente':'rgba(240,192,64,.12)|#F0C040','En proceso':'rgba(240,192,64,.12)|#F0C040',
+    'Contactado':'rgba(240,192,64,.12)|#F0C040','Enviada':'rgba(100,160,255,.12)|#7AB0FF',
+    'Nuevo':'rgba(193,146,89,.12)|var(--gold)','Pagado':'rgba(90,224,138,.12)|#5AE08A','Perdido':'rgba(224,96,96,.12)|#E08080'
+  };
+
+  function setPeriodo(tipo, btn){
+    rptPeriodo = tipo;
+    document.querySelectorAll('.rpt-period').forEach(b=>b.classList.remove('active-period'));
+    btn.classList.add('active-period');
+    const custom = document.getElementById('rpt-custom-dates');
+    custom.style.display = tipo==='custom' ? 'flex' : 'none';
+  }
+
+  function generarReporte(){
+    const checks = [...document.querySelectorAll('.rpt-check:checked')].map(c=>c.value);
+    const allowedTipos = checks.map(c=>TIPO_MAP[c]).filter(Boolean);
+    const unique = [...new Set(allowedTipos)];
+    let data = RPT_SAMPLE.filter(r=> unique.length===0 || unique.includes(r.tipo));
+    // Filtrar por ventas cerradas = solo estado Ganado
+    if(checks.includes('Ventas cerradas')) data = data.filter(r=>r.tipo!=='Cotización'||r.estado==='Ganado');
+
+    // Render KPIs
+    const ventas = data.filter(r=>r.tipo==='Cotización'&&r.estado==='Ganado').length;
+    const ingresos = data.filter(r=>r.tipo==='Cotización'&&r.estado==='Ganado').reduce((s,r)=>s+r.monto,0);
+    const leads = data.filter(r=>r.tipo==='Lead').length;
+    const comisiones = data.filter(r=>r.tipo==='Comisión').reduce((s,r)=>s+r.monto,0);
+    document.getElementById('rpt-ventas').textContent = ventas;
+    document.getElementById('rpt-ventas-sub').textContent = ventas===1?'Proyecto cerrado':'Proyectos cerrados';
+    document.getElementById('rpt-ingresos').textContent = '$'+ingresos.toLocaleString();
+    document.getElementById('rpt-leads').textContent = leads;
+    document.getElementById('rpt-leads-sub').textContent = leads===1?'Lead recibido':'Leads recibidos';
+    document.getElementById('rpt-comisiones').textContent = '$'+comisiones.toLocaleString();
+    document.getElementById('rpt-kpis').style.display = 'grid';
+
+    // Render table
+    const tbody = document.getElementById('rpt-tbody');
+    if(data.length===0){
+      tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:2rem;">Sin registros para los filtros seleccionados</td></tr>';
+    } else {
+      tbody.innerHTML = data.map(r=>{
+        const [bg,fg] = (STATUS_COLORS[r.estado]||'rgba(255,255,255,.06)|var(--gray)').split('|');
+        const montoStr = r.monto>0 ? '<span style="color:var(--gold);font-weight:600;">$'+r.monto.toLocaleString()+'</span>' : '<span style="color:var(--gray);">—</span>';
+        return `<tr>
+          <td style="color:var(--gray);font-size:.72rem;">${r.f}</td>
+          <td style="color:var(--gold);font-weight:600;font-size:.75rem;">${r.cod}</td>
+          <td><span style="font-size:.6rem;padding:.15rem .5rem;border-radius:10px;font-weight:700;background:rgba(193,146,89,.1);color:var(--gold);">${r.tipo}</span></td>
+          <td style="font-size:.75rem;">${r.concepto}</td>
+          <td style="color:var(--gray);font-size:.75rem;">${r.cliente}</td>
+          <td>${montoStr}</td>
+          <td><span style="font-size:.6rem;padding:.15rem .5rem;border-radius:10px;font-weight:700;background:${bg};color:${fg};">${r.estado}</span></td>
+        </tr>`;
+      }).join('');
+    }
+
+    const periodo = {'week':'Esta semana','biweek':'Esta quincena','month':'Este mes','year':'Este año','custom':'Período personalizado'}[rptPeriodo]||'';
+    document.getElementById('rpt-title').textContent = `Reporte — ${periodo} (${data.length} registros)`;
+    const total = data.reduce((s,r)=>s+r.monto,0);
+    document.getElementById('rpt-footer-text').textContent = `${data.length} registros · ${checks.length} categorías seleccionadas`;
+    document.getElementById('rpt-total-text').textContent = total>0 ? 'Total: $'+total.toLocaleString() : '';
+    document.getElementById('rpt-table-wrap').style.display = 'block';
+    showToast('✅ Reporte generado');
+  }
+
+  function exportarReporte(){
+    const rows = [...document.querySelectorAll('#rpt-tbody tr')];
+    if(!rows.length){ showToast('Genera un reporte primero'); return; }
+    const headers = 'Fecha,Código,Tipo,Concepto,Cliente,Monto,Estado\n';
+    const csv = headers + RPT_SAMPLE.map(r=>`"${r.f}","${r.cod}","${r.tipo}","${r.concepto}","${r.cliente}","${r.monto}","${r.estado}"`).join('\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download='reporte-virtual-estate.csv'; a.click();
+    URL.revokeObjectURL(url);
+    showToast('✅ CSV exportado');
+  }
+
+  /* ── NUEVA PROPIEDAD MODAL (#6) ─────────────────────── */
+  function abrirFormPropiedad(){
+    document.getElementById('propModalOverlay').classList.add('open');
+  }
+  function cerrarFormPropiedad(){
+    document.getElementById('propModalOverlay').classList.remove('open');
+  }
+  function guardarPropiedad(){
+    const titulo = document.getElementById('prop-titulo').value.trim();
+    const tipo = document.getElementById('prop-tipo').value;
+    const precio = document.getElementById('prop-precio').value.trim();
+    if(!titulo||!tipo||!precio){ showToast('Completa los campos obligatorios (*)'); return; }
+    const cod = 'PRO-26-' + String(Math.floor(Math.random()*900)+100).padStart(4,'0');
+    showToast(`✅ Propiedad ${cod} creada — "${titulo}"`);
+    cerrarFormPropiedad();
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    document.getElementById('propModalOverlay').addEventListener('click',function(e){
+      if(e.target===this) cerrarFormPropiedad();
+    });
+  });
+</script>
+</body>
+</html>
