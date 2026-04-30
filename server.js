@@ -3,27 +3,29 @@ const express = require('express');
 const cors = require('cors');
 
 const app = express();
+const authMiddleware = require('./src/middleware/auth');
 
 app.use(cors());
 app.use(express.json());
-// Rutas
-// Rutas
+
+// Auth (pública — sin protección)
+const authRouter = require('./src/routes/auth');
+app.use('/api/auth', authRouter);
+
+// Rutas protegidas con JWT
 const leadsRouter = require('./src/routes/leads');
 const clientesRouter = require('./src/routes/clientes');
 const propiedadesRouter = require('./src/routes/propiedades');
 const proyectosRouter = require('./src/routes/proyectos');
 const cotizacionesRouter = require('./src/routes/cotizaciones');
 const agentesRouter = require('./src/routes/agentes');
-// Auth
-const authRouter = require('./src/routes/auth');
-app.use('/api/auth', authRouter);
 
-app.use('/api/leads', leadsRouter);
-app.use('/api/clientes', clientesRouter);
-app.use('/api/propiedades', propiedadesRouter);
-app.use('/api/proyectos', proyectosRouter);
-app.use('/api/cotizaciones', cotizacionesRouter);
-app.use('/api/agentes', agentesRouter);
+app.use('/api/leads', authMiddleware, leadsRouter);
+app.use('/api/clientes', authMiddleware, clientesRouter);
+app.use('/api/propiedades', authMiddleware, propiedadesRouter);
+app.use('/api/proyectos', authMiddleware, proyectosRouter);
+app.use('/api/cotizaciones', authMiddleware, cotizacionesRouter);
+app.use('/api/agentes', authMiddleware, agentesRouter);
 
 const PORT = process.env.PORT || 3000;
 

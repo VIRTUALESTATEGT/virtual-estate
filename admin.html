@@ -282,6 +282,29 @@
 </head>
 <body>
 
+<!-- ── LOGIN OVERLAY ──────────────────────────────────────────── -->
+<div id="login-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:2.5rem;width:min(400px,90vw);">
+    <div style="text-align:center;margin-bottom:1.8rem;">
+      <div style="width:52px;height:52px;background:rgba(193,146,89,.12);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .9rem;"><i class="fas fa-shield-alt" style="color:var(--gold);font-size:1.1rem;"></i></div>
+      <div style="font-family:'Raleway',sans-serif;font-size:1.15rem;font-weight:600;letter-spacing:.04em;">Virtual Estate CRM</div>
+      <div style="font-size:.7rem;color:var(--gray);margin-top:.3rem;">Acceso solo para equipo autorizado</div>
+    </div>
+    <div style="margin-bottom:.9rem;">
+      <label class="form-label">Email</label>
+      <input type="email" id="login-email" class="form-control" placeholder="correo@virtualestate.gt" autofocus onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <div style="margin-bottom:1.3rem;">
+      <label class="form-label">Contraseña</label>
+      <input type="password" id="login-password" class="form-control" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <div id="login-error" style="display:none;color:#E08080;font-size:.72rem;margin-bottom:.8rem;text-align:center;"></div>
+    <button id="login-btn" onclick="doLogin()" class="topbar-btn btn-primary" style="width:100%;justify-content:center;padding:.75rem;font-size:.8rem;">
+      <i class="fas fa-sign-in-alt"></i> Ingresar
+    </button>
+  </div>
+</div>
+
 <!-- ── SIDEBAR ─────────────────────────────────────────── -->
 <aside class="sidebar">
   <div class="sidebar-logo">
@@ -350,10 +373,13 @@
     <div class="user-pill">
       <div class="user-avatar"><i class="fas fa-user"></i></div>
       <div>
-        <div class="user-name">Hector Rodas</div>
-        <div class="user-role">Super Admin</div>
+        <div class="user-name" id="sidebar-nombre">—</div>
+        <div class="user-role" id="sidebar-rol">—</div>
       </div>
     </div>
+    <button onclick="logout()" style="width:100%;margin-top:.7rem;padding:.45rem;background:transparent;border:1px solid var(--border);color:var(--gray);border-radius:3px;font-size:.68rem;cursor:pointer;font-family:'Montserrat',sans-serif;transition:.2s;" onmouseover="this.style.borderColor='#E08080';this.style.color='#E08080'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--gray)'">
+      <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+    </button>
   </div>
 </aside>
 
@@ -381,16 +407,16 @@
         <div class="kpi-card">
           <div>
             <div class="kpi-label">Leads Activos</div>
-            <div class="kpi-value">12</div>
-            <div class="kpi-sub up"><i class="fas fa-arrow-up"></i> +3 esta semana</div>
+            <div class="kpi-value" id="kpi-leads">—</div>
+            <div class="kpi-sub up" id="kpi-leads-badge"></div>
           </div>
           <div class="kpi-icon" style="background:rgba(110,170,255,.1); color:#6EAAFF;"><i class="fas fa-funnel-dollar"></i></div>
         </div>
         <div class="kpi-card">
           <div>
             <div class="kpi-label">Proyectos Activos</div>
-            <div class="kpi-value">5</div>
-            <div class="kpi-sub">2 en proceso</div>
+            <div class="kpi-value" id="kpi-proyectos">—</div>
+            <div class="kpi-sub" id="kpi-proyectos-sub"></div>
           </div>
           <div class="kpi-icon" style="background:rgba(193,146,89,.12); color:var(--gold);"><i class="fas fa-tasks"></i></div>
         </div>
@@ -405,8 +431,8 @@
         <div class="kpi-card">
           <div>
             <div class="kpi-label">Propiedades</div>
-            <div class="kpi-value">8</div>
-            <div class="kpi-sub">3 en portafolio</div>
+            <div class="kpi-value" id="kpi-propiedades">—</div>
+            <div class="kpi-sub" id="kpi-propiedades-sub"></div>
           </div>
           <div class="kpi-icon" style="background:rgba(193,146,89,.1); color:var(--gold);"><i class="fas fa-building"></i></div>
         </div>
@@ -562,50 +588,9 @@
           <thead>
             <tr><th>ID</th><th>Nombre</th><th>Empresa</th><th>Servicio</th><th>Fuente</th><th>Presupuesto</th><th>Estado</th><th>Seguimiento</th><th>Acciones</th></tr>
           </thead>
-          <tbody>
+          <tbody id="leads-tbody">
             <tr>
-              <td style="color:var(--gray);">LEAD-26-0012</td>
-              <td><span class="td-bold">Ana García</span><br/><span style="color:var(--gray);font-size:.68rem;">ana@correo.com · +502 5000-0001</span></td>
-              <td>Inmobiliaria XYZ</td>
-              <td>Tour Virtual</td>
-              <td>Formulario web</td>
-              <td class="td-gold">$450–600</td>
-              <td><span class="badge badge-new">Nuevo</span></td>
-              <td style="color:var(--gray);">21 Abr</td>
-              <td><div class="action-btns"><button class="act-btn" title="Ver"><i class="fas fa-eye"></i></button><button class="act-btn" title="Editar"><i class="fas fa-pen"></i></button><button class="act-btn danger" title="Eliminar"><i class="fas fa-trash"></i></button></div></td>
-            </tr>
-            <tr>
-              <td style="color:var(--gray);">LEAD-26-0011</td>
-              <td><span class="td-bold">Carlos Méndez</span><br/><span style="color:var(--gray);font-size:.68rem;">carlos@arq.com · +502 5000-0002</span></td>
-              <td>Independiente</td>
-              <td>AS BUILT</td>
-              <td>Referido</td>
-              <td class="td-gold">$850</td>
-              <td><span class="badge badge-quote">Cotizado</span></td>
-              <td style="color:var(--gray);">22 Abr</td>
-              <td><div class="action-btns"><button class="act-btn"><i class="fas fa-eye"></i></button><button class="act-btn"><i class="fas fa-pen"></i></button><button class="act-btn danger"><i class="fas fa-trash"></i></button></div></td>
-            </tr>
-            <tr>
-              <td style="color:var(--gray);">LEAD-26-0010</td>
-              <td><span class="td-bold">Sofía Barrios</span><br/><span style="color:var(--gray);font-size:.68rem;">sofia@dev.com · +502 5000-0003</span></td>
-              <td>Desarrolladora Sur</td>
-              <td>Paquete Premium</td>
-              <td>Instagram</td>
-              <td class="td-gold">$1,000</td>
-              <td><span class="badge badge-contact">Contactado</span></td>
-              <td style="color:var(--gray);">22 Abr</td>
-              <td><div class="action-btns"><button class="act-btn"><i class="fas fa-eye"></i></button><button class="act-btn"><i class="fas fa-pen"></i></button><button class="act-btn danger"><i class="fas fa-trash"></i></button></div></td>
-            </tr>
-            <tr>
-              <td style="color:var(--gray);">LEAD-26-0009</td>
-              <td><span class="td-bold">Roberto Lima</span><br/><span style="color:var(--gray);font-size:.68rem;">roberto@cnorte.com · +502 5000-0004</span></td>
-              <td>Constructora Norte</td>
-              <td>Construcción</td>
-              <td>WhatsApp</td>
-              <td class="td-gold">$2,800</td>
-              <td><span class="badge badge-won">Ganado</span></td>
-              <td style="color:var(--gray);">—</td>
-              <td><div class="action-btns"><button class="act-btn"><i class="fas fa-eye"></i></button><button class="act-btn"><i class="fas fa-pen"></i></button><button class="act-btn danger"><i class="fas fa-trash"></i></button></div></td>
+              <td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando leads...</td>
             </tr>
           </tbody>
         </table>
@@ -1395,7 +1380,7 @@
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Nombre *</label>
-        <input type="text" class="form-control" placeholder="Nombre"/>
+        <input type="text" id="lead-nombre" class="form-control" placeholder="Nombre"/>
       </div>
       <div class="form-group">
         <label class="form-label">Apellido</label>
@@ -1405,16 +1390,16 @@
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Email *</label>
-        <input type="email" class="form-control" placeholder="correo@ejemplo.com"/>
+        <input type="email" id="lead-email" class="form-control" placeholder="correo@ejemplo.com"/>
       </div>
       <div class="form-group">
         <label class="form-label">Teléfono</label>
-        <input type="tel" class="form-control" placeholder="+502 0000-0000"/>
+        <input type="tel" id="lead-telefono" class="form-control" placeholder="+502 0000-0000"/>
       </div>
     </div>
     <div class="form-group">
       <label class="form-label">Empresa</label>
-      <input type="text" class="form-control" placeholder="Nombre de empresa (opcional)"/>
+      <input type="text" id="lead-empresa" class="form-control" placeholder="Nombre de empresa (opcional)"/>
     </div>
     <div class="form-row">
       <div class="form-group">
@@ -1447,7 +1432,7 @@
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Estado</label>
-        <select class="form-control">
+        <select id="lead-estado" class="form-control">
           <option>Nuevo</option>
           <option>Contactado</option>
           <option>En seguimiento</option>
@@ -1665,6 +1650,158 @@
 </div>
 
 <script>
+  /* ── API & AUTH ─────────────────────────────────────────── */
+  const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:3000' : '';
+
+  const getToken = () => localStorage.getItem('ve_token');
+  const getUsuario = () => { try { return JSON.parse(localStorage.getItem('ve_usuario')); } catch { return null; } };
+
+  async function apiFetch(path, options = {}) {
+    const res = await fetch(API_URL + path, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken(), ...(options.headers || {}) }
+    });
+    if (res.status === 401) { logout(); throw new Error('Sesión expirada'); }
+    if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || res.statusText); }
+    return res.json();
+  }
+
+  function logout() {
+    localStorage.removeItem('ve_token');
+    localStorage.removeItem('ve_usuario');
+    const ov = document.getElementById('login-overlay');
+    ov.style.display = 'flex';
+  }
+
+  async function doLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const errEl = document.getElementById('login-error');
+    const btn = document.getElementById('login-btn');
+    if (!email || !password) { errEl.textContent = 'Completa email y contraseña'; errEl.style.display = 'block'; return; }
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ingresando...';
+    errEl.style.display = 'none';
+    try {
+      const res = await fetch(API_URL + '/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) { errEl.textContent = data.error || 'Credenciales incorrectas'; errEl.style.display = 'block'; return; }
+      localStorage.setItem('ve_token', data.token);
+      localStorage.setItem('ve_usuario', JSON.stringify(data.usuario));
+      document.getElementById('login-overlay').style.display = 'none';
+      initApp();
+    } catch (e) {
+      errEl.textContent = 'Error de conexión con el servidor';
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Ingresar';
+    }
+  }
+
+  async function checkAuth() {
+    const token = getToken();
+    if (!token) { document.getElementById('login-overlay').style.display = 'flex'; return; }
+    try {
+      const res = await fetch(API_URL + '/api/auth/verify', { headers: { 'Authorization': 'Bearer ' + token } });
+      if (!res.ok) { logout(); } else { initApp(); }
+    } catch {
+      initApp(); // servidor offline en dev — seguimos con el token local
+    }
+  }
+
+  function initApp() {
+    const u = getUsuario();
+    if (u) {
+      document.getElementById('sidebar-nombre').textContent = u.nombre || 'Admin';
+      document.getElementById('sidebar-rol').textContent = u.rol || 'usuario';
+    }
+    loadDashboard();
+  }
+
+  /* ── DASHBOARD KPIs ──────────────────────────────────────── */
+  async function loadDashboard() {
+    try {
+      const [leads, proyectos, propiedades] = await Promise.all([
+        apiFetch('/api/leads'),
+        apiFetch('/api/proyectos'),
+        apiFetch('/api/propiedades'),
+      ]);
+      const activos = leads.filter(l => !['Ganado','Perdido'].includes(l.estado));
+      const nuevos = leads.filter(l => l.estado === 'Nuevo').length;
+      document.getElementById('kpi-leads').textContent = activos.length;
+      document.getElementById('kpi-leads-badge').innerHTML = nuevos > 0
+        ? `<i class="fas fa-arrow-up"></i> ${nuevos} nuevos`
+        : `${leads.length} total`;
+      const enProceso = proyectos.filter(p => p.estado !== 'Entregado' && p.estado !== 'Cancelado');
+      document.getElementById('kpi-proyectos').textContent = enProceso.length;
+      document.getElementById('kpi-proyectos-sub').textContent = `${proyectos.length} total`;
+      document.getElementById('kpi-propiedades').textContent = propiedades.length;
+      document.getElementById('kpi-propiedades-sub').textContent = 'en portafolio';
+      const badge = document.querySelector('[onclick*="\'leads\'"] .nav-badge, [onclick*="leads,"] .nav-badge');
+      if (badge && nuevos > 0) { badge.textContent = nuevos; badge.style.display = ''; }
+      else if (badge) badge.style.display = 'none';
+    } catch (e) { console.warn('Dashboard KPIs:', e.message); }
+  }
+
+  /* ── LEADS TABLE ────────────────────────────────────────── */
+  async function loadLeads() {
+    const tbody = document.getElementById('leads-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
+    try {
+      const leads = await apiFetch('/api/leads');
+      if (!leads.length) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay leads. ¡Crea el primero!</td></tr>';
+        return;
+      }
+      const BADGE = { 'Nuevo':'badge-new','Contactado':'badge-contact','En seguimiento':'badge-contact','Cotizado':'badge-quote','Ganado':'badge-won','Perdido':'badge-lost' };
+      tbody.innerHTML = leads.map(l => `<tr>
+        <td style="color:var(--gray);font-size:.72rem;">${l.id || '—'}</td>
+        <td><span class="td-bold">${l.nombre||'—'}</span><br/><span style="color:var(--gray);font-size:.68rem;">${l.email||''}${l.telefono?' · '+l.telefono:''}</span></td>
+        <td>${l.empresa||'—'}</td>
+        <td>${l.servicio||'—'}</td>
+        <td>${l.fuente||'—'}</td>
+        <td class="td-gold">${l.presupuesto||'—'}</td>
+        <td><span class="badge ${BADGE[l.estado]||'badge-new'}">${l.estado||'Nuevo'}</span></td>
+        <td style="color:var(--gray);">${l.seguimiento||'—'}</td>
+        <td><div class="action-btns"><button class="act-btn danger" title="Eliminar" onclick="deleteLead(${l.id})"><i class="fas fa-trash"></i></button></div></td>
+      </tr>`).join('');
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;
+    }
+  }
+
+  async function deleteLead(id) {
+    if (!confirm('¿Eliminar este lead? Esta acción no se puede deshacer.')) return;
+    try {
+      await apiFetch('/api/leads/' + id, { method: 'DELETE' });
+      showToast('Lead eliminado');
+      loadLeads();
+      loadDashboard();
+    } catch (e) { showToast('Error al eliminar: ' + e.message); }
+  }
+
+  /* ── TOAST ──────────────────────────────────────────────── */
+  function showToast(msg) {
+    let t = document.getElementById('_toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = '_toast';
+      t.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;background:#1E3028;border:1px solid rgba(193,146,89,.3);color:#F5F0E8;padding:.75rem 1.2rem;border-radius:4px;font-size:.8rem;z-index:10000;transition:opacity .3s;pointer-events:none;';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.opacity = '1';
+    clearTimeout(t._tmr);
+    t._tmr = setTimeout(() => { t.style.opacity = '0'; }, 3000);
+  }
+
   function showView(name, el) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -1678,6 +1815,7 @@
       config:'Configuración'
     };
     document.getElementById('topbar-title').textContent = titles[name] || name;
+    if (name === 'leads') loadLeads();
   }
 
   function openModal() {
@@ -1685,10 +1823,31 @@
   }
   function closeModal() {
     document.getElementById('modalOverlay').classList.remove('open');
+    ['lead-nombre','lead-email','lead-telefono','lead-empresa'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
   }
-  function saveModal() {
-    closeModal();
-    // Aquí conectar con backend / base de datos
+  async function saveModal() {
+    const nombre = document.getElementById('lead-nombre').value.trim();
+    const email = document.getElementById('lead-email').value.trim();
+    if (!nombre || !email) { showToast('Nombre y email son requeridos'); return; }
+    const payload = {
+      nombre,
+      email,
+      telefono: document.getElementById('lead-telefono').value.trim(),
+      empresa: document.getElementById('lead-empresa').value.trim(),
+      estado: document.getElementById('lead-estado').value,
+    };
+    try {
+      await apiFetch('/api/leads', { method: 'POST', body: JSON.stringify(payload) });
+      closeModal();
+      showToast('✅ Lead guardado');
+      loadLeads();
+      loadDashboard();
+    } catch (e) {
+      showToast('Error al guardar lead: ' + e.message);
+    }
   }
   document.getElementById('modalOverlay').addEventListener('click', function(e) {
     if (e.target === this) closeModal();
@@ -1914,6 +2073,7 @@
     document.getElementById('propModalOverlay').addEventListener('click',function(e){
       if(e.target===this) cerrarFormPropiedad();
     });
+    checkAuth();
   });
 </script>
 </body>
