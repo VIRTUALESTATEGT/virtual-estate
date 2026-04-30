@@ -14,6 +14,9 @@ const propiedadesRouter = require('./src/routes/propiedades');
 const proyectosRouter = require('./src/routes/proyectos');
 const cotizacionesRouter = require('./src/routes/cotizaciones');
 const agentesRouter = require('./src/routes/agentes');
+// Auth
+const authRouter = require('./src/routes/auth');
+app.use('/api/auth', authRouter);
 
 app.use('/api/leads', leadsRouter);
 app.use('/api/clientes', clientesRouter);
