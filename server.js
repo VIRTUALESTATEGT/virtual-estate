@@ -29,7 +29,7 @@ app.use('/api/agentes', authMiddleware, agentesRouter);
 
 // Archivos estáticos (HTML, imágenes, etc.) — después de las rutas API
 // dotfiles:'ignore' evita que .env sea accesible por HTTP
-app.use(express.static('.', { dotfiles: 'ignore' }));
+app.use(express.static(__dirname, { dotfiles: 'ignore' }));
 
 const PORT = process.env.PORT || 3000;
 
