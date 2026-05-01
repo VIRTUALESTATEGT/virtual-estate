@@ -27,6 +27,10 @@ app.use('/api/proyectos', authMiddleware, proyectosRouter);
 app.use('/api/cotizaciones', authMiddleware, cotizacionesRouter);
 app.use('/api/agentes', authMiddleware, agentesRouter);
 
+// Archivos estáticos (HTML, imágenes, etc.) — después de las rutas API
+// dotfiles:'ignore' evita que .env sea accesible por HTTP
+app.use(express.static('.', { dotfiles: 'ignore' }));
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
