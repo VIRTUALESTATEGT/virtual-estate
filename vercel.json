@@ -6,7 +6,12 @@
       "use": "@vercel/node",
       "config": {
         "includeFiles": [
-          "*.html",
+          "index.html",
+          "admin.html",
+          "portal.html",
+          "real-estate.html",
+          "as-built.html",
+          "construccion.html",
           "images/**",
           "documentos/**"
         ]

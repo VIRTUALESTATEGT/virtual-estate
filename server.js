@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 const authMiddleware = require('./src/middleware/auth');
@@ -27,9 +28,20 @@ app.use('/api/proyectos', authMiddleware, proyectosRouter);
 app.use('/api/cotizaciones', authMiddleware, cotizacionesRouter);
 app.use('/api/agentes', authMiddleware, agentesRouter);
 
-// Archivos estáticos (HTML, imágenes, etc.) — después de las rutas API
-// dotfiles:'ignore' evita que .env sea accesible por HTTP
-app.use(express.static(__dirname, { dotfiles: 'ignore' }));
+// Páginas HTML — rutas explícitas con sendFile para funcionar en Vercel Lambda
+// (express.static con directory scan no es confiable en entornos serverless)
+const html = (file) => (req, res) => res.sendFile(path.join(__dirname, file));
+app.get('/',                html('index.html'));
+app.get('/index.html',      html('index.html'));
+app.get('/admin.html',      html('admin.html'));
+app.get('/portal.html',     html('portal.html'));
+app.get('/real-estate.html',html('real-estate.html'));
+app.get('/as-built.html',   html('as-built.html'));
+app.get('/construccion.html',html('construccion.html'));
+
+// Assets estáticos (imágenes, documentos)
+app.use('/images',    express.static(path.join(__dirname, 'images'),    { dotfiles: 'ignore' }));
+app.use('/documentos',express.static(path.join(__dirname, 'documentos'),{ dotfiles: 'ignore' }));
 
 const PORT = process.env.PORT || 3000;
 
