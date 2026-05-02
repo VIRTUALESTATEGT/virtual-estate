@@ -43,8 +43,13 @@ app.get('/construccion.html',html('construccion.html'));
 app.use('/images',    express.static(path.join(__dirname, 'images'),    { dotfiles: 'ignore' }));
 app.use('/documentos',express.static(path.join(__dirname, 'documentos'),{ dotfiles: 'ignore' }));
 
-const PORT = process.env.PORT || 3000;
+// Exportar el app para Vercel (api/index.js lo importa)
+module.exports = app;
 
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
-});
+// app.listen solo cuando se corre directamente (desarrollo local)
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Servidor corriendo en puerto ${PORT}`);
+  });
+}

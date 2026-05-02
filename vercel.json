@@ -1,24 +1,5 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "server.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": [
-          "index.html",
-          "admin.html",
-          "portal.html",
-          "real-estate.html",
-          "as-built.html",
-          "construccion.html",
-          "images/**",
-          "documentos/**"
-        ]
-      }
-    }
-  ],
-  "routes": [
-    { "src": "/(.*)", "dest": "server.js" }
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/index" }
   ]
 }
