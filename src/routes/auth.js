@@ -11,22 +11,17 @@ const JWT_EXPIRES = '8h';
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log('[login] email:', email, '| password length:', password?.length);
-
     const { data, error } = await supabase
       .from('usuarios')
       .select('*')
       .eq('email', email)
       .single();
 
-    console.log('[login] supabase error:', error?.message || null, '| found user:', !!data);
-
     if (error || !data) {
       return res.status(401).json({ error: 'Email o contraseña incorrectos' });
     }
 
     const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
-    console.log('[login] hash computed:', hashedPassword, '| db hash:', data.password, '| match:', data.password === hashedPassword);
 
     if (data.password !== hashedPassword) {
       return res.status(401).json({ error: 'Email o contraseña incorrectos' });
