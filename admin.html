@@ -602,46 +602,14 @@
       <div class="table-wrap">
         <div class="table-head">
           <span class="table-head-title">Cotizaciones</span>
-          <button class="topbar-btn btn-primary"><i class="fas fa-plus"></i> Nueva Cotización</button>
+          <button class="topbar-btn btn-primary" onclick="openCotizacionModal()"><i class="fas fa-plus"></i> Nueva Cotización</button>
         </div>
         <table>
           <thead>
-            <tr><th>ID</th><th>Cliente</th><th>Servicio</th><th>M² Const.</th><th>Total</th><th>Anticipo</th><th>Estado</th><th>Válida hasta</th><th>Acciones</th></tr>
+            <tr><th>ID</th><th>Cliente ID</th><th>Proyecto ID</th><th>Monto</th><th>Anticipo</th><th>Estado</th><th>Acciones</th></tr>
           </thead>
-          <tbody>
-            <tr>
-              <td style="color:var(--gray);">COT-26-0008</td>
-              <td class="td-bold">Carlos Méndez</td>
-              <td>AS BUILT — Planos PDF + 3D</td>
-              <td>180 m²</td>
-              <td class="td-gold">$990</td>
-              <td style="color:var(--gray);">$495</td>
-              <td><span class="badge badge-quote">Enviada</span></td>
-              <td style="color:var(--gray);">27 Abr</td>
-              <td><div class="action-btns"><button class="act-btn"><i class="fas fa-download"></i></button><button class="act-btn"><i class="fas fa-pen"></i></button></div></td>
-            </tr>
-            <tr>
-              <td style="color:var(--gray);">COT-26-0007</td>
-              <td class="td-bold">Roberto Lima</td>
-              <td>Tour Virtual Grande</td>
-              <td>320 m²</td>
-              <td class="td-gold">$560</td>
-              <td style="color:var(--gray);">$280</td>
-              <td><span class="badge badge-won">Aprobada</span></td>
-              <td style="color:var(--gray);">—</td>
-              <td><div class="action-btns"><button class="act-btn"><i class="fas fa-download"></i></button><button class="act-btn"><i class="fas fa-pen"></i></button></div></td>
-            </tr>
-            <tr>
-              <td style="color:var(--gray);">COT-26-0006</td>
-              <td class="td-bold">Sofía Barrios</td>
-              <td>Paquete PREMIUM</td>
-              <td>—</td>
-              <td class="td-gold">$1,000</td>
-              <td style="color:var(--gray);">$500</td>
-              <td><span class="badge badge-contact">Pendiente</span></td>
-              <td style="color:var(--gray);">25 Abr</td>
-              <td><div class="action-btns"><button class="act-btn"><i class="fas fa-download"></i></button><button class="act-btn"><i class="fas fa-pen"></i></button></div></td>
-            </tr>
+          <tbody id="cotizaciones-tbody">
+            <tr><td colspan="7" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -652,21 +620,12 @@
       <div class="table-wrap">
         <div class="table-head">
           <span class="table-head-title">Base de Clientes</span>
-          <button class="topbar-btn btn-primary"><i class="fas fa-plus"></i> Nuevo Cliente</button>
+          <button class="topbar-btn btn-primary" onclick="openClienteModal()"><i class="fas fa-plus"></i> Nuevo Cliente</button>
         </div>
         <table>
           <thead><tr><th>ID</th><th>Nombre</th><th>Empresa</th><th>Tipo</th><th>Email</th><th>Teléfono</th><th>Alta</th><th>Acciones</th></tr></thead>
-          <tbody>
-            <tr>
-              <td style="color:var(--gray);">CLI-26-0001</td>
-              <td class="td-bold">Roberto Lima</td>
-              <td>Constructora Norte</td>
-              <td>Empresa</td>
-              <td style="color:var(--gray);">roberto@cnorte.com</td>
-              <td style="color:var(--gray);">+502 5000-0004</td>
-              <td style="color:var(--gray);">18 Abr 2026</td>
-              <td><div class="action-btns"><button class="act-btn"><i class="fas fa-eye"></i></button><button class="act-btn"><i class="fas fa-pen"></i></button></div></td>
-            </tr>
+          <tbody id="clientes-tbody">
+            <tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -701,44 +660,13 @@
     <div class="view" id="view-proyectos">
       <div class="table-wrap">
         <div class="table-head">
-          <span class="table-head-title">Proyectos Activos</span>
-          <button class="topbar-btn btn-primary"><i class="fas fa-plus"></i> Nuevo Proyecto</button>
+          <span class="table-head-title">Proyectos</span>
+          <button class="topbar-btn btn-primary" onclick="openProyectoModal()"><i class="fas fa-plus"></i> Nuevo Proyecto</button>
         </div>
         <table>
-          <thead><tr><th>ID</th><th>Cliente</th><th>Servicio</th><th>M² Const.</th><th>Inicio</th><th>Entrega Est.</th><th>Avance</th><th>Valor</th><th>Estado</th></tr></thead>
-          <tbody>
-            <tr>
-              <td class="td-bold">PRY-26-0005</td>
-              <td>Roberto Lima</td>
-              <td>Tour Virtual Grande</td>
-              <td>320 m²</td>
-              <td style="color:var(--gray);">18 Abr</td>
-              <td style="color:var(--gray);">25 Abr</td>
-              <td>
-                <div style="display:flex;align-items:center;gap:.5rem;">
-                  <div class="prog-wrap" style="width:70px;"><div class="prog-bar" style="width:65%;"></div></div>
-                  <span style="font-size:.7rem;color:var(--gray);">65%</span>
-                </div>
-              </td>
-              <td class="td-gold">$560</td>
-              <td><span class="badge badge-process">En proceso</span></td>
-            </tr>
-            <tr>
-              <td class="td-bold">PRY-26-0004</td>
-              <td>Sofía Barrios</td>
-              <td>AS BUILT Completo</td>
-              <td>180 m²</td>
-              <td style="color:var(--gray);">20 Abr</td>
-              <td style="color:var(--gray);">28 Abr</td>
-              <td>
-                <div style="display:flex;align-items:center;gap:.5rem;">
-                  <div class="prog-wrap" style="width:70px;"><div class="prog-bar" style="width:30%;background:#6EAAFF;"></div></div>
-                  <span style="font-size:.7rem;color:var(--gray);">30%</span>
-                </div>
-              </td>
-              <td class="td-gold">$1,350</td>
-              <td><span class="badge badge-process">En proceso</span></td>
-            </tr>
+          <thead><tr><th>ID</th><th>Nombre</th><th>Cliente ID</th><th>Inicio</th><th>Fin Est.</th><th>Avance</th><th>Valor</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="proyectos-tbody">
+            <tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -752,41 +680,9 @@
           <button class="topbar-btn btn-primary" onclick="abrirFormPropiedad()"><i class="fas fa-plus"></i> Nueva Propiedad</button>
         </div>
         <table>
-          <thead><tr><th>Código</th><th>Título</th><th>Tipo</th><th>Modalidad</th><th>Precio</th><th>M² Const.</th><th>Zona</th><th>Tour 3D</th><th>Estado CRM</th></tr></thead>
-          <tbody>
-            <tr>
-              <td class="td-bold">PRO-26-0001</td>
-              <td>Apartamento Zona 14</td>
-              <td>Apartamento</td>
-              <td><span class="badge badge-venta">Venta</span></td>
-              <td class="td-gold">$185,000</td>
-              <td>145 m²</td>
-              <td>Zona 14</td>
-              <td><i class="fas fa-check-circle" style="color:#5AE08A;"></i> Activo</td>
-              <td><span class="badge badge-active">Publicado</span></td>
-            </tr>
-            <tr>
-              <td class="td-bold">PRO-26-0002</td>
-              <td>Casa Colonia Oakland</td>
-              <td>Casa</td>
-              <td><span class="badge badge-venta">Venta</span></td>
-              <td class="td-gold">$320,000</td>
-              <td>290 m²</td>
-              <td>Villa Nueva</td>
-              <td><i class="fas fa-check-circle" style="color:#5AE08A;"></i> Activo</td>
-              <td><span class="badge badge-active">Publicado</span></td>
-            </tr>
-            <tr>
-              <td class="td-bold">PRO-26-0003</td>
-              <td>Oficina Pradera T4</td>
-              <td>Oficina</td>
-              <td><span class="badge badge-renta">Renta</span></td>
-              <td class="td-gold">$1,200/mes</td>
-              <td>95 m²</td>
-              <td>Zona 10</td>
-              <td><i class="fas fa-check-circle" style="color:#5AE08A;"></i> Activo</td>
-              <td><span class="badge badge-active">Publicado</span></td>
-            </tr>
+          <thead><tr><th>ID</th><th>Título</th><th>Tipo</th><th>Modalidad</th><th>Precio</th><th>M²</th><th>Zona</th><th>Tour 3D</th><th>Acciones</th></tr></thead>
+          <tbody id="propiedades-tbody">
+            <tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -1138,6 +1034,20 @@
                 </div>
               </td>
             </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Agentes en base de datos -->
+      <div class="table-wrap" style="margin-top:1.4rem;">
+        <div class="table-head">
+          <span class="table-head-title">Agentes — Base de Datos</span>
+          <button class="topbar-btn btn-primary" onclick="openAgenteModal()"><i class="fas fa-plus"></i> Nuevo Agente</button>
+        </div>
+        <table>
+          <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Comisión</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="agentes-tbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -1649,6 +1559,107 @@
   </div>
 </div>
 
+<!-- ── MODAL: NUEVO CLIENTE ──────────────────────────────────── -->
+<div class="modal-overlay" id="clienteModal">
+  <div class="modal">
+    <div class="modal-title">Nuevo Cliente</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nombre *</label><input type="text" id="cl-nombre" class="form-control" placeholder="Nombre completo"/></div>
+      <div class="form-group"><label class="form-label">Empresa</label><input type="text" id="cl-empresa" class="form-control" placeholder="Empresa (opcional)"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Email *</label><input type="email" id="cl-email" class="form-control" placeholder="correo@ejemplo.com"/></div>
+      <div class="form-group"><label class="form-label">Teléfono</label><input type="tel" id="cl-telefono" class="form-control" placeholder="+502 0000-0000"/></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tipo</label>
+      <select id="cl-tipo" class="form-control">
+        <option>Persona</option><option>Empresa</option><option>Desarrolladora</option><option>Agencia Inmobiliaria</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="topbar-btn btn-primary" onclick="saveCliente()" style="flex:1;justify-content:center;"><i class="fas fa-save"></i> Guardar</button>
+      <button class="topbar-btn btn-sec" onclick="closeClienteModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: NUEVO PROYECTO ──────────────────────────────────── -->
+<div class="modal-overlay" id="proyectoModal">
+  <div class="modal">
+    <div class="modal-title">Nuevo Proyecto</div>
+    <div class="form-group"><label class="form-label">Nombre del proyecto *</label><input type="text" id="pr-nombre" class="form-control" placeholder="Nombre del proyecto"/></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Cliente ID</label><input type="number" id="pr-cliente-id" class="form-control" placeholder="ID del cliente"/></div>
+      <div class="form-group"><label class="form-label">Valor (USD)</label><input type="number" id="pr-valor" class="form-control" placeholder="0"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Fecha Inicio</label><input type="date" id="pr-inicio" class="form-control"/></div>
+      <div class="form-group"><label class="form-label">Fecha Fin est.</label><input type="date" id="pr-fin" class="form-control"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Estado</label>
+        <select id="pr-estado" class="form-control">
+          <option>Activo</option><option>En proceso</option><option>Entregado</option><option>Cancelado</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Progreso (%)</label><input type="number" id="pr-progreso" class="form-control" placeholder="0" min="0" max="100"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="topbar-btn btn-primary" onclick="saveProyecto()" style="flex:1;justify-content:center;"><i class="fas fa-save"></i> Guardar</button>
+      <button class="topbar-btn btn-sec" onclick="closeProyectoModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: NUEVA COTIZACIÓN ──────────────────────────────────── -->
+<div class="modal-overlay" id="cotizacionModal">
+  <div class="modal">
+    <div class="modal-title">Nueva Cotización</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Cliente ID</label><input type="number" id="cot-cliente-id" class="form-control" placeholder="ID del cliente"/></div>
+      <div class="form-group"><label class="form-label">Proyecto ID</label><input type="number" id="cot-proyecto-id" class="form-control" placeholder="ID del proyecto"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Monto Total (USD) *</label><input type="number" id="cot-monto" class="form-control" placeholder="1000"/></div>
+      <div class="form-group"><label class="form-label">Anticipo (USD)</label><input type="number" id="cot-anticipo" class="form-control" placeholder="500"/></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Estado</label>
+      <select id="cot-estado" class="form-control">
+        <option>Pendiente</option><option>Enviada</option><option>Aprobada</option><option>Rechazada</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="topbar-btn btn-primary" onclick="saveCotizacion()" style="flex:1;justify-content:center;"><i class="fas fa-save"></i> Guardar</button>
+      <button class="topbar-btn btn-sec" onclick="closeCotizacionModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: NUEVO AGENTE ──────────────────────────────────── -->
+<div class="modal-overlay" id="agenteModal">
+  <div class="modal">
+    <div class="modal-title">Nuevo Agente</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nombre *</label><input type="text" id="agt-nombre" class="form-control" placeholder="Nombre del agente"/></div>
+      <div class="form-group"><label class="form-label">Email *</label><input type="email" id="agt-email" class="form-control" placeholder="correo@ejemplo.com"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Comisión (%)</label><input type="number" id="agt-comision" class="form-control" placeholder="8" min="0" max="100"/></div>
+      <div class="form-group">
+        <label class="form-label">Estado</label>
+        <select id="agt-estado" class="form-control"><option>Activo</option><option>Inactivo</option></select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="topbar-btn btn-primary" onclick="saveAgente()" style="flex:1;justify-content:center;"><i class="fas fa-save"></i> Guardar</button>
+      <button class="topbar-btn btn-sec" onclick="closeAgenteModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <script>
   /* ── API & AUTH ─────────────────────────────────────────── */
   const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
@@ -1816,6 +1827,11 @@
     };
     document.getElementById('topbar-title').textContent = titles[name] || name;
     if (name === 'leads') loadLeads();
+    else if (name === 'clientes') loadClientes();
+    else if (name === 'proyectos') loadProyectos();
+    else if (name === 'cotizaciones') loadCotizaciones();
+    else if (name === 'agentes') loadAgentes();
+    else if (name === 'propiedades') loadPropiedades();
   }
 
   function openModal() {
@@ -2060,18 +2076,221 @@
   function cerrarFormPropiedad(){
     document.getElementById('propModalOverlay').classList.remove('open');
   }
-  function guardarPropiedad(){
-    const titulo = document.getElementById('prop-titulo').value.trim();
+  async function guardarPropiedad(){
+    const nombre = document.getElementById('prop-titulo').value.trim();
     const tipo = document.getElementById('prop-tipo').value;
     const precio = document.getElementById('prop-precio').value.trim();
-    if(!titulo||!tipo||!precio){ showToast('Completa los campos obligatorios (*)'); return; }
-    const cod = 'PRO-26-' + String(Math.floor(Math.random()*900)+100).padStart(4,'0');
-    showToast(`✅ Propiedad ${cod} creada — "${titulo}"`);
-    cerrarFormPropiedad();
+    if(!nombre||!tipo||!precio){ showToast('Completa los campos obligatorios (*)'); return; }
+    const payload = {
+      nombre,
+      tipo,
+      modalidad: document.getElementById('prop-operacion').value,
+      precio: Number(precio),
+      m2: document.getElementById('prop-area').value ? Number(document.getElementById('prop-area').value) : null,
+      zona: document.getElementById('prop-zona').value.trim() || null,
+      linkTour3D: document.getElementById('prop-tour').value.trim() || null,
+    };
+    try {
+      await apiFetch('/api/propiedades', { method: 'POST', body: JSON.stringify(payload) });
+      cerrarFormPropiedad();
+      showToast('✅ Propiedad creada');
+      loadPropiedades();
+      loadDashboard();
+    } catch(e) { showToast('Error al guardar: ' + e.message); }
   }
+  /* ── CLIENTES ───────────────────────────────────────────── */
+  async function loadClientes(){
+    const tbody=document.getElementById('clientes-tbody');
+    if(!tbody)return;
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
+    try{
+      const items=await apiFetch('/api/clientes');
+      if(!items.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem;">No hay clientes. ¡Crea el primero!</td></tr>';return;}
+      tbody.innerHTML=items.map(c=>`<tr>
+        <td style="color:var(--gray);font-size:.72rem;">${c.id}</td>
+        <td class="td-bold">${c.nombre||'—'}</td>
+        <td>${c.empresa||'—'}</td>
+        <td>${c.tipo||'—'}</td>
+        <td style="color:var(--gray);">${c.email||'—'}</td>
+        <td style="color:var(--gray);">${c.telefono||'—'}</td>
+        <td style="color:var(--gray);">${c.fechacreacion?new Date(c.fechacreacion).toLocaleDateString('es-GT'):'—'}</td>
+        <td><div class="action-btns"><button class="act-btn danger" onclick="deleteCliente(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button></div></td>
+      </tr>`).join('');
+    }catch(e){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
+  }
+  async function deleteCliente(id){
+    if(!confirm('¿Eliminar este cliente?'))return;
+    try{await apiFetch('/api/clientes/'+id,{method:'DELETE'});showToast('Cliente eliminado');loadClientes();}
+    catch(e){showToast('Error: '+e.message);}
+  }
+  function openClienteModal(){document.getElementById('clienteModal').classList.add('open');}
+  function closeClienteModal(){
+    document.getElementById('clienteModal').classList.remove('open');
+    ['cl-nombre','cl-email','cl-telefono','cl-empresa'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  }
+  async function saveCliente(){
+    const nombre=document.getElementById('cl-nombre').value.trim();
+    const email=document.getElementById('cl-email').value.trim();
+    if(!nombre||!email){showToast('Nombre y email son requeridos');return;}
+    try{
+      await apiFetch('/api/clientes',{method:'POST',body:JSON.stringify({nombre,email,telefono:document.getElementById('cl-telefono').value.trim(),empresa:document.getElementById('cl-empresa').value.trim(),tipo:document.getElementById('cl-tipo').value})});
+      closeClienteModal();showToast('✅ Cliente creado');loadClientes();
+    }catch(e){showToast('Error: '+e.message);}
+  }
+
+  /* ── PROYECTOS ──────────────────────────────────────────── */
+  async function loadProyectos(){
+    const tbody=document.getElementById('proyectos-tbody');
+    if(!tbody)return;
+    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
+    try{
+      const items=await apiFetch('/api/proyectos');
+      if(!items.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay proyectos. ¡Crea el primero!</td></tr>';return;}
+      const BADGE={'Activo':'badge-process','En proceso':'badge-process','Entregado':'badge-done','Cancelado':'badge-lost'};
+      tbody.innerHTML=items.map(p=>`<tr>
+        <td style="color:var(--gray);font-size:.72rem;">${p.id}</td>
+        <td class="td-bold">${p.nombre||'—'}</td>
+        <td style="color:var(--gray);">${p.cliente_id||'—'}</td>
+        <td style="color:var(--gray);">${p.fechainicio?new Date(p.fechainicio).toLocaleDateString('es-GT'):'—'}</td>
+        <td style="color:var(--gray);">${p.fechafin?new Date(p.fechafin).toLocaleDateString('es-GT'):'—'}</td>
+        <td><div style="display:flex;align-items:center;gap:.5rem;"><div class="prog-wrap" style="width:60px;"><div class="prog-bar" style="width:${p.progreso||0}%;"></div></div><span style="font-size:.7rem;color:var(--gray);">${p.progreso||0}%</span></div></td>
+        <td class="td-gold">${p.valor?'$'+Number(p.valor).toLocaleString():'—'}</td>
+        <td><span class="badge ${BADGE[p.estado]||'badge-process'}">${p.estado||'—'}</span></td>
+        <td><div class="action-btns"><button class="act-btn danger" onclick="deleteProyecto(${p.id})" title="Eliminar"><i class="fas fa-trash"></i></button></div></td>
+      </tr>`).join('');
+    }catch(e){tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
+  }
+  async function deleteProyecto(id){
+    if(!confirm('¿Eliminar este proyecto?'))return;
+    try{await apiFetch('/api/proyectos/'+id,{method:'DELETE'});showToast('Proyecto eliminado');loadProyectos();loadDashboard();}
+    catch(e){showToast('Error: '+e.message);}
+  }
+  function openProyectoModal(){document.getElementById('proyectoModal').classList.add('open');}
+  function closeProyectoModal(){
+    document.getElementById('proyectoModal').classList.remove('open');
+    ['pr-nombre','pr-cliente-id','pr-valor','pr-inicio','pr-fin','pr-progreso'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  }
+  async function saveProyecto(){
+    const nombre=document.getElementById('pr-nombre').value.trim();
+    if(!nombre){showToast('El nombre es requerido');return;}
+    try{
+      await apiFetch('/api/proyectos',{method:'POST',body:JSON.stringify({nombre,cliente_id:document.getElementById('pr-cliente-id').value||null,valor:document.getElementById('pr-valor').value||null,fechaInicio:document.getElementById('pr-inicio').value||null,fechaFin:document.getElementById('pr-fin').value||null,estado:document.getElementById('pr-estado').value,progreso:parseInt(document.getElementById('pr-progreso').value)||0})});
+      closeProyectoModal();showToast('✅ Proyecto creado');loadProyectos();loadDashboard();
+    }catch(e){showToast('Error: '+e.message);}
+  }
+
+  /* ── COTIZACIONES ───────────────────────────────────────── */
+  async function loadCotizaciones(){
+    const tbody=document.getElementById('cotizaciones-tbody');
+    if(!tbody)return;
+    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
+    try{
+      const items=await apiFetch('/api/cotizaciones');
+      if(!items.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:2rem;">No hay cotizaciones. ¡Crea la primera!</td></tr>';return;}
+      const BADGE={'Pendiente':'badge-contact','Enviada':'badge-quote','Aprobada':'badge-won','Rechazada':'badge-lost'};
+      tbody.innerHTML=items.map(c=>`<tr>
+        <td style="color:var(--gray);font-size:.72rem;">${c.id}</td>
+        <td style="color:var(--gray);">${c.cliente_id||'—'}</td>
+        <td style="color:var(--gray);">${c.proyecto_id||'—'}</td>
+        <td class="td-gold">${c.monto?'$'+Number(c.monto).toLocaleString():'—'}</td>
+        <td style="color:var(--gray);">${c.anticipo?'$'+Number(c.anticipo).toLocaleString():'—'}</td>
+        <td><span class="badge ${BADGE[c.estado]||'badge-contact'}">${c.estado||'—'}</span></td>
+        <td><div class="action-btns"><button class="act-btn danger" onclick="deleteCotizacion(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button></div></td>
+      </tr>`).join('');
+    }catch(e){tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
+  }
+  async function deleteCotizacion(id){
+    if(!confirm('¿Eliminar esta cotización?'))return;
+    try{await apiFetch('/api/cotizaciones/'+id,{method:'DELETE'});showToast('Cotización eliminada');loadCotizaciones();}
+    catch(e){showToast('Error: '+e.message);}
+  }
+  function openCotizacionModal(){document.getElementById('cotizacionModal').classList.add('open');}
+  function closeCotizacionModal(){
+    document.getElementById('cotizacionModal').classList.remove('open');
+    ['cot-cliente-id','cot-proyecto-id','cot-monto','cot-anticipo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  }
+  async function saveCotizacion(){
+    const monto=document.getElementById('cot-monto').value;
+    if(!monto){showToast('El monto es requerido');return;}
+    try{
+      await apiFetch('/api/cotizaciones',{method:'POST',body:JSON.stringify({cliente_id:document.getElementById('cot-cliente-id').value||null,proyecto_id:document.getElementById('cot-proyecto-id').value||null,monto:Number(monto),anticipo:Number(document.getElementById('cot-anticipo').value)||null,estado:document.getElementById('cot-estado').value})});
+      closeCotizacionModal();showToast('✅ Cotización creada');loadCotizaciones();
+    }catch(e){showToast('Error: '+e.message);}
+  }
+
+  /* ── AGENTES DB ─────────────────────────────────────────── */
+  async function loadAgentes(){
+    const tbody=document.getElementById('agentes-tbody');
+    if(!tbody)return;
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
+    try{
+      const items=await apiFetch('/api/agentes');
+      if(!items.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem;">No hay agentes. ¡Crea el primero!</td></tr>';return;}
+      const BADGE={'Activo':'badge-active','Inactivo':'badge-lost'};
+      tbody.innerHTML=items.map(a=>`<tr>
+        <td style="color:var(--gray);font-size:.72rem;">${a.id}</td>
+        <td class="td-bold">${a.nombre||'—'}</td>
+        <td style="color:var(--gray);">${a.email||'—'}</td>
+        <td class="td-gold">${a.comision!=null?a.comision+'%':'—'}</td>
+        <td><span class="badge ${BADGE[a.estado]||'badge-active'}">${a.estado||'—'}</span></td>
+        <td><div class="action-btns"><button class="act-btn danger" onclick="deleteAgente(${a.id})" title="Eliminar"><i class="fas fa-trash"></i></button></div></td>
+      </tr>`).join('');
+    }catch(e){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
+  }
+  async function deleteAgente(id){
+    if(!confirm('¿Eliminar este agente?'))return;
+    try{await apiFetch('/api/agentes/'+id,{method:'DELETE'});showToast('Agente eliminado');loadAgentes();}
+    catch(e){showToast('Error: '+e.message);}
+  }
+  function openAgenteModal(){document.getElementById('agenteModal').classList.add('open');}
+  function closeAgenteModal(){
+    document.getElementById('agenteModal').classList.remove('open');
+    ['agt-nombre','agt-email','agt-comision'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  }
+  async function saveAgente(){
+    const nombre=document.getElementById('agt-nombre').value.trim();
+    const email=document.getElementById('agt-email').value.trim();
+    if(!nombre||!email){showToast('Nombre y email son requeridos');return;}
+    try{
+      await apiFetch('/api/agentes',{method:'POST',body:JSON.stringify({nombre,email,comision:Number(document.getElementById('agt-comision').value)||0,estado:document.getElementById('agt-estado').value})});
+      closeAgenteModal();showToast('✅ Agente creado');loadAgentes();
+    }catch(e){showToast('Error: '+e.message);}
+  }
+
+  /* ── PROPIEDADES ────────────────────────────────────────── */
+  async function loadPropiedades(){
+    const tbody=document.getElementById('propiedades-tbody');
+    if(!tbody)return;
+    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
+    try{
+      const items=await apiFetch('/api/propiedades');
+      if(!items.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay propiedades. ¡Crea la primera!</td></tr>';return;}
+      tbody.innerHTML=items.map(p=>`<tr>
+        <td style="color:var(--gray);font-size:.72rem;">${p.id}</td>
+        <td class="td-bold">${p.nombre||'—'}</td>
+        <td>${p.tipo||'—'}</td>
+        <td><span class="badge ${p.modalidad==='Renta'?'badge-renta':'badge-venta'}">${p.modalidad||'—'}</span></td>
+        <td class="td-gold">${p.precio?'$'+Number(p.precio).toLocaleString():'—'}</td>
+        <td>${p.m2?p.m2+' m²':'—'}</td>
+        <td>${p.zona||'—'}</td>
+        <td>${p.linktour3d?'<a href="'+p.linktour3d+'" target="_blank" style="color:var(--gold);"><i class="fas fa-vr-cardboard"></i> Ver</a>':'<span style="color:var(--gray);">—</span>'}</td>
+        <td><div class="action-btns"><button class="act-btn danger" onclick="deletePropiedad(${p.id})" title="Eliminar"><i class="fas fa-trash"></i></button></div></td>
+      </tr>`).join('');
+    }catch(e){tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
+  }
+  async function deletePropiedad(id){
+    if(!confirm('¿Eliminar esta propiedad?'))return;
+    try{await apiFetch('/api/propiedades/'+id,{method:'DELETE'});showToast('Propiedad eliminada');loadPropiedades();loadDashboard();}
+    catch(e){showToast('Error: '+e.message);}
+  }
+
   document.addEventListener('DOMContentLoaded',function(){
     document.getElementById('propModalOverlay').addEventListener('click',function(e){
       if(e.target===this) cerrarFormPropiedad();
+    });
+    ['clienteModal','proyectoModal','cotizacionModal','agenteModal'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.addEventListener('click',function(e){if(e.target===this) this.classList.remove('open');});
     });
     checkAuth();
   });

@@ -17,7 +17,7 @@ router.post('/', async (req, res) => {
     const { nombre, cliente_id, fechaInicio, fechaFin, valor, estado, progreso } = req.body;
     const { data, error } = await supabase
       .from('proyectos')
-      .insert([{ nombre, cliente_id, fechaInicio, fechaFin, valor, estado, progreso }])
+      .insert([{ nombre, cliente_id, fechainicio: fechaInicio, fechafin: fechaFin, valor, estado, progreso }])
       .select();
     if (error) throw error;
     res.status(201).json(data[0]);
