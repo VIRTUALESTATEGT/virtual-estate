@@ -28,7 +28,7 @@ app.use('/api/proyectos', authMiddleware, proyectosRouter);
 app.use('/api/cotizaciones', authMiddleware, cotizacionesRouter);
 app.use('/api/agentes', authMiddleware, agentesRouter);
 
-// Debug: muestra qué hay en el filesystem del Lambda (útil en Vercel)
+// Debug: filesystem info
 app.get('/api/debug', (req, res) => {
   const fs = require('fs');
   res.json({
@@ -37,6 +37,38 @@ app.get('/api/debug', (req, res) => {
     adminHtml: fs.existsSync(path.join(__dirname, 'admin.html')),
     files: (() => { try { return fs.readdirSync(__dirname); } catch (e) { return e.message; } })()
   });
+});
+
+// Diagnóstico de variables de entorno (solo muestra si están seteadas, no sus valores)
+app.get('/api/test/env', (req, res) => {
+  res.json({
+    SUPABASE_URL: !!process.env.SUPABASE_URL,
+    SUPABASE_ANON_KEY: !!process.env.SUPABASE_ANON_KEY,
+    JWT_SECRET: !!process.env.JWT_SECRET,
+    NODE_ENV: process.env.NODE_ENV || 'not set',
+    VERCEL: !!process.env.VERCEL,
+  });
+});
+
+// Diagnóstico de hash — verifica que el hashing sea idéntico al de Supabase
+app.get('/api/test/hash', (req, res) => {
+  const crypto = require('crypto');
+  const { password } = req.query;
+  if (!password) return res.status(400).json({ error: 'Falta ?password=...' });
+  const hash = crypto.createHash('sha256').update(password).digest('hex');
+  res.json({ password, hash });
+});
+
+// Diagnóstico de conexión a Supabase
+app.get('/api/test/supabase', async (req, res) => {
+  try {
+    const supabase = require('./src/config/supabase');
+    const { data, error } = await supabase.from('usuarios').select('id, email, rol').limit(5);
+    if (error) return res.status(500).json({ ok: false, error: error.message });
+    res.json({ ok: true, count: data.length, users: data.map(u => ({ id: u.id, email: u.email, rol: u.rol })) });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
 });
 
 // Páginas HTML — rutas explícitas con sendFile para funcionar en Vercel Lambda
