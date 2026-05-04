@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Virtual Estate GT — Servicios Inmobiliarios Premium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Raleway:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+  :root{--bg:#0D1A14;--bg2:#0E1615;--bg3:#1E3028;--gold:#C19259;--gold-lt:#D4A96A;--white:#F5F0E8;--gray:#8A9990;--border:rgba(193,146,89,.18);--tr:.35s cubic-bezier(.25,.46,.45,.94);--r:4px;--max:1200px;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg);color:var(--white);font-family:'Montserrat',sans-serif;font-weight:300;}
+  a{text-decoration:none;color:inherit;}
+  h1,h2,h3,h4{font-family:'Raleway',sans-serif;font-weight:700;}
+  .container{width:min(var(--max),92vw);margin-inline:auto;}
+  .label{font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-weight:600;}
+  .btn{display:inline-flex;align-items:center;gap:.45rem;padding:.75rem 1.6rem;border-radius:var(--r);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:var(--tr);font-family:'Montserrat',sans-serif;border:none;}
+  .btn-gold{background:var(--gold);color:var(--bg);}
+  .btn-gold:hover{background:var(--gold-lt);}
+  .btn-outline{background:transparent;color:var(--gold);border:1.5px solid var(--gold);}
+  .btn-outline:hover{background:var(--gold);color:var(--bg);}
+  .btn-wa{background:#25D366;color:#fff;}
+  .btn-wa:hover{background:#1DB954;}
+
+  /* ── NAV ────────────────────────────────────────────────── */
+  #nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(13,26,20,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);transition:.3s;}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px;}
+  .nav-logo img{height:48px;width:auto;}
+  .nav-links{display:flex;align-items:center;gap:2rem;}
+  .nav-links a{font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:rgba(245,240,232,.65);transition:color .2s;}
+  .nav-links a:hover{color:var(--gold);}
+  .nav-cta{display:flex;align-items:center;gap:.8rem;}
+  .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:.3rem;}
+  .hamburger span{width:22px;height:2px;background:var(--white);border-radius:2px;transition:.3s;}
+  .mobile-menu{display:none;position:fixed;inset:0;top:64px;background:var(--bg2);z-index:999;padding:2rem;flex-direction:column;gap:1.4rem;}
+  .mobile-menu.open{display:flex;}
+  .mobile-menu a{font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:var(--white);padding:.6rem 0;border-bottom:1px solid var(--border);}
+
+  /* ── HERO ───────────────────────────────────────────────── */
+  #hero{
+    min-height:100vh;
+    background:linear-gradient(160deg,#050e08 0%,#0D1A14 55%,#162820 100%);
+    display:flex;align-items:center;padding-top:64px;position:relative;overflow:hidden;
+  }
+  #hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 80% 40%, rgba(193,146,89,.07) 0%, transparent 70%);}
+  .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;padding:5rem 0 4rem;}
+  .hero-tag{margin-bottom:1.2rem;}
+  .hero-h1{font-size:clamp(2rem,5vw,3.6rem);font-weight:800;line-height:1.1;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1.4rem;}
+  .hero-h1 em{font-style:normal;color:var(--gold);}
+  .hero-sub{font-size:.9rem;color:var(--gray);line-height:1.85;max-width:480px;font-weight:400;margin-bottom:2.4rem;}
+  .hero-btns{display:flex;gap:1rem;flex-wrap:wrap;}
+  .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:3rem;padding-top:2.2rem;border-top:1px solid var(--border);}
+  .stat-num{font-family:'Raleway',sans-serif;font-size:2rem;font-weight:800;color:var(--gold);line-height:1;}
+  .stat-label{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin-top:.3rem;font-weight:500;}
+  .hero-visual{position:relative;display:flex;align-items:center;justify-content:center;}
+  .hero-card-stack{position:relative;width:340px;height:420px;}
+  .h-card{position:absolute;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.6rem;width:280px;}
+  .h-card:nth-child(1){top:0;right:0;transform:rotate(6deg);}
+  .h-card:nth-child(2){top:50%;left:0;transform:translateY(-50%)rotate(-3deg);z-index:2;}
+  .h-card:nth-child(3){bottom:0;right:20px;transform:rotate(2deg);}
+  .h-card-icon{width:44px;height:44px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:1rem;margin-bottom:.8rem;}
+  .h-card-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem;}
+  .h-card-sub{font-size:.65rem;color:var(--gray);font-weight:400;line-height:1.5;}
+  .h-card-val{font-family:'Raleway',sans-serif;font-size:1.2rem;font-weight:700;color:var(--gold);margin-top:.6rem;}
+
+  /* ── SECTION HEADER ─────────────────────────────────────── */
+  .sec-header{text-align:center;margin-bottom:3rem;}
+  .sec-title{font-size:clamp(1.4rem,3vw,2.2rem);text-transform:uppercase;letter-spacing:.06em;margin:.5rem 0 .9rem;}
+  .sec-sub{font-size:.85rem;color:var(--gray);max-width:520px;margin:0 auto;line-height:1.85;font-weight:400;}
+
+  /* ── SERVICIOS ──────────────────────────────────────────── */
+  #servicios{padding:6rem 0;background:var(--bg2);}
+  .servicios-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.2rem;}
+  .srv-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1.8rem 1.6rem;transition:var(--tr);position:relative;overflow:hidden;}
+  .srv-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:opacity .3s;}
+  .srv-card:hover{border-color:rgba(193,146,89,.35);transform:translateY(-3px);}
+  .srv-card:hover::before{opacity:1;}
+  .srv-icon{width:52px;height:52px;border-radius:50%;background:rgba(193,146,89,.1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:1.1rem;margin-bottom:1.1rem;}
+  .srv-title{font-size:.88rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.55rem;}
+  .srv-desc{font-size:.75rem;color:var(--gray);line-height:1.75;font-weight:400;}
+  .srv-tag{display:inline-block;margin-top:.9rem;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:600;background:rgba(193,146,89,.08);padding:.2rem .6rem;border-radius:10px;}
+
+  /* ── PROPIEDADES ────────────────────────────────────────── */
+  #propiedades{padding:6rem 0;}
+  .filters{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:2rem;}
+  .filter-btn{padding:.45rem 1rem;background:transparent;border:1px solid var(--border);border-radius:20px;color:var(--gray);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;transition:.2s;font-family:'Montserrat',sans-serif;}
+  .filter-btn:hover,.filter-btn.active{background:var(--gold);color:var(--bg);border-color:var(--gold);}
+  .props-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem;}
+  .prop-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:var(--tr);}
+  .prop-card:hover{border-color:rgba(193,146,89,.35);}
+  .prop-img{height:180px;background:linear-gradient(135deg,#1a2f22,#2a4a36);display:flex;align-items:center;justify-content:center;position:relative;}
+  .prop-img i{font-size:2.2rem;color:rgba(193,146,89,.25);}
+  .prop-badge{position:absolute;top:.7rem;left:.7rem;background:rgba(193,146,89,.9);color:#0D1A14;font-size:.5rem;padding:.18rem .55rem;border-radius:2px;letter-spacing:.08em;font-weight:700;text-transform:uppercase;}
+  .prop-fav{position:absolute;top:.7rem;right:.7rem;width:32px;height:32px;border-radius:50%;background:rgba(13,26,20,.7);border:none;color:var(--gray);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;}
+  .prop-fav:hover,.prop-fav.active{color:#E8507A;background:rgba(13,26,20,.9);}
+  .prop-fav.active{color:#E8507A;}
+  .prop-body{padding:1.2rem;}
+  .prop-zona{font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);font-weight:500;margin-bottom:.3rem;}
+  .prop-nombre{font-size:.92rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem;}
+  .prop-precio{font-family:'Raleway',sans-serif;font-size:1.15rem;font-weight:700;color:var(--gold);margin-bottom:.5rem;}
+  .prop-meta{display:flex;gap:1rem;font-size:.65rem;color:var(--gray);}
+  .prop-meta span{display:flex;align-items:center;gap:.3rem;}
+  .prop-meta i{color:var(--gold);font-size:.6rem;}
+  .prop-foot{padding:.85rem 1.2rem;border-top:1px solid var(--border);display:flex;gap:.6rem;}
+  .prop-btn{flex:1;padding:.55rem;background:transparent;border:1px solid var(--border);border-radius:3px;color:var(--gray);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;transition:.2s;font-family:'Montserrat',sans-serif;display:flex;align-items:center;justify-content:center;gap:.35rem;}
+  .prop-btn:hover{border-color:var(--gold);color:var(--gold);}
+  .prop-btn.primary{background:rgba(193,146,89,.1);border-color:var(--gold);color:var(--gold);}
+  #props-loading{text-align:center;padding:3rem;color:var(--gray);}
+  #props-empty{display:none;text-align:center;padding:4rem 2rem;color:var(--gray);}
+
+  /* ── COTIZADOR ──────────────────────────────────────────── */
+  #cotizador{padding:6rem 0;background:var(--bg2);}
+  .cotizador-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start;}
+  .cot-info-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:2rem;}
+  .cot-step{display:flex;gap:.9rem;margin-bottom:1.6rem;}
+  .cot-step:last-child{margin-bottom:0;}
+  .cot-step-num{width:32px;height:32px;border-radius:50%;background:var(--gold);color:var(--bg);font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .cot-step-body{font-size:.78rem;color:var(--gray);line-height:1.65;font-weight:400;}
+  .cot-step-title{font-size:.75rem;font-weight:700;color:var(--white);margin-bottom:.2rem;text-transform:uppercase;letter-spacing:.05em;}
+  .form-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:2rem;}
+  .form-group{margin-bottom:1.1rem;}
+  .form-label{display:block;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:.45rem;font-weight:600;}
+  .form-control{width:100%;padding:.72rem .9rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-family:'Montserrat',sans-serif;font-size:.82rem;transition:border-color .25s;}
+  .form-control:focus{outline:none;border-color:var(--gold);}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
+  .services-check{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.4rem;}
+  .srv-check-item{display:flex;align-items:center;gap:.5rem;font-size:.72rem;color:var(--gray);padding:.5rem .6rem;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:.2s;}
+  .srv-check-item:hover{border-color:rgba(193,146,89,.4);color:var(--white);}
+  .srv-check-item input{accent-color:var(--gold);}
+  .srv-check-item.checked{border-color:var(--gold);color:var(--white);background:rgba(193,146,89,.06);}
+
+  /* ── CONTACTO ───────────────────────────────────────────── */
+  #contacto{padding:6rem 0;}
+  .contacto-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start;}
+  .contact-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:2rem;}
+  .contact-item{display:flex;align-items:flex-start;gap:.9rem;margin-bottom:1.4rem;}
+  .contact-icon{width:40px;height:40px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:.9rem;flex-shrink:0;}
+  .contact-label{font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);font-weight:600;}
+  .contact-val{font-size:.82rem;font-weight:500;margin-top:.15rem;}
+  .wa-cta{background:linear-gradient(135deg,#1E3028,#162820);border:1px solid rgba(37,211,102,.2);border-radius:var(--r);padding:2rem;text-align:center;}
+  .wa-pulse{width:72px;height:72px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:#fff;margin:0 auto 1.2rem;position:relative;}
+  .wa-pulse::after{content:'';position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(37,211,102,.3);animation:waPulse 2s infinite;}
+  @keyframes waPulse{0%{transform:scale(1);opacity:1;}100%{transform:scale(1.5);opacity:0;}}
+  .wa-num{font-family:'Raleway',sans-serif;font-size:1.4rem;font-weight:700;color:var(--gold);margin:.8rem 0 .4rem;}
+  .wa-sub{font-size:.75rem;color:var(--gray);margin-bottom:1.4rem;line-height:1.6;}
+
+  /* ── FOOTER ─────────────────────────────────────────────── */
+  #footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 0 1.5rem;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:2.4rem;margin-bottom:2.4rem;}
+  .footer-brand img{height:52px;width:auto;margin-bottom:1rem;}
+  .footer-tagline{font-size:.75rem;color:var(--gray);line-height:1.7;font-weight:400;max-width:220px;}
+  .footer-col-title{font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1rem;}
+  .footer-links{display:flex;flex-direction:column;gap:.55rem;}
+  .footer-links a{font-size:.75rem;color:var(--gray);transition:color .2s;}
+  .footer-links a:hover{color:var(--gold);}
+  .footer-bottom{border-top:1px solid var(--border);padding-top:1.4rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem;}
+  .footer-copy{font-size:.68rem;color:var(--gray);}
+  .footer-social{display:flex;gap:.8rem;}
+  .footer-social a{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:.8rem;transition:.2s;}
+  .footer-social a:hover{border-color:var(--gold);color:var(--gold);}
+
+  /* ── TOAST ──────────────────────────────────────────────── */
+  .toast{position:fixed;bottom:1.8rem;left:50%;transform:translateX(-50%) translateY(60px);background:var(--bg3);border:1px solid var(--gold);color:var(--white);padding:.8rem 1.6rem;border-radius:var(--r);font-size:.78rem;z-index:9999;transition:transform .35s;font-weight:500;white-space:nowrap;}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+
+  /* ── WA FLOAT ───────────────────────────────────────────── */
+  .wa-float{position:fixed;bottom:1.8rem;right:1.8rem;width:52px;height:52px;border-radius:50%;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;z-index:900;box-shadow:0 4px 20px rgba(37,211,102,.3);transition:.3s;}
+  .wa-float:hover{transform:scale(1.1);background:#1DB954;}
+
+  /* ── RESPONSIVE ─────────────────────────────────────────── */
+  @media(max-width:900px){
+    .hero-grid{grid-template-columns:1fr;padding:3rem 0;}
+    .hero-card-stack{display:none;}
+    .cotizador-grid,.contacto-grid{grid-template-columns:1fr;}
+    .footer-grid{grid-template-columns:1fr 1fr;}
+    .nav-links,.nav-cta .btn:not(.btn-wa){display:none;}
+    .hamburger{display:flex;}
+  }
+  @media(max-width:600px){
+    .form-row,.services-check{grid-template-columns:1fr;}
+    .hero-stats{grid-template-columns:1fr 1fr;}
+    .footer-grid{grid-template-columns:1fr;}
+  }
+  </style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<a href="https://wa.me/50239902399" target="_blank" class="wa-float" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+
+<!-- ══════════════════════════════════════════════════════
+     NAVEGACIÓN
+══════════════════════════════════════════════════════ -->
+<nav id="nav">
+  <div class="container nav-inner">
+    <a href="landing.html" class="nav-logo">
+      <img src="assets/logo-letras.png" alt="Virtual Estate GT"/>
+    </a>
+    <div class="nav-links">
+      <a href="#servicios">Servicios</a>
+      <a href="#propiedades">Propiedades</a>
+      <a href="#cotizador">Cotizar</a>
+      <a href="#contacto">Contacto</a>
+    </div>
+    <div class="nav-cta">
+      <a href="portal.html" class="btn btn-outline" style="padding:.5rem 1.1rem;font-size:.62rem;">
+        <i class="fas fa-user"></i> Mi Portal
+      </a>
+      <a href="https://wa.me/50239902399" target="_blank" class="btn btn-wa" style="padding:.5rem 1.1rem;font-size:.62rem;">
+        <i class="fab fa-whatsapp"></i> WhatsApp
+      </a>
+    </div>
+    <div class="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#servicios" onclick="toggleMenu()">Servicios</a>
+  <a href="#propiedades" onclick="toggleMenu()">Propiedades</a>
+  <a href="#cotizador" onclick="toggleMenu()">Cotizar</a>
+  <a href="#contacto" onclick="toggleMenu()">Contacto</a>
+  <a href="portal.html">Mi Portal de Cliente</a>
+  <a href="https://wa.me/50239902399" target="_blank" style="color:#25D366;">WhatsApp: +502 3990-2399</a>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════════════ -->
+<section id="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-tag"><span class="label">Virtual Estate GT — Guatemala</span></div>
+        <h1 class="hero-h1">
+          Servicios<br/>
+          <em>Inmobiliarios</em><br/>
+          de Alta Gama
+        </h1>
+        <p class="hero-sub">
+          Tours virtuales 3D, fotografía arquitectónica, video con drone y escaneo de precisión. Transformamos propiedades en experiencias digitales de primer nivel.
+        </p>
+        <div class="hero-btns">
+          <a href="#cotizador" class="btn btn-gold">
+            <i class="fas fa-file-invoice-dollar"></i> Solicitar cotización
+          </a>
+          <a href="#propiedades" class="btn btn-outline">
+            <i class="fas fa-building"></i> Ver propiedades
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <div class="stat-num">200+</div>
+            <div class="stat-label">Proyectos completados</div>
+          </div>
+          <div>
+            <div class="stat-num">8</div>
+            <div class="stat-label">Años de experiencia</div>
+          </div>
+          <div>
+            <div class="stat-num">4K</div>
+            <div class="stat-label">Calidad garantizada</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-card-stack">
+          <div class="h-card">
+            <div class="h-card-icon"><i class="fas fa-vr-cardboard"></i></div>
+            <div class="h-card-title">Tour Virtual 3D</div>
+            <div class="h-card-sub">Recorridos inmersivos con tecnología Matterport</div>
+            <div class="h-card-val">Desde $350</div>
+          </div>
+          <div class="h-card">
+            <div class="h-card-icon"><i class="fas fa-drone"></i></div>
+            <div class="h-card-title">Video Drone 4K</div>
+            <div class="h-card-sub">Tomas aéreas profesionales de tu propiedad</div>
+            <div class="h-card-val">Desde $200</div>
+          </div>
+          <div class="h-card">
+            <div class="h-card-icon"><i class="fas fa-camera"></i></div>
+            <div class="h-card-title">Fotografía Pro</div>
+            <div class="h-card-sub">Imágenes de alta resolución con iluminación HDR</div>
+            <div class="h-card-val">Desde $150</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     SERVICIOS
+══════════════════════════════════════════════════════ -->
+<section id="servicios">
+  <div class="container">
+    <div class="sec-header">
+      <div class="label">Nuestros servicios</div>
+      <h2 class="sec-title">Todo lo que tu propiedad necesita</h2>
+      <p class="sec-sub">Desde la captura hasta la presentación digital, cubrimos cada aspecto visual de tu inmueble con tecnología de punta.</p>
+    </div>
+    <div class="servicios-grid">
+      <div class="srv-card">
+        <div class="srv-icon"><i class="fas fa-vr-cardboard"></i></div>
+        <div class="srv-title">Tour Virtual 3D</div>
+        <div class="srv-desc">Recorridos inmersivos con tecnología Matterport. Tus clientes visitan la propiedad desde cualquier parte del mundo, 24/7.</div>
+        <span class="srv-tag">Más solicitado</span>
+      </div>
+      <div class="srv-card">
+        <div class="srv-icon"><i class="fas fa-camera"></i></div>
+        <div class="srv-title">Fotografía Arquitectónica</div>
+        <div class="srv-desc">Imágenes HDR de alta resolución con postprocesamiento profesional. Cada ángulo captura el valor real de tu inmueble.</div>
+        <span class="srv-tag">Incluye retoque</span>
+      </div>
+      <div class="srv-card">
+        <div class="srv-icon"><i class="fas fa-helicopter"></i></div>
+        <div class="srv-title">Video Drone 4K</div>
+        <div class="srv-desc">Tomas aéreas cinematográficas con drones profesionales. Ideal para terrenos, condominios y propiedades de lujo.</div>
+        <span class="srv-tag">Drone certificado</span>
+      </div>
+      <div class="srv-card">
+        <div class="srv-icon"><i class="fas fa-ruler-combined"></i></div>
+        <div class="srv-title">Escaneo 3D / AS-BUILT</div>
+        <div class="srv-desc">Documentación precisa de planos y espacios. Modelos BIM y planos digitales para arquitectos, constructores y notarios.</div>
+        <span class="srv-tag">Precisión ±2mm</span>
+      </div>
+      <div class="srv-card">
+        <div class="srv-icon"><i class="fas fa-film"></i></div>
+        <div class="srv-title">Video Cinematic</div>
+        <div class="srv-desc">Producción de video de nivel cinematográfico para presentaciones de lujo, marketing digital e inversores internacionales.</div>
+        <span class="srv-tag">Edición profesional</span>
+      </div>
+      <div class="srv-card">
+        <div class="srv-icon"><i class="fas fa-box"></i></div>
+        <div class="srv-title">Paquete Premium</div>
+        <div class="srv-desc">Tour 3D + Fotografía + Drone + Video en un solo paquete con precio especial. La solución completa para propiedades premium.</div>
+        <span class="srv-tag">Ahorra hasta 30%</span>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:2.5rem;">
+      <a href="#cotizador" class="btn btn-gold"><i class="fas fa-arrow-down"></i> Cotizar mis servicios</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     PROPIEDADES (public gallery)
+══════════════════════════════════════════════════════ -->
+<section id="propiedades">
+  <div class="container">
+    <div class="sec-header">
+      <div class="label">Portafolio</div>
+      <h2 class="sec-title">Propiedades destacadas</h2>
+      <p class="sec-sub">Explora nuestro portafolio. Guarda tus favoritas con el corazón — aparecerán en tu portal de cliente.</p>
+    </div>
+
+    <div class="filters" id="filters">
+      <button class="filter-btn active" onclick="filterProps('', this)">Todas</button>
+      <button class="filter-btn" onclick="filterProps('Apartamento', this)">Apartamentos</button>
+      <button class="filter-btn" onclick="filterProps('Casa', this)">Casas</button>
+      <button class="filter-btn" onclick="filterProps('Terreno', this)">Terrenos</button>
+      <button class="filter-btn" onclick="filterProps('Venta', this)">En venta</button>
+      <button class="filter-btn" onclick="filterProps('Renta', this)">En renta</button>
+    </div>
+
+    <div id="props-loading"><i class="fas fa-circle-notch fa-spin" style="color:var(--gold);font-size:1.4rem;"></i></div>
+    <div class="props-grid" id="props-grid" style="display:none;"></div>
+    <div id="props-empty"><i class="fas fa-search" style="font-size:2rem;color:rgba(193,146,89,.2);margin-bottom:1rem;display:block;"></i><p style="font-weight:400;">No hay propiedades con ese filtro.</p></div>
+
+    <div style="text-align:center;margin-top:2.4rem;">
+      <a href="portal.html" class="btn btn-outline">
+        <i class="fas fa-heart"></i> Ver mis propiedades guardadas en el portal
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     COTIZADOR
+══════════════════════════════════════════════════════ -->
+<section id="cotizador">
+  <div class="container">
+    <div class="sec-header">
+      <div class="label">Cotización sin costo</div>
+      <h2 class="sec-title">Solicita tu propuesta personalizada</h2>
+      <p class="sec-sub">Cuéntanos sobre tu propiedad y recibirás una cotización detallada en 1-2 días hábiles, sin ningún compromiso.</p>
+    </div>
+
+    <div class="cotizador-grid">
+      <div>
+        <div class="cot-info-card" style="margin-bottom:1.4rem;">
+          <div class="label" style="margin-bottom:1rem;">¿Cómo funciona?</div>
+          <div class="cot-step">
+            <div class="cot-step-num">1</div>
+            <div class="cot-step-body">
+              <div class="cot-step-title">Completa el formulario</div>
+              Indica los servicios que necesitas y los detalles de tu propiedad.
+            </div>
+          </div>
+          <div class="cot-step">
+            <div class="cot-step-num">2</div>
+            <div class="cot-step-body">
+              <div class="cot-step-title">Revisamos y cotizamos</div>
+              Nuestro equipo prepara una propuesta personalizada en 1-2 días hábiles.
+            </div>
+          </div>
+          <div class="cot-step">
+            <div class="cot-step-num">3</div>
+            <div class="cot-step-body">
+              <div class="cot-step-title">Agendamos y entregamos</div>
+              Coordinamos la visita y entregamos los archivos en los tiempos acordados.
+            </div>
+          </div>
+        </div>
+        <div style="background:rgba(37,211,102,.06);border:1px solid rgba(37,211,102,.2);border-radius:var(--r);padding:1.2rem;display:flex;align-items:center;gap:.9rem;">
+          <i class="fab fa-whatsapp" style="font-size:1.4rem;color:#25D366;flex-shrink:0;"></i>
+          <div>
+            <div style="font-size:.72rem;font-weight:700;color:var(--white);">¿Prefieres WhatsApp?</div>
+            <a href="https://wa.me/50239902399?text=Hola%2C%20quiero%20cotizar%20servicios%20para%20mi%20propiedad" target="_blank" style="font-size:.7rem;color:#25D366;font-weight:600;">Escríbenos directamente → +502 3990-2399</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <div class="label" style="margin-bottom:1.2rem;">Datos de contacto</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Nombre *</label>
+            <input type="text" class="form-control" id="cot-nombre" placeholder="Tu nombre"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teléfono / WhatsApp</label>
+            <input type="tel" class="form-control" id="cot-telefono" placeholder="+502 0000-0000"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Correo electrónico *</label>
+          <input type="email" class="form-control" id="cot-email" placeholder="tu@correo.com"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Servicios de interés</label>
+          <div class="services-check">
+            <label class="srv-check-item" onclick="this.classList.toggle('checked')">
+              <input type="checkbox" value="Tour Virtual 3D"/> Tour Virtual 3D
+            </label>
+            <label class="srv-check-item" onclick="this.classList.toggle('checked')">
+              <input type="checkbox" value="Fotografía"/> Fotografía
+            </label>
+            <label class="srv-check-item" onclick="this.classList.toggle('checked')">
+              <input type="checkbox" value="Video Drone"/> Video Drone
+            </label>
+            <label class="srv-check-item" onclick="this.classList.toggle('checked')">
+              <input type="checkbox" value="Escaneo AS-BUILT"/> Escaneo AS-BUILT
+            </label>
+            <label class="srv-check-item" onclick="this.classList.toggle('checked')">
+              <input type="checkbox" value="Video Cinematic"/> Video Cinematic
+            </label>
+            <label class="srv-check-item" onclick="this.classList.toggle('checked')">
+              <input type="checkbox" value="Paquete Premium"/> Paquete Premium
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Detalles adicionales</label>
+          <textarea class="form-control" id="cot-mensaje" placeholder="Tipo de propiedad, zona, tamaño aproximado, fecha tentativa..." style="min-height:80px;resize:vertical;"></textarea>
+        </div>
+        <button onclick="enviarCotizacion()" class="btn btn-gold" style="width:100%;justify-content:center;padding:.85rem;" id="cot-btn">
+          <i class="fas fa-paper-plane"></i> Enviar solicitud
+        </button>
+        <p style="font-size:.68rem;color:var(--gray);text-align:center;margin-top:.8rem;line-height:1.6;">
+          Al enviar aceptas que Virtual Estate GT te contacte para dar seguimiento a tu solicitud.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     CONTACTO
+══════════════════════════════════════════════════════ -->
+<section id="contacto">
+  <div class="container">
+    <div class="sec-header">
+      <div class="label">Estamos aquí para ayudarte</div>
+      <h2 class="sec-title">Contáctanos</h2>
+      <p class="sec-sub">Respuesta garantizada en menos de 2 horas en horario hábil. Fuera de horario por WhatsApp.</p>
+    </div>
+    <div class="contacto-grid">
+      <div class="contact-card">
+        <div class="contact-item">
+          <div class="contact-icon"><i class="fab fa-whatsapp"></i></div>
+          <div>
+            <div class="contact-label">WhatsApp</div>
+            <div class="contact-val">+502 3990-2399</div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+          <div>
+            <div class="contact-label">Correo electrónico</div>
+            <div class="contact-val">info@virtualestategt.com</div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon"><i class="fas fa-clock"></i></div>
+          <div>
+            <div class="contact-label">Horario de atención</div>
+            <div class="contact-val">Lun — Vie: 8:00 AM — 6:00 PM</div>
+          </div>
+        </div>
+        <div class="contact-item" style="margin-bottom:0;">
+          <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+          <div>
+            <div class="contact-label">Cobertura</div>
+            <div class="contact-val">Guatemala City y área metropolitana</div>
+          </div>
+        </div>
+      </div>
+      <div class="wa-cta">
+        <div class="wa-pulse"><i class="fab fa-whatsapp"></i></div>
+        <div class="label">Respuesta inmediata</div>
+        <div class="wa-num">+502 3990-2399</div>
+        <p class="wa-sub">Chatea con nuestro equipo en tiempo real. Te asesoramos sin costo ni compromiso sobre el servicio ideal para tu propiedad.</p>
+        <a href="https://wa.me/50239902399?text=Hola%2C%20me%20interesa%20conocer%20más%20sobre%20sus%20servicios%20de%20Virtual%20Estate%20GT" target="_blank" class="btn btn-wa" style="width:100%;justify-content:center;padding:.9rem;">
+          <i class="fab fa-whatsapp"></i> Iniciar conversación
+        </a>
+        <div style="margin-top:1.4rem;display:flex;gap:.8rem;justify-content:center;">
+          <a href="#" onclick="showToast('Instagram: @virtualestategt')" style="display:flex;align-items:center;gap:.4rem;font-size:.68rem;color:var(--gray);transition:.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--gray)'">
+            <i class="fab fa-instagram"></i> Instagram
+          </a>
+          <a href="#" onclick="showToast('Facebook: Virtual Estate GT')" style="display:flex;align-items:center;gap:.4rem;font-size:.68rem;color:var(--gray);transition:.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--gray)'">
+            <i class="fab fa-facebook"></i> Facebook
+          </a>
+          <a href="#" onclick="showToast('LinkedIn: Virtual Estate GT')" style="display:flex;align-items:center;gap:.4rem;font-size:.68rem;color:var(--gray);transition:.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--gray)'">
+            <i class="fab fa-linkedin"></i> LinkedIn
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════════════ -->
+<footer id="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <img src="assets/logo-letras.png" alt="Virtual Estate GT"/>
+        <p class="footer-tagline">Servicios inmobiliarios digitales de alta gama para Guatemala y Centroamérica.</p>
+      </div>
+      <div>
+        <div class="footer-col-title">Servicios</div>
+        <div class="footer-links">
+          <a href="#servicios">Tour Virtual 3D</a>
+          <a href="#servicios">Fotografía Arquitectónica</a>
+          <a href="#servicios">Video Drone 4K</a>
+          <a href="#servicios">Escaneo AS-BUILT</a>
+          <a href="#servicios">Paquete Premium</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Portal</div>
+        <div class="footer-links">
+          <a href="portal.html">Iniciar sesión</a>
+          <a href="portal.html#register">Crear cuenta</a>
+          <a href="portal.html">Mis cotizaciones</a>
+          <a href="portal.html#agente">Código de Agente</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Contacto</div>
+        <div class="footer-links">
+          <a href="https://wa.me/50239902399" target="_blank">WhatsApp: +502 3990-2399</a>
+          <a href="mailto:info@virtualestategt.com">info@virtualestategt.com</a>
+          <a href="#cotizador">Solicitar cotización</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 Virtual Estate GT · Todos los derechos reservados</div>
+      <div class="footer-social">
+        <a href="#" onclick="showToast('@virtualestategt')"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+        <a href="https://wa.me/50239902399" target="_blank"><i class="fab fa-whatsapp"></i></a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3000' : '';
+
+/* ── TOAST ──────────────────────────────────────────────── */
+function showToast(m) {
+  const t = document.getElementById('toast');
+  t.textContent = m; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3300);
+}
+
+/* ── MOBILE MENU ────────────────────────────────────────── */
+function toggleMenu() {
+  document.getElementById('mobile-menu').classList.toggle('open');
+}
+
+/* ── FAVORITES (localStorage) ──────────────────────────── */
+function getLocalFavs() { try { return JSON.parse(localStorage.getItem('ve_favs') || '[]'); } catch { return []; } }
+function saveLocalFavs(f) { localStorage.setItem('ve_favs', JSON.stringify(f)); }
+
+function isFav(id) { return getLocalFavs().some(p => String(p.id) === String(id)); }
+
+function toggleFav(prop, btn) {
+  const favs = getLocalFavs();
+  const idx = favs.findIndex(p => String(p.id) === String(prop.id));
+  if (idx >= 0) {
+    favs.splice(idx, 1);
+    saveLocalFavs(favs);
+    btn.classList.remove('active');
+    showToast('Removida de tus favoritos');
+  } else {
+    favs.unshift(prop);
+    saveLocalFavs(favs);
+    btn.classList.add('active');
+    showToast('❤ Guardada en tus favoritos del portal');
+  }
+}
+
+/* ── PROPERTIES ─────────────────────────────────────────── */
+let allProps = [];
+const tipoIcon = { Apartamento: 'fa-building', Casa: 'fa-home', Terreno: 'fa-map', Local: 'fa-store', Oficina: 'fa-briefcase', Penthouse: 'fa-city', Bodega: 'fa-warehouse' };
+
+async function loadProps() {
+  try {
+    const data = await fetch(API_URL + '/api/propiedades/public').then(r => r.json());
+    allProps = Array.isArray(data) ? data : [];
+    renderProps(allProps);
+  } catch (e) {
+    document.getElementById('props-loading').innerHTML = '<p style="color:var(--gray);">No se pudieron cargar las propiedades.</p>';
+  }
+}
+
+function renderProps(list) {
+  const loading = document.getElementById('props-loading');
+  const grid = document.getElementById('props-grid');
+  const empty = document.getElementById('props-empty');
+  loading.style.display = 'none';
+  if (!list.length) { grid.style.display = 'none'; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+  grid.innerHTML = list.map(p => {
+    const icon = tipoIcon[p.tipo] || 'fa-home';
+    const precio = p.precio ? '$' + Number(p.precio).toLocaleString() : 'Consultar';
+    const fav = isFav(p.id);
+    return `<div class="prop-card" data-tipo="${p.tipo||''}" data-modalidad="${p.modalidad||''}">
+      <div class="prop-img">
+        <i class="fas ${icon}"></i>
+        ${p.modalidad ? `<span class="prop-badge">${p.modalidad}</span>` : ''}
+        <button class="prop-fav ${fav?'active':''}" onclick="toggleFav(${JSON.stringify(p).replace(/"/g,'&quot;')},this)" title="${fav?'Quitar de favoritos':'Guardar en favoritos'}">
+          <i class="fas fa-heart"></i>
+        </button>
+      </div>
+      <div class="prop-body">
+        <div class="prop-zona"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.55rem;margin-right:.25rem;"></i>${p.zona||'Guatemala'}</div>
+        <div class="prop-nombre">${p.nombre}</div>
+        <div class="prop-precio">${precio}</div>
+        <div class="prop-meta">
+          ${p.m2 ? `<span><i class="fas fa-ruler-combined"></i>${p.m2} m²</span>` : ''}
+          ${p.tipo ? `<span><i class="fas fa-tag"></i>${p.tipo}</span>` : ''}
+        </div>
+      </div>
+      <div class="prop-foot">
+        ${p.linktour3d
+          ? `<a href="${p.linktour3d}" target="_blank" class="prop-btn primary"><i class="fas fa-vr-cardboard"></i> Tour 3D</a>`
+          : `<button onclick="showToast('Agenda una reunión para acceder al Tour 3D exclusivo')" class="prop-btn"><i class="fas fa-lock" style="color:var(--gold);font-size:.55rem;"></i> Tour 3D</button>`}
+        <a href="#cotizador" class="prop-btn"><i class="fas fa-file-invoice-dollar"></i> Cotizar</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterProps(val, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (!val) { renderProps(allProps); return; }
+  const filtered = allProps.filter(p =>
+    (p.tipo && p.tipo.toLowerCase().includes(val.toLowerCase())) ||
+    (p.modalidad && p.modalidad.toLowerCase().includes(val.toLowerCase()))
+  );
+  renderProps(filtered);
+}
+
+/* ── COTIZADOR ──────────────────────────────────────────── */
+async function enviarCotizacion() {
+  const nombre = document.getElementById('cot-nombre').value.trim();
+  const email = document.getElementById('cot-email').value.trim();
+  const telefono = document.getElementById('cot-telefono').value.trim();
+  const mensaje = document.getElementById('cot-mensaje').value.trim();
+  if (!nombre || !email) { showToast('⚠️ Nombre y correo son obligatorios'); return; }
+
+  const servicios = Array.from(document.querySelectorAll('.srv-check-item input:checked')).map(i => i.value);
+  const empresa = servicios.length ? 'Servicios: ' + servicios.join(', ') : '';
+  const mensajeFinal = [empresa, mensaje].filter(Boolean).join(' | ');
+
+  const btn = document.getElementById('cot-btn');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch(API_URL + '/api/leads/public', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre, email, telefono, empresa: mensajeFinal })
+    });
+    if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Error al enviar'); }
+    btn.innerHTML = '<i class="fas fa-check"></i> ¡Solicitud enviada!';
+    btn.style.background = '#1A6B35';
+    showToast('✅ Solicitud recibida — te contactamos en 1-2 días hábiles');
+    document.getElementById('cot-nombre').value = '';
+    document.getElementById('cot-email').value = '';
+    document.getElementById('cot-telefono').value = '';
+    document.getElementById('cot-mensaje').value = '';
+    document.querySelectorAll('.srv-check-item').forEach(el => el.classList.remove('checked'));
+    document.querySelectorAll('.srv-check-item input').forEach(i => i.checked = false);
+    setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; btn.style.background = ''; }, 4000);
+  } catch (e) {
+    showToast('⚠️ ' + e.message);
+    btn.innerHTML = orig;
+    btn.disabled = false;
+  }
+}
+
+/* ── INIT ───────────────────────────────────────────────── */
+loadProps();
+</script>
+</body>
+</html>

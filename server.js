@@ -13,6 +13,37 @@ app.use(express.json());
 const authRouter = require('./src/routes/auth');
 app.use('/api/auth', authRouter);
 
+// Public endpoints — no auth
+const supabasePublic = require('./src/config/supabase');
+
+app.get('/api/propiedades/public', async (req, res) => {
+  try {
+    const { data, error } = await supabasePublic
+      .from('propiedades')
+      .select('id,nombre,tipo,modalidad,precio,m2,zona,linktour3d')
+      .order('id', { ascending: false });
+    if (error) throw error;
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/leads/public', async (req, res) => {
+  try {
+    const { nombre, email, telefono, empresa, mensaje } = req.body;
+    if (!nombre || !email) return res.status(400).json({ error: 'Nombre y correo son requeridos' });
+    const { data, error } = await supabasePublic
+      .from('leads')
+      .insert([{ nombre, email, telefono, empresa: empresa || mensaje || '', estado: 'Nuevo' }])
+      .select();
+    if (error) throw error;
+    res.status(201).json(data[0]);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Rutas protegidas con JWT
 const leadsRouter = require('./src/routes/leads');
 const clientesRouter = require('./src/routes/clientes');
@@ -47,6 +78,7 @@ app.get('/',                html('index.html'));
 app.get('/index.html',      html('index.html'));
 app.get('/admin.html',      html('admin.html'));
 app.get('/portal.html',     html('portal.html'));
+app.get('/landing.html',    html('landing.html'));
 app.get('/real-estate.html',html('real-estate.html'));
 app.get('/as-built.html',   html('as-built.html'));
 app.get('/construccion.html',html('construccion.html'));
