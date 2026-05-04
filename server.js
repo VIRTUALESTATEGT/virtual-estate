@@ -28,6 +28,17 @@ app.use('/api/proyectos', authMiddleware, proyectosRouter);
 app.use('/api/cotizaciones', authMiddleware, cotizacionesRouter);
 app.use('/api/agentes', authMiddleware, agentesRouter);
 
+// Debug: muestra qué hay en el filesystem del Lambda (útil en Vercel)
+app.get('/api/debug', (req, res) => {
+  const fs = require('fs');
+  res.json({
+    __dirname,
+    vercel: !!process.env.VERCEL,
+    adminHtml: fs.existsSync(path.join(__dirname, 'admin.html')),
+    files: (() => { try { return fs.readdirSync(__dirname); } catch (e) { return e.message; } })()
+  });
+});
+
 // Páginas HTML — rutas explícitas con sendFile para funcionar en Vercel Lambda
 // (express.static con directory scan no es confiable en entornos serverless)
 const html = (file) => (req, res) => res.sendFile(path.join(__dirname, file));
