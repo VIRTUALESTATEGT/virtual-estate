@@ -84,6 +84,7 @@ app.get('/as-built.html',   html('as-built.html'));
 app.get('/construccion.html',html('construccion.html'));
 
 // Assets estáticos (imágenes, documentos)
+app.use('/assets',    express.static(path.join(__dirname, 'images', 'assets'), { dotfiles: 'ignore' }));
 app.use('/images',    express.static(path.join(__dirname, 'images'),    { dotfiles: 'ignore' }));
 app.use('/documentos',express.static(path.join(__dirname, 'documentos'),{ dotfiles: 'ignore' }));
 
