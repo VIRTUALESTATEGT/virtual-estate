@@ -18,10 +18,30 @@ const supabasePublic = require('./src/config/supabase');
 
 app.get('/api/propiedades/public', async (req, res) => {
   try {
-    const { data, error } = await supabasePublic
-      .from('propiedades')
-      .select('id,nombre,tipo,modalidad,precio,m2,zona,linktour3d')
-      .order('id', { ascending: false });
+    const { zona, tipo, modalidad, precio_min, precio_max, m2_min, m2_max } = req.query;
+    const applyFilters = (q) => {
+      if (zona)       q = q.ilike('zona', `%${zona}%`);
+      if (tipo)       q = q.eq('tipo', tipo);
+      if (modalidad)  q = q.eq('modalidad', modalidad);
+      if (precio_min) q = q.gte('precio', Number(precio_min));
+      if (precio_max) q = q.lte('precio', Number(precio_max));
+      if (m2_min)     q = q.gte('m2', Number(m2_min));
+      if (m2_max)     q = q.lte('m2', Number(m2_max));
+      return q;
+    };
+    // Try with adicionales join first; fall back to base select if table doesn't exist yet
+    let { data, error } = await applyFilters(
+      supabasePublic.from('propiedades')
+        .select('id,nombre,tipo,modalidad,precio,m2,zona,linktour3d,propiedades_adicionales(tipo,nombre)')
+        .order('id', { ascending: false })
+    );
+    if (error && error.message && error.message.includes('propiedades_adicionales')) {
+      ({ data, error } = await applyFilters(
+        supabasePublic.from('propiedades')
+          .select('id,nombre,tipo,modalidad,precio,m2,zona,linktour3d')
+          .order('id', { ascending: false })
+      ));
+    }
     if (error) throw error;
     res.json(data);
   } catch (e) {
@@ -51,6 +71,7 @@ const propiedadesRouter = require('./src/routes/propiedades');
 const proyectosRouter = require('./src/routes/proyectos');
 const cotizacionesRouter = require('./src/routes/cotizaciones');
 const agentesRouter = require('./src/routes/agentes');
+const { router: usuariosRouter } = require('./src/routes/usuarios');
 
 app.use('/api/leads', authMiddleware, leadsRouter);
 app.use('/api/clientes', authMiddleware, clientesRouter);
@@ -58,6 +79,7 @@ app.use('/api/propiedades', authMiddleware, propiedadesRouter);
 app.use('/api/proyectos', authMiddleware, proyectosRouter);
 app.use('/api/cotizaciones', authMiddleware, cotizacionesRouter);
 app.use('/api/agentes', authMiddleware, agentesRouter);
+app.use('/api/usuarios', authMiddleware, usuariosRouter);
 
 // Debug: filesystem info
 app.get('/api/debug', (req, res) => {

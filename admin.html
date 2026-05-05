@@ -278,6 +278,23 @@
       .kpi-grid { grid-template-columns:1fr 1fr; }
       .dash-grid { grid-template-columns:1fr; }
     }
+  /* ── ADICIONALES CHECKBOXES ─────────────────── */
+  .adic-check {
+    display: flex; align-items: center; gap: .4rem;
+    font-size: .7rem; color: rgba(245,240,232,.7);
+    cursor: pointer; padding: .25rem .4rem;
+    border: 1px solid transparent; border-radius: 3px; transition: .15s;
+  }
+  .adic-check:hover { color: var(--white); border-color: var(--border); }
+  .adic-check input { accent-color: var(--gold); width: 12px; height: 12px; flex-shrink: 0; }
+
+  /* ── PERMISOS CHECKBOXES ─────────────────────── */
+  .perm-group { margin-bottom: 1rem; }
+  .perm-group-title { font-size: .58rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: .5rem; }
+  .perm-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: .35rem; }
+  .perm-item { display: flex; align-items: center; gap: .4rem; font-size: .72rem; color: rgba(245,240,232,.75); cursor: pointer; padding: .3rem .4rem; border: 1px solid transparent; border-radius: 3px; transition: .15s; }
+  .perm-item:hover { border-color: var(--border); color: var(--white); }
+  .perm-item input { accent-color: var(--gold); width: 13px; height: 13px; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -359,6 +376,9 @@
     <div class="nav-item" onclick="showView('agentes', this)">
       <i class="fas fa-id-badge"></i> Agentes / Referidos
       <span class="nav-badge" id="agt-badge">2</span>
+    </div>
+    <div class="nav-item" id="nav-permisos" onclick="showView('permisos', this)">
+      <i class="fas fa-shield-alt"></i> Usuarios & Permisos
     </div>
     <div class="nav-item" onclick="showView('config', this)">
       <i class="fas fa-cog"></i> Configuración
@@ -1054,6 +1074,23 @@
 
     </div><!-- /view-agentes -->
 
+    <!-- ── USUARIOS & PERMISOS VIEW ─────────────── -->
+    <div class="view" id="view-permisos">
+      <div class="table-wrap" style="margin-bottom:1.4rem;">
+        <div class="table-head">
+          <span class="table-head-title">Usuarios del Sistema</span>
+          <button class="topbar-btn btn-primary" id="btn-nuevo-usuario" onclick="abrirNuevoUsuario()"><i class="fas fa-plus"></i> Nuevo Usuario</button>
+        </div>
+        <table>
+          <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>SuperAdmin</th><th>Acciones</th></tr></thead>
+          <tbody id="usuarios-tbody">
+            <tr><td colspan="7" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.72rem;color:var(--gray);line-height:1.6;"><i class="fas fa-info-circle" style="color:var(--gold);margin-right:.4rem;"></i>Solo el <strong style="color:var(--white);">superadmin</strong> puede asignar permisos. Haz clic en <i class="fas fa-key" style="color:var(--gold);"></i> para editar los permisos de cada usuario.</p>
+    </div><!-- /view-permisos -->
+
     <!-- ── CONFIGURACIÓN VIEW ─────────────────── -->
     <div class="view" id="view-config">
 
@@ -1471,6 +1508,63 @@
       </div>
     </div>
 
+    <!-- Sección: Adicionales -->
+    <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;margin-top:1rem;"><i class="fas fa-list-check" style="margin-right:.3rem;"></i>Adicionales de la propiedad</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:.6rem;">
+      <div>
+        <div style="font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);margin-bottom:.5rem;font-weight:600;">Servicios básicos</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem;" id="adic-servicios">
+          <label class="adic-check"><input type="checkbox" value="Agua" data-tipo="servicios_basicos"/> Agua</label>
+          <label class="adic-check"><input type="checkbox" value="Electricidad" data-tipo="servicios_basicos"/> Electricidad</label>
+          <label class="adic-check"><input type="checkbox" value="Internet" data-tipo="servicios_basicos"/> Internet</label>
+          <label class="adic-check"><input type="checkbox" value="Gas" data-tipo="servicios_basicos"/> Gas</label>
+          <label class="adic-check"><input type="checkbox" value="Drenaje" data-tipo="servicios_basicos"/> Drenaje</label>
+          <label class="adic-check"><input type="checkbox" value="Cable TV" data-tipo="servicios_basicos"/> Cable TV</label>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);margin-bottom:.5rem;font-weight:600;">Espacios y ambientes</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem;" id="adic-espacios">
+          <label class="adic-check"><input type="checkbox" value="Sala" data-tipo="espacios_ambientes"/> Sala</label>
+          <label class="adic-check"><input type="checkbox" value="Comedor" data-tipo="espacios_ambientes"/> Comedor</label>
+          <label class="adic-check"><input type="checkbox" value="Cocina" data-tipo="espacios_ambientes"/> Cocina</label>
+          <label class="adic-check"><input type="checkbox" value="Estudio" data-tipo="espacios_ambientes"/> Estudio</label>
+          <label class="adic-check"><input type="checkbox" value="Cuarto de servicio" data-tipo="espacios_ambientes"/> Cto. servicio</label>
+          <label class="adic-check"><input type="checkbox" value="Balcón" data-tipo="espacios_ambientes"/> Balcón</label>
+          <label class="adic-check"><input type="checkbox" value="Terraza" data-tipo="espacios_ambientes"/> Terraza</label>
+          <label class="adic-check"><input type="checkbox" value="Patio" data-tipo="espacios_ambientes"/> Patio</label>
+          <label class="adic-check"><input type="checkbox" value="Jardín" data-tipo="espacios_ambientes"/> Jardín</label>
+          <label class="adic-check"><input type="checkbox" value="Lavandería" data-tipo="espacios_ambientes"/> Lavandería</label>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);margin-bottom:.5rem;font-weight:600;">Adicionales</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem;" id="adic-adicionales">
+          <label class="adic-check"><input type="checkbox" value="Parqueo" data-tipo="adicionales"/> Parqueo</label>
+          <label class="adic-check"><input type="checkbox" value="2do parqueo" data-tipo="adicionales"/> 2do parqueo</label>
+          <label class="adic-check"><input type="checkbox" value="Bodega" data-tipo="adicionales"/> Bodega</label>
+          <label class="adic-check"><input type="checkbox" value="Área de juegos" data-tipo="adicionales"/> Área juegos</label>
+          <label class="adic-check"><input type="checkbox" value="Cuarto de visitas" data-tipo="adicionales"/> Cto. visitas</label>
+          <label class="adic-check"><input type="checkbox" value="Sala de estar" data-tipo="adicionales"/> Sala estar</label>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);margin-bottom:.5rem;font-weight:600;">Amenidades</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem;" id="adic-amenidades">
+          <label class="adic-check"><input type="checkbox" value="Piscina" data-tipo="amenidades"/> Piscina</label>
+          <label class="adic-check"><input type="checkbox" value="Gimnasio" data-tipo="amenidades"/> Gimnasio</label>
+          <label class="adic-check"><input type="checkbox" value="Área de BBQ" data-tipo="amenidades"/> BBQ</label>
+          <label class="adic-check"><input type="checkbox" value="Salón de eventos" data-tipo="amenidades"/> Salón</label>
+          <label class="adic-check"><input type="checkbox" value="Seguridad 24/7" data-tipo="amenidades"/> Seguridad 24/7</label>
+          <label class="adic-check"><input type="checkbox" value="Elevador" data-tipo="amenidades"/> Elevador</label>
+          <label class="adic-check"><input type="checkbox" value="Vista panorámica" data-tipo="amenidades"/> Vista panorámica</label>
+          <label class="adic-check"><input type="checkbox" value="Rooftop" data-tipo="amenidades"/> Rooftop</label>
+          <label class="adic-check"><input type="checkbox" value="Club house" data-tipo="amenidades"/> Club house</label>
+          <label class="adic-check"><input type="checkbox" value="Lobby" data-tipo="amenidades"/> Lobby</label>
+        </div>
+      </div>
+    </div>
+
     <!-- Sección: Precio -->
     <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;margin-top:1rem;"><i class="fas fa-dollar-sign" style="margin-right:.3rem;"></i>Precio</div>
     <div class="form-row">
@@ -1555,6 +1649,105 @@
         <i class="fas fa-save"></i> Guardar propiedad
       </button>
       <button class="topbar-btn btn-sec" onclick="cerrarFormPropiedad()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: PERMISOS USUARIO ───────────────────────────────── -->
+<div class="modal-overlay" id="permisoModal" style="align-items:flex-start;padding:1.5rem;overflow-y:auto;">
+  <div class="modal" style="max-width:700px;width:100%;max-height:none;">
+    <div class="modal-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span><i class="fas fa-key" style="color:var(--gold);margin-right:.5rem;"></i>Permisos de <span id="permiso-nombre-title">Usuario</span></span>
+      <button onclick="closePermisoModal()" style="background:none;border:none;color:var(--gray);font-size:1rem;cursor:pointer;"><i class="fas fa-times"></i></button>
+    </div>
+    <input type="hidden" id="permiso-usuario-id"/>
+    <div class="perm-group">
+      <div class="perm-group-title">Propiedades</div>
+      <div class="perm-grid">
+        <label class="perm-item"><input type="checkbox" data-permiso="ver_propiedades"/> Ver propiedades</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="crear_propiedad"/> Crear propiedad</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="editar_propiedad"/> Editar propiedad</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="eliminar_propiedad"/> Eliminar propiedad</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="publicar_propiedad"/> Publicar propiedad</label>
+      </div>
+    </div>
+    <div class="perm-group">
+      <div class="perm-group-title">Cotizaciones</div>
+      <div class="perm-grid">
+        <label class="perm-item"><input type="checkbox" data-permiso="ver_cotizaciones"/> Ver cotizaciones</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="crear_cotizacion"/> Crear cotización</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="editar_cotizacion"/> Editar cotización</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="cambiar_estado_cotizacion"/> Cambiar estado</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="eliminar_cotizacion"/> Eliminar cotización</label>
+      </div>
+    </div>
+    <div class="perm-group">
+      <div class="perm-group-title">Clientes</div>
+      <div class="perm-grid">
+        <label class="perm-item"><input type="checkbox" data-permiso="ver_clientes"/> Ver clientes</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="crear_cliente"/> Crear cliente</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="editar_cliente"/> Editar cliente</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="eliminar_cliente"/> Eliminar cliente</label>
+      </div>
+    </div>
+    <div class="perm-group">
+      <div class="perm-group-title">Usuarios</div>
+      <div class="perm-grid">
+        <label class="perm-item"><input type="checkbox" data-permiso="ver_usuarios"/> Ver usuarios</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="crear_usuario"/> Crear usuario</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="editar_usuario"/> Editar usuario</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="eliminar_usuario"/> Eliminar usuario</label>
+      </div>
+    </div>
+    <div class="perm-group">
+      <div class="perm-group-title">Agentes</div>
+      <div class="perm-grid">
+        <label class="perm-item"><input type="checkbox" data-permiso="ver_agentes"/> Ver agentes</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="crear_agente"/> Crear agente</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="editar_agente"/> Editar agente</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="eliminar_agente"/> Eliminar agente</label>
+      </div>
+    </div>
+    <div class="perm-group">
+      <div class="perm-group-title">Sistema</div>
+      <div class="perm-grid">
+        <label class="perm-item"><input type="checkbox" data-permiso="ver_reportes"/> Ver reportes</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="exportar_datos"/> Exportar datos</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="ver_logs"/> Ver logs</label>
+        <label class="perm-item"><input type="checkbox" data-permiso="cambiar_configuracion"/> Configuración</label>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:1.2rem;">
+      <button class="topbar-btn btn-primary" onclick="savePermisos()" style="flex:1;justify-content:center;"><i class="fas fa-save"></i> Guardar permisos</button>
+      <button class="topbar-btn btn-sec" onclick="closePermisoModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: NUEVO USUARIO ───────────────────────────────────── -->
+<div class="modal-overlay" id="usuarioModal">
+  <div class="modal" style="max-width:500px;width:100%;">
+    <div class="modal-title"><i class="fas fa-user-plus" style="color:var(--gold);margin-right:.5rem;"></i>Nuevo Usuario</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nombre *</label><input type="text" id="usr-nombre" class="form-control" placeholder="Nombre completo"/></div>
+      <div class="form-group"><label class="form-label">Email *</label><input type="email" id="usr-email" class="form-control" placeholder="correo@ejemplo.com"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Contraseña *</label><input type="password" id="usr-password" class="form-control" placeholder="Mínimo 6 caracteres"/></div>
+      <div class="form-group">
+        <label class="form-label">Rol</label>
+        <select id="usr-role" class="form-control">
+          <option value="asistente">Asistente</option>
+          <option value="agente">Agente</option>
+          <option value="coordinador">Coordinador</option>
+          <option value="admin">Admin</option>
+          <option value="superadmin">Superadmin</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="topbar-btn btn-primary" onclick="saveNuevoUsuario()" style="flex:1;justify-content:center;"><i class="fas fa-save"></i> Crear usuario</button>
+      <button class="topbar-btn btn-sec" onclick="closeNuevoUsuario()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -1822,8 +2015,8 @@
       dashboard:'Dashboard', leads:'Leads', clientes:'Clientes',
       constructores:'Constructores', cotizaciones:'Cotizaciones',
       proyectos:'Proyectos', propiedades:'Propiedades', reportes:'Reportes',
-      calendario:'Calendario', precios:'Precios', promos:'Códigos Promo', agentes:'Agentes / Referidos',
-      config:'Configuración'
+      calendario:'Calendario', precios:'Precios', promos:'Códigos Promo',
+      agentes:'Agentes / Referidos', permisos:'Usuarios & Permisos', config:'Configuración'
     };
     document.getElementById('topbar-title').textContent = titles[name] || name;
     if (name === 'leads') loadLeads();
@@ -1832,6 +2025,7 @@
     else if (name === 'cotizaciones') loadCotizaciones();
     else if (name === 'agentes') loadAgentes();
     else if (name === 'propiedades') loadPropiedades();
+    else if (name === 'permisos') loadUsuariosPermisos();
   }
 
   function openModal() {
@@ -2082,8 +2276,7 @@
     const precio = document.getElementById('prop-precio').value.trim();
     if(!nombre||!tipo||!precio){ showToast('Completa los campos obligatorios (*)'); return; }
     const payload = {
-      nombre,
-      tipo,
+      nombre, tipo,
       modalidad: document.getElementById('prop-operacion').value,
       precio: Number(precio),
       m2: document.getElementById('prop-area').value ? Number(document.getElementById('prop-area').value) : null,
@@ -2091,9 +2284,19 @@
       linkTour3D: document.getElementById('prop-tour').value.trim() || null,
     };
     try {
-      await apiFetch('/api/propiedades', { method: 'POST', body: JSON.stringify(payload) });
+      const prop = await apiFetch('/api/propiedades', { method: 'POST', body: JSON.stringify(payload) });
+      // Save adicionales
+      const adicionales = [];
+      document.querySelectorAll('#propModalOverlay .adic-check input[type=checkbox]:checked').forEach(cb => {
+        adicionales.push({ tipo: cb.dataset.tipo, nombre: cb.value });
+      });
+      if (adicionales.length && prop?.id) {
+        try {
+          await apiFetch(`/api/propiedades/${prop.id}/adicionales`, { method: 'POST', body: JSON.stringify({ adicionales }) });
+        } catch(e2) { showToast('Propiedad creada, pero error en adicionales: ' + e2.message); }
+      }
       cerrarFormPropiedad();
-      showToast('✅ Propiedad creada');
+      showToast('✅ Propiedad creada' + (adicionales.length ? ` con ${adicionales.length} adicionales` : ''));
       loadPropiedades();
       loadDashboard();
     } catch(e) { showToast('Error al guardar: ' + e.message); }
@@ -2284,11 +2487,96 @@
     catch(e){showToast('Error: '+e.message);}
   }
 
+  /* ── USUARIOS & PERMISOS ────────────────────────────────── */
+  async function loadUsuariosPermisos() {
+    const tbody = document.getElementById('usuarios-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
+    try {
+      const users = await apiFetch('/api/usuarios');
+      if (!users.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:2rem;">No hay usuarios.</td></tr>'; return; }
+      const ROLE_LABEL = { superadmin:'Superadmin', admin:'Admin', coordinador:'Coordinador', agente:'Agente', asistente:'Asistente' };
+      tbody.innerHTML = users.map(u => `<tr>
+        <td style="color:var(--gray);font-size:.72rem;">${u.id}</td>
+        <td class="td-bold">${u.nombre||'—'}</td>
+        <td style="color:var(--gray);">${u.email||'—'}</td>
+        <td><span class="badge ${u.role==='superadmin'||u.role==='admin'?'badge-active':'badge-process'}">${ROLE_LABEL[u.role]||u.rol||'—'}</span></td>
+        <td><span class="badge ${u.estado==='activo'?'badge-active':'badge-lost'}">${u.estado||'—'}</span></td>
+        <td style="text-align:center;">${u.is_superadmin ? '<i class="fas fa-star" style="color:var(--gold);" title="Superadmin"></i>' : '<span style="color:var(--gray);">—</span>'}</td>
+        <td><div class="action-btns">
+          <button class="act-btn" title="Editar permisos" onclick="abrirPermisos(${u.id},'${(u.nombre||'').replace(/'/g,'')}')"><i class="fas fa-key"></i></button>
+          ${!u.is_superadmin ? `<button class="act-btn danger" title="Eliminar" onclick="deleteUsuario(${u.id})"><i class="fas fa-trash"></i></button>` : ''}
+        </div></td>
+      </tr>`).join('');
+    } catch(e) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`; }
+  }
+
+  async function abrirPermisos(userId, nombre) {
+    document.getElementById('permiso-usuario-id').value = userId;
+    document.getElementById('permiso-nombre-title').textContent = nombre;
+    document.querySelectorAll('#permisoModal input[data-permiso]').forEach(cb => cb.checked = false);
+    try {
+      const map = await apiFetch(`/api/usuarios/${userId}/permisos`);
+      Object.entries(map).forEach(([p, v]) => {
+        const cb = document.querySelector(`#permisoModal input[data-permiso="${p}"]`);
+        if (cb) cb.checked = v;
+      });
+    } catch(e) { showToast('Error cargando permisos: ' + e.message); }
+    document.getElementById('permisoModal').classList.add('open');
+  }
+
+  function closePermisoModal() {
+    document.getElementById('permisoModal').classList.remove('open');
+  }
+
+  async function savePermisos() {
+    const userId = document.getElementById('permiso-usuario-id').value;
+    const permisos = {};
+    document.querySelectorAll('#permisoModal input[data-permiso]').forEach(cb => {
+      permisos[cb.dataset.permiso] = cb.checked;
+    });
+    try {
+      await apiFetch('/api/usuarios/asignar-permisos', { method: 'POST', body: JSON.stringify({ usuario_id: userId, permisos }) });
+      closePermisoModal();
+      showToast('✅ Permisos guardados');
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+
+  async function deleteUsuario(id) {
+    if (!confirm('¿Eliminar este usuario?')) return;
+    try {
+      await apiFetch('/api/usuarios/' + id, { method: 'DELETE' });
+      showToast('Usuario eliminado');
+      loadUsuariosPermisos();
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+
+  function abrirNuevoUsuario() {
+    document.getElementById('usuarioModal').classList.add('open');
+  }
+  function closeNuevoUsuario() {
+    document.getElementById('usuarioModal').classList.remove('open');
+    ['usr-nombre','usr-email','usr-password'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  }
+  async function saveNuevoUsuario() {
+    const nombre = document.getElementById('usr-nombre').value.trim();
+    const email = document.getElementById('usr-email').value.trim();
+    const password = document.getElementById('usr-password').value;
+    const role = document.getElementById('usr-role').value;
+    if (!nombre || !email || !password) { showToast('Nombre, email y contraseña son requeridos'); return; }
+    try {
+      await apiFetch('/api/usuarios', { method: 'POST', body: JSON.stringify({ nombre, email, password, role }) });
+      closeNuevoUsuario();
+      showToast('✅ Usuario creado');
+      loadUsuariosPermisos();
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+
   document.addEventListener('DOMContentLoaded',function(){
     document.getElementById('propModalOverlay').addEventListener('click',function(e){
       if(e.target===this) cerrarFormPropiedad();
     });
-    ['clienteModal','proyectoModal','cotizacionModal','agenteModal'].forEach(id=>{
+    ['clienteModal','proyectoModal','cotizacionModal','agenteModal','permisoModal','usuarioModal'].forEach(id=>{
       const el=document.getElementById(id);
       if(el) el.addEventListener('click',function(e){if(e.target===this) this.classList.remove('open');});
     });

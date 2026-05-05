@@ -173,6 +173,30 @@
   .kpi-val{font-family:'Raleway',sans-serif;font-size:1.8rem;font-weight:700;color:var(--gold);line-height:1.2;}
   .kpi-sub{font-size:.65rem;color:var(--gray);margin-top:.2rem;}
 
+  /* Property search filters */
+  .prop-filters{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1.2rem;align-items:flex-end;}
+  .prop-filter-group{display:flex;flex-direction:column;gap:.3rem;}
+  .prop-filter-label{font-size:.56rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:600;}
+  .prop-filter-ctrl{padding:.4rem .7rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-family:'Montserrat',sans-serif;font-size:.72rem;min-width:110px;}
+  .prop-filter-ctrl:focus{outline:none;border-color:var(--gold);}
+  .prop-filter-ctrl option{background:var(--bg2);}
+  .btn-filtrar{padding:.4rem 1rem;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-size:.68rem;font-weight:600;cursor:pointer;letter-spacing:.1em;text-transform:uppercase;transition:.2s;align-self:flex-end;}
+  .btn-filtrar:hover{background:var(--gold-lt);}
+  .btn-limpiar{padding:.4rem .85rem;background:transparent;color:var(--gray);border:1px solid var(--border);border-radius:var(--r);font-size:.68rem;cursor:pointer;transition:.2s;align-self:flex-end;}
+  .btn-limpiar:hover{color:var(--white);border-color:var(--gray);}
+
+  /* Prop browse sub-tabs */
+  .sub-tabs{display:flex;gap:0;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1.4rem;width:fit-content;}
+  .sub-tab{padding:.45rem 1.2rem;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--gray);cursor:pointer;background:transparent;border:none;transition:.2s;font-family:'Montserrat',sans-serif;}
+  .sub-tab.active{background:var(--gold);color:var(--bg);}
+  .sub-tab:hover:not(.active){color:var(--white);}
+
+  /* Fav heart overlay */
+  .prop-mini-fav{position:absolute;top:.5rem;right:.5rem;background:rgba(13,26,20,.8);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--border);transition:.2s;}
+  .prop-mini-fav:hover,.prop-mini-fav.active{background:rgba(193,146,89,.2);border-color:var(--gold);}
+  .prop-mini-fav i{font-size:.75rem;color:var(--gray);}
+  .prop-mini-fav.active i{color:var(--gold);}
+
   /* Property favorites */
   .props-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.1rem;}
   .prop-mini{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:var(--tr);}
@@ -432,41 +456,75 @@
 
     <!-- TAB: FAVORITOS -->
     <div class="tab-panel" id="panel-favoritos">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;">
-        <span class="label">Propiedades guardadas</span>
-        <a href="real-estate.html" class="w-btn w-btn-out" style="padding:.45rem 1rem;font-size:.62rem;">
-          <i class="fas fa-search"></i> Explorar más propiedades
-        </a>
+      <!-- Sub-tabs -->
+      <div class="sub-tabs">
+        <button class="sub-tab active" id="stab-explorar" onclick="setPropSubTab('explorar')"><i class="fas fa-search" style="margin-right:.35rem;"></i>Explorar</button>
+        <button class="sub-tab" id="stab-guardadas" onclick="setPropSubTab('guardadas')"><i class="fas fa-heart" style="margin-right:.35rem;"></i>Guardadas <span id="fav-badge-sub" style="background:var(--gold);color:var(--bg);font-size:.5rem;padding:.1rem .35rem;border-radius:10px;font-weight:700;margin-left:.3rem;">0</span></button>
       </div>
 
-      <!-- Tour virtual info banner -->
-      <div style="background:rgba(193,146,89,.07);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:var(--r);padding:1rem 1.2rem;margin-bottom:1.4rem;display:flex;align-items:flex-start;gap:.8rem;">
-        <i class="fas fa-vr-cardboard" style="color:var(--gold);font-size:1.1rem;flex-shrink:0;margin-top:.1rem;"></i>
-        <div>
-          <div style="font-size:.75rem;font-weight:600;color:var(--white);margin-bottom:.2rem;">Recorrido Virtual 3D</div>
-          <div style="font-size:.75rem;color:var(--gray);line-height:1.5;font-weight:400;">
-            Puedes ver las fotografías directamente desde tu portal. Para acceder al recorrido virtual 3D exclusivo de cada propiedad, es necesario agendar una reunión con nuestro equipo — recibirás un acceso único y personalizado.
+      <!-- SUB-PANEL: Explorar -->
+      <div id="spanel-explorar">
+        <!-- Filtros -->
+        <div class="prop-filters">
+          <div class="prop-filter-group">
+            <span class="prop-filter-label">Tipo</span>
+            <select class="prop-filter-ctrl" id="filt-tipo">
+              <option value="">Todos los tipos</option>
+              <option>Apartamento</option><option>Casa</option><option>Penthouse</option>
+              <option>Local comercial</option><option>Terreno</option>
+              <option>Bodega / Galera</option><option>Oficina</option>
+            </select>
           </div>
-          <a href="index.html#contacto" style="display:inline-flex;align-items:center;gap:.35rem;margin-top:.6rem;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--gold);">
-            <i class="fas fa-calendar-check"></i> Agendar reunión
-          </a>
+          <div class="prop-filter-group">
+            <span class="prop-filter-label">Modalidad</span>
+            <select class="prop-filter-ctrl" id="filt-modalidad">
+              <option value="">Venta / Renta</option>
+              <option>Venta</option><option>Renta</option>
+            </select>
+          </div>
+          <div class="prop-filter-group">
+            <span class="prop-filter-label">Zona</span>
+            <input type="text" class="prop-filter-ctrl" id="filt-zona" placeholder="Ej: Zona 10" style="min-width:120px;"/>
+          </div>
+          <div class="prop-filter-group">
+            <span class="prop-filter-label">Precio mín $</span>
+            <input type="number" class="prop-filter-ctrl" id="filt-precio-min" placeholder="0" style="min-width:90px;"/>
+          </div>
+          <div class="prop-filter-group">
+            <span class="prop-filter-label">Precio máx $</span>
+            <input type="number" class="prop-filter-ctrl" id="filt-precio-max" placeholder="∞" style="min-width:90px;"/>
+          </div>
+          <div class="prop-filter-group">
+            <span class="prop-filter-label">M² mín</span>
+            <input type="number" class="prop-filter-ctrl" id="filt-m2-min" placeholder="0" style="min-width:70px;"/>
+          </div>
+          <button class="btn-filtrar" onclick="buscarPropiedades()"><i class="fas fa-search"></i> Buscar</button>
+          <button class="btn-limpiar" onclick="limpiarFiltros()"><i class="fas fa-times"></i> Limpiar</button>
+        </div>
+
+        <div id="browse-loading" style="display:none;text-align:center;padding:2rem;color:var(--gray);"><i class="fas fa-spinner fa-spin"></i> Buscando...</div>
+        <div class="props-grid" id="browse-grid"></div>
+        <div id="browse-empty" style="display:none;text-align:center;padding:3rem 2rem;">
+          <i class="fas fa-search" style="font-size:2rem;color:rgba(193,146,89,.3);margin-bottom:.8rem;display:block;"></i>
+          <p style="font-size:.82rem;color:var(--gray);">No se encontraron propiedades con esos filtros.</p>
         </div>
       </div>
 
-      <div id="favs-count" style="font-size:.75rem;color:var(--gray);margin-bottom:1rem;">
-        <strong id="favs-num" style="color:var(--white);">0</strong> propiedades guardadas en tu lista
-      </div>
-      <div class="props-grid" id="favs-grid">
-        <!-- Populated by JS -->
-      </div>
-      <div id="favs-empty" style="display:none;text-align:center;padding:4rem 2rem;">
-        <i class="far fa-heart" style="font-size:2.5rem;color:rgba(193,146,89,.3);margin-bottom:1rem;display:block;"></i>
-        <p style="font-size:.85rem;color:var(--gray);margin-bottom:1.4rem;font-weight:400;">
-          Aún no tienes propiedades guardadas.<br/>Explora el portafolio y presiona el corazón para guardarlas aquí.
-        </p>
-        <a href="real-estate.html" class="w-btn w-btn-gold">
-          <i class="fas fa-home"></i> Ver propiedades
-        </a>
+      <!-- SUB-PANEL: Guardadas -->
+      <div id="spanel-guardadas" style="display:none;">
+        <div id="favs-count" style="font-size:.75rem;color:var(--gray);margin-bottom:1rem;">
+          <strong id="favs-num" style="color:var(--white);">0</strong> propiedades guardadas en tu lista
+        </div>
+        <div class="props-grid" id="favs-grid"></div>
+        <div id="favs-empty" style="display:none;text-align:center;padding:4rem 2rem;">
+          <i class="far fa-heart" style="font-size:2.5rem;color:rgba(193,146,89,.3);margin-bottom:1rem;display:block;"></i>
+          <p style="font-size:.85rem;color:var(--gray);margin-bottom:1.4rem;font-weight:400;">
+            Aún no tienes propiedades guardadas.<br/>Presiona el <i class="fas fa-heart" style="color:var(--gold);"></i> en cualquier propiedad para guardarla aquí.
+          </p>
+          <button class="w-btn w-btn-gold" onclick="setPropSubTab('explorar')">
+            <i class="fas fa-search"></i> Explorar propiedades
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1206,65 +1264,150 @@ function doLogout() {
   window.location.href = '/portal.html';
 }
 
-/* ── FAVORITES (localStorage) ──────────────────────────── */
-function getLocalFavs() { try { return JSON.parse(localStorage.getItem('ve_favs') || '[]'); } catch { return []; } }
-function saveLocalFavs(f) { localStorage.setItem('ve_favs', JSON.stringify(f)); }
+/* ── FAVORITES (DB) ─────────────────────────────────────── */
+let dbFavs = []; // [{id, cliente_id, propiedad_id, propiedades:{...}}]
 
-function removeFav(id) {
-  saveLocalFavs(getLocalFavs().filter(p => String(p.id) !== String(id)));
-  renderFavs('favs-grid');
-  renderFavs('resumen-props', 3);
+const tipoIcon = { Apartamento:'fa-building', Casa:'fa-home', Terreno:'fa-map', 'Local comercial':'fa-store', Oficina:'fa-briefcase', Penthouse:'fa-city', 'Bodega / Galera':'fa-warehouse' };
+
+async function loadFavs() {
+  try {
+    dbFavs = await apiFetch('/api/clientes/me/favoritos');
+  } catch { dbFavs = []; }
   updateFavCount();
-  showToast('Propiedad removida de tu lista');
 }
 
+function isFav(propId) {
+  return dbFavs.some(f => String(f.propiedad_id) === String(propId));
+}
+
+async function toggleFavDB(propId, btnEl) {
+  if (isFav(propId)) {
+    try {
+      await apiFetch(`/api/clientes/me/favoritos/${propId}`, { method: 'DELETE' });
+      dbFavs = dbFavs.filter(f => String(f.propiedad_id) !== String(propId));
+      if (btnEl) { btnEl.classList.remove('active'); btnEl.title = 'Guardar'; }
+      showToast('Removido de favoritos');
+    } catch(e) { showToast('Error: ' + e.message); }
+  } else {
+    try {
+      const row = await apiFetch('/api/clientes/me/favoritos', { method:'POST', body: JSON.stringify({ propiedad_id: propId }) });
+      // Reload full favs to get joined propiedad data
+      await loadFavs();
+      if (btnEl) { btnEl.classList.add('active'); btnEl.title = 'Quitar de favoritos'; }
+      showToast('Guardado en favoritos');
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+  updateFavCount();
+  renderFavs('favs-grid');
+  renderFavs('resumen-props', 3);
+}
+
+function removeFav(propId) { toggleFavDB(propId, null); }
+
 function updateFavCount() {
-  const n = getLocalFavs().length;
+  const n = dbFavs.length;
   const el = document.getElementById('favs-num'); if (el) el.textContent = n;
   const badge = document.getElementById('fav-badge'); if (badge) badge.textContent = n;
+  const badge2 = document.getElementById('fav-badge-sub'); if (badge2) badge2.textContent = n;
   const empty = document.getElementById('favs-empty');
   const grid = document.getElementById('favs-grid');
   if (empty && grid) { empty.style.display = n === 0 ? 'block' : 'none'; grid.style.display = n === 0 ? 'none' : 'grid'; }
 }
 
-const tipoIcon = { Apartamento: 'fa-building', Casa: 'fa-home', Terreno: 'fa-map', Local: 'fa-store', Oficina: 'fa-briefcase', Penthouse: 'fa-city', Bodega: 'fa-warehouse' };
-
 function renderFavs(containerId, limit) {
-  let favs = getLocalFavs();
+  let favs = dbFavs.map(f => f.propiedades).filter(Boolean);
   if (limit) favs = favs.slice(0, limit);
   const c = document.getElementById(containerId); if (!c) return;
-  if (!favs.length) { if (!limit) updateFavCount(); return; }
-  c.innerHTML = favs.map(p => {
-    const icon = tipoIcon[p.tipo] || 'fa-home';
-    const precio = p.precio ? '$' + Number(p.precio).toLocaleString() : '—';
-    return `<div class="prop-mini">
-      <div class="prop-mini-img" style="background:linear-gradient(135deg,#1a2f22,#2a4a36);position:relative;">
-        <i class="fas ${icon}"></i>
-        <span style="position:absolute;top:.5rem;left:.5rem;background:rgba(193,146,89,.9);color:#0D1A14;font-size:.5rem;padding:.15rem .45rem;border-radius:2px;letter-spacing:.08em;font-weight:700;text-transform:uppercase;">${p.modalidad || 'Venta'}</span>
-      </div>
-      <div class="prop-mini-body">
-        <div class="prop-mini-code">${p.tipo || ''} · ${p.zona || ''}</div>
-        <div class="prop-mini-name">${p.nombre}</div>
-        ${p.m2 ? `<div style="font-size:.65rem;color:var(--gray);margin-bottom:.3rem;"><i class="fas fa-ruler-combined" style="color:var(--gold);font-size:.55rem;margin-right:.25rem;"></i>${p.m2} m²</div>` : ''}
-        <div class="prop-mini-price">${precio}</div>
-      </div>
-      <div class="prop-mini-foot">
-        <div style="display:flex;flex-direction:column;gap:.4rem;width:100%;">
-          <button onclick="openPropModal(${p.id})" style="width:100%;padding:.5rem;background:rgba(193,146,89,.1);border:none;border-radius:3px;color:var(--gold);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.35rem;"><i class="fas fa-info-circle"></i> Ver detalles</button>
-          ${p.linktour3d ? `<a href="${p.linktour3d}" target="_blank" style="width:100%;padding:.45rem;background:transparent;border:1px solid var(--border);border-radius:3px;color:var(--gold);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.35rem;text-decoration:none;"><i class="fas fa-vr-cardboard"></i> Tour 3D</a>` : `<button style="width:100%;padding:.45rem;background:transparent;border:1px solid var(--border);border-radius:3px;color:var(--gray);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:default;display:flex;align-items:center;justify-content:center;gap:.35rem;"><i class="fas fa-lock" style="font-size:.55rem;color:var(--gold);"></i> Tour 3D — Agendar</button>`}
-        </div>
-        <i class="fas fa-heart remove-fav" title="Quitar de favoritos" style="color:var(--gold);cursor:pointer;flex-shrink:0;" onclick="removeFav(${p.id})"></i>
-      </div>
-    </div>`;
-  }).join('');
+  if (!favs.length) { updateFavCount(); return; }
+  c.innerHTML = favs.map(p => propCardHTML(p, true)).join('');
   updateFavCount();
+}
+
+function propCardHTML(p, isSaved) {
+  const icon = tipoIcon[p.tipo] || 'fa-home';
+  const precio = p.precio ? '$' + Number(p.precio).toLocaleString() : '—';
+  const favClass = isSaved ? 'active' : '';
+  return `<div class="prop-mini">
+    <div class="prop-mini-img" style="background:linear-gradient(135deg,#1a2f22,#2a4a36);position:relative;">
+      <i class="fas ${icon}"></i>
+      <span style="position:absolute;top:.5rem;left:.5rem;background:rgba(193,146,89,.9);color:#0D1A14;font-size:.5rem;padding:.15rem .45rem;border-radius:2px;letter-spacing:.08em;font-weight:700;text-transform:uppercase;">${p.modalidad||'Venta'}</span>
+      <div class="prop-mini-fav ${favClass}" id="fav-btn-${p.id}" title="${isSaved?'Quitar de favoritos':'Guardar'}" onclick="toggleFavDB(${p.id},this)">
+        <i class="${isSaved?'fas':'far'} fa-heart"></i>
+      </div>
+    </div>
+    <div class="prop-mini-body">
+      <div class="prop-mini-code">${p.tipo||''} · ${p.zona||''}</div>
+      <div class="prop-mini-name">${p.nombre}</div>
+      ${p.m2?`<div style="font-size:.65rem;color:var(--gray);margin-bottom:.3rem;"><i class="fas fa-ruler-combined" style="color:var(--gold);font-size:.55rem;margin-right:.25rem;"></i>${p.m2} m²</div>`:''}
+      <div class="prop-mini-price">${precio}</div>
+    </div>
+    <div class="prop-mini-foot">
+      <div style="display:flex;flex-direction:column;gap:.4rem;width:100%;">
+        <button onclick="openPropModal(${p.id})" style="width:100%;padding:.5rem;background:rgba(193,146,89,.1);border:none;border-radius:3px;color:var(--gold);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.35rem;"><i class="fas fa-info-circle"></i> Ver detalles</button>
+        ${p.linktour3d?`<a href="${p.linktour3d}" target="_blank" style="width:100%;padding:.45rem;background:transparent;border:1px solid var(--border);border-radius:3px;color:var(--gold);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;display:flex;align-items:center;justify-content:center;gap:.35rem;text-decoration:none;"><i class="fas fa-vr-cardboard"></i> Tour 3D</a>`:`<button style="width:100%;padding:.45rem;background:transparent;border:1px solid var(--border);border-radius:3px;color:var(--gray);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:default;display:flex;align-items:center;justify-content:center;gap:.35rem;"><i class="fas fa-lock" style="font-size:.55rem;color:var(--gold);"></i> Tour 3D — Agendar</button>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ── PROPERTY BROWSE & FILTERS ──────────────────────────── */
+async function buscarPropiedades() {
+  const params = new URLSearchParams();
+  const tipo = document.getElementById('filt-tipo')?.value;
+  const modalidad = document.getElementById('filt-modalidad')?.value;
+  const zona = document.getElementById('filt-zona')?.value.trim();
+  const pMin = document.getElementById('filt-precio-min')?.value;
+  const pMax = document.getElementById('filt-precio-max')?.value;
+  const m2Min = document.getElementById('filt-m2-min')?.value;
+  if (tipo) params.set('tipo', tipo);
+  if (modalidad) params.set('modalidad', modalidad);
+  if (zona) params.set('zona', zona);
+  if (pMin) params.set('precio_min', pMin);
+  if (pMax) params.set('precio_max', pMax);
+  if (m2Min) params.set('m2_min', m2Min);
+
+  const loading = document.getElementById('browse-loading');
+  const grid = document.getElementById('browse-grid');
+  const empty = document.getElementById('browse-empty');
+  if (loading) loading.style.display = 'block';
+  if (grid) grid.innerHTML = '';
+  if (empty) empty.style.display = 'none';
+
+  try {
+    const qs = params.toString();
+    const props = await apiFetch('/api/propiedades/public' + (qs ? '?' + qs : ''));
+    if (loading) loading.style.display = 'none';
+    if (!props.length) { if (empty) empty.style.display = 'block'; return; }
+    if (grid) grid.innerHTML = props.map(p => propCardHTML(p, isFav(p.id))).join('');
+  } catch(e) {
+    if (loading) loading.style.display = 'none';
+    showToast('Error al buscar: ' + e.message);
+  }
+}
+
+function limpiarFiltros() {
+  ['filt-tipo','filt-modalidad','filt-zona','filt-precio-min','filt-precio-max','filt-m2-min'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  buscarPropiedades();
+}
+
+function setPropSubTab(tab) {
+  document.getElementById('stab-explorar')?.classList.toggle('active', tab === 'explorar');
+  document.getElementById('stab-guardadas')?.classList.toggle('active', tab === 'guardadas');
+  document.getElementById('spanel-explorar').style.display = tab === 'explorar' ? 'block' : 'none';
+  document.getElementById('spanel-guardadas').style.display = tab === 'guardadas' ? 'block' : 'none';
+  if (tab === 'guardadas') { renderFavs('favs-grid'); }
+  if (tab === 'explorar') { buscarPropiedades(); }
 }
 
 /* ── PROP MODAL ─────────────────────────────────────────── */
 let modalPropId = null;
 
 function openPropModal(id) {
-  const p = getLocalFavs().find(f => String(f.id) === String(id));
+  const fav = dbFavs.find(f => String(f.propiedad_id) === String(id));
+  const p = fav?.propiedades || null;
   if (!p) return;
   modalPropId = p.id;
   document.getElementById('pmod-code').textContent = `PROP-${String(p.id).padStart(5,'0')}`;
@@ -1292,7 +1435,7 @@ function setTab(tab) {
     document.getElementById(`ptab-${t}`)?.classList.toggle('active', t === tab);
     document.getElementById(`panel-${t}`)?.classList.toggle('active', t === tab);
   });
-  if (tab === 'favoritos') renderFavs('favs-grid');
+  if (tab === 'favoritos') { setPropSubTab('explorar'); }
   if (tab === 'inicio') renderFavs('resumen-props', 3);
 }
 
@@ -1300,6 +1443,7 @@ function setTab(tab) {
 async function loadPortalData() {
   try { clienteData = await apiFetch('/api/clientes/me'); } catch { clienteData = null; }
   fillUserUI();
+  await loadFavs();
   renderFavs('resumen-props', 3);
   renderFavs('favs-grid');
   try {

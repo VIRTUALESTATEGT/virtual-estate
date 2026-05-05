@@ -93,4 +93,56 @@ router.get('/me/cotizaciones', async (req, res) => {
   }
 });
 
+// ── FAVORITOS EN BD ─────────────────────────────────────────────────────────
+
+// GET /api/clientes/me/favoritos
+router.get('/me/favoritos', async (req, res) => {
+  try {
+    const { data: cliente } = await supabase
+      .from('clientes').select('id').eq('email', req.usuario.email).maybeSingle();
+    if (!cliente) return res.json([]);
+    const { data, error } = await supabase
+      .from('propiedades_favoritas')
+      .select('*, propiedades(*)')
+      .eq('cliente_id', cliente.id)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/clientes/me/favoritos  { propiedad_id }
+router.post('/me/favoritos', async (req, res) => {
+  try {
+    const { propiedad_id } = req.body;
+    if (!propiedad_id) return res.status(400).json({ error: 'propiedad_id requerido.' });
+    const { data: cliente } = await supabase
+      .from('clientes').select('id').eq('email', req.usuario.email).maybeSingle();
+    if (!cliente) return res.status(404).json({ error: 'Cliente no encontrado.' });
+    const { data, error } = await supabase
+      .from('propiedades_favoritas')
+      .upsert([{ cliente_id: cliente.id, propiedad_id: Number(propiedad_id) }],
+        { onConflict: 'cliente_id,propiedad_id' })
+      .select();
+    if (error) throw error;
+    res.status(201).json(data[0]);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// DELETE /api/clientes/me/favoritos/:propiedad_id
+router.delete('/me/favoritos/:propiedad_id', async (req, res) => {
+  try {
+    const { data: cliente } = await supabase
+      .from('clientes').select('id').eq('email', req.usuario.email).maybeSingle();
+    if (!cliente) return res.status(404).json({ error: 'Cliente no encontrado.' });
+    const { error } = await supabase
+      .from('propiedades_favoritas')
+      .delete()
+      .eq('cliente_id', cliente.id)
+      .eq('propiedad_id', req.params.propiedad_id);
+    if (error) throw error;
+    res.json({ message: 'Favorito eliminado.' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 module.exports = router;

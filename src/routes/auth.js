@@ -32,6 +32,8 @@ router.post('/login', async (req, res) => {
       email: data.email,
       nombre: data.nombre,
       rol: data.rol,
+      role: data.role || data.rol || 'asistente',
+      is_superadmin: data.is_superadmin || false,
     };
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES });
