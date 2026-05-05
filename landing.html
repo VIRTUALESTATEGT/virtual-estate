@@ -3,738 +3,1802 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Virtual Estate GT — Servicios Inmobiliarios Premium</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Raleway:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <title>Virtual Estate — Visualización Digital Premium</title>
+  <meta name="description" content="Transformamos espacios físicos en experiencias digitales que venden, documentan y proyectan. Guatemala."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
-  :root{--bg:#0D1A14;--bg2:#0E1615;--bg3:#1E3028;--gold:#C19259;--gold-lt:#D4A96A;--white:#F5F0E8;--gray:#8A9990;--border:rgba(193,146,89,.18);--tr:.35s cubic-bezier(.25,.46,.45,.94);--r:4px;--max:1200px;}
+  /* ─── TOKENS ──────────────────────────────────────────── */
+  :root{
+    --bg:#0D1A14; --bg2:#0E1615; --bg3:#1E3028; --bg4:#162820;
+    --gold:#C19259; --gold-lt:#D4A96A; --gold-dk:#9A7240;
+    --white:#F5F0E8; --gray:#8A9990; --gray-lt:#B0BEB8;
+    --border:rgba(193,146,89,.18);
+    --tr:.4s cubic-bezier(.25,.46,.45,.94);
+    --r:4px;
+  }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   html{scroll-behavior:smooth;}
-  body{background:var(--bg);color:var(--white);font-family:'Montserrat',sans-serif;font-weight:300;}
-  a{text-decoration:none;color:inherit;}
-  h1,h2,h3,h4{font-family:'Raleway',sans-serif;font-weight:700;}
-  .container{width:min(var(--max),92vw);margin-inline:auto;}
-  .label{font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-weight:600;}
-  .btn{display:inline-flex;align-items:center;gap:.45rem;padding:.75rem 1.6rem;border-radius:var(--r);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:var(--tr);font-family:'Montserrat',sans-serif;border:none;}
-  .btn-gold{background:var(--gold);color:var(--bg);}
-  .btn-gold:hover{background:var(--gold-lt);}
-  .btn-outline{background:transparent;color:var(--gold);border:1.5px solid var(--gold);}
-  .btn-outline:hover{background:var(--gold);color:var(--bg);}
-  .btn-wa{background:#25D366;color:#fff;}
-  .btn-wa:hover{background:#1DB954;}
-
-  /* ── NAV ────────────────────────────────────────────────── */
-  #nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(13,26,20,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);transition:.3s;}
-  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px;}
-  .nav-logo img{height:48px;width:auto;}
-  .nav-links{display:flex;align-items:center;gap:2rem;}
-  .nav-links a{font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:rgba(245,240,232,.65);transition:color .2s;}
-  .nav-links a:hover{color:var(--gold);}
-  .nav-cta{display:flex;align-items:center;gap:.8rem;}
-  .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:.3rem;}
-  .hamburger span{width:22px;height:2px;background:var(--white);border-radius:2px;transition:.3s;}
-  .mobile-menu{display:none;position:fixed;inset:0;top:64px;background:var(--bg2);z-index:999;padding:2rem;flex-direction:column;gap:1.4rem;}
-  .mobile-menu.open{display:flex;}
-  .mobile-menu a{font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;font-weight:500;color:var(--white);padding:.6rem 0;border-bottom:1px solid var(--border);}
-
-  /* ── HERO ───────────────────────────────────────────────── */
-  #hero{
-    min-height:100vh;
-    background:linear-gradient(160deg,#050e08 0%,#0D1A14 55%,#162820 100%);
-    display:flex;align-items:center;padding-top:64px;position:relative;overflow:hidden;
+  body{
+    background:var(--bg); color:var(--white);
+    font-family:'Montserrat',sans-serif; font-weight:300; line-height:1.6;
+    overflow-x:hidden;
   }
-  #hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 80% 40%, rgba(193,146,89,.07) 0%, transparent 70%);}
-  .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;padding:5rem 0 4rem;}
-  .hero-tag{margin-bottom:1.2rem;}
-  .hero-h1{font-size:clamp(2rem,5vw,3.6rem);font-weight:800;line-height:1.1;text-transform:uppercase;letter-spacing:.04em;margin-bottom:1.4rem;}
-  .hero-h1 em{font-style:normal;color:var(--gold);}
-  .hero-sub{font-size:.9rem;color:var(--gray);line-height:1.85;max-width:480px;font-weight:400;margin-bottom:2.4rem;}
-  .hero-btns{display:flex;gap:1rem;flex-wrap:wrap;}
-  .hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:3rem;padding-top:2.2rem;border-top:1px solid var(--border);}
-  .stat-num{font-family:'Raleway',sans-serif;font-size:2rem;font-weight:800;color:var(--gold);line-height:1;}
-  .stat-label{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin-top:.3rem;font-weight:500;}
-  .hero-visual{position:relative;display:flex;align-items:center;justify-content:center;}
-  .hero-card-stack{position:relative;width:340px;height:420px;}
-  .h-card{position:absolute;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.6rem;width:280px;}
-  .h-card:nth-child(1){top:0;right:0;transform:rotate(6deg);}
-  .h-card:nth-child(2){top:50%;left:0;transform:translateY(-50%)rotate(-3deg);z-index:2;}
-  .h-card:nth-child(3){bottom:0;right:20px;transform:rotate(2deg);}
-  .h-card-icon{width:44px;height:44px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:1rem;margin-bottom:.8rem;}
-  .h-card-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.3rem;}
-  .h-card-sub{font-size:.65rem;color:var(--gray);font-weight:400;line-height:1.5;}
-  .h-card-val{font-family:'Raleway',sans-serif;font-size:1.2rem;font-weight:700;color:var(--gold);margin-top:.6rem;}
+  img{display:block;width:100%;object-fit:cover;}
+  a{text-decoration:none;color:inherit;}
+  button{cursor:pointer;font-family:'Montserrat',sans-serif;}
+  ul{list-style:none;}
 
-  /* ── SECTION HEADER ─────────────────────────────────────── */
-  .sec-header{text-align:center;margin-bottom:3rem;}
-  .sec-title{font-size:clamp(1.4rem,3vw,2.2rem);text-transform:uppercase;letter-spacing:.06em;margin:.5rem 0 .9rem;}
-  .sec-sub{font-size:.85rem;color:var(--gray);max-width:520px;margin:0 auto;line-height:1.85;font-weight:400;}
+  /* ─── TYPOGRAPHY ──────────────────────────────────────── */
+  h1,h2,h3,h4{font-family:'Raleway',sans-serif;font-weight:600;line-height:1.15;}
+  .label{font-size:.65rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);font-weight:600;}
 
-  /* ── SERVICIOS ──────────────────────────────────────────── */
-  #servicios{padding:6rem 0;background:var(--bg2);}
-  .servicios-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1.2rem;}
-  .srv-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1.8rem 1.6rem;transition:var(--tr);position:relative;overflow:hidden;}
-  .srv-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:opacity .3s;}
-  .srv-card:hover{border-color:rgba(193,146,89,.35);transform:translateY(-3px);}
-  .srv-card:hover::before{opacity:1;}
-  .srv-icon{width:52px;height:52px;border-radius:50%;background:rgba(193,146,89,.1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:1.1rem;margin-bottom:1.1rem;}
-  .srv-title{font-size:.88rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.55rem;}
-  .srv-desc{font-size:.75rem;color:var(--gray);line-height:1.75;font-weight:400;}
-  .srv-tag{display:inline-block;margin-top:.9rem;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:600;background:rgba(193,146,89,.08);padding:.2rem .6rem;border-radius:10px;}
+  /* ─── UTILITIES ───────────────────────────────────────── */
+  .container{width:min(1280px,92vw);margin-inline:auto;}
+  .gold{color:var(--gold);}
+  .section-pad{padding:110px 0;}
+  .divider{width:48px;height:2px;background:var(--gold);margin:1.2rem 0;}
+  .divider.center{margin-inline:auto;}
+  .btn{
+    display:inline-flex;align-items:center;gap:.5rem;
+    padding:.8rem 2rem;border-radius:var(--r);
+    font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;
+    font-weight:600;transition:var(--tr);font-family:'Montserrat',sans-serif;
+  }
+  .btn-gold{background:var(--gold);color:var(--bg);}
+  .btn-gold:hover{background:var(--gold-lt);transform:translateY(-2px);}
+  .btn-outline{border:1.5px solid var(--gold);color:var(--gold);background:transparent;}
+  .btn-outline:hover{background:var(--gold);color:var(--bg);transform:translateY(-2px);}
 
-  /* ── PROPIEDADES ────────────────────────────────────────── */
-  #propiedades{padding:6rem 0;}
-  .filters{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:2rem;}
-  .filter-btn{padding:.45rem 1rem;background:transparent;border:1px solid var(--border);border-radius:20px;color:var(--gray);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;transition:.2s;font-family:'Montserrat',sans-serif;}
-  .filter-btn:hover,.filter-btn.active{background:var(--gold);color:var(--bg);border-color:var(--gold);}
-  .props-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem;}
-  .prop-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:var(--tr);}
-  .prop-card:hover{border-color:rgba(193,146,89,.35);}
-  .prop-img{height:180px;background:linear-gradient(135deg,#1a2f22,#2a4a36);display:flex;align-items:center;justify-content:center;position:relative;}
-  .prop-img i{font-size:2.2rem;color:rgba(193,146,89,.25);}
-  .prop-badge{position:absolute;top:.7rem;left:.7rem;background:rgba(193,146,89,.9);color:#0D1A14;font-size:.5rem;padding:.18rem .55rem;border-radius:2px;letter-spacing:.08em;font-weight:700;text-transform:uppercase;}
-  .prop-fav{position:absolute;top:.7rem;right:.7rem;width:32px;height:32px;border-radius:50%;background:rgba(13,26,20,.7);border:none;color:var(--gray);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;}
-  .prop-fav:hover,.prop-fav.active{color:#E8507A;background:rgba(13,26,20,.9);}
-  .prop-fav.active{color:#E8507A;}
-  .prop-body{padding:1.2rem;}
-  .prop-zona{font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);font-weight:500;margin-bottom:.3rem;}
-  .prop-nombre{font-size:.92rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem;}
-  .prop-precio{font-family:'Raleway',sans-serif;font-size:1.15rem;font-weight:700;color:var(--gold);margin-bottom:.5rem;}
-  .prop-meta{display:flex;gap:1rem;font-size:.65rem;color:var(--gray);}
-  .prop-meta span{display:flex;align-items:center;gap:.3rem;}
-  .prop-meta i{color:var(--gold);font-size:.6rem;}
-  .prop-foot{padding:.85rem 1.2rem;border-top:1px solid var(--border);display:flex;gap:.6rem;}
-  .prop-btn{flex:1;padding:.55rem;background:transparent;border:1px solid var(--border);border-radius:3px;color:var(--gray);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;transition:.2s;font-family:'Montserrat',sans-serif;display:flex;align-items:center;justify-content:center;gap:.35rem;}
-  .prop-btn:hover{border-color:var(--gold);color:var(--gold);}
-  .prop-btn.primary{background:rgba(193,146,89,.1);border-color:var(--gold);color:var(--gold);}
-  #props-loading{text-align:center;padding:3rem;color:var(--gray);}
-  #props-empty{display:none;text-align:center;padding:4rem 2rem;color:var(--gray);}
+  /* ─── REVEAL ──────────────────────────────────────────── */
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease;}
+  .reveal.visible{opacity:1;transform:translateY(0);}
 
-  /* ── COTIZADOR ──────────────────────────────────────────── */
-  #cotizador{padding:6rem 0;background:var(--bg2);}
-  .cotizador-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start;}
-  .cot-info-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:2rem;}
-  .cot-step{display:flex;gap:.9rem;margin-bottom:1.6rem;}
-  .cot-step:last-child{margin-bottom:0;}
-  .cot-step-num{width:32px;height:32px;border-radius:50%;background:var(--gold);color:var(--bg);font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .cot-step-body{font-size:.78rem;color:var(--gray);line-height:1.65;font-weight:400;}
-  .cot-step-title{font-size:.75rem;font-weight:700;color:var(--white);margin-bottom:.2rem;text-transform:uppercase;letter-spacing:.05em;}
-  .form-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:2rem;}
-  .form-group{margin-bottom:1.1rem;}
-  .form-label{display:block;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:.45rem;font-weight:600;}
-  .form-control{width:100%;padding:.72rem .9rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-family:'Montserrat',sans-serif;font-size:.82rem;transition:border-color .25s;}
+  /* ─── NAV ─────────────────────────────────────────────── */
+  #nav{
+    position:fixed;top:0;left:0;right:0;z-index:1000;
+    padding:1.1rem 0;transition:background .4s,padding .4s,border-bottom .4s;
+  }
+  #nav.scrolled{background:rgba(13,26,20,.96);backdrop-filter:blur(18px);padding:.7rem 0;border-bottom:1px solid var(--border);}
+  .nav-inner{display:grid;grid-template-columns:220px 1fr auto;align-items:center;}
+  .nav-logo{display:flex;align-items:center;justify-content:flex-start;}
+  .nav-logo img{height:87px;width:auto;object-fit:contain;max-width:210px;}
+  .nav-links{display:flex;gap:2rem;align-items:center;}
+  .nav-links a{
+    font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;font-weight:500;
+    color:rgba(245,240,232,.7);transition:color .25s;position:relative;
+  }
+  .nav-links a::after{
+    content:'';position:absolute;bottom:-4px;left:0;right:0;height:1.5px;
+    background:var(--gold);transform:scaleX(0);transform-origin:right;transition:transform .3s;
+  }
+  .nav-links a:hover{color:var(--white);}
+  .nav-links a:hover::after{transform:scaleX(1);transform-origin:left;}
+  .nav-portal{
+    padding:.5rem 1.4rem;border:1.5px solid var(--gold);border-radius:var(--r);
+    font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--gold);font-weight:600;transition:var(--tr);
+  }
+  .nav-portal:hover{background:var(--gold);color:var(--bg);}
+  .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;}
+  .hamburger span{display:block;width:24px;height:1.5px;background:var(--white);transition:var(--tr);}
+
+  /* ─── HERO ────────────────────────────────────────────── */
+  #hero{
+    position:relative;min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;text-align:center;
+  }
+  .hero-bg{
+    position:absolute;inset:0;
+    background:linear-gradient(160deg,#081008 0%,#0D1A14 45%,#1A2E20 100%);
+  }
+  .hero-grid{
+    position:absolute;inset:0;opacity:.035;
+    background-image:
+      repeating-linear-gradient(0deg,var(--gold) 0,var(--gold) 1px,transparent 1px,transparent 90px),
+      repeating-linear-gradient(90deg,var(--gold) 0,var(--gold) 1px,transparent 1px,transparent 90px);
+  }
+
+  .hero-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:2rem;}
+
+  /* Logo hero animation */
+  .hero-logo{
+    width:min(768px,92vw);
+    animation:logoEntry 1.6s cubic-bezier(.22,1,.36,1) forwards;
+    opacity:0;
+    filter:drop-shadow(0 0 48px rgba(193,146,89,.35));
+  }
+  @keyframes logoEntry{
+    0%{opacity:0;transform:scale(.65) translateY(40px);}
+    55%{opacity:1;transform:scale(1.05) translateY(-8px);}
+    100%{opacity:1;transform:scale(1) translateY(0);}
+  }
+  /* Sin float infinito — logo se queda fijo después de la entrada */
+
+  .hero-eyebrow{
+    font-size:.62rem;letter-spacing:.3em;text-transform:uppercase;font-weight:600;
+    color:var(--gold);display:flex;align-items:center;gap:.8rem;
+    animation:fadeUp .9s ease .2s both;
+  }
+  .hero-eyebrow::before,.hero-eyebrow::after{content:'';width:28px;height:1.5px;background:var(--gold);}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
+
+  .hero-title{
+    font-size:clamp(1.6rem,4vw,3rem);font-weight:700;
+    letter-spacing:.06em;text-transform:uppercase;
+    color:var(--white);max-width:700px;
+    animation:fadeUp .9s ease .5s both;
+    line-height:1.25;
+  }
+  .hero-sub{
+    font-size:.88rem;color:rgba(245,240,232,.6);max-width:480px;
+    font-weight:400;letter-spacing:.04em;line-height:1.8;
+    animation:fadeUp .9s ease .7s both;
+  }
+  .hero-ctas{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;animation:fadeUp .9s ease .9s both;}
+
+  .hero-scroll{
+    position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+    display:flex;flex-direction:column;align-items:center;gap:.4rem;z-index:2;
+  }
+  .hero-scroll span{font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gray);}
+  .scroll-line{width:1px;height:44px;background:linear-gradient(to bottom,var(--gold),transparent);animation:scrl 2s ease-in-out infinite;}
+  @keyframes scrl{0%{opacity:0;transform:scaleY(0);transform-origin:top;}50%{opacity:1;}100%{opacity:0;transform:scaleY(1);transform-origin:bottom;}}
+
+  /* ─── ABOUT ───────────────────────────────────────────── */
+  #about{background:var(--bg2);}
+  .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:center;}
+  .about-stats{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2.5rem;}
+  .stat-card{border:1px solid var(--border);padding:1.3rem;border-radius:var(--r);}
+  .stat-num{font-family:'Raleway',sans-serif;font-size:2.2rem;font-weight:700;color:var(--gold);}
+  .stat-label{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-top:.2rem;font-weight:500;}
+  .values-list{display:flex;flex-direction:column;gap:.55rem;margin-top:1.2rem;}
+  .value-item{
+    display:flex;align-items:center;gap:.8rem;
+    font-size:.82rem;color:rgba(245,240,232,.8);font-weight:400;
+  }
+  .value-item::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;}
+  .quote-box{
+    margin-top:2.2rem;padding:1.6rem;
+    border:1px solid var(--border);border-radius:var(--r);
+    border-left:3px solid var(--gold);
+  }
+  .quote-text{font-size:.95rem;font-weight:500;line-height:1.7;color:var(--white);}
+  .quote-attr{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);margin-top:.8rem;}
+
+  /* ─── AI ASESOR ───────────────────────────────────────── */
+  .ai-cta{
+    display:inline-flex;align-items:center;gap:.6rem;
+    padding:.7rem 1.6rem;border-radius:var(--r);
+    border:1.5px solid var(--border);color:var(--gray);
+    font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;font-weight:500;
+    transition:var(--tr);
+  }
+  .ai-cta:hover{border-color:var(--gold);color:var(--gold);}
+  .ai-badge{
+    font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;
+    background:rgba(193,146,89,.15);color:var(--gold);
+    padding:.15rem .5rem;border-radius:20px;font-weight:600;
+  }
+
+  /* ─── DIVISIONES FULL WIDTH DIAGONAL ─────────────────── */
+  #divisiones{padding:0;overflow:hidden;}
+  .div-header{text-align:center;padding:80px 0 60px;}
+  .div-header h2{font-size:clamp(1.8rem,3.5vw,2.8rem);text-transform:uppercase;letter-spacing:.08em;}
+
+  .divisions-strip{
+    display:flex;width:100%;min-height:600px;position:relative;
+  }
+  .div-panel{
+    flex:1;position:relative;
+    padding:4rem 3rem 4rem;
+    display:flex;flex-direction:column;justify-content:center;
+    cursor:pointer;transition:flex var(--tr);overflow:hidden;
+  }
+  .div-panel:hover{flex:1.25;}
+  .div-panel-1{background:var(--bg2);}
+  .div-panel-2{background:var(--bg3);}
+  .div-panel-3{background:var(--bg4);}
+
+  /* Diagonal dividers using clip-path on overlapping pseudo */
+  .div-panel::after{
+    content:'';
+    position:absolute;top:0;right:-28px;bottom:0;
+    width:56px;
+    background:inherit;
+    clip-path:polygon(0 0, 100% 0, 0 100%);
+    z-index:2;
+  }
+  .div-panel:last-child::after{display:none;}
+
+  /* Gold accent left edge */
+  .div-panel::before{
+    content:'';position:absolute;top:0;left:0;bottom:0;
+    width:3px;background:var(--gold);
+    transform:scaleY(0);transform-origin:bottom;transition:transform .4s;
+  }
+  .div-panel:hover::before{transform:scaleY(1);}
+
+  .div-num{
+    font-family:'Raleway',sans-serif;font-size:5rem;font-weight:700;
+    color:rgba(193,146,89,.08);line-height:1;
+    position:absolute;bottom:1.5rem;right:2rem;
+    transition:var(--tr);
+  }
+  .div-panel:hover .div-num{color:rgba(193,146,89,.16);}
+
+  .div-icon{
+    font-size:2rem;color:rgba(193,146,89,.5);margin-bottom:1.4rem;
+    transition:var(--tr);
+  }
+  .div-panel:hover .div-icon{color:var(--gold);transform:scale(1.1);}
+
+  .div-title{
+    font-size:1.4rem;font-weight:700;text-transform:uppercase;
+    letter-spacing:.08em;margin-bottom:.4rem;
+    color:var(--white);
+  }
+  .div-subtitle{
+    font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--gold);margin-bottom:1.2rem;font-weight:600;
+  }
+  .div-desc{
+    font-size:.82rem;color:var(--gray);line-height:1.7;margin-bottom:1.6rem;
+    max-width:320px;font-weight:400;
+  }
+  .div-services{display:flex;flex-direction:column;gap:.4rem;}
+  .div-service{
+    font-size:.72rem;color:rgba(245,240,232,.5);
+    display:flex;align-items:center;gap:.5rem;font-weight:400;
+  }
+  .div-service::before{content:'—';color:var(--gold);}
+  .div-link{
+    margin-top:1.8rem;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;
+    font-weight:600;color:var(--gold);display:flex;align-items:center;gap:.5rem;
+    transition:gap .25s;
+  }
+  .div-panel:hover .div-link{gap:.9rem;}
+
+  /* ─── REAL ESTATE PREVIEW ─────────────────────────────── */
+  #real-estate{background:var(--bg4);}
+  .re-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:3.5rem;flex-wrap:wrap;gap:1.5rem;}
+  .re-header h2{font-size:clamp(1.8rem,3vw,2.6rem);text-transform:uppercase;letter-spacing:.06em;}
+  .properties-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;}
+
+  .prop-card{
+    border:1px solid var(--border);border-radius:var(--r);
+    overflow:hidden;background:var(--bg2);transition:var(--tr);
+  }
+  .prop-card:hover{transform:translateY(-6px);border-color:rgba(193,146,89,.4);}
+  .prop-img{
+    height:210px;position:relative;overflow:hidden;
+    background:var(--bg3);display:flex;align-items:center;justify-content:center;
+  }
+  .prop-img-ph{
+    width:100%;height:100%;
+    background:linear-gradient(135deg,var(--bg3) 0%,#0D2018 100%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;
+  }
+  .prop-img-ph i{font-size:2.2rem;color:rgba(193,146,89,.25);}
+  .prop-img-ph span{font-size:.6rem;letter-spacing:.12em;color:var(--gray);text-transform:uppercase;}
+  .prop-badge{
+    position:absolute;top:1rem;left:1rem;
+    background:var(--gold);color:var(--bg);
+    padding:.28rem .75rem;border-radius:2px;
+    font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
+  }
+  .prop-badge.renta{background:transparent;color:var(--gold);border:1.5px solid var(--gold);}
+  .prop-body{padding:1.3rem;}
+  .prop-code{font-size:.58rem;letter-spacing:.12em;color:var(--gray);text-transform:uppercase;margin-bottom:.3rem;font-weight:500;}
+  .prop-name{font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem;}
+  .prop-loc{font-size:.75rem;color:var(--gray);display:flex;align-items:center;gap:.35rem;margin-bottom:.9rem;}
+  .prop-specs{display:flex;gap:.9rem;margin-bottom:.9rem;}
+  .prop-spec{font-size:.7rem;color:rgba(245,240,232,.55);display:flex;align-items:center;gap:.3rem;}
+  .prop-price{font-family:'Raleway',sans-serif;font-size:1.4rem;font-weight:700;color:var(--gold);}
+  .prop-foot{
+    padding:.9rem 1.3rem;border-top:1px solid var(--border);
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .prop-link{
+    font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;
+    font-weight:600;color:var(--gold);display:flex;align-items:center;gap:.4rem;
+    transition:gap .2s;
+  }
+  .prop-link:hover{gap:.7rem;}
+  .prop-heart{color:var(--gray);transition:color .2s;cursor:pointer;font-size:.95rem;}
+  .prop-heart:hover{color:var(--gold);}
+
+  /* ─── MISION / VISION ─────────────────────────────────── */
+  #valores{background:var(--bg2);}
+  .mv-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;margin-bottom:5rem;}
+  .mv-card{border-left:3px solid var(--gold);padding-left:2rem;}
+  .mv-label{font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;}
+  .mv-title{font-size:1.3rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;}
+  .mv-text{font-size:.83rem;color:rgba(245,240,232,.65);line-height:1.8;font-weight:400;}
+  .valores-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;}
+  .valor-card{
+    text-align:center;padding:2rem 1.4rem;
+    border:1px solid var(--border);border-radius:var(--r);transition:var(--tr);
+  }
+  .valor-card:hover{border-color:rgba(193,146,89,.4);background:var(--bg3);}
+  .valor-icon{font-size:1.3rem;color:var(--gold);margin-bottom:.8rem;}
+  .valor-name{font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;}
+
+  /* ─── COTIZADOR ───────────────────────────────────────── */
+  #cotizador{background:var(--bg);}
+  .cotizador-wrap{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start;}
+  .cot-intro h2{font-size:clamp(1.6rem,3vw,2.5rem);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem;}
+  .cot-intro p{font-size:.83rem;color:var(--gray);line-height:1.8;margin-bottom:1.6rem;font-weight:400;}
+  .cot-info-box{
+    padding:1.4rem;border:1px solid var(--border);border-radius:var(--r);
+    margin-top:1rem;display:flex;flex-direction:column;gap:.6rem;
+  }
+  .cot-info-item{font-size:.8rem;color:var(--gray);display:flex;align-items:center;gap:.6rem;}
+  .cot-info-item i{color:var(--gold);width:14px;text-align:center;}
+
+  .cot-form{
+    background:var(--bg2);border:1px solid var(--border);
+    border-radius:var(--r);padding:2.2rem;
+  }
+  .form-group{margin-bottom:1.2rem;}
+  .form-label{
+    display:block;font-size:.62rem;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--gold);margin-bottom:.5rem;font-weight:600;
+  }
+  .form-control{
+    width:100%;padding:.75rem .95rem;
+    background:rgba(255,255,255,.04);border:1px solid var(--border);
+    border-radius:var(--r);color:var(--white);
+    font-family:'Montserrat',sans-serif;font-size:.82rem;transition:border-color .25s;
+  }
   .form-control:focus{outline:none;border-color:var(--gold);}
-  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
-  .services-check{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.4rem;}
-  .srv-check-item{display:flex;align-items:center;gap:.5rem;font-size:.72rem;color:var(--gray);padding:.5rem .6rem;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:.2s;}
-  .srv-check-item:hover{border-color:rgba(193,146,89,.4);color:var(--white);}
-  .srv-check-item input{accent-color:var(--gold);}
-  .srv-check-item.checked{border-color:var(--gold);color:var(--white);background:rgba(193,146,89,.06);}
+  .form-control option{background:var(--bg2);}
+  textarea.form-control{resize:vertical;min-height:80px;}
 
-  /* ── CONTACTO ───────────────────────────────────────────── */
-  #contacto{padding:6rem 0;}
-  .contacto-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start;}
-  .contact-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:2rem;}
-  .contact-item{display:flex;align-items:flex-start;gap:.9rem;margin-bottom:1.4rem;}
-  .contact-icon{width:40px;height:40px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:.9rem;flex-shrink:0;}
-  .contact-label{font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);font-weight:600;}
-  .contact-val{font-size:.82rem;font-weight:500;margin-top:.15rem;}
-  .wa-cta{background:linear-gradient(135deg,#1E3028,#162820);border:1px solid rgba(37,211,102,.2);border-radius:var(--r);padding:2rem;text-align:center;}
-  .wa-pulse{width:72px;height:72px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;font-size:1.8rem;color:#fff;margin:0 auto 1.2rem;position:relative;}
-  .wa-pulse::after{content:'';position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(37,211,102,.3);animation:waPulse 2s infinite;}
-  @keyframes waPulse{0%{transform:scale(1);opacity:1;}100%{transform:scale(1.5);opacity:0;}}
-  .wa-num{font-family:'Raleway',sans-serif;font-size:1.4rem;font-weight:700;color:var(--gold);margin:.8rem 0 .4rem;}
-  .wa-sub{font-size:.75rem;color:var(--gray);margin-bottom:1.4rem;line-height:1.6;}
+  /* Multi-check services */
+  .services-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1.4rem;}
+  .svc-check{
+    display:flex;align-items:center;gap:.55rem;
+    padding:.65rem .85rem;border:1px solid var(--border);border-radius:var(--r);
+    cursor:pointer;transition:var(--tr);
+    font-size:.72rem;font-weight:500;color:rgba(245,240,232,.7);
+  }
+  .svc-check:hover,.svc-check.selected{
+    border-color:var(--gold);color:var(--white);background:rgba(193,146,89,.08);
+  }
+  .svc-check input[type="checkbox"]{accent-color:var(--gold);width:14px;height:14px;}
 
-  /* ── FOOTER ─────────────────────────────────────────────── */
-  #footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 0 1.5rem;}
-  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:2.4rem;margin-bottom:2.4rem;}
-  .footer-brand img{height:52px;width:auto;margin-bottom:1rem;}
-  .footer-tagline{font-size:.75rem;color:var(--gray);line-height:1.7;font-weight:400;max-width:220px;}
-  .footer-col-title{font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1rem;}
-  .footer-links{display:flex;flex-direction:column;gap:.55rem;}
-  .footer-links a{font-size:.75rem;color:var(--gray);transition:color .2s;}
-  .footer-links a:hover{color:var(--gold);}
-  .footer-bottom{border-top:1px solid var(--border);padding-top:1.4rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem;}
-  .footer-copy{font-size:.68rem;color:var(--gray);}
-  .footer-social{display:flex;gap:.8rem;}
-  .footer-social a{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:.8rem;transition:.2s;}
-  .footer-social a:hover{border-color:var(--gold);color:var(--gold);}
+  /* Currency toggle */
+  .currency-toggle{display:flex;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;width:fit-content;}
+  .currency-toggle button{
+    padding:.45rem 1rem;background:transparent;border:none;
+    font-family:'Montserrat',sans-serif;font-size:.68rem;font-weight:600;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--gray);
+    cursor:pointer;transition:.2s;
+  }
+  .currency-toggle button.active{background:var(--gold);color:var(--bg);}
+  .currency-toggle button:hover:not(.active){color:var(--gold);}
 
-  /* ── TOAST ──────────────────────────────────────────────── */
-  .toast{position:fixed;bottom:1.8rem;left:50%;transform:translateX(-50%) translateY(60px);background:var(--bg3);border:1px solid var(--gold);color:var(--white);padding:.8rem 1.6rem;border-radius:var(--r);font-size:.78rem;z-index:9999;transition:transform .35s;font-weight:500;white-space:nowrap;}
+  .cot-send-row{display:flex;gap:.8rem;margin-top:1.4rem;}
+  .btn-wa{
+    background:#25D366;color:#fff;flex:1;justify-content:center;
+    font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;
+    display:flex;align-items:center;gap:.5rem;padding:.8rem;border:none;
+    border-radius:var(--r);cursor:pointer;transition:var(--tr);
+  }
+  .btn-wa:hover{background:#20bd5a;transform:translateY(-2px);}
+  .btn-mail{
+    background:transparent;color:var(--gold);flex:1;justify-content:center;
+    font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;
+    display:flex;align-items:center;gap:.5rem;padding:.8rem;
+    border:1.5px solid var(--gold);border-radius:var(--r);cursor:pointer;transition:var(--tr);
+  }
+  .btn-mail:hover{background:var(--gold);color:var(--bg);}
+  .cot-note{font-size:.7rem;color:var(--gray);margin-top:.9rem;line-height:1.6;text-align:center;}
+
+  /* ─── PROCESO ─────────────────────────────────────────── */
+  #proceso{background:var(--bg3);}
+  .proceso-header{text-align:center;margin-bottom:4rem;}
+  .proceso-header h2{font-size:clamp(1.8rem,3vw,2.6rem);text-transform:uppercase;letter-spacing:.08em;}
+  .steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;}
+  .step-card{text-align:center;padding:2rem 1.2rem;position:relative;}
+  .step-card:not(:last-child)::after{
+    content:'';position:absolute;right:0;top:2.5rem;
+    width:1px;height:36px;background:var(--border);
+  }
+  .step-num{
+    font-family:'Raleway',sans-serif;font-size:3.2rem;font-weight:700;
+    color:rgba(193,146,89,.15);line-height:1;margin-bottom:.4rem;
+  }
+  .step-icon{color:var(--gold);font-size:1.2rem;margin-bottom:.7rem;}
+  .step-title{font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;}
+  .step-desc{font-size:.75rem;color:var(--gray);line-height:1.65;font-weight:400;}
+
+  /* ─── CONTACTO ────────────────────────────────────────── */
+  #contacto{background:var(--bg2);}
+  .contacto-wrap{display:grid;grid-template-columns:1fr 1.3fr;gap:5rem;align-items:start;}
+  .contacto-info h2{font-size:clamp(1.8rem,3vw,2.6rem);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem;}
+  .contacto-info p{font-size:.83rem;color:var(--gray);line-height:1.8;margin-bottom:2.2rem;font-weight:400;}
+  .info-items{display:flex;flex-direction:column;gap:1.2rem;}
+  .info-item{display:flex;gap:1rem;align-items:flex-start;}
+  .info-icon{
+    width:38px;height:38px;border:1px solid var(--border);
+    border-radius:50%;display:flex;align-items:center;justify-content:center;
+    color:var(--gold);font-size:.85rem;flex-shrink:0;
+  }
+  .info-text{font-size:.82rem;color:var(--gray);line-height:1.5;}
+  .info-text strong{display:block;color:var(--white);font-weight:600;margin-bottom:.15rem;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;}
+
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+  .form-check{
+    display:flex;align-items:flex-start;gap:.6rem;
+    font-size:.75rem;color:var(--gray);line-height:1.5;font-weight:400;
+  }
+  .form-check input{margin-top:.2rem;accent-color:var(--gold);}
+  .form-check a{color:var(--gold);}
+
+  /* ─── CHAT WIDGET ───────────────────────────────────────── */
+  .chat-toggle{
+    position:fixed;bottom:2rem;right:5.2rem;z-index:999;
+    width:52px;height:52px;border-radius:50%;background:var(--gold);color:var(--bg);
+    border:none;font-size:1.1rem;cursor:pointer;
+    box-shadow:0 6px 28px rgba(193,146,89,.5);transition:var(--tr);
+    display:flex;align-items:center;justify-content:center;position:relative;
+  }
+  .chat-toggle:hover{background:var(--gold-lt);transform:scale(1.08);}
+  .chat-dot-live{position:absolute;top:5px;right:5px;width:10px;height:10px;border-radius:50%;background:#5AE08A;border:2px solid var(--bg);animation:pulse-dot 2s infinite;}
+  .chat-panel{
+    position:fixed;bottom:6.2rem;right:5.2rem;z-index:999;
+    width:340px;
+    background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+    box-shadow:0 16px 48px rgba(0,0,0,.55);display:none;flex-direction:column;overflow:hidden;
+  }
+  .chat-panel.open{display:flex;}
+  .chat-header{background:var(--bg3);border-bottom:1px solid var(--border);padding:.85rem 1.1rem;display:flex;align-items:center;gap:.75rem;}
+  .chat-avatar{width:36px;height:36px;border-radius:50%;background:rgba(193,146,89,.15);border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:.9rem;flex-shrink:0;}
+  .chat-hname{font-size:.82rem;font-weight:700;color:var(--white);}
+  .chat-hstatus{font-size:.6rem;color:#5AE08A;display:flex;align-items:center;gap:.3rem;margin-top:.1rem;}
+  .chat-messages{flex:1;overflow-y:auto;padding:.9rem;display:flex;flex-direction:column;gap:.65rem;max-height:290px;}
+  .cmsg{display:flex;flex-direction:column;max-width:88%;}
+  .cmsg.bot{align-self:flex-start;} .cmsg.usr{align-self:flex-end;}
+  .cmsg-bubble{padding:.55rem .85rem;border-radius:var(--r);font-size:.75rem;line-height:1.55;}
+  .cmsg.bot .cmsg-bubble{background:var(--bg3);color:var(--white);}
+  .cmsg.usr .cmsg-bubble{background:var(--gold);color:var(--bg);font-weight:500;}
+  .cmsg-time{font-size:.56rem;color:var(--gray);margin-top:.18rem;}
+  .cmsg.usr .cmsg-time{text-align:right;}
+  .chat-chips{display:flex;flex-wrap:wrap;gap:.4rem;padding:.55rem .9rem;border-top:1px solid var(--border);}
+  .chip{padding:.28rem .65rem;background:rgba(193,146,89,.1);border:1px solid var(--border);border-radius:20px;font-size:.62rem;color:var(--gold);cursor:pointer;transition:.2s;font-family:'Montserrat',sans-serif;}
+  .chip:hover{background:rgba(193,146,89,.2);border-color:var(--gold);}
+  .chat-input-row{display:flex;gap:.5rem;padding:.65rem .9rem;border-top:1px solid var(--border);}
+  .chat-inp{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:var(--r);padding:.48rem .75rem;color:var(--white);font-family:'Montserrat',sans-serif;font-size:.74rem;}
+  .chat-inp:focus{outline:none;border-color:var(--gold);}
+  .chat-send{width:34px;height:34px;border-radius:50%;background:var(--gold);color:var(--bg);border:none;cursor:pointer;font-size:.72rem;transition:.2s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .chat-send:hover{background:var(--gold-lt);}
+
+  /* ─── AI WIDGET LEGACY (kept for .ai-cta styles) ────────── */
+  .ai-widget-old{
+    position:fixed;bottom:2rem;right:5rem;
+    background:var(--bg3);border:1px solid var(--border);
+    border-radius:var(--r);padding:.7rem 1.1rem;
+    display:flex;align-items:center;gap:.6rem;
+    font-size:.72rem;font-weight:500;color:var(--white);
+    cursor:pointer;transition:var(--tr);z-index:998;
+    box-shadow:0 8px 32px rgba(0,0,0,.4);
+  }
+  .ai-widget-old:hover{border-color:var(--gold);}
+  .ai-dot{width:7px;height:7px;border-radius:50%;background:#5AE08A;animation:pulse-dot 2s infinite;}
+  @keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:.3;}}
+  .ai-label-main{color:var(--white);}
+  .ai-label-sub{font-size:.6rem;color:var(--gray);display:block;margin-top:-.1rem;}
+
+  /* ─── SOCIAL FLOAT ────────────────────────────────────── */
+  .social-float{
+    position:fixed;right:1.5rem;top:50%;transform:translateY(-50%);
+    z-index:999;display:flex;flex-direction:column;gap:.6rem;
+  }
+  .social-btn{
+    width:36px;height:36px;border-radius:50%;
+    border:1px solid var(--border);background:rgba(13,26,20,.85);
+    backdrop-filter:blur(8px);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--gray);font-size:.82rem;transition:var(--tr);
+  }
+  .social-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(193,146,89,.1);}
+  .social-btn.whatsapp:hover{border-color:#25D366;color:#25D366;}
+
+  /* ─── SCROLL TOP ──────────────────────────────────────── */
+  #scroll-top{
+    position:fixed;bottom:2rem;right:1.5rem;
+    width:40px;height:40px;border-radius:50%;
+    background:var(--gold);color:var(--bg);
+    display:flex;align-items:center;justify-content:center;
+    font-size:.85rem;z-index:997;border:none;
+    opacity:0;pointer-events:none;transition:var(--tr);
+  }
+  #scroll-top.visible{opacity:1;pointer-events:all;}
+  #scroll-top:hover{background:var(--gold-lt);transform:translateY(-3px);}
+
+  /* ─── TOAST ───────────────────────────────────────────── */
+  .toast{
+    position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--bg3);border:1px solid var(--gold);color:var(--white);
+    padding:.9rem 1.8rem;border-radius:var(--r);font-size:.8rem;
+    z-index:9999;transition:transform .4s;font-weight:500;
+  }
   .toast.show{transform:translateX(-50%) translateY(0);}
 
-  /* ── WA FLOAT ───────────────────────────────────────────── */
-  .wa-float{position:fixed;bottom:1.8rem;right:1.8rem;width:52px;height:52px;border-radius:50%;background:#25D366;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;z-index:900;box-shadow:0 4px 20px rgba(37,211,102,.3);transition:.3s;}
-  .wa-float:hover{transform:scale(1.1);background:#1DB954;}
-
-  /* ── RESPONSIVE ─────────────────────────────────────────── */
-  @media(max-width:900px){
-    .hero-grid{grid-template-columns:1fr;padding:3rem 0;}
-    .hero-card-stack{display:none;}
-    .cotizador-grid,.contacto-grid{grid-template-columns:1fr;}
-    .footer-grid{grid-template-columns:1fr 1fr;}
-    .nav-links,.nav-cta .btn:not(.btn-wa){display:none;}
-    .hamburger{display:flex;}
+  /* ─── MOBILE MENU ─────────────────────────────────────── */
+  .mobile-menu{
+    display:none;position:fixed;inset:0;z-index:1100;
+    background:rgba(13,26,20,.98);backdrop-filter:blur(16px);
+    flex-direction:column;align-items:center;justify-content:center;gap:1.8rem;
   }
-  @media(max-width:600px){
-    .form-row,.services-check{grid-template-columns:1fr;}
-    .hero-stats{grid-template-columns:1fr 1fr;}
+  .mobile-menu.open{display:flex;}
+  .mobile-menu a{font-size:1.2rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;}
+  .mobile-close{position:absolute;top:1.5rem;right:1.5rem;background:none;border:none;color:var(--gold);font-size:1.3rem;}
+
+  /* ─── FOOTER ──────────────────────────────────────────── */
+  footer{background:#07100A;border-top:1px solid var(--border);padding:4rem 0 1.8rem;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:3rem;padding-bottom:2.5rem;border-bottom:1px solid var(--border);margin-bottom:1.6rem;}
+  .footer-logo img{height:56px;width:auto;object-fit:contain;margin-bottom:.8rem;}
+  .footer-tagline{font-size:.78rem;color:var(--gray);line-height:1.7;max-width:260px;font-weight:400;}
+  .footer-col-title{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;font-weight:600;}
+  .footer-links{display:flex;flex-direction:column;gap:.5rem;}
+  .footer-link{font-size:.78rem;color:var(--gray);transition:color .2s;font-weight:400;}
+  .footer-link:hover{color:var(--white);}
+  .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;font-size:.68rem;color:var(--gray);}
+
+  /* ─── RESPONSIVE ──────────────────────────────────────── */
+  @media(max-width:1024px){
+    .divisions-strip{flex-direction:column;}
+    .div-panel{min-height:auto;padding:3rem 2rem;}
+    .div-panel::after{display:none;}
+    .properties-grid{grid-template-columns:1fr 1fr;}
+    .steps-grid{grid-template-columns:1fr 1fr;}
+    .step-card::after{display:none;}
+    .footer-grid{grid-template-columns:1fr 1fr;}
+    .cotizador-wrap{grid-template-columns:1fr;}
+  }
+  @media(max-width:768px){
+    .nav-links{display:none;}
+    .hamburger{display:flex;}
+    .about-grid{grid-template-columns:1fr;}
+    .mv-grid{grid-template-columns:1fr;}
+    .valores-grid{grid-template-columns:1fr 1fr;}
+    .properties-grid{grid-template-columns:1fr;}
+    .contacto-wrap{grid-template-columns:1fr;}
+    .form-row{grid-template-columns:1fr;}
     .footer-grid{grid-template-columns:1fr;}
+    .social-float{display:none;}
+    .chat-toggle{right:1.5rem;bottom:5.5rem;}
+    .chat-panel{width:calc(100vw - 2rem);right:1rem;bottom:6.5rem;}
+    .services-grid{grid-template-columns:1fr;}
+  }
+  @media(max-width:480px){
+    .valores-grid{grid-template-columns:1fr;}
+    .steps-grid{grid-template-columns:1fr;}
+    .about-stats{grid-template-columns:1fr 1fr;}
   }
   </style>
 </head>
 <body>
-<div class="toast" id="toast"></div>
-<a href="https://wa.me/50239902399" target="_blank" class="wa-float" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
 
-<!-- ══════════════════════════════════════════════════════
-     NAVEGACIÓN
-══════════════════════════════════════════════════════ -->
+<!-- ─── SOCIAL FLOAT ──────────────────────────────────── -->
+<div class="social-float">
+  <a href="https://wa.me/50239902399" target="_blank" class="social-btn whatsapp" title="WhatsApp">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+  <a href="https://www.instagram.com/virtualestategt" target="_blank" class="social-btn" title="Instagram">
+    <i class="fab fa-instagram"></i>
+  </a>
+  <a href="https://www.facebook.com/virtualestategt" target="_blank" class="social-btn" title="Facebook">
+    <i class="fab fa-facebook-f"></i>
+  </a>
+</div>
+
+<!-- ─── CHAT WIDGET ─────────────────────────────────────── -->
+<button class="chat-toggle" id="chatToggle" onclick="toggleChat()" title="Asistente Virtual 24/7">
+  <div class="chat-dot-live"></div>
+  <i class="fas fa-comment-dots" id="chatIcon"></i>
+</button>
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <div class="chat-avatar"><i class="fas fa-robot"></i></div>
+    <div style="flex:1;">
+      <div class="chat-hname">Asistente Virtual VE</div>
+      <div class="chat-hstatus"><span style="width:6px;height:6px;border-radius:50%;background:#5AE08A;display:inline-block;flex-shrink:0;"></span> En línea · 24/7</div>
+    </div>
+    <button onclick="toggleChat()" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:.9rem;padding:.2rem;"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-chips" id="chatChips">
+    <button class="chip" onclick="sendChip('Servicios disponibles')">Servicios</button>
+    <button class="chip" onclick="sendChip('¿Cuánto cuesta?')">Precios</button>
+    <button class="chip" onclick="sendChip('¿Cómo agendar?')">Agendar</button>
+    <button class="chip" onclick="sendChip('Información de contacto')">Contacto</button>
+    <button class="chip" onclick="sendChip('Real Estate propiedades')">Real Estate</button>
+  </div>
+  <div class="chat-input-row">
+    <input type="text" class="chat-inp" id="chatInput" placeholder="Escribe tu pregunta..." onkeydown="if(event.key==='Enter')sendChatMsg()"/>
+    <button class="chat-send" onclick="sendChatMsg()"><i class="fas fa-paper-plane"></i></button>
+  </div>
+</div>
+
+<!-- ─── SCROLL TOP ────────────────────────────────────── -->
+<button id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <i class="fas fa-chevron-up"></i>
+</button>
+
+<!-- ─── TOAST ─────────────────────────────────────────── -->
+<div class="toast" id="toast"></div>
+
+<!-- ─── MOBILE MENU ───────────────────────────────────── -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" onclick="closeMobile()"><i class="fas fa-times"></i></button>
+  <a href="#about" onclick="closeMobile()">Nosotros</a>
+  <a href="#divisiones" onclick="closeMobile()">Servicios</a>
+  <a href="real-estate.html" onclick="closeMobile()">Real Estate</a>
+  <a href="as-built.html" onclick="closeMobile()">AS Built</a>
+  <a href="construccion.html" onclick="closeMobile()">Construcción</a>
+  <a href="#cotizador" onclick="closeMobile()">Cotizador</a>
+  <a href="#contacto" onclick="closeMobile()">Contacto</a>
+  <a href="#agentes" onclick="closeMobile()">Agentes</a>
+  <a href="portal.html" style="color:var(--gold);" onclick="closeMobile()">Portal</a>
+</div>
+
+<!-- ─── NAV ───────────────────────────────────────────── -->
 <nav id="nav">
   <div class="container nav-inner">
-    <a href="landing.html" class="nav-logo">
-      <img src="assets/logo-letras.png" alt="Virtual Estate GT"/>
+    <a href="#" class="nav-logo">
+      <img src="assets/logo-letras.png" alt="Virtual Estate"/>
     </a>
     <div class="nav-links">
-      <a href="#servicios">Servicios</a>
-      <a href="#propiedades">Propiedades</a>
-      <a href="#cotizador">Cotizar</a>
+      <a href="#about">Nosotros</a>
+      <a href="#divisiones">Servicios</a>
+      <a href="real-estate.html">Real Estate</a>
+      <a href="as-built.html">AS Built</a>
+      <a href="construccion.html">Construcción</a>
+      <a href="#cotizador">Cotizador</a>
       <a href="#contacto">Contacto</a>
+      <a href="#agentes">Agentes</a>
+      <span style="width:1px;height:18px;background:var(--border);flex-shrink:0;"></span>
+      <a href="portal.html" class="nav-portal">Portal</a>
     </div>
-    <div class="nav-cta">
-      <a href="portal.html" class="btn btn-outline" style="padding:.5rem 1.1rem;font-size:.62rem;">
-        <i class="fas fa-user"></i> Mi Portal
-      </a>
-      <a href="https://wa.me/50239902399" target="_blank" class="btn btn-wa" style="padding:.5rem 1.1rem;font-size:.62rem;">
-        <i class="fab fa-whatsapp"></i> WhatsApp
-      </a>
-    </div>
-    <div class="hamburger" onclick="toggleMenu()">
+    <div class="hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')">
       <span></span><span></span><span></span>
     </div>
   </div>
 </nav>
 
-<div class="mobile-menu" id="mobile-menu">
-  <a href="#servicios" onclick="toggleMenu()">Servicios</a>
-  <a href="#propiedades" onclick="toggleMenu()">Propiedades</a>
-  <a href="#cotizador" onclick="toggleMenu()">Cotizar</a>
-  <a href="#contacto" onclick="toggleMenu()">Contacto</a>
-  <a href="portal.html">Mi Portal de Cliente</a>
-  <a href="https://wa.me/50239902399" target="_blank" style="color:#25D366;">WhatsApp: +502 3990-2399</a>
-</div>
-
-<!-- ══════════════════════════════════════════════════════
-     HERO
-══════════════════════════════════════════════════════ -->
+<!-- ─── HERO ───────────────────────────────────────────── -->
 <section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-content container">
+    <div class="hero-eyebrow">Guatemala</div>
+
+    <img src="assets/logo-letras.png" alt="Virtual Estate"
+         class="hero-logo" id="heroLogo"/>
+
+    <div class="hero-title">Visualización Digital Premium</div>
+
+    <p class="hero-sub">
+      Transformamos espacios físicos en experiencias digitales que venden, documentan y proyectan.
+    </p>
+
+    <div class="hero-ctas">
+      <a href="#divisiones" class="btn btn-gold">
+        <i class="fas fa-compass"></i> Explorar Servicios
+      </a>
+      <a href="#cotizador" class="btn btn-outline">
+        Cotizar Proyecto
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-scroll">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ─── ABOUT ──────────────────────────────────────────── -->
+<section id="about" class="section-pad">
   <div class="container">
-    <div class="hero-grid">
-      <div>
-        <div class="hero-tag"><span class="label">Virtual Estate GT — Guatemala</span></div>
-        <h1 class="hero-h1">
-          Servicios<br/>
-          <em>Inmobiliarios</em><br/>
-          de Alta Gama
-        </h1>
-        <p class="hero-sub">
-          Tours virtuales 3D, fotografía arquitectónica, video con drone y escaneo de precisión. Transformamos propiedades en experiencias digitales de primer nivel.
+    <div class="about-grid">
+      <div class="reveal">
+        <span class="label">Quiénes Somos</span>
+        <div class="divider"></div>
+        <h2 style="font-size:clamp(1.8rem,2.8vw,2.4rem);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1.2rem;">
+          Visualización virtual de alto nivel
+        </h2>
+        <p style="font-size:.85rem;color:var(--gray);line-height:1.85;margin-bottom:1rem;font-weight:400;">
+          Virtual Estate es una empresa especializada en escaneos 3D para generación de gemelos digitales,
+          recorridos virtuales inmersivos y documentación digital de espacios orientados
+          a los sectores inmobiliarios, arquitectura, construcción y comercial.
         </p>
-        <div class="hero-btns">
-          <a href="#cotizador" class="btn btn-gold">
-            <i class="fas fa-file-invoice-dollar"></i> Solicitar cotización
-          </a>
-          <a href="#propiedades" class="btn btn-outline">
-            <i class="fas fa-building"></i> Ver propiedades
-          </a>
-        </div>
-        <div class="hero-stats">
-          <div>
-            <div class="stat-num">200+</div>
-            <div class="stat-label">Proyectos completados</div>
-          </div>
-          <div>
-            <div class="stat-num">8</div>
-            <div class="stat-label">Años de experiencia</div>
-          </div>
-          <div>
-            <div class="stat-num">4K</div>
-            <div class="stat-label">Calidad garantizada</div>
-          </div>
+        <p style="font-size:.85rem;color:var(--gray);line-height:1.85;margin-bottom:1.8rem;font-weight:400;">
+          Nuestros clientes venden y compran más rápido, ahorran tiempo en visitas
+          y tienen una documentación precisa de sus proyectos.
+        </p>
+
+        <a href="#contacto" class="ai-cta">
+          <i class="fas fa-comment-dots"></i>
+          <span>Consultar con Asistente Virtual</span>
+          <span class="ai-badge">Automático · 24/7</span>
+        </a>
+
+        <div class="about-stats">
+          <div class="stat-card reveal"><div class="stat-num">3D</div><div class="stat-label">Gemelos digitales</div></div>
+          <div class="stat-card reveal"><div class="stat-num">360°</div><div class="stat-label">Recorridos virtuales</div></div>
+          <div class="stat-card reveal"><div class="stat-num">GT</div><div class="stat-label">Con sede en Guatemala</div></div>
+          <div class="stat-card reveal"><div class="stat-num">3</div><div class="stat-label">Divisiones especializadas</div></div>
         </div>
       </div>
-      <div class="hero-visual">
-        <div class="hero-card-stack">
-          <div class="h-card">
-            <div class="h-card-icon"><i class="fas fa-vr-cardboard"></i></div>
-            <div class="h-card-title">Tour Virtual 3D</div>
-            <div class="h-card-sub">Recorridos inmersivos con tecnología Matterport</div>
-            <div class="h-card-val">Desde $350</div>
+
+      <div class="reveal">
+        <span class="label">Nuestros Valores</span>
+        <div class="divider"></div>
+        <p style="font-size:.85rem;color:var(--gray);line-height:1.85;margin-bottom:1.2rem;font-weight:400;">
+          Cada proyecto es una promesa de precisión, innovación y excelencia estética.
+        </p>
+        <div class="values-list">
+          <div class="value-item">Excelencia en cada entrega</div>
+          <div class="value-item">Precisión técnica y documental</div>
+          <div class="value-item">Innovación tecnológica constante</div>
+          <div class="value-item">Profesionalismo en cada etapa</div>
+          <div class="value-item">Confianza y transparencia</div>
+          <div class="value-item">Visión del futuro</div>
+        </div>
+        <div class="quote-box">
+          <div class="quote-text">
+            "Convertimos cualquier tipo de propiedad y espacio en una experiencia digital que está disponible en cualquier momento."
           </div>
-          <div class="h-card">
-            <div class="h-card-icon"><i class="fas fa-drone"></i></div>
-            <div class="h-card-title">Video Drone 4K</div>
-            <div class="h-card-sub">Tomas aéreas profesionales de tu propiedad</div>
-            <div class="h-card-val">Desde $200</div>
-          </div>
-          <div class="h-card">
-            <div class="h-card-icon"><i class="fas fa-camera"></i></div>
-            <div class="h-card-title">Fotografía Pro</div>
-            <div class="h-card-sub">Imágenes de alta resolución con iluminación HDR</div>
-            <div class="h-card-val">Desde $150</div>
-          </div>
+          <div class="divider" style="margin-top:.8rem;margin-bottom:0;"></div>
+          <div class="quote-attr">Virtual Estate — Propuesta de Valor</div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════════
-     SERVICIOS
-══════════════════════════════════════════════════════ -->
-<section id="servicios">
-  <div class="container">
-    <div class="sec-header">
-      <div class="label">Nuestros servicios</div>
-      <h2 class="sec-title">Todo lo que tu propiedad necesita</h2>
-      <p class="sec-sub">Desde la captura hasta la presentación digital, cubrimos cada aspecto visual de tu inmueble con tecnología de punta.</p>
-    </div>
-    <div class="servicios-grid">
-      <div class="srv-card">
-        <div class="srv-icon"><i class="fas fa-vr-cardboard"></i></div>
-        <div class="srv-title">Tour Virtual 3D</div>
-        <div class="srv-desc">Recorridos inmersivos con tecnología Matterport. Tus clientes visitan la propiedad desde cualquier parte del mundo, 24/7.</div>
-        <span class="srv-tag">Más solicitado</span>
+<!-- ─── DIVISIONES FULL WIDTH DIAGONAL ────────────────── -->
+<section id="divisiones">
+  <div class="div-header container reveal">
+    <span class="label">Nuestras Divisiones</span>
+    <div class="divider center"></div>
+    <h2>Tres divisiones. Una sola visión.</h2>
+  </div>
+
+  <div class="divisions-strip">
+    <!-- Virtual Estate -->
+    <div class="div-panel div-panel-1">
+      <div class="div-num">01</div>
+      <div class="div-icon"><i class="fas fa-cube"></i></div>
+      <div class="div-title">Virtual Estate</div>
+      <div class="div-subtitle">Escaneos 3D & Recorridos Virtuales</div>
+      <p class="div-desc">
+        Creamos gemelos digitales y recorridos virtuales inmersivos de alta precisión para el sector inmobiliario y comercial.
+      </p>
+      <div class="div-services">
+        <span class="div-service">Escaneos 3D de alta precisión</span>
+        <span class="div-service">Recorridos virtuales 360°</span>
+        <span class="div-service">Vistas dollhouse y modelos</span>
+        <span class="div-service">Fotografía profesional</span>
+        <span class="div-service">Video aéreo con drone</span>
+        <span class="div-service">Contenido visual premium</span>
       </div>
-      <div class="srv-card">
-        <div class="srv-icon"><i class="fas fa-camera"></i></div>
-        <div class="srv-title">Fotografía Arquitectónica</div>
-        <div class="srv-desc">Imágenes HDR de alta resolución con postprocesamiento profesional. Cada ángulo captura el valor real de tu inmueble.</div>
-        <span class="srv-tag">Incluye retoque</span>
-      </div>
-      <div class="srv-card">
-        <div class="srv-icon"><i class="fas fa-helicopter"></i></div>
-        <div class="srv-title">Video Drone 4K</div>
-        <div class="srv-desc">Tomas aéreas cinematográficas con drones profesionales. Ideal para terrenos, condominios y propiedades de lujo.</div>
-        <span class="srv-tag">Drone certificado</span>
-      </div>
-      <div class="srv-card">
-        <div class="srv-icon"><i class="fas fa-ruler-combined"></i></div>
-        <div class="srv-title">Escaneo 3D / AS-BUILT</div>
-        <div class="srv-desc">Documentación precisa de planos y espacios. Modelos BIM y planos digitales para arquitectos, constructores y notarios.</div>
-        <span class="srv-tag">Precisión ±2mm</span>
-      </div>
-      <div class="srv-card">
-        <div class="srv-icon"><i class="fas fa-film"></i></div>
-        <div class="srv-title">Video Cinematic</div>
-        <div class="srv-desc">Producción de video de nivel cinematográfico para presentaciones de lujo, marketing digital e inversores internacionales.</div>
-        <span class="srv-tag">Edición profesional</span>
-      </div>
-      <div class="srv-card">
-        <div class="srv-icon"><i class="fas fa-box"></i></div>
-        <div class="srv-title">Paquete Premium</div>
-        <div class="srv-desc">Tour 3D + Fotografía + Drone + Video en un solo paquete con precio especial. La solución completa para propiedades premium.</div>
-        <span class="srv-tag">Ahorra hasta 30%</span>
+      <div style="display:flex;gap:1rem;align-items:center;margin-top:1.8rem;flex-wrap:wrap;">
+        <a href="real-estate.html" class="btn btn-outline" style="padding:.5rem 1.2rem;font-size:.62rem;">Ver más <i class="fas fa-arrow-right"></i></a>
+        <a href="#cotizador" class="div-link" style="margin-top:0;">Cotizar <i class="fas fa-arrow-right"></i></a>
       </div>
     </div>
-    <div style="text-align:center;margin-top:2.5rem;">
-      <a href="#cotizador" class="btn btn-gold"><i class="fas fa-arrow-down"></i> Cotizar mis servicios</a>
+
+    <!-- AS BUILT -->
+    <div class="div-panel div-panel-2">
+      <div class="div-num">02</div>
+      <div class="div-icon"><i class="fas fa-drafting-compass"></i></div>
+      <div class="div-title">AS BUILT</div>
+      <div class="div-subtitle">Documentación Técnica Digital</div>
+      <p class="div-desc">
+        Documentación digital precisa de espacios construidos. Planos base, modelos y registro técnico para arquitectura y construcción.
+      </p>
+      <div class="div-services">
+        <span class="div-service">Planos base 2D (PDF / DWG)</span>
+        <span class="div-service">Modelos 3D preliminares</span>
+        <span class="div-service">Levantamiento y metraje</span>
+        <span class="div-service">Estimación volumétrica</span>
+        <span class="div-service">Registro before / after</span>
+        <span class="div-service">Documentación técnica de obra</span>
+      </div>
+      <div style="display:flex;gap:1rem;align-items:center;margin-top:1.8rem;flex-wrap:wrap;">
+        <a href="as-built.html" class="btn btn-outline" style="padding:.5rem 1.2rem;font-size:.62rem;">Ver más <i class="fas fa-arrow-right"></i></a>
+        <a href="#cotizador" class="div-link" style="margin-top:0;">Cotizar <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </div>
+
+    <!-- Construcción -->
+    <div class="div-panel div-panel-3">
+      <div class="div-num">03</div>
+      <div class="div-icon"><i class="fas fa-hard-hat"></i></div>
+      <div class="div-title">Construcción</div>
+      <div class="div-subtitle">Remodelaciones & Acabados</div>
+      <p class="div-desc">
+        Intervenciones constructivas de alta calidad para espacios residenciales, comerciales, de oficina e industriales.
+      </p>
+      <div class="div-services">
+        <span class="div-service">Diseño, planificación y ejecución</span>
+        <span class="div-service">Tablayeso, textura y pintura</span>
+        <span class="div-service">Instalaciones hidráulicas y eléctricas</span>
+        <span class="div-service">Pisos, ventanería y herrería</span>
+        <span class="div-service">Mobiliario a medida</span>
+        <span class="div-service">Carpintería especializada</span>
+      </div>
+      <div style="display:flex;gap:1rem;align-items:center;margin-top:1.8rem;flex-wrap:wrap;">
+        <a href="construccion.html" class="btn btn-outline" style="padding:.5rem 1.2rem;font-size:.62rem;">Ver más <i class="fas fa-arrow-right"></i></a>
+        <a href="#contacto" class="div-link" style="margin-top:0;">Consultar <i class="fas fa-arrow-right"></i></a>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════════
-     PROPIEDADES (public gallery)
-══════════════════════════════════════════════════════ -->
-<section id="propiedades">
+<!-- ─── REAL ESTATE PREVIEW ────────────────────────────── -->
+<section id="real-estate" class="section-pad">
   <div class="container">
-    <div class="sec-header">
-      <div class="label">Portafolio</div>
-      <h2 class="sec-title">Propiedades destacadas</h2>
-      <p class="sec-sub">Explora nuestro portafolio. Guarda tus favoritas con el corazón — aparecerán en tu portal de cliente.</p>
+    <div class="re-header reveal">
+      <div>
+        <span class="label">Propiedades Disponibles</span>
+        <div class="divider"></div>
+        <h2>Real Estate Premium</h2>
+      </div>
+      <div style="text-align:right;">
+        <p style="font-size:.8rem;color:var(--gray);max-width:280px;text-align:right;margin-bottom:1rem;font-weight:400;">
+          Cada propiedad incluye recorrido virtual 3D, fotografía profesional y ficha técnica completa.
+        </p>
+        <a href="index.html#cotizador" class="btn btn-outline">
+          <i class="fas fa-plus"></i> Enlistar propiedad
+        </a>
+      </div>
     </div>
 
-    <div class="filters" id="filters">
-      <button class="filter-btn active" onclick="filterProps('', this)">Todas</button>
-      <button class="filter-btn" onclick="filterProps('Apartamento', this)">Apartamentos</button>
-      <button class="filter-btn" onclick="filterProps('Casa', this)">Casas</button>
-      <button class="filter-btn" onclick="filterProps('Terreno', this)">Terrenos</button>
-      <button class="filter-btn" onclick="filterProps('Venta', this)">En venta</button>
-      <button class="filter-btn" onclick="filterProps('Renta', this)">En renta</button>
+    <div class="properties-grid">
+      <div class="prop-card reveal">
+        <div class="prop-img">
+          <div class="prop-img-ph">
+            <i class="fas fa-building"></i>
+            <span>Tour virtual disponible</span>
+          </div>
+          <span class="prop-badge">Venta</span>
+        </div>
+        <div class="prop-body">
+          <div class="prop-code">VE-PROP-001</div>
+          <div class="prop-name"><i class="fas fa-building" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Apartamento Zona 14</div>
+          <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.65rem;"></i> Zona 14, Ciudad de Guatemala</div>
+          <div class="prop-specs">
+            <span class="prop-spec"><i class="fas fa-bed"></i> 3 hab.</span>
+            <span class="prop-spec"><i class="fas fa-bath"></i> 2 baños</span>
+            <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 145 m²</span>
+          </div>
+          <div class="prop-price">$185,000</div>
+        </div>
+        <div class="prop-foot">
+          <a href="real-estate.html" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
+          <i class="far fa-heart prop-heart" onclick="toggleFav(this,'VE-PROP-001')"></i>
+        </div>
+      </div>
+
+      <div class="prop-card reveal" style="transition-delay:.1s">
+        <div class="prop-img">
+          <div class="prop-img-ph">
+            <i class="fas fa-home"></i>
+            <span>Tour virtual disponible</span>
+          </div>
+          <span class="prop-badge">Venta</span>
+        </div>
+        <div class="prop-body">
+          <div class="prop-code">VE-PROP-002</div>
+          <div class="prop-name"><i class="fas fa-home" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Casa Colonia Oakland</div>
+          <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.65rem;"></i> Villa Nueva, Guatemala</div>
+          <div class="prop-specs">
+            <span class="prop-spec"><i class="fas fa-bed"></i> 4 hab.</span>
+            <span class="prop-spec"><i class="fas fa-bath"></i> 3 baños</span>
+            <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 290 m²</span>
+          </div>
+          <div class="prop-price">$320,000</div>
+        </div>
+        <div class="prop-foot">
+          <a href="real-estate.html" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
+          <i class="far fa-heart prop-heart" onclick="toggleFav(this,'VE-PROP-002')"></i>
+        </div>
+      </div>
+
+      <div class="prop-card reveal" style="transition-delay:.2s">
+        <div class="prop-img">
+          <div class="prop-img-ph">
+            <i class="fas fa-store"></i>
+            <span>Tour virtual disponible</span>
+          </div>
+          <span class="prop-badge renta">Renta</span>
+        </div>
+        <div class="prop-body">
+          <div class="prop-code">VE-PROP-003</div>
+          <div class="prop-name"><i class="fas fa-briefcase" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Oficina Pradera Torre 4</div>
+          <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.65rem;"></i> Zona 10, Ciudad de Guatemala</div>
+          <div class="prop-specs">
+            <span class="prop-spec"><i class="fas fa-users"></i> 8 puestos</span>
+            <span class="prop-spec"><i class="fas fa-bath"></i> 1 baño</span>
+            <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 95 m²</span>
+          </div>
+          <div class="prop-price">$1,200 / mes</div>
+        </div>
+        <div class="prop-foot">
+          <a href="real-estate.html" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
+          <i class="far fa-heart prop-heart" onclick="toggleFav(this,'VE-PROP-003')"></i>
+        </div>
+      </div>
     </div>
 
-    <div id="props-loading"><i class="fas fa-circle-notch fa-spin" style="color:var(--gold);font-size:1.4rem;"></i></div>
-    <div class="props-grid" id="props-grid" style="display:none;"></div>
-    <div id="props-empty"><i class="fas fa-search" style="font-size:2rem;color:rgba(193,146,89,.2);margin-bottom:1rem;display:block;"></i><p style="font-weight:400;">No hay propiedades con ese filtro.</p></div>
-
-    <div style="text-align:center;margin-top:2.4rem;">
-      <a href="portal.html" class="btn btn-outline">
-        <i class="fas fa-heart"></i> Ver mis propiedades guardadas en el portal
+    <div style="text-align:center;margin-top:3rem;" class="reveal">
+      <a href="real-estate.html" class="btn btn-gold">
+        <i class="fas fa-th-large"></i> Ver todas las propiedades con filtros
       </a>
     </div>
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════════
-     COTIZADOR
-══════════════════════════════════════════════════════ -->
-<section id="cotizador">
+<!-- ─── MISION / VISION / VALORES ─────────────────────── -->
+<section id="valores" class="section-pad">
   <div class="container">
-    <div class="sec-header">
-      <div class="label">Cotización sin costo</div>
-      <h2 class="sec-title">Solicita tu propuesta personalizada</h2>
-      <p class="sec-sub">Cuéntanos sobre tu propiedad y recibirás una cotización detallada en 1-2 días hábiles, sin ningún compromiso.</p>
+    <div style="text-align:center;margin-bottom:4rem;" class="reveal">
+      <span class="label">Nuestra Esencia</span>
+      <div class="divider center"></div>
+      <h2 style="font-size:clamp(1.8rem,3vw,2.6rem);text-transform:uppercase;letter-spacing:.08em;">Lo que nos define como empresa</h2>
     </div>
 
-    <div class="cotizador-grid">
-      <div>
-        <div class="cot-info-card" style="margin-bottom:1.4rem;">
-          <div class="label" style="margin-bottom:1rem;">¿Cómo funciona?</div>
-          <div class="cot-step">
-            <div class="cot-step-num">1</div>
-            <div class="cot-step-body">
-              <div class="cot-step-title">Completa el formulario</div>
-              Indica los servicios que necesitas y los detalles de tu propiedad.
-            </div>
-          </div>
-          <div class="cot-step">
-            <div class="cot-step-num">2</div>
-            <div class="cot-step-body">
-              <div class="cot-step-title">Revisamos y cotizamos</div>
-              Nuestro equipo prepara una propuesta personalizada en 1-2 días hábiles.
-            </div>
-          </div>
-          <div class="cot-step">
-            <div class="cot-step-num">3</div>
-            <div class="cot-step-body">
-              <div class="cot-step-title">Agendamos y entregamos</div>
-              Coordinamos la visita y entregamos los archivos en los tiempos acordados.
-            </div>
-          </div>
+    <div class="mv-grid">
+      <div class="mv-card reveal">
+        <div class="mv-label">Misión</div>
+        <h3 class="mv-title">Transformar la manera en que los espacios se presentan</h3>
+        <p class="mv-text">
+          Transformar completamente la manera en que los espacios se presentan, comercializan y documentan,
+          mediante tecnología de visualización virtual de alto nivel que eleva el valor percibido de los proyectos
+          inmobiliarios, arquitectónicos y constructivos, ofreciendo experiencias precisas, inmersivas y estéticamente impecables.
+        </p>
+      </div>
+      <div class="mv-card reveal" style="transition-delay:.12s">
+        <div class="mv-label">Visión</div>
+        <h3 class="mv-title">La empresa referente en Centroamérica</h3>
+        <p class="mv-text">
+          Ser la empresa referente en Centroamérica en visualización virtual premium para real estate y construcción,
+          reconocida por su innovación tecnológica, excelencia operativa y capacidad de convertir espacios físicos
+          en activos digitales estratégicos de alto valor comercial.
+        </p>
+      </div>
+    </div>
+
+    <div class="valores-grid">
+      <div class="valor-card reveal"><div class="valor-icon"><i class="fas fa-star"></i></div><div class="valor-name">Excelencia</div></div>
+      <div class="valor-card reveal" style="transition-delay:.07s"><div class="valor-icon"><i class="fas fa-crosshairs"></i></div><div class="valor-name">Precisión</div></div>
+      <div class="valor-card reveal" style="transition-delay:.14s"><div class="valor-icon"><i class="fas fa-lightbulb"></i></div><div class="valor-name">Innovación</div></div>
+      <div class="valor-card reveal" style="transition-delay:.21s"><div class="valor-icon"><i class="fas fa-briefcase"></i></div><div class="valor-name">Profesionalismo</div></div>
+      <div class="valor-card reveal" style="transition-delay:.28s"><div class="valor-icon"><i class="fas fa-handshake"></i></div><div class="valor-name">Confianza</div></div>
+      <div class="valor-card reveal" style="transition-delay:.35s"><div class="valor-icon"><i class="fas fa-binoculars"></i></div><div class="valor-name">Visión del Futuro</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PROCESO ────────────────────────────────────────── -->
+<section id="proceso" class="section-pad">
+  <div class="container">
+    <div class="proceso-header reveal">
+      <span class="label">Nuestro Proceso</span>
+      <div class="divider center"></div>
+      <h2>De la consulta a la entrega final</h2>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card reveal">
+        <div class="step-num">01</div>
+        <div class="step-icon"><i class="fas fa-comments"></i></div>
+        <div class="step-title">Consulta y Cotización</div>
+        <p class="step-desc">Analizamos tu proyecto, definimos alcances y entregamos cotización formal en 1-2 días hábiles.</p>
+      </div>
+      <div class="step-card reveal" style="transition-delay:.08s">
+        <div class="step-num">02</div>
+        <div class="step-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="step-title">Agendamiento</div>
+        <p class="step-desc">Confirmación de cita, firma de conformidad, anticipo del 50% y envío de checklist preparatorio.</p>
+      </div>
+      <div class="step-card reveal" style="transition-delay:.16s">
+        <div class="step-num">03</div>
+        <div class="step-icon"><i class="fas fa-camera"></i></div>
+        <div class="step-title">Día de Mapeo</div>
+        <p class="step-desc">Llegamos 15 minutos antes, ejecutamos el trabajo completo y verificamos la calidad de todas las tomas.</p>
+      </div>
+      <div class="step-card reveal" style="transition-delay:.24s">
+        <div class="step-num">04</div>
+        <div class="step-icon"><i class="fas fa-box-open"></i></div>
+        <div class="step-title">Entrega en 1-3 Días</div>
+        <p class="step-desc">Entregamos el proyecto completo: tour, planos, fotos y video. Ofrecemos servicio de hosting mensual.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PAQUETES ───────────────────────────────────────── -->
+<section id="paquetes" class="section-pad" style="background:var(--bg2);">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:3.5rem;" class="reveal">
+      <span class="label">Nuestros Paquetes</span>
+      <div class="divider center"></div>
+      <h2 style="font-size:clamp(1.8rem,3vw,2.6rem);text-transform:uppercase;letter-spacing:.06em;">Lo que incluye cada paquete</h2>
+      <p style="font-size:.85rem;color:var(--gray);max-width:520px;margin:1rem auto 0;font-weight:400;">Selecciona el paquete que mejor se adapte a tu propiedad o combina servicios individuales a la medida.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-bottom:0;" class="reveal">
+      <!-- BÁSICO -->
+      <div style="border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--bg);">
+        <div style="background:var(--bg3);padding:1.6rem 1.8rem;border-bottom:1px solid var(--border);">
+          <div style="font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.4rem;">Paquete</div>
+          <div style="font-family:'Raleway',sans-serif;font-size:1.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Básico</div>
         </div>
-        <div style="background:rgba(37,211,102,.06);border:1px solid rgba(37,211,102,.2);border-radius:var(--r);padding:1.2rem;display:flex;align-items:center;gap:.9rem;">
-          <i class="fab fa-whatsapp" style="font-size:1.4rem;color:#25D366;flex-shrink:0;"></i>
-          <div>
-            <div style="font-size:.72rem;font-weight:700;color:var(--white);">¿Prefieres WhatsApp?</div>
-            <a href="https://wa.me/50239902399?text=Hola%2C%20quiero%20cotizar%20servicios%20para%20mi%20propiedad" target="_blank" style="font-size:.7rem;color:#25D366;font-weight:600;">Escríbenos directamente → +502 3990-2399</a>
+        <div style="padding:1.6rem 1.8rem;">
+          <div style="display:flex;flex-direction:column;gap:.65rem;">
+            <div style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;color:rgba(245,240,232,.75);font-weight:400;"><i class="fas fa-check" style="color:var(--gold);font-size:.65rem;flex-shrink:0;"></i> Fotografías 360°</div>
+            <div style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;color:rgba(245,240,232,.75);font-weight:400;"><i class="fas fa-check" style="color:var(--gold);font-size:.65rem;flex-shrink:0;"></i> Video recorrido</div>
+            <div style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;color:rgba(245,240,232,.75);font-weight:400;"><i class="fas fa-check" style="color:var(--gold);font-size:.65rem;flex-shrink:0;"></i> Tour virtual 3D / 360°</div>
+            <div style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;color:rgba(245,240,232,.75);font-weight:400;"><i class="fas fa-check" style="color:var(--gold);font-size:.65rem;flex-shrink:0;"></i> Enlace compartible</div>
           </div>
+          <a href="#cotizador" class="btn btn-outline" style="margin-top:1.6rem;width:100%;justify-content:center;font-size:.65rem;">Cotizar este paquete</a>
+        </div>
+      </div>
+      <!-- INTERMEDIO -->
+      <div style="border:2px solid var(--gold);border-radius:var(--r);overflow:hidden;background:var(--bg);position:relative;">
+        <div style="position:absolute;top:0;right:0;background:var(--gold);color:var(--bg);font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;padding:.3rem .7rem;font-weight:700;border-bottom-left-radius:var(--r);">Más popular</div>
+        <div style="background:var(--bg3);padding:1.6rem 1.8rem;border-bottom:1px solid var(--border);">
+          <div style="font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.4rem;">Paquete</div>
+          <div style="font-family:'Raleway',sans-serif;font-size:1.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Intermedio</div>
+        </div>
+        <div style="padding:1.6rem 1.8rem;">
+          <div style="display:flex;flex-direction:column;gap:.65rem;">
+            <div style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;color:rgba(245,240,232,.75);font-weight:400;"><i class="fas fa-check" style="color:var(--gold);font-size:.65rem;flex-shrink:0;"></i> Todo lo del Básico</div>
+            <div style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;color:rgba(245,240,232,.75);font-weight:400;"><i class="fas fa-check" style="color:var(--gold);font-size:.65rem;flex-shrink:0;"></i> Gemelo digital 3D</div>
+            <div style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;color:rgba(245,240,232,.75);font-weight:400;"><i class="fas fa-check" style="color:var(--gold);font-size:.65rem;flex-shrink:0;"></i> Planos base 2D (PDF)</div>
+            <div style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;color:rgba(245,240,232,.75);font-weight:400;"><i class="fas fa-check" style="color:var(--gold);font-size:.65rem;flex-shrink:0;"></i> Vista dollhouse</div>
+            <div style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;color:rgba(245,240,232,.75);font-weight:400;"><i class="fas fa-check" style="color:var(--gold);font-size:.65rem;flex-shrink:0;"></i> Medición remota integrada</div>
+          </div>
+          <a href="#cotizador" class="btn btn-gold" style="margin-top:1.6rem;width:100%;justify-content:center;font-size:.65rem;">Cotizar este paquete</a>
+        </div>
+      </div>
+      <!-- PREMIUM -->
+      <div style="border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--bg);">
+        <div style="background:var(--bg3);padding:1.6rem 1.8rem;border-bottom:1px solid var(--border);">
+          <div style="font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.4rem;">Paquete</div>
+          <div style="font-family:'Raleway',sans-serif;font-size:1.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Premium</div>
+        </div>
+        <div style="padding:1.6rem 1.8rem;">
+          <div style="display:flex;flex-direction:column;gap:.65rem;">
+            <div style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;color:rgba(245,240,232,.75);font-weight:400;"><i class="fas fa-check" style="color:var(--gold);font-size:.65rem;flex-shrink:0;"></i> Todo lo del Intermedio</div>
+            <div style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;color:rgba(245,240,232,.75);font-weight:400;"><i class="fas fa-check" style="color:var(--gold);font-size:.65rem;flex-shrink:0;"></i> Fotografía profesional</div>
+            <div style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;color:rgba(245,240,232,.75);font-weight:400;"><i class="fas fa-check" style="color:var(--gold);font-size:.65rem;flex-shrink:0;"></i> Planos en DWG editable</div>
+            <div style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;color:rgba(245,240,232,.75);font-weight:400;"><i class="fas fa-check" style="color:var(--gold);font-size:.65rem;flex-shrink:0;"></i> Video aéreo con drone</div>
+            <div style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;color:rgba(245,240,232,.75);font-weight:400;"><i class="fas fa-check" style="color:var(--gold);font-size:.65rem;flex-shrink:0;"></i> Atención personalizada</div>
+          </div>
+          <a href="#cotizador" class="btn btn-outline" style="margin-top:1.6rem;width:100%;justify-content:center;font-size:.65rem;">Cotizar este paquete</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── SERVICIOS INDIVIDUALES ──────────────────────── -->
+<section id="servicios" class="section-pad" style="background:var(--bg);padding-top:60px;">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:3.5rem;" class="reveal">
+      <span class="label">Servicios Individuales</span>
+      <div class="divider center"></div>
+      <h2 style="font-size:clamp(1.6rem,3vw,2.4rem);text-transform:uppercase;letter-spacing:.06em;">Combina los servicios que necesitas</h2>
+      <p style="font-size:.85rem;color:var(--gray);max-width:560px;margin:1rem auto 0;font-weight:400;">
+        ¿No necesitas un paquete completo? Elige exactamente lo que requiere tu proyecto.
+      </p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;" class="reveal">
+
+      <div style="border:1px solid var(--border);border-radius:var(--r);padding:1.6rem;background:var(--bg2);transition:var(--tr);" onmouseover="this.style.borderColor='rgba(193,146,89,.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:1.3rem;color:var(--gold);margin-bottom:.9rem;"><i class="fas fa-cube"></i></div>
+        <div style="font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;">Tour Virtual 3D / 360°</div>
+        <p style="font-size:.78rem;color:var(--gray);line-height:1.7;font-weight:400;">
+          Escaneo de alta precisión con equipo de última generación. Genera un gemelo digital navegable con vistas dollhouse, medición remota y enlace compartible.
+        </p>
+      </div>
+
+      <div style="border:1px solid var(--border);border-radius:var(--r);padding:1.6rem;background:var(--bg2);transition:var(--tr);" onmouseover="this.style.borderColor='rgba(193,146,89,.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:1.3rem;color:var(--gold);margin-bottom:.9rem;"><i class="fas fa-camera"></i></div>
+        <div style="font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;">Fotografía Profesional</div>
+        <p style="font-size:.78rem;color:var(--gray);line-height:1.7;font-weight:400;">
+          Fotografías de alta resolución con iluminación controlada, ideales para marketing inmobiliario, portafolios de obra y publicaciones digitales.
+        </p>
+      </div>
+
+      <div style="border:1px solid var(--border);border-radius:var(--r);padding:1.6rem;background:var(--bg2);transition:var(--tr);" onmouseover="this.style.borderColor='rgba(193,146,89,.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:1.3rem;color:var(--gold);margin-bottom:.9rem;"><i class="fas fa-helicopter"></i></div>
+        <div style="font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;">Video Aéreo / Drone</div>
+        <p style="font-size:.78rem;color:var(--gray);line-height:1.7;font-weight:400;">
+          Tomas aéreas cinematográficas del inmueble y sus alrededores. Edición profesional con música, colores y corte de video de hasta 2 minutos.
+        </p>
+      </div>
+
+      <div style="border:1px solid var(--border);border-radius:var(--r);padding:1.6rem;background:var(--bg2);transition:var(--tr);" onmouseover="this.style.borderColor='rgba(193,146,89,.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:1.3rem;color:var(--gold);margin-bottom:.9rem;"><i class="fas fa-home"></i></div>
+        <div style="font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;">Vistas Dollhouse</div>
+        <p style="font-size:.78rem;color:var(--gray);line-height:1.7;font-weight:400;">
+          Representación tridimensional aérea del interior del inmueble. Ideal para entender distribución de espacios y presentaciones a compradores.
+        </p>
+      </div>
+
+      <div style="border:1px solid var(--border);border-radius:var(--r);padding:1.6rem;background:var(--bg2);transition:var(--tr);" onmouseover="this.style.borderColor='rgba(193,146,89,.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:1.3rem;color:var(--gold);margin-bottom:.9rem;"><i class="fas fa-drafting-compass"></i></div>
+        <div style="font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;">Planos 2D (PDF + DWG)</div>
+        <p style="font-size:.78rem;color:var(--gray);line-height:1.7;font-weight:400;">
+          Generación de planos base a partir del escaneo. Se entregan en formato PDF para presentaciones y DWG para edición en AutoCAD o similares.
+        </p>
+      </div>
+
+      <div style="border:1px solid var(--border);border-radius:var(--r);padding:1.6rem;background:var(--bg2);transition:var(--tr);" onmouseover="this.style.borderColor='rgba(193,146,89,.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:1.3rem;color:var(--gold);margin-bottom:.9rem;"><i class="fas fa-ruler-combined"></i></div>
+        <div style="font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;">Levantamiento 3D</div>
+        <p style="font-size:.78rem;color:var(--gray);line-height:1.7;font-weight:400;">
+          Registro digital milimétrico del espacio construido. Base para proyectos de remodelación, ampliación, estimación de materiales y metraje oficial.
+        </p>
+      </div>
+
+      <div style="border:1px solid var(--border);border-radius:var(--r);padding:1.6rem;background:var(--bg2);transition:var(--tr);" onmouseover="this.style.borderColor='rgba(193,146,89,.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:1.3rem;color:var(--gold);margin-bottom:.9rem;"><i class="fas fa-file-invoice"></i></div>
+        <div style="font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;">AS BUILT Completo</div>
+        <p style="font-size:.78rem;color:var(--gray);line-height:1.7;font-weight:400;">
+          Documentación técnica integral del estado actual de la construcción. Incluye levantamiento 3D, planos, volumetrías y registro before/after.
+        </p>
+      </div>
+
+      <div style="border:1px solid var(--border);border-radius:var(--r);padding:1.6rem;background:var(--bg2);transition:var(--tr);" onmouseover="this.style.borderColor='rgba(193,146,89,.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:1.3rem;color:var(--gold);margin-bottom:.9rem;"><i class="fas fa-hard-hat"></i></div>
+        <div style="font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;">Construcción / Remodelación</div>
+        <p style="font-size:.78rem;color:var(--gray);line-height:1.7;font-weight:400;">
+          Intervenciones constructivas en espacios residenciales, comerciales o de oficina. Tablayeso, acabados, instalaciones, carpintería y mobiliario a medida.
+        </p>
+      </div>
+
+      <div style="border:1px solid var(--border);border-radius:var(--r);padding:1.6rem;background:var(--bg2);transition:var(--tr);" onmouseover="this.style.borderColor='rgba(193,146,89,.4)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:1.3rem;color:var(--gold);margin-bottom:.9rem;"><i class="fas fa-search"></i></div>
+        <div style="font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;">Inspección de Acabados</div>
+        <p style="font-size:.78rem;color:var(--gray);line-height:1.7;font-weight:400;">
+          Revisión técnica presencial del estado de acabados en entregas de obra, identificando deficiencias antes del cierre formal con la constructora.
+        </p>
+      </div>
+
+    </div>
+    <div style="text-align:center;margin-top:2.5rem;" class="reveal">
+      <a href="#cotizador" class="btn btn-gold">
+        <i class="fas fa-calculator"></i> Cotizar servicios
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── COTIZADOR ─────────────────────────────────────── -->
+<section id="cotizador" class="section-pad" style="background:var(--bg2);">
+  <div class="container">
+    <div class="cotizador-wrap">
+      <div class="cot-intro reveal">
+        <span class="label">Cotizador de Servicios</span>
+        <div class="divider"></div>
+        <h2>Solicita tu cotización personalizada</h2>
+        <p>
+          Selecciona los servicios de tu interés — puedes combinar varios en una sola cotización.
+          Te la enviamos por correo o WhatsApp según tu preferencia, sin compromiso.
+        </p>
+        <div class="cot-info-box">
+          <div class="cot-info-item"><i class="fas fa-clock"></i> Cotización formal en 1-2 días hábiles</div>
+          <div class="cot-info-item"><i class="fas fa-file-alt"></i> Puede incluir múltiples servicios</div>
+          <div class="cot-info-item"><i class="fas fa-dollar-sign"></i> Anticipo del 50% al confirmar</div>
+          <div class="cot-info-item"><i class="fas fa-robot"></i> Asesoría automática disponible 24/7</div>
         </div>
       </div>
 
-      <div class="form-card">
-        <div class="label" style="margin-bottom:1.2rem;">Datos de contacto</div>
+      <div class="cot-form reveal" style="transition-delay:.12s">
+        <!-- PAQUETES -->
+        <div class="form-label" style="margin-bottom:.6rem;color:var(--gold);">
+          <i class="fas fa-box" style="margin-right:.4rem;"></i> Paquetes disponibles
+        </div>
+        <div class="services-grid" id="servicesGrid">
+          <label class="svc-check svc-pkg">
+            <input type="checkbox" name="svc" value="pkg_basico"/> Paquete Básico
+          </label>
+          <label class="svc-check svc-pkg">
+            <input type="checkbox" name="svc" value="pkg_intermedio"/> Paquete Intermedio
+          </label>
+          <label class="svc-check svc-pkg">
+            <input type="checkbox" name="svc" value="pkg_premium"/> Paquete Premium
+          </label>
+        </div>
+
+        <!-- SERVICIOS INDIVIDUALES -->
+        <div class="form-label" style="margin:1.2rem 0 .6rem;color:var(--gold);">
+          <i class="fas fa-wrench" style="margin-right:.4rem;"></i> Servicios individuales
+        </div>
+        <div class="services-grid" id="servicesGridInd">
+          <label class="svc-check">
+            <input type="checkbox" name="svc" value="tour_virtual_360"/> Tour Virtual 3D / Recorrido 360°
+          </label>
+          <label class="svc-check">
+            <input type="checkbox" name="svc" value="fotografia"/> Fotografía Profesional
+          </label>
+          <label class="svc-check">
+            <input type="checkbox" name="svc" value="drone"/> Video Aéreo / Drone
+          </label>
+          <label class="svc-check">
+            <input type="checkbox" name="svc" value="dollhouse"/> Vistas Dollhouse
+          </label>
+          <label class="svc-check">
+            <input type="checkbox" name="svc" value="planos_2d"/> Planos 2D (PDF + DWG)
+          </label>
+          <label class="svc-check">
+            <input type="checkbox" name="svc" value="levantamiento_3d"/> Levantamiento 3D
+          </label>
+          <label class="svc-check">
+            <input type="checkbox" name="svc" value="asbuilt_completo"/> AS BUILT Completo
+          </label>
+          <label class="svc-check">
+            <input type="checkbox" name="svc" value="construccion"/> Construcción / Remodelación
+          </label>
+          <label class="svc-check">
+            <input type="checkbox" name="svc" value="inspeccion"/> Inspección de Acabados
+          </label>
+        </div>
+
+        <!-- MONEDA -->
+        <div class="form-group" style="margin-top:1.4rem;">
+          <label class="form-label" style="margin-bottom:.5rem;">Moneda del estimado</label>
+          <div class="currency-toggle">
+            <button id="btn-usd" class="active" onclick="setCurrency('USD')">$ USD</button>
+            <button id="btn-gtq" onclick="setCurrency('GTQ')">Q Quetzales</button>
+          </div>
+        </div>
+
+        <!-- METRAJE -->
+        <div class="form-group">
+          <label class="form-label">Metraje aproximado (m²) <span style="color:var(--gray);text-transform:none;font-size:.65rem;">— requerido para servicios por m²</span></label>
+          <input type="number" class="form-control" id="cot-m2" placeholder="Ej: 150" min="1"/>
+        </div>
+
+        <div class="form-label" style="margin-bottom:.5rem;color:var(--gold);font-size:.58rem;letter-spacing:.2em;"><i class="fas fa-file-invoice" style="margin-right:.4rem;"></i> Datos de facturación</div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Nombre *</label>
-            <input type="text" class="form-control" id="cot-nombre" placeholder="Tu nombre"/>
+            <label class="form-label">Nombre completo / Razón social *</label>
+            <input type="text" class="form-control" id="cot-nombre" placeholder="Nombre o empresa"/>
           </div>
           <div class="form-group">
-            <label class="form-label">Teléfono / WhatsApp</label>
-            <input type="tel" class="form-control" id="cot-telefono" placeholder="+502 0000-0000"/>
+            <label class="form-label">NIT <span style="color:var(--gray);text-transform:none;font-size:.62rem;">para factura</span></label>
+            <input type="text" class="form-control" id="cot-nit" placeholder="CF o 0000000-0"/>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Correo electrónico *</label>
-          <input type="email" class="form-control" id="cot-email" placeholder="tu@correo.com"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Servicios de interés</label>
-          <div class="services-check">
-            <label class="srv-check-item" onclick="this.classList.toggle('checked')">
-              <input type="checkbox" value="Tour Virtual 3D"/> Tour Virtual 3D
-            </label>
-            <label class="srv-check-item" onclick="this.classList.toggle('checked')">
-              <input type="checkbox" value="Fotografía"/> Fotografía
-            </label>
-            <label class="srv-check-item" onclick="this.classList.toggle('checked')">
-              <input type="checkbox" value="Video Drone"/> Video Drone
-            </label>
-            <label class="srv-check-item" onclick="this.classList.toggle('checked')">
-              <input type="checkbox" value="Escaneo AS-BUILT"/> Escaneo AS-BUILT
-            </label>
-            <label class="srv-check-item" onclick="this.classList.toggle('checked')">
-              <input type="checkbox" value="Video Cinematic"/> Video Cinematic
-            </label>
-            <label class="srv-check-item" onclick="this.classList.toggle('checked')">
-              <input type="checkbox" value="Paquete Premium"/> Paquete Premium
-            </label>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Correo electrónico</label>
+            <input type="email" class="form-control" id="cot-email" placeholder="tu@correo.com"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp</label>
+            <input type="tel" class="form-control" id="cot-tel" placeholder="+502 0000-0000"/>
           </div>
         </div>
         <div class="form-group">
           <label class="form-label">Detalles adicionales</label>
-          <textarea class="form-control" id="cot-mensaje" placeholder="Tipo de propiedad, zona, tamaño aproximado, fecha tentativa..." style="min-height:80px;resize:vertical;"></textarea>
+          <textarea class="form-control" id="cot-notas" placeholder="Describe brevemente tu proyecto..."></textarea>
         </div>
-        <button onclick="enviarCotizacion()" class="btn btn-gold" style="width:100%;justify-content:center;padding:.85rem;" id="cot-btn">
-          <i class="fas fa-paper-plane"></i> Enviar solicitud
-        </button>
-        <p style="font-size:.68rem;color:var(--gray);text-align:center;margin-top:.8rem;line-height:1.6;">
-          Al enviar aceptas que Virtual Estate GT te contacte para dar seguimiento a tu solicitud.
+
+        <!-- CÓDIGO PROMOCIONAL -->
+        <div class="form-group">
+          <label class="form-label">Código promocional <span style="color:var(--gray);text-transform:none;font-size:.65rem;">— opcional</span></label>
+          <div style="display:flex;gap:.5rem;">
+            <input type="text" class="form-control" id="cot-promo" placeholder="Ingresa tu código" style="text-transform:uppercase;letter-spacing:.08em;flex:1;"/>
+            <button type="button" onclick="validarPromo()" style="padding:.65rem 1.2rem;background:var(--bg3);border:1px solid var(--border);color:var(--gold);font-size:.7rem;font-family:'Montserrat',sans-serif;font-weight:600;border-radius:var(--r);cursor:pointer;white-space:nowrap;transition:.2s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+              Aplicar
+            </button>
+          </div>
+          <div id="promo-msg" style="font-size:.72rem;margin-top:.35rem;min-height:1em;"></div>
+        </div>
+
+        <div class="cot-send-row">
+          <button class="btn-wa" onclick="enviarCotWA()">
+            <i class="fab fa-whatsapp"></i> Enviar por WhatsApp
+          </button>
+          <button class="btn-mail" onclick="enviarCotEmail()">
+            <i class="fas fa-envelope"></i> Enviar por Correo
+          </button>
+        </div>
+        <p class="cot-note">
+          Al enviar, nuestro equipo preparará una cotización formal y detallada.<br/>
+          Tiempo de respuesta: 1-2 días hábiles.
         </p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════════
-     CONTACTO
-══════════════════════════════════════════════════════ -->
-<section id="contacto">
+<!-- ─── CONTACTO ──────────────────────────────────────── -->
+<section id="contacto" class="section-pad">
   <div class="container">
-    <div class="sec-header">
-      <div class="label">Estamos aquí para ayudarte</div>
-      <h2 class="sec-title">Contáctanos</h2>
-      <p class="sec-sub">Respuesta garantizada en menos de 2 horas en horario hábil. Fuera de horario por WhatsApp.</p>
-    </div>
-    <div class="contacto-grid">
-      <div class="contact-card">
-        <div class="contact-item">
-          <div class="contact-icon"><i class="fab fa-whatsapp"></i></div>
-          <div>
-            <div class="contact-label">WhatsApp</div>
-            <div class="contact-val">+502 3990-2399</div>
+    <div class="contacto-wrap">
+      <div class="contacto-info reveal">
+        <span class="label">Contacto</span>
+        <div class="divider"></div>
+        <h2>Hablemos de tu proyecto</h2>
+        <p>
+          Completa el formulario y te contactamos en menos de 24 horas.
+          También contamos con un asistente virtual disponible las 24 horas.
+        </p>
+        <div class="info-items">
+          <div class="info-item">
+            <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
+            <div class="info-text">
+              <strong>Dirección</strong>
+              Edificio Zona Pradera, Torre 4, Oficina 704, Zona 10, Guatemala
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon"><i class="fab fa-whatsapp"></i></div>
+            <div class="info-text">
+              <strong>WhatsApp</strong>
+              <a href="https://wa.me/50239902399" style="color:var(--gold);">+502 3990-2399</a>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon"><i class="fas fa-envelope"></i></div>
+            <div class="info-text">
+              <strong>Correo</strong>
+              <a href="mailto:info@virtualestategt.com" style="color:var(--gold);">info@virtualestategt.com</a>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon"><i class="fas fa-clock"></i></div>
+            <div class="info-text">
+              <strong>Horario de Atención</strong>
+              Lunes a Viernes: 8:00 AM – 6:00 PM
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon"><i class="fas fa-comment-dots"></i></div>
+            <div class="info-text">
+              <strong>Asistente Virtual</strong>
+              Disponible 24/7 para consultas
+            </div>
           </div>
         </div>
-        <div class="contact-item">
-          <div class="contact-icon"><i class="fas fa-envelope"></i></div>
-          <div>
-            <div class="contact-label">Correo electrónico</div>
-            <div class="contact-val">info@virtualestategt.com</div>
-          </div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-icon"><i class="fas fa-clock"></i></div>
-          <div>
-            <div class="contact-label">Horario de atención</div>
-            <div class="contact-val">Lun — Vie: 8:00 AM — 6:00 PM</div>
-          </div>
-        </div>
-        <div class="contact-item" style="margin-bottom:0;">
-          <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
-          <div>
-            <div class="contact-label">Cobertura</div>
-            <div class="contact-val">Guatemala City y área metropolitana</div>
-          </div>
+        <div style="margin-top:2rem;display:flex;gap:.8rem;flex-wrap:wrap;">
+          <a href="https://wa.me/50239902399" target="_blank" class="btn btn-gold">
+            <i class="fab fa-whatsapp"></i> WhatsApp
+          </a>
+          <a href="mailto:info@virtualestategt.com" class="btn btn-outline">
+            <i class="fas fa-envelope"></i> Correo
+          </a>
         </div>
       </div>
-      <div class="wa-cta">
-        <div class="wa-pulse"><i class="fab fa-whatsapp"></i></div>
-        <div class="label">Respuesta inmediata</div>
-        <div class="wa-num">+502 3990-2399</div>
-        <p class="wa-sub">Chatea con nuestro equipo en tiempo real. Te asesoramos sin costo ni compromiso sobre el servicio ideal para tu propiedad.</p>
-        <a href="https://wa.me/50239902399?text=Hola%2C%20me%20interesa%20conocer%20más%20sobre%20sus%20servicios%20de%20Virtual%20Estate%20GT" target="_blank" class="btn btn-wa" style="width:100%;justify-content:center;padding:.9rem;">
-          <i class="fab fa-whatsapp"></i> Iniciar conversación
-        </a>
-        <div style="margin-top:1.4rem;display:flex;gap:.8rem;justify-content:center;">
-          <a href="#" onclick="showToast('Instagram: @virtualestategt')" style="display:flex;align-items:center;gap:.4rem;font-size:.68rem;color:var(--gray);transition:.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--gray)'">
-            <i class="fab fa-instagram"></i> Instagram
-          </a>
-          <a href="#" onclick="showToast('Facebook: Virtual Estate GT')" style="display:flex;align-items:center;gap:.4rem;font-size:.68rem;color:var(--gray);transition:.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--gray)'">
-            <i class="fab fa-facebook"></i> Facebook
-          </a>
-          <a href="#" onclick="showToast('LinkedIn: Virtual Estate GT')" style="display:flex;align-items:center;gap:.4rem;font-size:.68rem;color:var(--gray);transition:.2s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--gray)'">
-            <i class="fab fa-linkedin"></i> LinkedIn
-          </a>
-        </div>
+
+      <div class="reveal" style="transition-delay:.12s">
+        <form id="contactForm" onsubmit="enviarContacto(event)">
+          <div class="form-label" style="margin-bottom:1rem;">Formulario de Contacto</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nombre *</label>
+              <input type="text" class="form-control" id="f-nombre" placeholder="Tu nombre" required/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Apellido *</label>
+              <input type="text" class="form-control" id="f-apellido" placeholder="Tu apellido" required/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Correo *</label>
+              <input type="email" class="form-control" id="f-email" placeholder="tu@correo.com" required/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Teléfono / WhatsApp</label>
+              <input type="tel" class="form-control" id="f-tel" placeholder="+502 0000-0000"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipo de solicitud</label>
+            <select class="form-control" id="f-tipo">
+              <option value="">— Seleccionar —</option>
+              <option value="virtual">Agendar cita virtual</option>
+              <option value="campo">Agendar visita de campo</option>
+              <option value="cotizacion">Solicitar cotización</option>
+              <option value="realestate">Enlistar propiedad</option>
+              <option value="info">Solo información</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Servicio de interés</label>
+            <select class="form-control" id="f-servicio">
+              <option value="">— Seleccionar —</option>
+              <option>Tours Virtuales / Escaneo 3D</option>
+              <option>AS BUILT / Documentación Técnica</option>
+              <option>Construcción / Remodelación</option>
+              <option>Real Estate</option>
+              <option>Paquete Inmobiliario</option>
+              <option>Otro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mensaje</label>
+            <textarea class="form-control" id="f-mensaje" placeholder="Cuéntanos sobre tu proyecto..."></textarea>
+          </div>
+          <div class="form-check" style="margin-bottom:1rem;">
+            <input type="checkbox" id="f-tyc" required/>
+            <label for="f-tyc">
+              Acepto los <a href="#">términos y condiciones</a> y la
+              <a href="#">política de privacidad</a>. <span style="color:var(--gold);font-weight:500;">(Requerido)</span>
+            </label>
+          </div>
+          <button type="submit" class="btn btn-gold" style="width:100%;justify-content:center;">
+            <i class="fas fa-paper-plane"></i> Enviar mensaje
+          </button>
+        </form>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════════
-     FOOTER
-══════════════════════════════════════════════════════ -->
-<footer id="footer">
+<!-- ─── AGENTE / REFERIDOS ────────────────────────────── -->
+<section id="agentes" style="background:var(--bg3);padding:70px 0;border-top:1px solid var(--border);">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;" class="reveal">
+      <div>
+        <span class="label">Programa de Agentes</span>
+        <div class="divider"></div>
+        <h2 style="font-size:clamp(1.6rem,3vw,2.4rem);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem;">
+          Genera ingresos con tu código de referido
+        </h2>
+        <p style="font-size:.85rem;color:var(--gray);line-height:1.85;margin-bottom:1.4rem;font-weight:400;">
+          ¿Conoces a alguien que necesite nuestros servicios? Solicita tu código de agente personalizado
+          y recibe una comisión por cada proyecto que recomiendes. Sin compromisos, sin cuotas.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.8rem;">
+          <div style="display:flex;align-items:center;gap:.8rem;font-size:.82rem;color:rgba(245,240,232,.8);font-weight:400;">
+            <i class="fas fa-check-circle" style="color:var(--gold);flex-shrink:0;"></i>
+            Código único y personalizado con tu nombre
+          </div>
+          <div style="display:flex;align-items:center;gap:.8rem;font-size:.82rem;color:rgba(245,240,232,.8);font-weight:400;">
+            <i class="fas fa-check-circle" style="color:var(--gold);flex-shrink:0;"></i>
+            Comisión por cada proyecto cerrado con tu código
+          </div>
+          <div style="display:flex;align-items:center;gap:.8rem;font-size:.82rem;color:rgba(245,240,232,.8);font-weight:400;">
+            <i class="fas fa-check-circle" style="color:var(--gold);flex-shrink:0;"></i>
+            Seguimiento en tiempo real desde tu portal de cliente
+          </div>
+          <div style="display:flex;align-items:center;gap:.8rem;font-size:.82rem;color:rgba(245,240,232,.8);font-weight:400;">
+            <i class="fas fa-check-circle" style="color:var(--gold);flex-shrink:0;"></i>
+            Aprobación rápida — sin requisitos complicados
+          </div>
+        </div>
+        <div style="display:flex;gap:.8rem;flex-wrap:wrap;">
+          <a href="portal.html#agente" class="btn btn-gold">
+            <i class="fas fa-id-badge"></i> Solicitar mi código de agente
+          </a>
+          <a href="https://wa.me/50239902399?text=Hola,%20me%20interesa%20ser%20agente%20de%20Virtual%20Estate" target="_blank" class="btn btn-outline">
+            <i class="fab fa-whatsapp"></i> Consultar por WhatsApp
+          </a>
+        </div>
+      </div>
+      <div style="border:1px solid var(--border);border-radius:var(--r);padding:2.2rem;background:var(--bg2);">
+        <div style="text-align:center;margin-bottom:1.8rem;">
+          <div style="width:64px;height:64px;border-radius:50%;background:rgba(193,146,89,.12);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+            <i class="fas fa-id-badge" style="font-size:1.6rem;color:var(--gold);"></i>
+          </div>
+          <div style="font-family:'Raleway',sans-serif;font-size:1.2rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Tu código de agente</div>
+          <p style="font-size:.78rem;color:var(--gray);margin-top:.4rem;font-weight:400;">Así funcionará tu código personalizado</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.9rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:.75rem;background:rgba(193,146,89,.06);border:1px solid var(--border);border-radius:var(--r);">
+            <span style="font-size:.72rem;color:var(--gray);text-transform:uppercase;letter-spacing:.1em;">Tu código</span>
+            <span style="font-family:'Raleway',sans-serif;font-size:1rem;font-weight:700;color:var(--gold);letter-spacing:.14em;">AGT-0001</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:.6rem .75rem;font-size:.78rem;color:var(--gray);">
+            <span>Estado</span><span style="color:#5AE08A;font-weight:600;">● Activo</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:.6rem .75rem;font-size:.78rem;color:var(--gray);">
+            <span>Referidos realizados</span><span style="color:var(--white);font-weight:600;">–</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:.6rem .75rem;font-size:.78rem;color:var(--gray);">
+            <span>Comisiones generadas</span><span style="color:var(--white);font-weight:600;">–</span>
+          </div>
+        </div>
+        <p style="font-size:.7rem;color:var(--gray);margin-top:1.4rem;line-height:1.6;text-align:center;font-weight:400;">
+          Solicita tu código y accede a este panel desde tu portal de cliente para monitorear tus referidos.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── MARCAS ASOCIADAS ──────────────────────────────── -->
+<section id="marcas" style="background:var(--bg2);padding:60px 0;border-top:1px solid var(--border);">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:3rem;" class="reveal">
+      <span class="label">Marcas Asociadas</span>
+      <div class="divider center"></div>
+      <p style="font-size:.82rem;color:var(--gray);font-weight:400;">Alianzas estratégicas que respaldan nuestros proyectos.</p>
+    </div>
+    <div style="display:flex;align-items:flex-end;justify-content:center;gap:5rem;flex-wrap:wrap;" class="reveal">
+      <!-- CICONSA primero -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;opacity:.9;transition:.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.9'">
+        <div style="height:130px;display:flex;align-items:center;justify-content:center;">
+          <img src="assets/logo-ciconsa.png" alt="CICONSA" style="max-height:112px;width:auto;object-fit:contain;filter:brightness(0) saturate(100%) invert(55%) sepia(60%) saturate(300%) brightness(0.64);"/>
+        </div>
+        <span style="font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gray);font-weight:500;">Inmobiliaria y Construcción</span>
+      </div>
+      <div style="width:1px;height:80px;background:var(--border);flex-shrink:0;margin-bottom:1.8rem;"></div>
+      <!-- Virtual Estate en el centro -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;opacity:.85;transition:.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.85'">
+        <div style="height:130px;display:flex;align-items:center;justify-content:center;">
+          <img src="assets/logo-letras.png" alt="Virtual Estate" style="max-height:96px;width:auto;object-fit:contain;filter:brightness(.9);"/>
+        </div>
+        <span style="font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gray);font-weight:500;">Virtual Estate GT</span>
+      </div>
+      <div style="width:1px;height:80px;background:var(--border);flex-shrink:0;margin-bottom:1.8rem;"></div>
+      <!-- Paramétrica al final -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;opacity:.75;transition:.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.75'">
+        <div style="height:130px;display:flex;align-items:center;justify-content:center;">
+          <img src="assets/logo-parametrica.png" alt="Paramétrica" style="max-height:128px;width:auto;object-fit:contain;"/>
+        </div>
+        <span style="font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gray);font-weight:500;">Construction Management</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ────────────────────────────────────────── -->
+<footer>
   <div class="container">
     <div class="footer-grid">
-      <div class="footer-brand">
-        <img src="assets/logo-letras.png" alt="Virtual Estate GT"/>
-        <p class="footer-tagline">Servicios inmobiliarios digitales de alta gama para Guatemala y Centroamérica.</p>
+      <div>
+        <div class="footer-logo">
+          <img src="assets/logo-letras.png" alt="Virtual Estate"/>
+        </div>
+        <p class="footer-tagline">
+          Transformamos espacios físicos en experiencias digitales que venden, documentan y proyectan.
+        </p>
+        <div style="display:flex;gap:.7rem;margin-top:1.2rem;">
+          <a href="https://wa.me/50239902399" target="_blank" class="social-btn" style="position:static;width:30px;height:30px;font-size:.72rem;">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+          <a href="https://www.instagram.com/virtualestategt" target="_blank" class="social-btn" style="position:static;width:30px;height:30px;font-size:.72rem;">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="https://www.facebook.com/virtualestategt" target="_blank" class="social-btn" style="position:static;width:30px;height:30px;font-size:.72rem;">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+        </div>
       </div>
+
       <div>
         <div class="footer-col-title">Servicios</div>
         <div class="footer-links">
-          <a href="#servicios">Tour Virtual 3D</a>
-          <a href="#servicios">Fotografía Arquitectónica</a>
-          <a href="#servicios">Video Drone 4K</a>
-          <a href="#servicios">Escaneo AS-BUILT</a>
-          <a href="#servicios">Paquete Premium</a>
+          <a href="#divisiones" class="footer-link">Escaneo 3D y Tours Virtuales</a>
+          <a href="#divisiones" class="footer-link">AS BUILT / Documentación</a>
+          <a href="#divisiones" class="footer-link">Construcción y Remodelación</a>
+          <a href="real-estate.html" class="footer-link">Real Estate</a>
+          <a href="#cotizador" class="footer-link">Cotizador</a>
         </div>
       </div>
+
       <div>
-        <div class="footer-col-title">Portal</div>
+        <div class="footer-col-title">Empresa</div>
         <div class="footer-links">
-          <a href="portal.html">Iniciar sesión</a>
-          <a href="portal.html#register">Crear cuenta</a>
-          <a href="portal.html">Mis cotizaciones</a>
-          <a href="portal.html#agente">Código de Agente</a>
+          <a href="#about" class="footer-link">Quiénes Somos</a>
+          <a href="#valores" class="footer-link">Misión y Visión</a>
+          <a href="#proceso" class="footer-link">Nuestro Proceso</a>
+          <a href="#contacto" class="footer-link">Contacto</a>
+          <a href="portal.html" class="footer-link">Portal de Clientes</a>
         </div>
       </div>
+
       <div>
-        <div class="footer-col-title">Contacto</div>
+        <div class="footer-col-title">Legal</div>
         <div class="footer-links">
-          <a href="https://wa.me/50239902399" target="_blank">WhatsApp: +502 3990-2399</a>
-          <a href="mailto:info@virtualestategt.com">info@virtualestategt.com</a>
-          <a href="#cotizador">Solicitar cotización</a>
+          <a href="#" class="footer-link">Términos y Condiciones</a>
+          <a href="#" class="footer-link">Política de Privacidad</a>
+          <a href="#" class="footer-link">Contrato de Intermediación</a>
+          <a href="#" class="footer-link">Requisitos AS BUILT</a>
+          <a href="#" class="footer-link">Requisitos Real Estate</a>
+        </div>
+        <div style="margin-top:1.2rem;padding:1rem;border:1px solid var(--border);border-radius:var(--r);">
+          <div class="footer-col-title" style="margin-bottom:.4rem;">Contacto</div>
+          <p style="font-size:.72rem;color:var(--gray);line-height:1.7;">
+            +502 3990-2399<br/>
+            info@virtualestategt.com<br/>
+            Zona 10, Guatemala
+          </p>
         </div>
       </div>
     </div>
+
+    <div style="text-align:center;padding:.6rem 0;border-top:1px solid var(--border);margin-bottom:0;">
+      <span style="font-size:.65rem;letter-spacing:.12em;color:var(--gray);font-weight:400;">Paramétrica S.A.</span>
+    </div>
     <div class="footer-bottom">
-      <div class="footer-copy">© 2026 Virtual Estate GT · Todos los derechos reservados</div>
-      <div class="footer-social">
-        <a href="#" onclick="showToast('@virtualestategt')"><i class="fab fa-instagram"></i></a>
-        <a href="#"><i class="fab fa-facebook-f"></i></a>
-        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-        <a href="https://wa.me/50239902399" target="_blank"><i class="fab fa-whatsapp"></i></a>
-      </div>
+      <span>© 2026 Virtual Estate Guatemala. Todos los derechos reservados.</span>
+      <span>@virtualestategt</span>
     </div>
   </div>
 </footer>
 
 <script>
-const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3000' : '';
+/* ── NAV ─────────────────────────────────────────────── */
+const nav = document.getElementById('nav');
+const scrollTopBtn = document.getElementById('scroll-top');
+window.addEventListener('scroll',()=>{
+  nav.classList.toggle('scrolled',window.scrollY>60);
+  scrollTopBtn.classList.toggle('visible',window.scrollY>500);
+});
+function closeMobile(){document.getElementById('mobileMenu').classList.remove('open');}
 
-/* ── TOAST ──────────────────────────────────────────────── */
-function showToast(m) {
-  const t = document.getElementById('toast');
-  t.textContent = m; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3300);
+/* ── REVEAL ──────────────────────────────────────────── */
+const obs = new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
+},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+/* ── SERVICES CHECKBOXES ─────────────────────────────── */
+document.querySelectorAll('.svc-check').forEach(label=>{
+  label.addEventListener('change',()=>{
+    label.classList.toggle('selected',label.querySelector('input').checked);
+  });
+});
+
+/* ── MONEDA ──────────────────────────────────────────── */
+let currentCurrency = 'USD';
+const TASA_CAMBIO = 7.90;
+function setCurrency(cur){
+  currentCurrency = cur;
+  document.getElementById('btn-usd').classList.toggle('active', cur==='USD');
+  document.getElementById('btn-gtq').classList.toggle('active', cur==='GTQ');
+  mostrarRango();
 }
 
-/* ── MOBILE MENU ────────────────────────────────────────── */
-function toggleMenu() {
-  document.getElementById('mobile-menu').classList.toggle('open');
-}
+/* ── METRAJE ─────────────────────────────────────────── */
+/* El estimado de precio se envía en la cotización formal */
 
-/* ── FAVORITES (localStorage) ──────────────────────────── */
-function getLocalFavs() { try { return JSON.parse(localStorage.getItem('ve_favs') || '[]'); } catch { return []; } }
-function saveLocalFavs(f) { localStorage.setItem('ve_favs', JSON.stringify(f)); }
-
-function isFav(id) { return getLocalFavs().some(p => String(p.id) === String(id)); }
-
-function toggleFav(prop, btn) {
-  const favs = getLocalFavs();
-  const idx = favs.findIndex(p => String(p.id) === String(prop.id));
-  if (idx >= 0) {
-    favs.splice(idx, 1);
-    saveLocalFavs(favs);
-    btn.classList.remove('active');
-    showToast('Removida de tus favoritos');
+/* ── CÓDIGO PROMOCIONAL ──────────────────────────────── */
+const PROMO_CODES = {
+  'VIRTUAL10': { desc:'10% de descuento en cualquier servicio', tipo:'porcentaje', valor:10 },
+  'WELCOME':   { desc:'Descuento de bienvenida — $50 en tu primer servicio', tipo:'fijo', valor:50 },
+};
+let promoAplicado = null;
+function validarPromo(){
+  const code = document.getElementById('cot-promo').value.trim().toUpperCase();
+  const el = document.getElementById('promo-msg');
+  if(!code){ el.innerHTML=''; return; }
+  if(PROMO_CODES[code]){
+    promoAplicado = { code, ...PROMO_CODES[code] };
+    el.innerHTML = `<i class="fas fa-tag" style="color:var(--gold);"></i> <span style="color:var(--gold);">Código aplicado: ${promoAplicado.desc}</span>`;
   } else {
-    favs.unshift(prop);
-    saveLocalFavs(favs);
-    btn.classList.add('active');
-    showToast('❤ Guardada en tus favoritos del portal');
+    promoAplicado = null;
+    el.innerHTML = `<span style="color:#E08080;">Código no válido o expirado.</span>`;
   }
 }
 
-/* ── PROPERTIES ─────────────────────────────────────────── */
-let allProps = [];
-const tipoIcon = { Apartamento: 'fa-building', Casa: 'fa-home', Terreno: 'fa-map', Local: 'fa-store', Oficina: 'fa-briefcase', Penthouse: 'fa-city', Bodega: 'fa-warehouse' };
+/* ── FAVORITES ───────────────────────────────────────── */
+function toggleFav(el,code){
+  el.classList.toggle('far');el.classList.toggle('fas');
+  el.style.color=el.classList.contains('fas')?'var(--gold)':'';
+  showToast(el.classList.contains('fas')
+    ?`❤ ${code} guardada en favoritos. Inicia sesión para guardar permanentemente.`
+    :`Propiedad removida de favoritos`);
+}
 
-async function loadProps() {
-  try {
-    const data = await fetch(API_URL + '/api/propiedades/public').then(r => r.json());
-    allProps = Array.isArray(data) ? data : [];
-    renderProps(allProps);
-  } catch (e) {
-    document.getElementById('props-loading').innerHTML = '<p style="color:var(--gray);">No se pudieron cargar las propiedades.</p>';
+/* ── COTIZADOR ───────────────────────────────────────── */
+function getSelectedServices(){
+  const checks=document.querySelectorAll('#servicesGrid input:checked, #servicesGridInd input:checked');
+  return Array.from(checks).map(c=>c.closest('.svc-check').textContent.trim());
+}
+function buildCotMessage(){
+  const svcs=getSelectedServices();
+  if(!svcs.length){showToast('Selecciona al menos un servicio');return null;}
+  const nombre=document.getElementById('cot-nombre').value||'(sin nombre)';
+  const m2=parseFloat(document.getElementById('cot-m2').value)||null;
+  const notas=document.getElementById('cot-notas').value;
+  let msg=`Hola, me gustaría solicitar una cotización de Virtual Estate.\n\n`;
+  msg+=`*Nombre:* ${nombre}\n`;
+  msg+=`*Servicios de interés:*\n`;
+  svcs.forEach(s=>msg+=`  - ${s}\n`);
+  if(m2){
+    msg+=`*Metraje aproximado:* ${m2} m²\n`;
+  }
+  if(promoAplicado) msg+=`*Código promocional:* ${promoAplicado.code} (${promoAplicado.desc})\n`;
+  if(notas) msg+=`*Detalles:* ${notas}\n`;
+  return msg;
+}
+function enviarCotWA(){
+  const msg=buildCotMessage();
+  if(!msg)return;
+  window.open(`https://wa.me/50239902399?text=${encodeURIComponent(msg)}`,'_blank');
+}
+function enviarCotEmail(){
+  const msg=buildCotMessage();
+  if(!msg)return;
+  const email=document.getElementById('cot-email').value;
+  const subj='Solicitud de Cotización — Virtual Estate';
+  window.location.href=`mailto:info@virtualestategt.com?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(msg)}`;
+  showToast('Abriendo cliente de correo...');
+}
+
+/* ── CONTACT FORM ────────────────────────────────────── */
+function enviarContacto(e){
+  e.preventDefault();
+  const nombre=document.getElementById('f-nombre').value;
+  showToast(`✅ Mensaje enviado. Te contactamos pronto, ${nombre}.`);
+  e.target.reset();
+}
+
+/* ── TOAST ───────────────────────────────────────────── */
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+/* ── CHAT WIDGET ─────────────────────────────────────── */
+let chatOpen=false;
+const BOTS=[
+  {k:['hola','buenos','buenas','hey','buen dia','buen día'],r:'¡Hola! Bienvenido a Virtual Estate GT 👋 ¿En qué puedo ayudarte hoy?'},
+  {k:['tour','virtual','360','recorrido','matterport'],r:'Creamos tours virtuales 3D inmersivos con tecnología Matterport. El cliente recorre el espacio en 360° desde cualquier dispositivo. ¿Es para una propiedad residencial o comercial?'},
+  {k:['as built','asbuilt','levantamiento','documentacion','documentación','planos','plano'],r:'Nuestro servicio AS BUILT documenta fielmente el estado real de una construcción: plantas 2D, modelo 3D y cuadro de áreas. Entrega en 6–8 días hábiles. ¿Residencial, comercial u oficinas?'},
+  {k:['construccion','construcción','remodelacion','remodelación','acabado','obra','tablayeso'],r:'Servicios de construcción y remodelación: tablayeso, acabados, instalaciones, carpintería y mobiliario. Trabajamos en residencias, locales y oficinas. ¿Tienes un proyecto en mente?'},
+  {k:['real estate','propiedad','propiedades','apartamento','casa','venta','renta','compra'],r:'Portafolio de propiedades premium con tour 3D, fotografía profesional y ficha técnica. ¿Buscas comprar, rentar o enlistar tu propiedad? <a href="real-estate.html" style="color:var(--gold);">Ver propiedades →</a>'},
+  {k:['precio','costo','cuanto','cuánto','tarifa','cotizacion','cotización','presupuesto'],r:'Los precios varían según servicio y metraje. Usa el <a href="#cotizador" style="color:var(--gold);">cotizador</a> para un estimado inmediato, o pedimos cotización formal lista en 1–2 días hábiles sin compromiso.'},
+  {k:['agendar','cita','visita','reunion','reunión','appointment','calendario'],r:'Puedes agendar desde la sección <a href="#contacto" style="color:var(--gold);">Contacto</a> o directamente por <a href="https://wa.me/50239902399" target="_blank" style="color:#25D366;">WhatsApp +502 3990-2399</a>.'},
+  {k:['contacto','telefono','teléfono','whatsapp','correo','email','direccion','dirección'],r:'📞 <a href="https://wa.me/50239902399" target="_blank" style="color:#25D366;">+502 3990-2399</a> (WhatsApp)<br/>📧 info@virtualestategt.com<br/>📍 Guatemala, Guatemala<br/>Respondemos en menos de 24 hrs hábiles.'},
+  {k:['drone','aereo','aéreo','video','fotografia','fotografía','foto'],r:'Ofrecemos fotografía profesional y video aéreo con drone 4K. Ideal para propiedades, AS BUILT y presentaciones corporativas.'},
+  {k:['agente','referido','comision','comisión','codigo','código','referir'],r:'Con nuestro programa de agentes puedes ganar comisiones referiendo clientes. La comisión sale de la comisión interna de VE — el precio al cliente no cambia. Regístrate en el <a href="portal.html" style="color:var(--gold);">Portal →</a>'},
+  {k:['portal','cuenta','login','registro','perfil'],r:'El Portal de Clientes permite gestionar propiedades guardadas, cotizaciones, pagos y código de agente. <a href="portal.html" style="color:var(--gold);">Acceder →</a>'},
+  {k:['paquete','basico','básico','intermedio','premium','plan'],r:'Tenemos 3 paquetes: Básico (fotos 360° + tour), Intermedio (+ gemelo 3D + planos PDF) y Premium (+ fotografía + drone + DWG). <a href="#paquetes" style="color:var(--gold);">Ver paquetes →</a>'},
+  {k:['gracias','perfecto','excelente','genial','ok','listo','entendido'],r:'¡Con gusto! Para lo que necesites, aquí estoy. También nos puedes escribir al <a href="https://wa.me/50239902399" target="_blank" style="color:#25D366;">WhatsApp</a> directamente.'},
+  {k:['adios','adiós','bye','chao','hasta','cuida'],r:'¡Hasta pronto! Seguimos disponibles 24/7. 👋'},
+];
+function botAnswer(txt){
+  const l=txt.toLowerCase();
+  for(const {k,r} of BOTS) if(k.some(w=>l.includes(w))) return r;
+  return 'Gracias por tu mensaje. Para atención personalizada escríbenos por <a href="https://wa.me/50239902399" target="_blank" style="color:#25D366;">WhatsApp +502 3990-2399</a> o llena el <a href="#contacto" style="color:var(--gold);">formulario de contacto</a>.';
+}
+function addChatMsg(txt,isUser){
+  const box=document.getElementById('chatMessages');if(!box)return;
+  const now=new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+  const d=document.createElement('div');d.className='cmsg '+(isUser?'usr':'bot');
+  d.innerHTML=`<div class="cmsg-bubble">${txt}</div><div class="cmsg-time">${now}</div>`;
+  box.appendChild(d);box.scrollTop=box.scrollHeight;
+}
+function sendChatMsg(){
+  const inp=document.getElementById('chatInput');if(!inp)return;
+  const t=inp.value.trim();if(!t)return;
+  addChatMsg(t,true);inp.value='';
+  setTimeout(()=>addChatMsg(botAnswer(t),false),650);
+}
+function sendChip(t){addChatMsg(t,true);setTimeout(()=>addChatMsg(botAnswer(t),false),500);}
+function toggleChat(){
+  chatOpen=!chatOpen;
+  const panel=document.getElementById('chatPanel');
+  const icon=document.getElementById('chatIcon');
+  panel.classList.toggle('open',chatOpen);
+  if(icon)icon.className=chatOpen?'fas fa-times':'fas fa-comment-dots';
+  if(chatOpen&&document.getElementById('chatMessages').children.length===0){
+    setTimeout(()=>addChatMsg('👋 ¡Hola! Soy el Asistente Virtual de Virtual Estate. ¿En qué puedo ayudarte hoy?',false),300);
   }
 }
-
-function renderProps(list) {
-  const loading = document.getElementById('props-loading');
-  const grid = document.getElementById('props-grid');
-  const empty = document.getElementById('props-empty');
-  loading.style.display = 'none';
-  if (!list.length) { grid.style.display = 'none'; empty.style.display = 'block'; return; }
-  empty.style.display = 'none';
-  grid.style.display = 'grid';
-  grid.innerHTML = list.map(p => {
-    const icon = tipoIcon[p.tipo] || 'fa-home';
-    const precio = p.precio ? '$' + Number(p.precio).toLocaleString() : 'Consultar';
-    const fav = isFav(p.id);
-    return `<div class="prop-card" data-tipo="${p.tipo||''}" data-modalidad="${p.modalidad||''}">
-      <div class="prop-img">
-        <i class="fas ${icon}"></i>
-        ${p.modalidad ? `<span class="prop-badge">${p.modalidad}</span>` : ''}
-        <button class="prop-fav ${fav?'active':''}" onclick="toggleFav(${JSON.stringify(p).replace(/"/g,'&quot;')},this)" title="${fav?'Quitar de favoritos':'Guardar en favoritos'}">
-          <i class="fas fa-heart"></i>
-        </button>
-      </div>
-      <div class="prop-body">
-        <div class="prop-zona"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.55rem;margin-right:.25rem;"></i>${p.zona||'Guatemala'}</div>
-        <div class="prop-nombre">${p.nombre}</div>
-        <div class="prop-precio">${precio}</div>
-        <div class="prop-meta">
-          ${p.m2 ? `<span><i class="fas fa-ruler-combined"></i>${p.m2} m²</span>` : ''}
-          ${p.tipo ? `<span><i class="fas fa-tag"></i>${p.tipo}</span>` : ''}
-        </div>
-      </div>
-      <div class="prop-foot">
-        ${p.linktour3d
-          ? `<a href="${p.linktour3d}" target="_blank" class="prop-btn primary"><i class="fas fa-vr-cardboard"></i> Tour 3D</a>`
-          : `<button onclick="showToast('Agenda una reunión para acceder al Tour 3D exclusivo')" class="prop-btn"><i class="fas fa-lock" style="color:var(--gold);font-size:.55rem;"></i> Tour 3D</button>`}
-        <a href="#cotizador" class="prop-btn"><i class="fas fa-file-invoice-dollar"></i> Cotizar</a>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function filterProps(val, btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  if (!val) { renderProps(allProps); return; }
-  const filtered = allProps.filter(p =>
-    (p.tipo && p.tipo.toLowerCase().includes(val.toLowerCase())) ||
-    (p.modalidad && p.modalidad.toLowerCase().includes(val.toLowerCase()))
-  );
-  renderProps(filtered);
-}
-
-/* ── COTIZADOR ──────────────────────────────────────────── */
-async function enviarCotizacion() {
-  const nombre = document.getElementById('cot-nombre').value.trim();
-  const email = document.getElementById('cot-email').value.trim();
-  const telefono = document.getElementById('cot-telefono').value.trim();
-  const mensaje = document.getElementById('cot-mensaje').value.trim();
-  if (!nombre || !email) { showToast('⚠️ Nombre y correo son obligatorios'); return; }
-
-  const servicios = Array.from(document.querySelectorAll('.srv-check-item input:checked')).map(i => i.value);
-  const empresa = servicios.length ? 'Servicios: ' + servicios.join(', ') : '';
-  const mensajeFinal = [empresa, mensaje].filter(Boolean).join(' | ');
-
-  const btn = document.getElementById('cot-btn');
-  const orig = btn.innerHTML;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-  btn.disabled = true;
-
-  try {
-    const r = await fetch(API_URL + '/api/leads/public', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombre, email, telefono, empresa: mensajeFinal })
-    });
-    if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Error al enviar'); }
-    btn.innerHTML = '<i class="fas fa-check"></i> ¡Solicitud enviada!';
-    btn.style.background = '#1A6B35';
-    showToast('✅ Solicitud recibida — te contactamos en 1-2 días hábiles');
-    document.getElementById('cot-nombre').value = '';
-    document.getElementById('cot-email').value = '';
-    document.getElementById('cot-telefono').value = '';
-    document.getElementById('cot-mensaje').value = '';
-    document.querySelectorAll('.srv-check-item').forEach(el => el.classList.remove('checked'));
-    document.querySelectorAll('.srv-check-item input').forEach(i => i.checked = false);
-    setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; btn.style.background = ''; }, 4000);
-  } catch (e) {
-    showToast('⚠️ ' + e.message);
-    btn.innerHTML = orig;
-    btn.disabled = false;
-  }
-}
-
-/* ── INIT ───────────────────────────────────────────────── */
-loadProps();
 </script>
 </body>
 </html>
