@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Mi Portal — Virtual Estate GT</title>
   <title>Portal de Clientes — Virtual Estate</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Raleway:wght@400;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -269,6 +269,7 @@
   .promo-section{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;margin-top:1.4rem;}
   .promo-code-tag{display:inline-flex;align-items:center;gap:.5rem;background:rgba(193,146,89,.12);border:1px solid var(--border);border-radius:var(--r);padding:.5rem 1rem;font-family:'Raleway',sans-serif;font-size:1rem;font-weight:700;color:var(--gold);letter-spacing:.14em;}
 
+  #dashboard-view{display:flex !important;}
   @media(max-width:768px){
     .kpi-row{grid-template-columns:1fr 1fr;}
     .profile-grid{grid-template-columns:1fr;}
@@ -284,141 +285,14 @@
 <body>
 <div class="toast" id="toast"></div>
 
-<!-- ═══════════════════════════════════════════════════════
-     AUTH VIEW (Login / Register)
-════════════════════════════════════════════════════════ -->
-<div class="view active" id="auth-view">
-  <div class="auth-logo">
-    <img src="assets/logo-letras.png" alt="Virtual Estate"/>
-  </div>
-
-  <div class="auth-card">
-    <div class="auth-tabs">
-      <div class="auth-tab active" id="tab-login" onclick="switchTab('login')">Iniciar sesión</div>
-      <div class="auth-tab" id="tab-register" onclick="switchTab('register')">Crear cuenta</div>
-    </div>
-
-    <!-- LOGIN FORM -->
-    <div id="form-login">
-      <div class="auth-title">Portal de Clientes</div>
-      <p class="auth-sub">Accede a tus propiedades guardadas, cotizaciones y perfil.</p>
-
-      <div class="form-group">
-        <label class="form-label">Correo electrónico</label>
-        <input type="email" class="form-control" id="l-email" placeholder="tu@correo.com"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Contraseña</label>
-        <div class="password-wrap">
-          <input type="password" class="form-control" id="l-pass" placeholder="••••••••"/>
-          <button class="pw-toggle" onclick="togglePw('l-pass',this)" type="button">
-            <i class="fas fa-eye"></i>
-          </button>
-        </div>
-      </div>
-
-      <button class="btn-auth" onclick="doLogin()">
-        <i class="fas fa-sign-in-alt"></i> Ingresar
-      </button>
-
-      <div class="auth-divider">o continúa con</div>
-      <div class="social-auth-row">
-        <button class="btn-social-auth apple" onclick="showToast('Redirigiendo a Apple ID...')">
-          <i class="fab fa-apple"></i> Apple
-        </button>
-        <button class="btn-social-auth" onclick="showToast('Redirigiendo a Google...')">
-          <svg width="14" height="14" viewBox="0 0 24 24" style="flex-shrink:0;fill:currentColor;"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-          Google
-        </button>
-      </div>
-      <div style="text-align:center;margin-top:.8rem;padding-top:.8rem;border-top:1px solid var(--border);">
-        <button onclick="verDemo()" style="background:none;border:none;color:var(--gray);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:.2s;display:inline-flex;align-items:center;gap:.5rem;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--gray)'">
-          <i class="fas fa-eye"></i> Ver preview del portal (sin cuenta)
-        </button>
-      </div>
-
-      <div class="auth-forgot">
-        <a href="#" onclick="showToast('Te enviaremos un correo de recuperación a tu dirección registrada.')">
-          ¿Olvidaste tu contraseña?
-        </a>
-      </div>
-    </div>
-
-    <!-- REGISTER FORM -->
-    <div id="form-register" style="display:none;">
-      <div class="auth-title">Crear Cuenta</div>
-      <p class="auth-sub">Crea tu perfil de cliente para guardar propiedades y gestionar cotizaciones.</p>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Nombre *</label>
-          <input type="text" class="form-control" placeholder="Tu nombre"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Apellido *</label>
-          <input type="text" class="form-control" placeholder="Tu apellido"/>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Correo electrónico *</label>
-        <input type="email" class="form-control" placeholder="tu@correo.com"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Teléfono / WhatsApp</label>
-        <input type="tel" class="form-control" placeholder="+502 0000-0000"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Contraseña *</label>
-        <div class="password-wrap">
-          <input type="password" class="form-control" id="r-pass" placeholder="Mínimo 8 caracteres"/>
-          <button class="pw-toggle" onclick="togglePw('r-pass',this)" type="button">
-            <i class="fas fa-eye"></i>
-          </button>
-        </div>
-      </div>
-      <div class="form-check">
-        <input type="checkbox" id="reg-tyc"/>
-        <label for="reg-tyc">
-          Acepto los <a href="#">términos y condiciones</a> y la
-          <a href="#">política de privacidad</a> de Virtual Estate.
-        </label>
-      </div>
-
-      <button class="btn-auth" onclick="doRegister()">
-        <i class="fas fa-user-plus"></i> Crear mi cuenta
-      </button>
-
-      <div class="auth-divider" style="margin:.9rem 0 .7rem;">o regístrate con</div>
-      <div class="social-auth-row">
-        <button class="btn-social-auth apple" onclick="showToast('Redirigiendo a Apple ID...')">
-          <i class="fab fa-apple"></i> Apple
-        </button>
-        <button class="btn-social-auth" onclick="showToast('Redirigiendo a Google...')">
-          <svg width="14" height="14" viewBox="0 0 24 24" style="flex-shrink:0;fill:currentColor;"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-          Google
-        </button>
-      </div>
-
-      <div style="text-align:center; margin-top:.8rem;">
-        <p style="font-size:.7rem;color:var(--gray);line-height:1.6;">
-          Al crear tu cuenta recibirás un código de identificación único<br/>
-          <strong style="color:var(--gold);">CLI-26-####</strong> vinculado a tu perfil.
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <div style="margin-top:1.4rem;font-size:.7rem;color:var(--gray);display:flex;align-items:center;gap:.5rem;">
-    <a href="index.html" style="color:var(--gold);display:flex;align-items:center;gap:.3rem;">
-      <i class="fas fa-arrow-left"></i> Volver al sitio web
-    </a>
-  </div>
+<!-- Loading screen while verifying token -->
+<div id="auth-checking" style="position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:1rem;">
+  <img src="assets/logo-letras.png" alt="Virtual Estate" style="height:72px;opacity:.7;"/>
+  <div style="width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;"></div>
+  <style>@keyframes spin{to{transform:rotate(360deg);}}</style>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════
-     DASHBOARD VIEW (after login)
-════════════════════════════════════════════════════════ -->
-<div class="view" id="dashboard-view">
+<div id="dashboard-view" style="display:none;flex-direction:column;min-height:100vh;">
 
   <!-- Portal Nav -->
   <nav class="portal-nav">
@@ -1308,6 +1182,7 @@
   </div>
 </div>
 
+
 <script>
 /* ── API ────────────────────────────────────────────────── */
 const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3000' : '';
@@ -1323,6 +1198,12 @@ async function apiFetch(path, opts = {}) {
   if (res.status === 401) { doLogout(); throw new Error('Sesión expirada'); }
   if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || res.statusText); }
   return res.json();
+}
+
+/* ── LOGOUT ─────────────────────────────────────────────── */
+function doLogout() {
+  clearToken(); currentUser = null; clienteData = null;
+  window.location.href = '/portal.html';
 }
 
 /* ── FAVORITES (localStorage) ──────────────────────────── */
@@ -1415,75 +1296,6 @@ function setTab(tab) {
   if (tab === 'inicio') renderFavs('resumen-props', 3);
 }
 
-/* ── AUTH TABS ──────────────────────────────────────────── */
-function switchTab(tab) {
-  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
-  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
-  document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
-  document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
-}
-
-/* ── LOGIN ──────────────────────────────────────────────── */
-async function doLogin() {
-  const em = document.getElementById('l-email').value.trim();
-  const pw = document.getElementById('l-pass').value;
-  if (!em || !pw) { showToast('Por favor completa todos los campos'); return; }
-  const btn = document.querySelector('#form-login .btn-auth');
-  const orig = btn.innerHTML;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ingresando...';
-  btn.disabled = true;
-  try {
-    const r = await fetch(API_URL + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: em, password: pw }) });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error || 'Error al iniciar sesión');
-    setToken(data.token);
-    currentUser = data.usuario;
-    window.location.href = '/portal-cliente.html' + (window.location.hash || '');
-  } catch (e) { showToast('⚠️ ' + e.message); }
-  finally { btn.innerHTML = orig; btn.disabled = false; }
-}
-
-/* ── REGISTER ───────────────────────────────────────────── */
-async function doRegister() {
-  const inputs = document.querySelectorAll('#form-register input[type="text"]');
-  const nombre = inputs[0]?.value.trim() || '';
-  const apellido = inputs[1]?.value.trim() || '';
-  const email = document.querySelector('#form-register input[type="email"]')?.value.trim() || '';
-  const pw = document.getElementById('r-pass').value;
-  if (!nombre || !email || !pw) { showToast('Completa nombre, correo y contraseña'); return; }
-  if (pw.length < 8) { showToast('La contraseña debe tener al menos 8 caracteres'); return; }
-  if (!document.getElementById('reg-tyc').checked) { showToast('Acepta los términos y condiciones'); return; }
-  const btn = document.querySelector('#form-register .btn-auth');
-  const orig = btn.innerHTML;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando cuenta...';
-  btn.disabled = true;
-  try {
-    const r = await fetch(API_URL + '/api/auth/signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: (nombre + ' ' + apellido).trim(), email, password: pw }) });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data.error || 'Error al crear cuenta');
-    showToast('✅ Cuenta creada. Iniciando sesión...');
-    document.getElementById('l-email').value = email;
-    document.getElementById('l-pass').value = pw;
-    switchTab('login');
-    setTimeout(() => doLogin(), 800);
-  } catch (e) { showToast('⚠️ ' + e.message); }
-  finally { btn.innerHTML = orig; btn.disabled = false; }
-}
-
-/* ── LOGOUT ─────────────────────────────────────────────── */
-function doLogout() {
-  clearToken(); currentUser = null; clienteData = null;
-  showView('auth-view');
-  document.getElementById('l-email').value = '';
-  document.getElementById('l-pass').value = '';
-}
-
-/* ── VIEWS ──────────────────────────────────────────────── */
-function showView(id) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
 /* ── LOAD PORTAL DATA ───────────────────────────────────── */
 async function loadPortalData() {
   try { clienteData = await apiFetch('/api/clientes/me'); } catch { clienteData = null; }
@@ -1517,14 +1329,12 @@ function fillUserUI() {
     if (el('p-code-lg')) el('p-code-lg').textContent = code;
     const kpiCode = document.querySelectorAll('.kpi-card .kpi-val')[2];
     if (kpiCode) { kpiCode.textContent = code; kpiCode.parentElement.querySelector('.kpi-sub').textContent = 'Identificación única'; }
-    // Profile form
     const parts = (clienteData.nombre || '').split(' ');
     if (el('prof-nombre')) el('prof-nombre').value = parts[0] || '';
     if (el('prof-apellido')) el('prof-apellido').value = parts.slice(1).join(' ') || '';
     if (el('prof-email')) el('prof-email').value = clienteData.email || u.email;
     if (el('prof-telefono')) el('prof-telefono').value = clienteData.telefono || '';
     if (el('prof-empresa')) el('prof-empresa').value = clienteData.empresa || '';
-    // Profile sidebar items
     const piEls = document.querySelectorAll('.profile-item');
     if (piEls[0]) piEls[0].innerHTML = `<i class="fas fa-envelope"></i> ${clienteData.email || u.email}`;
     if (piEls[1] && clienteData.telefono) piEls[1].innerHTML = `<i class="fab fa-whatsapp"></i> ${clienteData.telefono}`;
@@ -1721,7 +1531,7 @@ function calcPromoImpact() {
   if (pct > AGENT_COMMISSION_PCT) { impactEl.innerHTML = `<span style="color:#E08080;"><i class="fas fa-exclamation-triangle"></i> Descuento (${pct}%) supera tu comisión (${AGENT_COMMISSION_PCT}%). Máximo: ${AGENT_COMMISSION_PCT}%.</span>`; impactEl.style.display = 'block'; return; }
   const desc = (1000 * pct / 100).toFixed(0);
   const com = (1000 * AGENT_COMMISSION_PCT / 100).toFixed(0);
-  impactEl.innerHTML = `Ejemplo $1,000: cliente ahorra <strong style="color:var(--gold);">$${desc}</strong> · Tu comisión: $${com} → <strong style="color:var(--white);">$${(com - desc).toFixed(0)}</strong>`;
+  impactEl.innerHTML = `Ejemplo $1,000: cliente ahorra <strong style="color:var(--gold);">$${desc}</strong> · Tu comisión: $${com} → <strong style="color:var(--white);">$${(com-desc).toFixed(0)}</strong>`;
   impactEl.style.display = 'block';
 }
 
@@ -1759,48 +1569,25 @@ function showToast(m) {
   setTimeout(() => t.classList.remove('show'), 3300);
 }
 
-function verDemo() {
-  showView('dashboard-view');
-  const banner = document.createElement('div');
-  banner.id = 'demo-banner';
-  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2000;background:rgba(193,146,89,.95);color:#0D1A14;text-align:center;padding:.55rem 1rem;font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:1rem;';
-  banner.innerHTML = '<i class="fas fa-eye"></i> Modo Preview — Solo visualización <button onclick="salirDemo()" style="background:rgba(13,26,20,.2);border:none;color:#0D1A14;padding:.2rem .8rem;border-radius:3px;font-size:.65rem;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;letter-spacing:.1em;">Salir</button>';
-  document.body.prepend(banner);
-  renderFavs('resumen-props', 3);
-  renderFavs('favs-grid');
-}
-
-function salirDemo() {
-  const banner = document.getElementById('demo-banner'); if (banner) banner.remove();
-  showView('auth-view');
-}
-
-/* ── INIT ───────────────────────────────────────────────── */
+/* ── INIT — verify token, redirect if invalid ────────────── */
 document.addEventListener('DOMContentLoaded', async () => {
   const token = getToken();
-  if (token) {
-    try {
-      const r = await fetch(API_URL + '/api/auth/verify', { headers: { 'Authorization': 'Bearer ' + token } });
-      const data = await r.json();
-      if (data.valid) {
-        currentUser = data.usuario;
-        await loadPortalData();
-        showView('dashboard-view');
-        if (window.location.hash === '#agente') setTab('agente');
-        return;
-      }
-    } catch {}
+  if (!token) { window.location.href = '/portal.html'; return; }
+  try {
+    const r = await fetch(API_URL + '/api/auth/verify', { headers: { 'Authorization': 'Bearer ' + token } });
+    const data = await r.json();
+    if (!data.valid) { clearToken(); window.location.href = '/portal.html'; return; }
+    currentUser = data.usuario;
+    await loadPortalData();
+    // Show dashboard, hide loading screen
+    document.getElementById('auth-checking').style.display = 'none';
+    document.getElementById('dashboard-view').style.display = 'flex';
+    if (window.location.hash === '#agente') setTab('agente');
+  } catch {
     clearToken();
+    window.location.href = '/portal.html';
   }
-  updateFavCount();
 });
-
-// Legacy: keep these unused vars so data- references in HTML don't throw
-const sliderIdx = {};
-function slideChange(){}
-
-/* ── END ─────────────────────────────────────────────────── */
-
 </script>
 </body>
 </html>
