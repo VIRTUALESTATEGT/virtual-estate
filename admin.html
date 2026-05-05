@@ -333,6 +333,9 @@
     <div class="nav-item active" onclick="showView('dashboard', this)">
       <i class="fas fa-chart-line"></i> Dashboard
     </div>
+    <div class="nav-item" id="nav-permisos-top" style="display:none;" onclick="showView('permisos', this)">
+      <i class="fas fa-users-cog"></i> Usuarios & Permisos
+    </div>
     <div class="nav-item" onclick="showView('leads', this)">
       <i class="fas fa-funnel-dollar"></i> Leads
       <span class="nav-badge">3</span>
@@ -376,9 +379,6 @@
     <div class="nav-item" onclick="showView('agentes', this)">
       <i class="fas fa-id-badge"></i> Agentes / Referidos
       <span class="nav-badge" id="agt-badge">2</span>
-    </div>
-    <div class="nav-item" id="nav-permisos" onclick="showView('permisos', this)">
-      <i class="fas fa-shield-alt"></i> Usuarios & Permisos
     </div>
     <div class="nav-item" onclick="showView('config', this)">
       <i class="fas fa-cog"></i> Configuración
@@ -1923,7 +1923,10 @@
     const u = getUsuario();
     if (u) {
       document.getElementById('sidebar-nombre').textContent = u.nombre || 'Admin';
-      document.getElementById('sidebar-rol').textContent = u.rol || 'usuario';
+      document.getElementById('sidebar-rol').textContent = u.role || u.rol || 'usuario';
+      // Show Usuarios & Permisos only for superadmin
+      const navPermisos = document.getElementById('nav-permisos-top');
+      if (navPermisos) navPermisos.style.display = u.is_superadmin ? 'flex' : 'none';
     }
     loadDashboard();
   }
