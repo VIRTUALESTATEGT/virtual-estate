@@ -18,7 +18,7 @@ router.get('/', verificarPermiso('ver_usuarios'), async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('usuarios')
-      .select('id, nombre, email, rol, role, is_superadmin, estado, created_at')
+      .select('id, nombre, email, role, is_superadmin, estado, created_at')
       .order('id', { ascending: true });
     if (error) throw error;
     res.json(data);
@@ -54,8 +54,8 @@ router.post('/', verificarPermiso('crear_usuario'), async (req, res) => {
     const hashed = crypto.createHash('sha256').update(password).digest('hex');
     const { data: user, error: ue } = await supabase
       .from('usuarios')
-      .insert([{ nombre, email, password: hashed, rol: role || 'asistente', role: role || 'asistente', estado: 'activo', is_superadmin: false }])
-      .select('id, nombre, email, rol, role, is_superadmin, estado')
+      .insert([{ nombre, email, password: hashed, role: role || 'asistente', estado: 'activo', is_superadmin: false }])
+      .select('id, nombre, email, role, is_superadmin, estado')
       .single();
     if (ue) throw ue;
     if (permisos && Object.keys(permisos).length) {
@@ -73,13 +73,13 @@ router.put('/:id', verificarPermiso('editar_usuario'), async (req, res) => {
     const { nombre, role, estado } = req.body;
     const update = {};
     if (nombre !== undefined) update.nombre = nombre;
-    if (role !== undefined) { update.role = role; update.rol = role; }
+    if (role !== undefined) update.role = role;
     if (estado !== undefined) update.estado = estado;
     const { data, error } = await supabase
       .from('usuarios')
       .update(update)
       .eq('id', req.params.id)
-      .select('id, nombre, email, rol, role, is_superadmin, estado')
+      .select('id, nombre, email, role, is_superadmin, estado')
       .maybeSingle();
     if (error) throw error;
     res.json(data);

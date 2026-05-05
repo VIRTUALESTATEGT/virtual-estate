@@ -31,8 +31,8 @@ router.post('/login', async (req, res) => {
       id: data.id,
       email: data.email,
       nombre: data.nombre,
-      rol: data.rol,
-      role: data.role || data.rol || 'asistente',
+      rol: data.role || 'asistente',
+      role: data.role || 'asistente',
       is_superadmin: data.is_superadmin || false,
     };
 
@@ -56,8 +56,8 @@ router.post('/signup', async (req, res) => {
 
     const { data, error } = await supabase
       .from('usuarios')
-      .insert([{ nombre, email, password: hashedPassword, rol: 'user', estado: 'activo' }])
-      .select('id, nombre, email, rol');
+      .insert([{ nombre, email, password: hashedPassword, role: 'asistente', estado: 'activo' }])
+      .select('id, nombre, email, role');
 
     if (error) throw error;
 
