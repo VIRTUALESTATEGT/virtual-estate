@@ -383,6 +383,21 @@
       <i class="fas fa-id-badge"></i> Agentes / Referidos
       <span class="nav-badge" id="agt-badge">2</span>
     </div>
+    <div class="nav-item superadmin-only" id="nav-conversaciones" style="display:none;" onclick="showView('conversaciones', this)">
+      <i class="fas fa-comments"></i> Conversaciones
+      <span class="nav-badge" id="conv-badge">0</span>
+    </div>
+    <div class="nav-item superadmin-only" id="nav-verificaciones" style="display:none;" onclick="showView('verificaciones', this)">
+      <i class="fas fa-id-card"></i> Verificaciones
+      <span class="nav-badge" id="verif-admin-badge" style="background:#E08080;">0</span>
+    </div>
+    <div class="nav-item superadmin-only" id="nav-zonas" style="display:none;" onclick="showView('zonas', this)">
+      <i class="fas fa-map-marked-alt"></i> Zonas de Riesgo
+    </div>
+    <div class="nav-item superadmin-only" id="nav-notificaciones" style="display:none;" onclick="showView('notificaciones', this)">
+      <i class="fas fa-bell"></i> Notificaciones
+      <span class="nav-badge" id="notif-badge">0</span>
+    </div>
     <div class="nav-item" onclick="showView('config', this)">
       <i class="fas fa-cog"></i> Configuración
     </div>
@@ -1320,6 +1335,85 @@
       </div>
     </div><!-- /view-reportes -->
 
+    <!-- ── CONVERSACIONES MULTICANAL VIEW ──────────────────── -->
+    <div class="view" id="view-conversaciones">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="table-head-title">Conversaciones Multicanal</span>
+          <div style="display:flex;gap:.5rem;">
+            <select id="conv-filter-estado" onchange="loadConversaciones()" style="padding:.38rem .7rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-size:.7rem;font-family:'Montserrat',sans-serif;">
+              <option value="activa">Activas</option>
+              <option value="cerrada">Cerradas</option>
+              <option value="">Todas</option>
+            </select>
+          </div>
+        </div>
+        <div id="conv-list-wrap">
+          <div id="conv-list-empty" style="text-align:center;padding:3rem;color:var(--gray);font-size:.8rem;display:none;"><i class="fas fa-comments" style="font-size:2rem;margin-bottom:.8rem;display:block;opacity:.3;"></i>No hay conversaciones</div>
+          <table class="data-table" id="conv-table" style="display:none;">
+            <thead><tr>
+              <th>ID</th><th>Cliente</th><th>Canal</th><th>Último mensaje</th><th>Estado</th><th>Acciones</th>
+            </tr></thead>
+            <tbody id="conv-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <!-- Chat panel (opens on row click) -->
+      <div id="conv-chat-panel" style="display:none;margin-top:1.2rem;">
+        <div class="panel">
+          <div class="panel-head">
+            <span class="table-head-title" id="conv-chat-title">Conversación #—</span>
+            <div style="display:flex;gap:.5rem;">
+              <button class="topbar-btn btn-sec" onclick="cerrarConversacion()" id="conv-btn-cerrar"><i class="fas fa-times-circle"></i> Cerrar conv.</button>
+            </div>
+          </div>
+          <div id="conv-messages" style="max-height:360px;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.6rem;background:rgba(0,0,0,.15);border-radius:var(--r);margin-bottom:1rem;"></div>
+          <div style="display:flex;gap:.6rem;">
+            <input id="conv-reply-input" type="text" placeholder="Escribe tu respuesta..." onkeydown="if(event.key==='Enter')sendConvReply()"
+              style="flex:1;padding:.65rem .9rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-family:'Montserrat',sans-serif;font-size:.8rem;"/>
+            <button class="topbar-btn btn-primary" onclick="sendConvReply()"><i class="fas fa-paper-plane"></i> Enviar</button>
+          </div>
+        </div>
+      </div>
+    </div><!-- /view-conversaciones -->
+
+    <!-- ── VERIFICACIONES VIEW ──────────────────────────────── -->
+    <div class="view" id="view-verificaciones">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="table-head-title">Verificaciones de Identidad</span>
+          <select id="verif-filter" onchange="loadVerificaciones()" style="padding:.38rem .7rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-size:.7rem;font-family:'Montserrat',sans-serif;">
+            <option value="pendiente">Pendientes</option>
+            <option value="verificado">Verificados</option>
+            <option value="rechazado">Rechazados</option>
+          </select>
+        </div>
+        <div id="verif-list-empty" style="text-align:center;padding:3rem;color:var(--gray);font-size:.8rem;display:none;"><i class="fas fa-id-card" style="font-size:2rem;margin-bottom:.8rem;display:block;opacity:.3;"></i>Sin verificaciones</div>
+        <div id="verif-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;"></div>
+      </div>
+    </div><!-- /view-verificaciones -->
+
+    <!-- ── ZONAS DE RIESGO VIEW ─────────────────────────────── -->
+    <div class="view" id="view-zonas">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <h2 style="font-size:1rem;font-weight:700;">Zonas de Riesgo</h2>
+        <button class="topbar-btn btn-primary" onclick="abrirNuevaZona()"><i class="fas fa-plus"></i> Nueva zona</button>
+      </div>
+      <div id="zonas-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;"></div>
+    </div><!-- /view-zonas -->
+
+    <!-- ── NOTIFICACIONES VIEW ──────────────────────────────── -->
+    <div class="view" id="view-notificaciones">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="table-head-title">Notificaciones del Sistema</span>
+          <button class="topbar-btn btn-sec" onclick="loadNotificaciones()"><i class="fas fa-sync"></i> Actualizar</button>
+        </div>
+        <div id="notif-list" style="display:flex;flex-direction:column;gap:.6rem;"></div>
+        <div id="notif-empty" style="text-align:center;padding:3rem;color:var(--gray);font-size:.8rem;display:none;"><i class="fas fa-bell" style="font-size:2rem;margin-bottom:.8rem;display:block;opacity:.3;"></i>Sin notificaciones</div>
+      </div>
+    </div><!-- /view-notificaciones -->
+
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -1914,17 +2008,29 @@
 
   function applySuperadminUI(u) {
     console.log('[VE] applySuperadminUI → is_superadmin:', u ? u.is_superadmin : 'no user', '| user:', u ? u.email : 'null');
-    const navPermisos = document.getElementById('nav-usuarios-permisos');
-    if (!navPermisos) {
-      console.warn('[VE] nav-usuarios-permisos element not found');
-      return;
+    const isSA = !!(u && u.is_superadmin === true);
+    const saNavIds = ['nav-usuarios-permisos','nav-conversaciones','nav-verificaciones','nav-zonas','nav-notificaciones'];
+    saNavIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.setAttribute('style', isSA ? 'display:flex!important' : 'display:none!important');
+    });
+    if (isSA) {
+      console.log('[VE] Módulos superadmin visibles');
+      loadAdminBadges();
     }
-    if (u && u.is_superadmin === true) {
-      navPermisos.setAttribute('style', 'display:flex!important');
-      console.log('[VE] Módulo Usuarios & Permisos visible');
-    } else {
-      navPermisos.style.display = 'none';
-    }
+  }
+
+  async function loadAdminBadges() {
+    try {
+      const [convs, verifs, notifs] = await Promise.all([
+        apiFetch('/api/conversaciones?estado=activa').catch(() => []),
+        apiFetch('/api/cliente/verificacion-identidad/admin/lista?estado=pendiente').catch(() => []),
+        apiFetch('/api/notificaciones?estado=enviada').catch(() => []),
+      ]);
+      const cb = document.getElementById('conv-badge');    if (cb) cb.textContent = convs.length || 0;
+      const vb = document.getElementById('verif-admin-badge'); if (vb) { vb.textContent = verifs.length || 0; vb.style.display = verifs.length ? '' : 'none'; }
+      const nb = document.getElementById('notif-badge');   if (nb) { nb.textContent = notifs.length || 0; nb.style.display = notifs.length ? '' : 'none'; }
+    } catch(e) { /* not yet deployed — ignore */ }
   }
 
   async function checkAuth() {
@@ -2044,7 +2150,9 @@
       constructores:'Constructores', cotizaciones:'Cotizaciones',
       proyectos:'Proyectos', propiedades:'Propiedades', reportes:'Reportes',
       calendario:'Calendario', precios:'Precios', promos:'Códigos Promo',
-      agentes:'Agentes / Referidos', permisos:'Usuarios & Permisos', config:'Configuración'
+      agentes:'Agentes / Referidos', permisos:'Usuarios & Permisos', config:'Configuración',
+      conversaciones:'Conversaciones Multicanal', verificaciones:'Verificaciones de Identidad',
+      zonas:'Zonas de Riesgo', notificaciones:'Notificaciones'
     };
     document.getElementById('topbar-title').textContent = titles[name] || name;
     if (name === 'leads') loadLeads();
@@ -2054,6 +2162,10 @@
     else if (name === 'agentes') loadAgentes();
     else if (name === 'propiedades') loadPropiedades();
     else if (name === 'permisos') loadUsuariosPermisos();
+    else if (name === 'conversaciones') loadConversaciones();
+    else if (name === 'verificaciones') loadVerificaciones();
+    else if (name === 'zonas') loadZonas();
+    else if (name === 'notificaciones') loadNotificaciones();
   }
 
   function openModal() {
@@ -2610,6 +2722,187 @@
     });
     checkAuth();
   });
+
+  /* ══════════════════════════════════════════════════════
+     CONVERSACIONES MULTICANAL
+  ══════════════════════════════════════════════════════ */
+  let activeConvId = null;
+
+  async function loadConversaciones() {
+    const estado = document.getElementById('conv-filter-estado')?.value || 'activa';
+    const tbody  = document.getElementById('conv-tbody');
+    const table  = document.getElementById('conv-table');
+    const empty  = document.getElementById('conv-list-empty');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--gray);"><i class="fas fa-spinner fa-spin"></i></td></tr>';
+    table.style.display = 'table'; empty.style.display = 'none';
+    try {
+      const qs = estado ? `?estado=${estado}` : '';
+      const data = await apiFetch('/api/conversaciones' + qs);
+      if (!data.length) { table.style.display = 'none'; empty.style.display = 'block'; return; }
+      const CANAL = { whatsapp:'<i class="fab fa-whatsapp" style="color:#25D366;"></i>', instagram:'<i class="fab fa-instagram" style="color:#E1306C;"></i>', facebook:'<i class="fab fa-facebook" style="color:#4267B2;"></i>', web:'<i class="fas fa-globe" style="color:var(--gold);"></i>' };
+      tbody.innerHTML = data.map(c => `
+        <tr style="cursor:pointer;" onclick="openConvChat(${c.id},'${(c.clientes?.nombre||c.creada_por_cliente||'Desconocido').replace(/'/g,'')}')" >
+          <td>#${c.id}</td>
+          <td>${c.clientes?.nombre || c.creada_por_cliente || '—'}</td>
+          <td>${CANAL[c.canal] || c.canal}</td>
+          <td style="font-size:.72rem;color:var(--gray);">${new Date(c.timestamp).toLocaleString('es-GT')}</td>
+          <td><span class="badge ${c.estado==='activa'?'badge-active':'badge-inactive'}">${c.estado}</span></td>
+          <td style="display:flex;gap:.4rem;">
+            <button class="act-btn" onclick="event.stopPropagation();openConvChat(${c.id},'${(c.clientes?.nombre||'—').replace(/'/g,'')}')" title="Abrir chat"><i class="fas fa-comment"></i></button>
+            <button class="act-btn danger" onclick="event.stopPropagation();cerrarConvById(${c.id})" title="Cerrar"><i class="fas fa-times"></i></button>
+          </td>
+        </tr>`).join('');
+    } catch(e) { tbody.innerHTML = `<tr><td colspan="6" style="color:#E08080;padding:1rem;">${e.message}</td></tr>`; }
+  }
+
+  async function openConvChat(id, nombre) {
+    activeConvId = id;
+    const panel = document.getElementById('conv-chat-panel');
+    const msgs  = document.getElementById('conv-messages');
+    document.getElementById('conv-chat-title').textContent = `Conversación #${id} — ${nombre}`;
+    panel.style.display = 'block';
+    msgs.innerHTML = '<div style="text-align:center;color:var(--gray);font-size:.75rem;"><i class="fas fa-spinner fa-spin"></i></div>';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    try {
+      const data = await apiFetch(`/api/conversaciones/${id}/mensajes`);
+      const TYPE_COLOR = { cliente:'var(--gold)', ia:'#6EAAFF', agente_humano:'#3ECF8E' };
+      const TYPE_LABEL = { cliente:'Cliente', ia:'IA', agente_humano:'Agente' };
+      msgs.innerHTML = data.length ? data.map(m => `
+        <div style="max-width:80%;${m.remitente_tipo==='cliente'?'align-self:flex-start':'align-self:flex-end;text-align:right;'}">
+          <div style="font-size:.58rem;color:${TYPE_COLOR[m.remitente_tipo]||'var(--gray)'};margin-bottom:.2rem;letter-spacing:.1em;text-transform:uppercase;">${TYPE_LABEL[m.remitente_tipo]||m.remitente_tipo}</div>
+          <div style="background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:var(--r);padding:.55rem .8rem;font-size:.78rem;line-height:1.5;">${m.contenido}</div>
+          <div style="font-size:.6rem;color:var(--gray);margin-top:.2rem;">${new Date(m.timestamp).toLocaleTimeString('es-GT')}</div>
+        </div>`).join('') : '<div style="text-align:center;color:var(--gray);font-size:.75rem;">Sin mensajes</div>';
+      msgs.scrollTop = msgs.scrollHeight;
+    } catch(e) { msgs.innerHTML = `<div style="color:#E08080;">${e.message}</div>`; }
+  }
+
+  async function sendConvReply() {
+    if (!activeConvId) return;
+    const input = document.getElementById('conv-reply-input');
+    const text  = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    try {
+      await apiFetch(`/api/conversaciones/${activeConvId}/mensajes`, {
+        method: 'POST', body: JSON.stringify({ contenido: text, remitente_tipo: 'agente_humano' })
+      });
+      openConvChat(activeConvId, '');
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+
+  async function cerrarConversacion() { if (activeConvId) await cerrarConvById(activeConvId); }
+  async function cerrarConvById(id) {
+    try {
+      await apiFetch(`/api/conversaciones/${id}`, { method:'PATCH', body: JSON.stringify({ estado:'cerrada' }) });
+      showToast('Conversación cerrada'); document.getElementById('conv-chat-panel').style.display = 'none'; loadConversaciones();
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     VERIFICACIONES DE IDENTIDAD
+  ══════════════════════════════════════════════════════ */
+  async function loadVerificaciones() {
+    const estado = document.getElementById('verif-filter')?.value || 'pendiente';
+    const cards  = document.getElementById('verif-cards');
+    const empty  = document.getElementById('verif-list-empty');
+    cards.innerHTML = '<div style="color:var(--gray);font-size:.8rem;padding:1rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
+    try {
+      const data = await apiFetch(`/api/cliente/verificacion-identidad/admin/lista?estado=${estado}`);
+      if (!data.length) { cards.innerHTML = ''; empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      const EST = { pendiente:'badge-process', verificado:'badge-active', rechazado:'badge-inactive' };
+      cards.innerHTML = data.map(v => `
+        <div class="panel" style="padding:1rem;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.8rem;">
+            <div>
+              <div style="font-size:.8rem;font-weight:600;">${v.clientes?.nombre || '—'}</div>
+              <div style="font-size:.68rem;color:var(--gray);">${v.clientes?.email || ''}</div>
+              <div style="font-size:.65rem;color:var(--gold);margin-top:.2rem;">DPI: ${v.dpi_numero || '—'}</div>
+            </div>
+            <span class="badge ${EST[v.estado]||''}">${v.estado}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.8rem;">
+            ${v.dpi_imagen_url ? `<div><div style="font-size:.58rem;color:var(--gray);margin-bottom:.3rem;">DPI Frente</div><img src="${v.dpi_imagen_url}" style="width:100%;border-radius:var(--r);max-height:100px;object-fit:cover;"/></div>` : '<div style="color:var(--gray);font-size:.7rem;display:flex;align-items:center;justify-content:center;min-height:60px;border:1px dashed var(--border);border-radius:var(--r);">Sin imagen</div>'}
+            ${v.selfie_vivo_url ? `<div><div style="font-size:.58rem;color:var(--gray);margin-bottom:.3rem;">Selfie</div><img src="${v.selfie_vivo_url}" style="width:100%;border-radius:var(--r);max-height:100px;object-fit:cover;"/></div>` : '<div style="color:var(--gray);font-size:.7rem;display:flex;align-items:center;justify-content:center;min-height:60px;border:1px dashed var(--border);border-radius:var(--r);">Sin selfie</div>'}
+          </div>
+          ${v.estado === 'pendiente' ? `
+          <div style="display:flex;gap:.5rem;">
+            <button class="act-btn" style="flex:1;justify-content:center;background:rgba(62,207,142,.1);border-color:#3ECF8E;color:#3ECF8E;" onclick="procesarVerif(${v.cliente_id},'aprobar')"><i class="fas fa-check"></i> Aprobar</button>
+            <button class="act-btn danger" style="flex:1;justify-content:center;" onclick="procesarVerif(${v.cliente_id},'rechazar')"><i class="fas fa-times"></i> Rechazar</button>
+          </div>` : `<div style="font-size:.68rem;color:var(--gray);">${v.razon_rechazo ? 'Motivo: ' + v.razon_rechazo : ''}</div>`}
+        </div>`).join('');
+    } catch(e) { cards.innerHTML = `<div style="color:#E08080;padding:1rem;">${e.message}</div>`; }
+  }
+
+  async function procesarVerif(clienteId, accion) {
+    let razon = null;
+    if (accion === 'rechazar') { razon = prompt('Motivo del rechazo:'); if (!razon) return; }
+    try {
+      await apiFetch('/api/cliente/verificacion-identidad/admin/procesar', {
+        method: 'POST', body: JSON.stringify({ cliente_id: clienteId, accion, razon_rechazo: razon })
+      });
+      showToast(accion === 'aprobar' ? '✅ Verificación aprobada' : '❌ Verificación rechazada');
+      loadVerificaciones(); loadAdminBadges();
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     ZONAS DE RIESGO
+  ══════════════════════════════════════════════════════ */
+  async function loadZonas() {
+    const grid = document.getElementById('zonas-grid');
+    grid.innerHTML = '<div style="color:var(--gray);font-size:.8rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
+    try {
+      const data = await apiFetch('/api/cotizacion/zonas');
+      const RIESGO = { verde:{ color:'#3ECF8E', icon:'fa-check-circle' }, amarillo:{ color:'#F0B429', icon:'fa-exclamation-circle' }, rojo:{ color:'#E08080', icon:'fa-times-circle' } };
+      grid.innerHTML = data.map(z => {
+        const r = RIESGO[z.nivel_riesgo] || RIESGO.verde;
+        return `<div class="panel" style="border-left:3px solid ${r.color};padding:1rem;">
+          <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;">
+            <i class="fas ${r.icon}" style="color:${r.color};font-size:1rem;"></i>
+            <div style="font-size:.82rem;font-weight:600;">${z.zona}</div>
+          </div>
+          <div style="font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:${r.color};margin-bottom:.5rem;">${z.nivel_riesgo}</div>
+          <div style="font-size:.68rem;color:var(--gray);margin-bottom:.4rem;">
+            ${z.aceptar_trabajos ? '<i class="fas fa-check" style="color:#3ECF8E;margin-right:.3rem;"></i>Acepta trabajos' : '<i class="fas fa-ban" style="color:#E08080;margin-right:.3rem;"></i>No acepta trabajos'}
+          </div>
+          <div style="font-size:.68rem;color:var(--gray);">
+            ${z.requiere_verificacion_extra ? '<i class="fas fa-id-card" style="color:#F0B429;margin-right:.3rem;"></i>Requiere verificación' : '<i class="fas fa-unlock" style="color:var(--gray);margin-right:.3rem;"></i>Sin verificación extra'}
+          </div>
+        </div>`;
+      }).join('');
+    } catch(e) { grid.innerHTML = `<div style="color:#E08080;">${e.message}</div>`; }
+  }
+
+  function abrirNuevaZona() { showToast('Gestión de zonas vía Supabase. Próximamente: formulario inline.'); }
+
+  /* ══════════════════════════════════════════════════════
+     NOTIFICACIONES
+  ══════════════════════════════════════════════════════ */
+  async function loadNotificaciones() {
+    const list  = document.getElementById('notif-list');
+    const empty = document.getElementById('notif-empty');
+    list.innerHTML = '<div style="color:var(--gray);font-size:.8rem;padding:1rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
+    try {
+      const data = await apiFetch('/api/notificaciones');
+      if (!data.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      const TIPO_ICON = { verificacion_pendiente:'fa-id-card', cotizacion_revision:'fa-file-invoice-dollar', cliente_riesgo:'fa-user-shield', zona_roja:'fa-map-marked-alt' };
+      const TIPO_COLOR = { verificacion_pendiente:'#F0B429', cotizacion_revision:'var(--gold)', cliente_riesgo:'#E08080', zona_roja:'#E08080' };
+      list.innerHTML = data.map(n => {
+        const ic = TIPO_ICON[n.tipo] || 'fa-bell';
+        const cl = TIPO_COLOR[n.tipo] || 'var(--gold)';
+        return `<div style="display:flex;align-items:flex-start;gap:.8rem;padding:.8rem 1rem;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r);">
+          <i class="fas ${ic}" style="color:${cl};font-size:.9rem;margin-top:.15rem;flex-shrink:0;"></i>
+          <div style="flex:1;">
+            <div style="font-size:.75rem;line-height:1.5;">${n.contenido}</div>
+            <div style="font-size:.62rem;color:var(--gray);margin-top:.2rem;">${new Date(n.timestamp).toLocaleString('es-GT')} — <span style="color:${n.estado==='enviada'?'#F0B429':'#3ECF8E'}">${n.estado}</span></div>
+          </div>
+        </div>`;
+      }).join('');
+    } catch(e) { list.innerHTML = `<div style="color:#E08080;padding:1rem;">${e.message}</div>`; }
+  }
 </script>
 </body>
 </html>

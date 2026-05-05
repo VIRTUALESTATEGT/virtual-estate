@@ -7,6 +7,18 @@ const app = express();
 const authMiddleware = require('./src/middleware/auth');
 
 app.use(cors());
+
+// Capture raw body for WhatsApp webhook signature validation BEFORE json parser
+app.use((req, res, next) => {
+  if (req.path === '/api/webhook/whatsapp') {
+    let data = '';
+    req.on('data', chunk => { data += chunk; });
+    req.on('end', () => { req.rawBody = data; next(); });
+  } else {
+    next();
+  }
+});
+
 app.use(express.json());
 
 // Auth (pública — sin protección)
@@ -64,7 +76,15 @@ app.post('/api/leads/public', async (req, res) => {
   }
 });
 
-// Rutas protegidas con JWT
+// ── Public: WhatsApp webhook (no auth — validated via signature) ──
+const webhookWARouter = require('./src/routes/webhook-whatsapp');
+app.use('/api/webhook/whatsapp', webhookWARouter);
+
+// ── Public: zone list + quote generation ─────────────────────────
+const cotizacionGenRouter = require('./src/routes/cotizacion-gen');
+app.use('/api/cotizacion', cotizacionGenRouter);
+
+// ── Rutas protegidas con JWT ──────────────────────────────────────
 const leadsRouter = require('./src/routes/leads');
 const clientesRouter = require('./src/routes/clientes');
 const propiedadesRouter = require('./src/routes/propiedades');
@@ -72,14 +92,33 @@ const proyectosRouter = require('./src/routes/proyectos');
 const cotizacionesRouter = require('./src/routes/cotizaciones');
 const agentesRouter = require('./src/routes/agentes');
 const { router: usuariosRouter } = require('./src/routes/usuarios');
+const agenteIARouter = require('./src/routes/agente-ia');
+const conversacionesRouter = require('./src/routes/conversaciones');
+const verificacionRouter = require('./src/routes/verificacion');
 
-app.use('/api/leads', authMiddleware, leadsRouter);
-app.use('/api/clientes', authMiddleware, clientesRouter);
-app.use('/api/propiedades', authMiddleware, propiedadesRouter);
-app.use('/api/proyectos', authMiddleware, proyectosRouter);
-app.use('/api/cotizaciones', authMiddleware, cotizacionesRouter);
-app.use('/api/agentes', authMiddleware, agentesRouter);
-app.use('/api/usuarios', authMiddleware, usuariosRouter);
+app.use('/api/leads',         authMiddleware, leadsRouter);
+app.use('/api/clientes',      authMiddleware, clientesRouter);
+app.use('/api/propiedades',   authMiddleware, propiedadesRouter);
+app.use('/api/proyectos',     authMiddleware, proyectosRouter);
+app.use('/api/cotizaciones',  authMiddleware, cotizacionesRouter);
+app.use('/api/agentes',       authMiddleware, agentesRouter);
+app.use('/api/usuarios',      authMiddleware, usuariosRouter);
+app.use('/api/agente-ia',     authMiddleware, agenteIARouter);
+app.use('/api/conversaciones',authMiddleware, conversacionesRouter);
+app.use('/api/cliente/verificacion-identidad', authMiddleware, verificacionRouter);
+
+// Notificaciones admin (inline — simple read/list endpoint)
+app.get('/api/notificaciones', authMiddleware, async (req, res) => {
+  const supabase = require('./src/config/supabase');
+  try {
+    const { estado } = req.query;
+    let q = supabase.from('notificaciones_admin').select('*').order('timestamp', { ascending: false }).limit(50);
+    if (estado) q = q.eq('estado', estado);
+    const { data, error } = await q;
+    if (error) throw error;
+    res.json(data);
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
 
 // Debug: filesystem info
 app.get('/api/debug', (req, res) => {

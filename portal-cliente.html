@@ -413,6 +413,10 @@
       <div class="p-tab" id="ptab-perfil" onclick="setTab('perfil')">
         <i class="fas fa-user"></i> Mi perfil
       </div>
+      <div class="p-tab" id="ptab-verificacion" onclick="setTab('verificacion')">
+        <i class="fas fa-id-card"></i> Verificación
+        <span class="p-tab-badge" id="verif-badge" style="display:none;">!</span>
+      </div>
     </div>
 
     <!-- TAB: INICIO / RESUMEN -->
@@ -1316,6 +1320,95 @@
         </button>
       </div>
     </div>
+    <!-- ── PANEL: VERIFICACIÓN DE IDENTIDAD ── -->
+    <div class="tab-panel" id="panel-verificacion">
+      <div style="max-width:560px;margin:0 auto;">
+
+        <!-- Estado actual -->
+        <div id="verif-estado-box" style="display:none;padding:1rem 1.2rem;border-radius:var(--r);margin-bottom:1.4rem;display:flex;align-items:center;gap:.8rem;">
+          <i id="verif-estado-icon" class="fas fa-clock" style="font-size:1.1rem;flex-shrink:0;"></i>
+          <div>
+            <div id="verif-estado-titulo" style="font-size:.78rem;font-weight:600;"></div>
+            <div id="verif-estado-sub" style="font-size:.7rem;color:var(--gray);margin-top:.2rem;"></div>
+          </div>
+        </div>
+
+        <!-- Form -->
+        <div id="verif-form-wrap">
+          <div style="font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1.2rem;">Verificación de Identidad</div>
+          <p style="font-size:.78rem;color:var(--gray);line-height:1.6;margin-bottom:1.4rem;">
+            Para acceder a ciertos servicios y zonas, necesitamos verificar tu identidad. Este proceso es seguro y confidencial.
+          </p>
+
+          <div style="margin-bottom:1rem;">
+            <label style="display:block;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem;font-weight:600;">Número de DPI</label>
+            <input id="verif-dpi" type="text" maxlength="13" placeholder="1234567890123"
+              style="width:100%;padding:.72rem .9rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-family:'Montserrat',sans-serif;font-size:.82rem;"
+              oninput="this.value=this.value.replace(/\D/g,'').substring(0,13)"/>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1rem;">
+            <div>
+              <label style="display:block;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem;font-weight:600;">Foto DPI (frente)</label>
+              <label id="verif-dpi-front-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.2rem;border:1.5px dashed var(--border);border-radius:var(--r);cursor:pointer;transition:.2s;min-height:80px;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+                <i class="fas fa-id-card" style="font-size:1.4rem;color:var(--gold);margin-bottom:.4rem;"></i>
+                <span style="font-size:.62rem;color:var(--gray);text-align:center;">Frente del DPI</span>
+                <input id="verif-dpi-front" type="file" accept="image/*" style="display:none;" onchange="previewFile(this,'verif-dpi-front-label','verif-dpi-front-prev')"/>
+              </label>
+              <img id="verif-dpi-front-prev" src="" style="display:none;width:100%;border-radius:var(--r);margin-top:.4rem;max-height:80px;object-fit:cover;"/>
+            </div>
+            <div>
+              <label style="display:block;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem;font-weight:600;">Foto DPI (reverso)</label>
+              <label id="verif-dpi-back-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.2rem;border:1.5px dashed var(--border);border-radius:var(--r);cursor:pointer;transition:.2s;min-height:80px;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+                <i class="fas fa-id-card" style="font-size:1.4rem;color:var(--gold);margin-bottom:.4rem;"></i>
+                <span style="font-size:.62rem;color:var(--gray);text-align:center;">Reverso del DPI</span>
+                <input id="verif-dpi-back" type="file" accept="image/*" style="display:none;" onchange="previewFile(this,'verif-dpi-back-label','verif-dpi-back-prev')"/>
+              </label>
+              <img id="verif-dpi-back-prev" src="" style="display:none;width:100%;border-radius:var(--r);margin-top:.4rem;max-height:80px;object-fit:cover;"/>
+            </div>
+          </div>
+
+          <!-- Selfie en vivo -->
+          <div style="margin-bottom:1rem;">
+            <label style="display:block;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem;font-weight:600;">Selfie en vivo</label>
+            <div id="selfie-area" style="border:1.5px dashed var(--border);border-radius:var(--r);padding:1.2rem;text-align:center;">
+              <video id="selfie-video" autoplay playsinline style="display:none;width:100%;max-width:280px;border-radius:var(--r);margin-bottom:.6rem;"></video>
+              <canvas id="selfie-canvas" style="display:none;width:100%;max-width:280px;border-radius:var(--r);margin-bottom:.6rem;"></canvas>
+              <img id="selfie-preview" src="" style="display:none;width:100%;max-width:280px;border-radius:var(--r);margin-bottom:.6rem;"/>
+              <div id="selfie-placeholder">
+                <i class="fas fa-camera" style="font-size:1.8rem;color:var(--gold);margin-bottom:.5rem;display:block;"></i>
+                <p style="font-size:.7rem;color:var(--gray);margin-bottom:.8rem;">Toma una selfie en vivo para confirmar tu identidad</p>
+              </div>
+              <button id="selfie-btn-open" onclick="openSelfieCamera()" style="padding:.5rem 1.2rem;background:transparent;border:1px solid var(--gold);color:var(--gold);border-radius:var(--r);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;">
+                <i class="fas fa-video"></i> Abrir cámara
+              </button>
+              <button id="selfie-btn-capture" onclick="captureSelfie()" style="display:none;padding:.5rem 1.2rem;background:var(--gold);border:none;color:var(--bg);border-radius:var(--r);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;">
+                <i class="fas fa-camera"></i> Tomar selfie
+              </button>
+              <button id="selfie-btn-retry" onclick="retrySelfie()" style="display:none;padding:.5rem 1rem;background:transparent;border:1px solid var(--border);color:var(--gray);border-radius:var(--r);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;margin-left:.4rem;">
+                <i class="fas fa-redo"></i> Reintentar
+              </button>
+            </div>
+          </div>
+
+          <!-- Terms -->
+          <label style="display:flex;align-items:flex-start;gap:.6rem;font-size:.72rem;color:var(--gray);line-height:1.5;margin-bottom:1.2rem;cursor:pointer;">
+            <input id="verif-terms" type="checkbox" style="margin-top:.2rem;accent-color:var(--gold);flex-shrink:0;"/>
+            Acepto la <a href="#" style="color:var(--gold);" onclick="showToast('Política disponible en breve')">Política de Verificación de Identidad</a>.
+            Entiendo que mis datos serán utilizados exclusivamente para validar mi identidad.
+          </label>
+
+          <div id="verif-error" style="display:none;color:#E08080;font-size:.72rem;margin-bottom:.8rem;padding:.6rem .9rem;background:rgba(224,128,128,.08);border-radius:var(--r);"></div>
+
+          <button id="verif-submit-btn" onclick="submitVerificacion()"
+            style="width:100%;padding:.82rem;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:var(--tr);">
+            <i class="fas fa-paper-plane"></i> Enviar documentos
+          </button>
+        </div>
+
+      </div>
+    </div><!-- /panel-verificacion -->
+
   </div>
 </div>
 
@@ -1542,12 +1635,13 @@ function closePropModal() {
 
 /* ── TABS ───────────────────────────────────────────────── */
 function setTab(tab) {
-  ['inicio','favoritos','cotizaciones','agente','pagos','perfil'].forEach(t => {
+  ['inicio','favoritos','cotizaciones','agente','pagos','perfil','verificacion'].forEach(t => {
     document.getElementById(`ptab-${t}`)?.classList.toggle('active', t === tab);
     document.getElementById(`panel-${t}`)?.classList.toggle('active', t === tab);
   });
   if (tab === 'favoritos') { setPropSubTab('explorar'); }
   if (tab === 'inicio') renderFavs('resumen-props', 3);
+  if (tab === 'verificacion') loadVerificacionEstado();
 }
 
 /* ── LOAD PORTAL DATA ───────────────────────────────────── */
@@ -1838,11 +1932,148 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('auth-checking').style.display = 'none';
     document.getElementById('dashboard-view').style.display = 'flex';
     if (window.location.hash === '#agente') setTab('agente');
+    if (window.location.hash === '#verificacion') setTab('verificacion');
   } catch {
     clearToken();
     window.location.href = '/portal.html';
   }
 });
+
+/* ── IDENTITY VERIFICATION ──────────────────────────────── */
+let selfieStream = null;
+let selfieDataUrl = null;
+
+async function loadVerificacionEstado() {
+  try {
+    const est = await apiFetch('/api/cliente/verificacion-identidad/estado');
+    const box  = document.getElementById('verif-estado-box');
+    const form = document.getElementById('verif-form-wrap');
+    const badge = document.getElementById('verif-badge');
+    if (!est) { box.style.display = 'none'; form.style.display = 'block'; return; }
+
+    box.style.display = 'flex';
+    const cfg = {
+      pendiente:  { color:'#F0B429', bg:'rgba(240,180,41,.08)',  icon:'fa-clock',        title:'Verificación en proceso', sub:'Revisando tus documentos. Te notificaremos pronto.' },
+      verificado: { color:'#3ECF8E', bg:'rgba(62,207,142,.08)', icon:'fa-check-circle',  title:'✓ Identidad verificada',  sub:'Tu cuenta está verificada. Tienes acceso completo.' },
+      rechazado:  { color:'#E08080', bg:'rgba(224,128,128,.08)',icon:'fa-times-circle',  title:'✗ Verificación rechazada', sub: est.razon_rechazo || 'Documentos no válidos. Por favor reintenta.' },
+    };
+    const c = cfg[est.estado] || cfg.pendiente;
+    box.style.background = c.bg;
+    box.style.border = `1px solid ${c.color}40`;
+    document.getElementById('verif-estado-icon').className = `fas ${c.icon}`;
+    document.getElementById('verif-estado-icon').style.color = c.color;
+    document.getElementById('verif-estado-titulo').textContent = c.title;
+    document.getElementById('verif-estado-titulo').style.color = c.color;
+    document.getElementById('verif-estado-sub').textContent = c.sub;
+
+    if (est.estado === 'pendiente')  { badge.style.display = 'inline'; badge.textContent = '⏳'; }
+    if (est.estado === 'verificado') { badge.style.display = 'inline'; badge.textContent = '✓'; badge.style.background = '#3ECF8E'; }
+    if (est.estado === 'rechazado')  { badge.style.display = 'inline'; badge.textContent = '✗'; badge.style.background = '#E08080'; }
+
+    // Hide form if verified; show if rejected (retry)
+    form.style.display = est.estado === 'verificado' ? 'none' : 'block';
+    if (est.estado === 'verificado') {
+      box.style.display = 'flex';
+    }
+  } catch (e) { /* table may not exist yet */ }
+}
+
+function previewFile(input, labelId, previewId) {
+  const file = input.files[0];
+  if (!file) return;
+  const label   = document.getElementById(labelId);
+  const preview = document.getElementById(previewId);
+  const reader  = new FileReader();
+  reader.onload = e => {
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+    label.style.borderColor = 'var(--gold)';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function openSelfieCamera() {
+  try {
+    selfieStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+    const video = document.getElementById('selfie-video');
+    video.srcObject = selfieStream;
+    video.style.display = 'block';
+    document.getElementById('selfie-placeholder').style.display = 'none';
+    document.getElementById('selfie-btn-open').style.display = 'none';
+    document.getElementById('selfie-btn-capture').style.display = 'inline-block';
+  } catch (e) {
+    showToast('No se pudo acceder a la cámara: ' + e.message);
+  }
+}
+
+function captureSelfie() {
+  const video  = document.getElementById('selfie-video');
+  const canvas = document.getElementById('selfie-canvas');
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  selfieDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+  const preview = document.getElementById('selfie-preview');
+  preview.src = selfieDataUrl;
+  preview.style.display = 'block';
+  video.style.display = 'none';
+  canvas.style.display = 'none';
+  document.getElementById('selfie-btn-capture').style.display = 'none';
+  document.getElementById('selfie-btn-retry').style.display = 'inline-block';
+  if (selfieStream) { selfieStream.getTracks().forEach(t => t.stop()); selfieStream = null; }
+}
+
+function retrySelfie() {
+  selfieDataUrl = null;
+  document.getElementById('selfie-preview').style.display = 'none';
+  document.getElementById('selfie-btn-retry').style.display = 'none';
+  document.getElementById('selfie-placeholder').style.display = 'block';
+  document.getElementById('selfie-btn-open').style.display = 'inline-block';
+}
+
+async function submitVerificacion() {
+  const dpi   = document.getElementById('verif-dpi').value.trim();
+  const terms = document.getElementById('verif-terms').checked;
+  const errEl = document.getElementById('verif-error');
+  const btn   = document.getElementById('verif-submit-btn');
+
+  errEl.style.display = 'none';
+  if (!dpi || dpi.length < 10) { errEl.textContent = 'Ingresa tu número de DPI (mínimo 10 dígitos)'; errEl.style.display = 'block'; return; }
+  if (!terms) { errEl.textContent = 'Debes aceptar la política de verificación'; errEl.style.display = 'block'; return; }
+  if (!selfieDataUrl) { errEl.textContent = 'Toma una selfie en vivo antes de enviar'; errEl.style.display = 'block'; return; }
+
+  const frontFile = document.getElementById('verif-dpi-front').files[0];
+  const backFile  = document.getElementById('verif-dpi-back').files[0];
+
+  const toB64 = (file) => new Promise((resolve) => {
+    if (!file) { resolve(null); return; }
+    const r = new FileReader(); r.onload = e => resolve(e.target.result); r.readAsDataURL(file);
+  });
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+
+  try {
+    const [dpiF, dpiB] = await Promise.all([toB64(frontFile), toB64(backFile)]);
+    await apiFetch('/api/cliente/verificacion-identidad', {
+      method: 'POST',
+      body: JSON.stringify({
+        dpi_numero: dpi,
+        dpi_imagen_url: dpiF,
+        documento_foto_url: dpiB,
+        selfie_vivo_url: selfieDataUrl,
+      })
+    });
+    showToast('✅ Documentos enviados. Te notificaremos cuando sea revisado.');
+    loadVerificacionEstado();
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar documentos';
+  }
+}
 </script>
 </body>
 </html>
