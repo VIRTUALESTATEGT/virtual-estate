@@ -1898,6 +1898,7 @@
       localStorage.setItem('ve_token', data.token);
       localStorage.setItem('ve_usuario', JSON.stringify(data.usuario));
       document.getElementById('login-overlay').style.display = 'none';
+      applySuperadminUI(data.usuario);
       initApp();
     } catch (e) {
       errEl.textContent = 'Error de conexión con el servidor';
@@ -1908,6 +1909,17 @@
     }
   }
 
+  // Applies superadmin-only UI elements based on a user object.
+  // Called from checkAuth, doLogin, and initApp so it always fires.
+  function applySuperadminUI(u) {
+    const isSA = !!(u && u.is_superadmin === true);
+    const navPermisos = document.getElementById('nav-permisos-top');
+    if (navPermisos) {
+      navPermisos.setAttribute('style', isSA ? 'display:flex!important' : 'display:none!important');
+    }
+    console.log('[VE] applySuperadminUI → is_superadmin:', isSA, '| user:', u ? u.email : 'null');
+  }
+
   async function checkAuth() {
     const token = getToken();
     if (!token) { document.getElementById('login-overlay').style.display = 'flex'; return; }
@@ -1916,9 +1928,13 @@
       if (!res.ok) { logout(); return; }
       const data = await res.json();
       // Refresh ve_usuario with latest DB values (picks up is_superadmin changes without re-login)
-      if (data.usuario) localStorage.setItem('ve_usuario', JSON.stringify(data.usuario));
+      if (data.usuario) {
+        localStorage.setItem('ve_usuario', JSON.stringify(data.usuario));
+        applySuperadminUI(data.usuario);
+      }
       initApp();
     } catch {
+      applySuperadminUI(getUsuario());
       initApp(); // servidor offline en dev — seguimos con el token local
     }
   }
@@ -1928,10 +1944,8 @@
     if (u) {
       document.getElementById('sidebar-nombre').textContent = u.nombre || 'Admin';
       document.getElementById('sidebar-rol').textContent = u.role || u.rol || 'usuario';
-      // Show Usuarios & Permisos only for superadmin
-      const navPermisos = document.getElementById('nav-permisos-top');
-      if (navPermisos) navPermisos.style.display = u.is_superadmin ? 'flex' : 'none';
     }
+    applySuperadminUI(u);
     loadDashboard();
   }
 
