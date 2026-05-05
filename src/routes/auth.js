@@ -67,15 +67,30 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-// VERIFY (para el frontend al cargar la página)
-router.get('/verify', (req, res) => {
+// VERIFY — validates token and returns fresh user data from DB
+router.get('/verify', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Token requerido' });
   }
   try {
-    const payload = jwt.verify(auth.split(' ')[1], JWT_SECRET);
-    res.json({ valid: true, usuario: payload });
+    const decoded = jwt.verify(auth.split(' ')[1], JWT_SECRET);
+    // Re-read from DB so is_superadmin / role changes take effect without re-login
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('id, email, nombre, role, is_superadmin')
+      .eq('id', decoded.id)
+      .single();
+    if (error || !data) return res.status(401).json({ error: 'Usuario no encontrado' });
+    const usuario = {
+      id: data.id,
+      email: data.email,
+      nombre: data.nombre,
+      rol: data.role || 'asistente',
+      role: data.role || 'asistente',
+      is_superadmin: data.is_superadmin || false,
+    };
+    res.json({ valid: true, usuario });
   } catch {
     res.status(401).json({ error: 'Token inválido o expirado' });
   }
