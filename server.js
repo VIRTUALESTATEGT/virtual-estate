@@ -96,19 +96,21 @@ const agenteIARouter = require('./src/routes/agente-ia');
 const conversacionesRouter = require('./src/routes/conversaciones');
 const verificacionRouter = require('./src/routes/verificacion');
 
-app.use('/api/leads',         authMiddleware, leadsRouter);
-app.use('/api/clientes',      authMiddleware, clientesRouter);
-app.use('/api/propiedades',   authMiddleware, propiedadesRouter);
-app.use('/api/proyectos',     authMiddleware, proyectosRouter);
-app.use('/api/cotizaciones',  authMiddleware, cotizacionesRouter);
-app.use('/api/agentes',       authMiddleware, agentesRouter);
-app.use('/api/usuarios',      authMiddleware, usuariosRouter);
-app.use('/api/agente-ia',     authMiddleware, agenteIARouter);
-app.use('/api/conversaciones',authMiddleware, conversacionesRouter);
+const { requireMinRole, requireSuperadmin } = require('./src/middleware/roles');
+
+app.use('/api/leads',         authMiddleware, requireMinRole('asistente'), leadsRouter);
+app.use('/api/clientes',      authMiddleware, requireMinRole('asistente'), clientesRouter);
+app.use('/api/propiedades',   authMiddleware, requireMinRole('asistente'), propiedadesRouter);
+app.use('/api/proyectos',     authMiddleware, requireMinRole('asistente'), proyectosRouter);
+app.use('/api/cotizaciones',  authMiddleware, requireMinRole('asistente'), cotizacionesRouter);
+app.use('/api/agentes',       authMiddleware, requireMinRole('gerente'),   agentesRouter);
+app.use('/api/usuarios',      authMiddleware, requireSuperadmin,           usuariosRouter);
+app.use('/api/agente-ia',     authMiddleware, requireMinRole('asistente'), agenteIARouter);
+app.use('/api/conversaciones',authMiddleware, requireMinRole('asistente'), conversacionesRouter);
 app.use('/api/cliente/verificacion-identidad', authMiddleware, verificacionRouter);
 
 // Notificaciones admin (inline — simple read/list endpoint)
-app.get('/api/notificaciones', authMiddleware, async (req, res) => {
+app.get('/api/notificaciones', authMiddleware, requireMinRole('asistente'), async (req, res) => {
   const supabase = require('./src/config/supabase');
   try {
     const { estado } = req.query;
