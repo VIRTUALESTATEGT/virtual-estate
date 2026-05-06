@@ -1852,7 +1852,7 @@
 <!-- ── MODAL: NUEVO CLIENTE ──────────────────────────────────── -->
 <div class="modal-overlay" id="clienteModal">
   <div class="modal">
-    <div class="modal-title">Nuevo Cliente</div>
+    <div class="modal-title" id="modal-cliente-title">Nuevo Cliente</div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Nombre *</label><input type="text" id="cl-nombre" class="form-control" placeholder="Nombre completo"/></div>
       <div class="form-group"><label class="form-label">Empresa</label><input type="text" id="cl-empresa" class="form-control" placeholder="Empresa (opcional)"/></div>
@@ -1877,7 +1877,7 @@
 <!-- ── MODAL: NUEVO PROYECTO ──────────────────────────────────── -->
 <div class="modal-overlay" id="proyectoModal">
   <div class="modal">
-    <div class="modal-title">Nuevo Proyecto</div>
+    <div class="modal-title" id="modal-proyecto-title">Nuevo Proyecto</div>
     <div class="form-group"><label class="form-label">Nombre del proyecto *</label><input type="text" id="pr-nombre" class="form-control" placeholder="Nombre del proyecto"/></div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Cliente ID</label><input type="number" id="pr-cliente-id" class="form-control" placeholder="ID del cliente"/></div>
@@ -1906,7 +1906,7 @@
 <!-- ── MODAL: NUEVA COTIZACIÓN ──────────────────────────────────── -->
 <div class="modal-overlay" id="cotizacionModal">
   <div class="modal">
-    <div class="modal-title">Nueva Cotización</div>
+    <div class="modal-title" id="modal-cotizacion-title">Nueva Cotización</div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Cliente ID</label><input type="number" id="cot-cliente-id" class="form-control" placeholder="ID del cliente"/></div>
       <div class="form-group"><label class="form-label">Proyecto ID</label><input type="number" id="cot-proyecto-id" class="form-control" placeholder="ID del proyecto"/></div>
@@ -1931,7 +1931,7 @@
 <!-- ── MODAL: NUEVO AGENTE ──────────────────────────────────── -->
 <div class="modal-overlay" id="agenteModal">
   <div class="modal">
-    <div class="modal-title">Nuevo Agente</div>
+    <div class="modal-title" id="modal-agente-title">Nuevo Agente</div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Nombre *</label><input type="text" id="agt-nombre" class="form-control" placeholder="Nombre del agente"/></div>
       <div class="form-group"><label class="form-label">Email *</label><input type="email" id="agt-email" class="form-control" placeholder="correo@ejemplo.com"/></div>
@@ -1946,6 +1946,40 @@
     <div class="modal-actions">
       <button class="topbar-btn btn-primary" onclick="saveAgente()" style="flex:1;justify-content:center;"><i class="fas fa-save"></i> Guardar</button>
       <button class="topbar-btn btn-sec" onclick="closeAgenteModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Editar Zona de Riesgo -->
+<div class="modal-overlay" id="zonaEditModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title"><i class="fas fa-map-marked-alt" style="color:var(--gold);margin-right:.5rem;"></i>Zona de Riesgo</div>
+    <input type="hidden" id="zona-edit-id"/>
+    <div class="form-group" style="margin-bottom:.9rem;">
+      <label class="form-label">Nombre de la zona *</label>
+      <input type="text" id="zona-edit-nombre" class="form-control" placeholder="Ej: Zona 10"/>
+    </div>
+    <div class="form-group" style="margin-bottom:.9rem;">
+      <label class="form-label">Nivel de riesgo</label>
+      <select id="zona-edit-nivel" class="form-control">
+        <option value="verde">🟢 Verde — Sin restricciones</option>
+        <option value="amarillo">🟡 Amarillo — Requiere verificación</option>
+        <option value="rojo">🔴 Rojo — Alto riesgo</option>
+      </select>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.2rem;">
+      <label style="display:flex;align-items:center;gap:.6rem;font-size:.78rem;cursor:pointer;">
+        <input type="checkbox" id="zona-edit-acepta" style="accent-color:var(--gold);"/>
+        Acepta trabajos
+      </label>
+      <label style="display:flex;align-items:center;gap:.6rem;font-size:.78rem;cursor:pointer;">
+        <input type="checkbox" id="zona-edit-verif" style="accent-color:var(--gold);"/>
+        Requiere verificación de identidad extra
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="topbar-btn btn-primary" onclick="saveZona()" style="flex:1;justify-content:center;"><i class="fas fa-save"></i> Guardar</button>
+      <button class="topbar-btn btn-sec" onclick="document.getElementById('zonaEditModal').classList.remove('open')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -2088,12 +2122,15 @@
   }
 
   /* ── LEADS TABLE ────────────────────────────────────────── */
+  let _leadsCache = {}, _editLeadId = null;
   async function loadLeads() {
     const tbody = document.getElementById('leads-tbody');
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
     try {
       const leads = await apiFetch('/api/leads');
+      _leadsCache = {};
+      leads.forEach(l => _leadsCache[l.id] = l);
       if (!leads.length) {
         tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay leads. ¡Crea el primero!</td></tr>';
         return;
@@ -2108,11 +2145,27 @@
         <td class="td-gold">${l.presupuesto||'—'}</td>
         <td><span class="badge ${BADGE[l.estado]||'badge-new'}">${l.estado||'Nuevo'}</span></td>
         <td style="color:var(--gray);">${l.seguimiento||'—'}</td>
-        <td><div class="action-btns"><button class="act-btn danger" title="Eliminar" onclick="deleteLead(${l.id})"><i class="fas fa-trash"></i></button></div></td>
+        <td><div class="action-btns">
+          <button class="act-btn" title="Editar" onclick="editLead(${l.id})"><i class="fas fa-pencil-alt"></i></button>
+          <button class="act-btn danger" title="Eliminar" onclick="deleteLead(${l.id})"><i class="fas fa-trash"></i></button>
+        </div></td>
       </tr>`).join('');
     } catch (e) {
       tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;
     }
+  }
+
+  function editLead(id) {
+    const l = _leadsCache[id]; if (!l) return;
+    _editLeadId = id;
+    document.getElementById('lead-nombre').value    = l.nombre || '';
+    document.getElementById('lead-email').value     = l.email || '';
+    document.getElementById('lead-telefono').value  = l.telefono || '';
+    document.getElementById('lead-empresa').value   = l.empresa || '';
+    document.getElementById('lead-estado').value    = l.estado || 'Nuevo';
+    const titleEl = document.getElementById('modal-lead-title');
+    if (titleEl) titleEl.textContent = 'Editar Lead #' + id;
+    openModal();
   }
 
   async function deleteLead(id) {
@@ -2169,9 +2222,13 @@
   }
 
   function openModal() {
+    _editLeadId = null;
+    const titleEl = document.getElementById('modal-lead-title');
+    if (titleEl) titleEl.textContent = 'Nuevo Lead';
     document.getElementById('modalOverlay').classList.add('open');
   }
   function closeModal() {
+    _editLeadId = null;
     document.getElementById('modalOverlay').classList.remove('open');
     ['lead-nombre','lead-email','lead-telefono','lead-empresa'].forEach(id => {
       const el = document.getElementById(id);
@@ -2183,16 +2240,20 @@
     const email = document.getElementById('lead-email').value.trim();
     if (!nombre || !email) { showToast('Nombre y email son requeridos'); return; }
     const payload = {
-      nombre,
-      email,
+      nombre, email,
       telefono: document.getElementById('lead-telefono').value.trim(),
       empresa: document.getElementById('lead-empresa').value.trim(),
       estado: document.getElementById('lead-estado').value,
     };
     try {
-      await apiFetch('/api/leads', { method: 'POST', body: JSON.stringify(payload) });
+      if (_editLeadId) {
+        await apiFetch('/api/leads/' + _editLeadId, { method: 'PUT', body: JSON.stringify(payload) });
+        showToast('✅ Lead actualizado');
+      } else {
+        await apiFetch('/api/leads', { method: 'POST', body: JSON.stringify(payload) });
+        showToast('✅ Lead guardado');
+      }
       closeModal();
-      showToast('✅ Lead guardado');
       loadLeads();
       loadDashboard();
     } catch (e) {
@@ -2405,9 +2466,13 @@
 
   /* ── NUEVA PROPIEDAD MODAL (#6) ─────────────────────── */
   function abrirFormPropiedad(){
+    _editPropiedadId=null;
+    const titleSpan=document.querySelector('#propModalOverlay .modal-title span');
+    if(titleSpan) titleSpan.innerHTML='<i class="fas fa-building" style="color:var(--gold);margin-right:.5rem;"></i>Nueva Propiedad';
     document.getElementById('propModalOverlay').classList.add('open');
   }
   function cerrarFormPropiedad(){
+    _editPropiedadId=null;
     document.getElementById('propModalOverlay').classList.remove('open');
   }
   async function guardarPropiedad(){
@@ -2424,30 +2489,37 @@
       linkTour3D: document.getElementById('prop-tour').value.trim() || null,
     };
     try {
-      const prop = await apiFetch('/api/propiedades', { method: 'POST', body: JSON.stringify(payload) });
-      // Save adicionales
-      const adicionales = [];
-      document.querySelectorAll('#propModalOverlay .adic-check input[type=checkbox]:checked').forEach(cb => {
-        adicionales.push({ tipo: cb.dataset.tipo, nombre: cb.value });
-      });
-      if (adicionales.length && prop?.id) {
-        try {
-          await apiFetch(`/api/propiedades/${prop.id}/adicionales`, { method: 'POST', body: JSON.stringify({ adicionales }) });
-        } catch(e2) { showToast('Propiedad creada, pero error en adicionales: ' + e2.message); }
+      if(_editPropiedadId){
+        await apiFetch('/api/propiedades/'+_editPropiedadId, { method: 'PUT', body: JSON.stringify(payload) });
+        cerrarFormPropiedad();
+        showToast('✅ Propiedad actualizada');
+        loadPropiedades(); loadDashboard();
+      } else {
+        const prop = await apiFetch('/api/propiedades', { method: 'POST', body: JSON.stringify(payload) });
+        const adicionales = [];
+        document.querySelectorAll('#propModalOverlay .adic-check input[type=checkbox]:checked').forEach(cb => {
+          adicionales.push({ tipo: cb.dataset.tipo, nombre: cb.value });
+        });
+        if (adicionales.length && prop?.id) {
+          try {
+            await apiFetch(`/api/propiedades/${prop.id}/adicionales`, { method: 'POST', body: JSON.stringify({ adicionales }) });
+          } catch(e2) { showToast('Propiedad creada, pero error en adicionales: ' + e2.message); }
+        }
+        cerrarFormPropiedad();
+        showToast('✅ Propiedad creada' + (adicionales.length ? ` con ${adicionales.length} adicionales` : ''));
+        loadPropiedades(); loadDashboard();
       }
-      cerrarFormPropiedad();
-      showToast('✅ Propiedad creada' + (adicionales.length ? ` con ${adicionales.length} adicionales` : ''));
-      loadPropiedades();
-      loadDashboard();
     } catch(e) { showToast('Error al guardar: ' + e.message); }
   }
   /* ── CLIENTES ───────────────────────────────────────────── */
+  let _clientesCache={}, _editClienteId=null;
   async function loadClientes(){
     const tbody=document.getElementById('clientes-tbody');
     if(!tbody)return;
     tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
     try{
       const items=await apiFetch('/api/clientes');
+      _clientesCache={}; items.forEach(c=>_clientesCache[c.id]=c);
       if(!items.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem;">No hay clientes. ¡Crea el primero!</td></tr>';return;}
       tbody.innerHTML=items.map(c=>`<tr>
         <td style="color:var(--gray);font-size:.72rem;">${c.id}</td>
@@ -2457,17 +2529,36 @@
         <td style="color:var(--gray);">${c.email||'—'}</td>
         <td style="color:var(--gray);">${c.telefono||'—'}</td>
         <td style="color:var(--gray);">${c.fechacreacion?new Date(c.fechacreacion).toLocaleDateString('es-GT'):'—'}</td>
-        <td><div class="action-btns"><button class="act-btn danger" onclick="deleteCliente(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button></div></td>
+        <td><div class="action-btns">
+          <button class="act-btn" title="Editar" onclick="editCliente(${c.id})"><i class="fas fa-pencil-alt"></i></button>
+          <button class="act-btn danger" onclick="deleteCliente(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
+        </div></td>
       </tr>`).join('');
     }catch(e){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
+  }
+  function editCliente(id){
+    const c=_clientesCache[id]; if(!c)return;
+    _editClienteId=id;
+    document.getElementById('cl-nombre').value=c.nombre||'';
+    document.getElementById('cl-email').value=c.email||'';
+    document.getElementById('cl-telefono').value=c.telefono||'';
+    document.getElementById('cl-empresa').value=c.empresa||'';
+    document.getElementById('cl-tipo').value=c.tipo||'Lead';
+    const t=document.getElementById('modal-cliente-title'); if(t)t.textContent='Editar Cliente #'+id;
+    document.getElementById('clienteModal').classList.add('open');
   }
   async function deleteCliente(id){
     if(!confirm('¿Eliminar este cliente?'))return;
     try{await apiFetch('/api/clientes/'+id,{method:'DELETE'});showToast('Cliente eliminado');loadClientes();}
     catch(e){showToast('Error: '+e.message);}
   }
-  function openClienteModal(){document.getElementById('clienteModal').classList.add('open');}
+  function openClienteModal(){
+    _editClienteId=null;
+    const t=document.getElementById('modal-cliente-title'); if(t)t.textContent='Nuevo Cliente';
+    document.getElementById('clienteModal').classList.add('open');
+  }
   function closeClienteModal(){
+    _editClienteId=null;
     document.getElementById('clienteModal').classList.remove('open');
     ['cl-nombre','cl-email','cl-telefono','cl-empresa'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   }
@@ -2475,19 +2566,28 @@
     const nombre=document.getElementById('cl-nombre').value.trim();
     const email=document.getElementById('cl-email').value.trim();
     if(!nombre||!email){showToast('Nombre y email son requeridos');return;}
+    const payload={nombre,email,telefono:document.getElementById('cl-telefono').value.trim(),empresa:document.getElementById('cl-empresa').value.trim(),tipo:document.getElementById('cl-tipo').value};
     try{
-      await apiFetch('/api/clientes',{method:'POST',body:JSON.stringify({nombre,email,telefono:document.getElementById('cl-telefono').value.trim(),empresa:document.getElementById('cl-empresa').value.trim(),tipo:document.getElementById('cl-tipo').value})});
-      closeClienteModal();showToast('✅ Cliente creado');loadClientes();
+      if(_editClienteId){
+        await apiFetch('/api/clientes/'+_editClienteId,{method:'PUT',body:JSON.stringify(payload)});
+        showToast('✅ Cliente actualizado');
+      }else{
+        await apiFetch('/api/clientes',{method:'POST',body:JSON.stringify(payload)});
+        showToast('✅ Cliente creado');
+      }
+      closeClienteModal();loadClientes();
     }catch(e){showToast('Error: '+e.message);}
   }
 
   /* ── PROYECTOS ──────────────────────────────────────────── */
+  let _proyectosCache={}, _editProyectoId=null;
   async function loadProyectos(){
     const tbody=document.getElementById('proyectos-tbody');
     if(!tbody)return;
     tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
     try{
       const items=await apiFetch('/api/proyectos');
+      _proyectosCache={}; items.forEach(p=>_proyectosCache[p.id]=p);
       if(!items.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay proyectos. ¡Crea el primero!</td></tr>';return;}
       const BADGE={'Activo':'badge-process','En proceso':'badge-process','Entregado':'badge-done','Cancelado':'badge-lost'};
       tbody.innerHTML=items.map(p=>`<tr>
@@ -2499,38 +2599,68 @@
         <td><div style="display:flex;align-items:center;gap:.5rem;"><div class="prog-wrap" style="width:60px;"><div class="prog-bar" style="width:${p.progreso||0}%;"></div></div><span style="font-size:.7rem;color:var(--gray);">${p.progreso||0}%</span></div></td>
         <td class="td-gold">${p.valor?'$'+Number(p.valor).toLocaleString():'—'}</td>
         <td><span class="badge ${BADGE[p.estado]||'badge-process'}">${p.estado||'—'}</span></td>
-        <td><div class="action-btns"><button class="act-btn danger" onclick="deleteProyecto(${p.id})" title="Eliminar"><i class="fas fa-trash"></i></button></div></td>
+        <td><div class="action-btns">
+          <button class="act-btn" title="Editar" onclick="editProyecto(${p.id})"><i class="fas fa-pencil-alt"></i></button>
+          <button class="act-btn danger" onclick="deleteProyecto(${p.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
+        </div></td>
       </tr>`).join('');
     }catch(e){tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
+  }
+  function editProyecto(id){
+    const p=_proyectosCache[id]; if(!p)return;
+    _editProyectoId=id;
+    document.getElementById('pr-nombre').value=p.nombre||'';
+    document.getElementById('pr-cliente-id').value=p.cliente_id||'';
+    document.getElementById('pr-valor').value=p.valor||'';
+    document.getElementById('pr-inicio').value=p.fechainicio?p.fechainicio.substring(0,10):'';
+    document.getElementById('pr-fin').value=p.fechafin?p.fechafin.substring(0,10):'';
+    document.getElementById('pr-estado').value=p.estado||'Activo';
+    document.getElementById('pr-progreso').value=p.progreso||0;
+    const t=document.getElementById('modal-proyecto-title'); if(t)t.textContent='Editar Proyecto #'+id;
+    document.getElementById('proyectoModal').classList.add('open');
   }
   async function deleteProyecto(id){
     if(!confirm('¿Eliminar este proyecto?'))return;
     try{await apiFetch('/api/proyectos/'+id,{method:'DELETE'});showToast('Proyecto eliminado');loadProyectos();loadDashboard();}
     catch(e){showToast('Error: '+e.message);}
   }
-  function openProyectoModal(){document.getElementById('proyectoModal').classList.add('open');}
+  function openProyectoModal(){
+    _editProyectoId=null;
+    const t=document.getElementById('modal-proyecto-title'); if(t)t.textContent='Nuevo Proyecto';
+    document.getElementById('proyectoModal').classList.add('open');
+  }
   function closeProyectoModal(){
+    _editProyectoId=null;
     document.getElementById('proyectoModal').classList.remove('open');
     ['pr-nombre','pr-cliente-id','pr-valor','pr-inicio','pr-fin','pr-progreso'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   }
   async function saveProyecto(){
     const nombre=document.getElementById('pr-nombre').value.trim();
     if(!nombre){showToast('El nombre es requerido');return;}
+    const payload={nombre,cliente_id:document.getElementById('pr-cliente-id').value||null,valor:document.getElementById('pr-valor').value||null,fechaInicio:document.getElementById('pr-inicio').value||null,fechaFin:document.getElementById('pr-fin').value||null,estado:document.getElementById('pr-estado').value,progreso:parseInt(document.getElementById('pr-progreso').value)||0};
     try{
-      await apiFetch('/api/proyectos',{method:'POST',body:JSON.stringify({nombre,cliente_id:document.getElementById('pr-cliente-id').value||null,valor:document.getElementById('pr-valor').value||null,fechaInicio:document.getElementById('pr-inicio').value||null,fechaFin:document.getElementById('pr-fin').value||null,estado:document.getElementById('pr-estado').value,progreso:parseInt(document.getElementById('pr-progreso').value)||0})});
-      closeProyectoModal();showToast('✅ Proyecto creado');loadProyectos();loadDashboard();
+      if(_editProyectoId){
+        await apiFetch('/api/proyectos/'+_editProyectoId,{method:'PUT',body:JSON.stringify(payload)});
+        showToast('✅ Proyecto actualizado');
+      }else{
+        await apiFetch('/api/proyectos',{method:'POST',body:JSON.stringify(payload)});
+        showToast('✅ Proyecto creado');
+      }
+      closeProyectoModal();loadProyectos();loadDashboard();
     }catch(e){showToast('Error: '+e.message);}
   }
 
   /* ── COTIZACIONES ───────────────────────────────────────── */
+  let _cotizacionesCache={}, _editCotizacionId=null;
   async function loadCotizaciones(){
     const tbody=document.getElementById('cotizaciones-tbody');
     if(!tbody)return;
     tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
     try{
       const items=await apiFetch('/api/cotizaciones');
+      _cotizacionesCache={}; items.forEach(c=>_cotizacionesCache[c.id]=c);
       if(!items.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:2rem;">No hay cotizaciones. ¡Crea la primera!</td></tr>';return;}
-      const BADGE={'Pendiente':'badge-contact','Enviada':'badge-quote','Aprobada':'badge-won','Rechazada':'badge-lost'};
+      const BADGE={'Pendiente':'badge-contact','borrador':'badge-contact','Enviada':'badge-quote','Aprobada':'badge-won','aprobada':'badge-won','Rechazada':'badge-lost'};
       tbody.innerHTML=items.map(c=>`<tr>
         <td style="color:var(--gray);font-size:.72rem;">${c.id}</td>
         <td style="color:var(--gray);">${c.cliente_id||'—'}</td>
@@ -2538,36 +2668,64 @@
         <td class="td-gold">${c.monto?'$'+Number(c.monto).toLocaleString():'—'}</td>
         <td style="color:var(--gray);">${c.anticipo?'$'+Number(c.anticipo).toLocaleString():'—'}</td>
         <td><span class="badge ${BADGE[c.estado]||'badge-contact'}">${c.estado||'—'}</span></td>
-        <td><div class="action-btns"><button class="act-btn danger" onclick="deleteCotizacion(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button></div></td>
+        <td><div class="action-btns">
+          <button class="act-btn" title="Editar" onclick="editCotizacion(${c.id})"><i class="fas fa-pencil-alt"></i></button>
+          <button class="act-btn danger" onclick="deleteCotizacion(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
+        </div></td>
       </tr>`).join('');
     }catch(e){tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
+  }
+  function editCotizacion(id){
+    const c=_cotizacionesCache[id]; if(!c)return;
+    _editCotizacionId=id;
+    document.getElementById('cot-cliente-id').value=c.cliente_id||'';
+    document.getElementById('cot-proyecto-id').value=c.proyecto_id||'';
+    document.getElementById('cot-monto').value=c.monto||'';
+    document.getElementById('cot-anticipo').value=c.anticipo||'';
+    document.getElementById('cot-estado').value=c.estado||'Pendiente';
+    const t=document.getElementById('modal-cotizacion-title'); if(t)t.textContent='Editar Cotización #'+id;
+    document.getElementById('cotizacionModal').classList.add('open');
   }
   async function deleteCotizacion(id){
     if(!confirm('¿Eliminar esta cotización?'))return;
     try{await apiFetch('/api/cotizaciones/'+id,{method:'DELETE'});showToast('Cotización eliminada');loadCotizaciones();}
     catch(e){showToast('Error: '+e.message);}
   }
-  function openCotizacionModal(){document.getElementById('cotizacionModal').classList.add('open');}
+  function openCotizacionModal(){
+    _editCotizacionId=null;
+    const t=document.getElementById('modal-cotizacion-title'); if(t)t.textContent='Nueva Cotización';
+    document.getElementById('cotizacionModal').classList.add('open');
+  }
   function closeCotizacionModal(){
+    _editCotizacionId=null;
     document.getElementById('cotizacionModal').classList.remove('open');
     ['cot-cliente-id','cot-proyecto-id','cot-monto','cot-anticipo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   }
   async function saveCotizacion(){
     const monto=document.getElementById('cot-monto').value;
     if(!monto){showToast('El monto es requerido');return;}
+    const payload={cliente_id:document.getElementById('cot-cliente-id').value||null,proyecto_id:document.getElementById('cot-proyecto-id').value||null,monto:Number(monto),anticipo:Number(document.getElementById('cot-anticipo').value)||null,estado:document.getElementById('cot-estado').value};
     try{
-      await apiFetch('/api/cotizaciones',{method:'POST',body:JSON.stringify({cliente_id:document.getElementById('cot-cliente-id').value||null,proyecto_id:document.getElementById('cot-proyecto-id').value||null,monto:Number(monto),anticipo:Number(document.getElementById('cot-anticipo').value)||null,estado:document.getElementById('cot-estado').value})});
-      closeCotizacionModal();showToast('✅ Cotización creada');loadCotizaciones();
+      if(_editCotizacionId){
+        await apiFetch('/api/cotizaciones/'+_editCotizacionId,{method:'PUT',body:JSON.stringify(payload)});
+        showToast('✅ Cotización actualizada');
+      }else{
+        await apiFetch('/api/cotizaciones',{method:'POST',body:JSON.stringify(payload)});
+        showToast('✅ Cotización creada');
+      }
+      closeCotizacionModal();loadCotizaciones();
     }catch(e){showToast('Error: '+e.message);}
   }
 
   /* ── AGENTES DB ─────────────────────────────────────────── */
+  let _agentesCache={}, _editAgenteId=null;
   async function loadAgentes(){
     const tbody=document.getElementById('agentes-tbody');
     if(!tbody)return;
     tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
     try{
       const items=await apiFetch('/api/agentes');
+      _agentesCache={}; items.forEach(a=>_agentesCache[a.id]=a);
       if(!items.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem;">No hay agentes. ¡Crea el primero!</td></tr>';return;}
       const BADGE={'Activo':'badge-active','Inactivo':'badge-lost'};
       tbody.innerHTML=items.map(a=>`<tr>
@@ -2576,17 +2734,35 @@
         <td style="color:var(--gray);">${a.email||'—'}</td>
         <td class="td-gold">${a.comision!=null?a.comision+'%':'—'}</td>
         <td><span class="badge ${BADGE[a.estado]||'badge-active'}">${a.estado||'—'}</span></td>
-        <td><div class="action-btns"><button class="act-btn danger" onclick="deleteAgente(${a.id})" title="Eliminar"><i class="fas fa-trash"></i></button></div></td>
+        <td><div class="action-btns">
+          <button class="act-btn" title="Editar" onclick="editAgente(${a.id})"><i class="fas fa-pencil-alt"></i></button>
+          <button class="act-btn danger" onclick="deleteAgente(${a.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
+        </div></td>
       </tr>`).join('');
     }catch(e){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
+  }
+  function editAgente(id){
+    const a=_agentesCache[id]; if(!a)return;
+    _editAgenteId=id;
+    document.getElementById('agt-nombre').value=a.nombre||'';
+    document.getElementById('agt-email').value=a.email||'';
+    document.getElementById('agt-comision').value=a.comision!=null?a.comision:'';
+    document.getElementById('agt-estado').value=a.estado||'Activo';
+    const t=document.getElementById('modal-agente-title'); if(t)t.textContent='Editar Agente #'+id;
+    document.getElementById('agenteModal').classList.add('open');
   }
   async function deleteAgente(id){
     if(!confirm('¿Eliminar este agente?'))return;
     try{await apiFetch('/api/agentes/'+id,{method:'DELETE'});showToast('Agente eliminado');loadAgentes();}
     catch(e){showToast('Error: '+e.message);}
   }
-  function openAgenteModal(){document.getElementById('agenteModal').classList.add('open');}
+  function openAgenteModal(){
+    _editAgenteId=null;
+    const t=document.getElementById('modal-agente-title'); if(t)t.textContent='Nuevo Agente';
+    document.getElementById('agenteModal').classList.add('open');
+  }
   function closeAgenteModal(){
+    _editAgenteId=null;
     document.getElementById('agenteModal').classList.remove('open');
     ['agt-nombre','agt-email','agt-comision'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   }
@@ -2594,19 +2770,28 @@
     const nombre=document.getElementById('agt-nombre').value.trim();
     const email=document.getElementById('agt-email').value.trim();
     if(!nombre||!email){showToast('Nombre y email son requeridos');return;}
+    const payload={nombre,email,comision:Number(document.getElementById('agt-comision').value)||0,estado:document.getElementById('agt-estado').value};
     try{
-      await apiFetch('/api/agentes',{method:'POST',body:JSON.stringify({nombre,email,comision:Number(document.getElementById('agt-comision').value)||0,estado:document.getElementById('agt-estado').value})});
-      closeAgenteModal();showToast('✅ Agente creado');loadAgentes();
+      if(_editAgenteId){
+        await apiFetch('/api/agentes/'+_editAgenteId,{method:'PUT',body:JSON.stringify(payload)});
+        showToast('✅ Agente actualizado');
+      }else{
+        await apiFetch('/api/agentes',{method:'POST',body:JSON.stringify(payload)});
+        showToast('✅ Agente creado');
+      }
+      closeAgenteModal();loadAgentes();
     }catch(e){showToast('Error: '+e.message);}
   }
 
   /* ── PROPIEDADES ────────────────────────────────────────── */
+  let _propiedadesCache={}, _editPropiedadId=null;
   async function loadPropiedades(){
     const tbody=document.getElementById('propiedades-tbody');
     if(!tbody)return;
     tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
     try{
       const items=await apiFetch('/api/propiedades');
+      _propiedadesCache={}; items.forEach(p=>_propiedadesCache[p.id]=p);
       if(!items.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay propiedades. ¡Crea la primera!</td></tr>';return;}
       tbody.innerHTML=items.map(p=>`<tr>
         <td style="color:var(--gray);font-size:.72rem;">${p.id}</td>
@@ -2617,9 +2802,26 @@
         <td>${p.m2?p.m2+' m²':'—'}</td>
         <td>${p.zona||'—'}</td>
         <td>${p.linktour3d?'<a href="'+p.linktour3d+'" target="_blank" style="color:var(--gold);"><i class="fas fa-vr-cardboard"></i> Ver</a>':'<span style="color:var(--gray);">—</span>'}</td>
-        <td><div class="action-btns"><button class="act-btn danger" onclick="deletePropiedad(${p.id})" title="Eliminar"><i class="fas fa-trash"></i></button></div></td>
+        <td><div class="action-btns">
+          <button class="act-btn" title="Editar" onclick="editPropiedad(${p.id})"><i class="fas fa-pencil-alt"></i></button>
+          <button class="act-btn danger" onclick="deletePropiedad(${p.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
+        </div></td>
       </tr>`).join('');
     }catch(e){tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
+  }
+  function editPropiedad(id){
+    const p=_propiedadesCache[id]; if(!p)return;
+    _editPropiedadId=id;
+    document.getElementById('prop-titulo').value=p.nombre||'';
+    document.getElementById('prop-tipo').value=p.tipo||'Casa';
+    document.getElementById('prop-operacion').value=p.modalidad||'Venta';
+    document.getElementById('prop-precio').value=p.precio||'';
+    document.getElementById('prop-area').value=p.m2||'';
+    document.getElementById('prop-zona').value=p.zona||'';
+    document.getElementById('prop-tour').value=p.linktour3d||'';
+    const titleSpan=document.querySelector('#propModalOverlay .modal-title span');
+    if(titleSpan) titleSpan.innerHTML='<i class="fas fa-building" style="color:var(--gold);margin-right:.5rem;"></i>Editar Propiedad #'+id;
+    document.getElementById('propModalOverlay').classList.add('open');
   }
   async function deletePropiedad(id){
     if(!confirm('¿Eliminar esta propiedad?'))return;
@@ -2850,18 +3052,23 @@
   /* ══════════════════════════════════════════════════════
      ZONAS DE RIESGO
   ══════════════════════════════════════════════════════ */
+  let _zonasCache = {};
   async function loadZonas() {
     const grid = document.getElementById('zonas-grid');
     grid.innerHTML = '<div style="color:var(--gray);font-size:.8rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
     try {
       const data = await apiFetch('/api/cotizacion/zonas');
+      _zonasCache = {}; data.forEach(z => _zonasCache[z.id] = z);
       const RIESGO = { verde:{ color:'#3ECF8E', icon:'fa-check-circle' }, amarillo:{ color:'#F0B429', icon:'fa-exclamation-circle' }, rojo:{ color:'#E08080', icon:'fa-times-circle' } };
       grid.innerHTML = data.map(z => {
         const r = RIESGO[z.nivel_riesgo] || RIESGO.verde;
         return `<div class="panel" style="border-left:3px solid ${r.color};padding:1rem;">
-          <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;">
-            <i class="fas ${r.icon}" style="color:${r.color};font-size:1rem;"></i>
-            <div style="font-size:.82rem;font-weight:600;">${z.zona}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.5rem;">
+            <div style="display:flex;align-items:center;gap:.6rem;">
+              <i class="fas ${r.icon}" style="color:${r.color};font-size:1rem;"></i>
+              <div style="font-size:.82rem;font-weight:600;">${z.zona}</div>
+            </div>
+            <button class="act-btn" title="Editar" onclick="editZona(${z.id})" style="padding:.2rem .5rem;"><i class="fas fa-pencil-alt"></i></button>
           </div>
           <div style="font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:${r.color};margin-bottom:.5rem;">${z.nivel_riesgo}</div>
           <div style="font-size:.68rem;color:var(--gray);margin-bottom:.4rem;">
@@ -2875,7 +3082,46 @@
     } catch(e) { grid.innerHTML = `<div style="color:#E08080;">${e.message}</div>`; }
   }
 
-  function abrirNuevaZona() { showToast('Gestión de zonas vía Supabase. Próximamente: formulario inline.'); }
+  function editZona(id) {
+    const z = _zonasCache[id]; if(!z) return;
+    document.getElementById('zona-edit-id').value = id;
+    document.getElementById('zona-edit-nombre').value = z.zona || '';
+    document.getElementById('zona-edit-nivel').value = z.nivel_riesgo || 'verde';
+    document.getElementById('zona-edit-acepta').checked = !!z.aceptar_trabajos;
+    document.getElementById('zona-edit-verif').checked = !!z.requiere_verificacion_extra;
+    document.getElementById('zonaEditModal').classList.add('open');
+  }
+
+  async function saveZona() {
+    const id = document.getElementById('zona-edit-id').value;
+    const payload = {
+      zona: document.getElementById('zona-edit-nombre').value.trim(),
+      nivel_riesgo: document.getElementById('zona-edit-nivel').value,
+      aceptar_trabajos: document.getElementById('zona-edit-acepta').checked,
+      requiere_verificacion_extra: document.getElementById('zona-edit-verif').checked,
+    };
+    if (!payload.zona) { showToast('El nombre de la zona es requerido'); return; }
+    try {
+      if (id) {
+        await apiFetch('/api/cotizacion/zonas/' + id, { method: 'PUT', body: JSON.stringify(payload) });
+        showToast('✅ Zona actualizada');
+      } else {
+        await apiFetch('/api/cotizacion/zonas', { method: 'POST', body: JSON.stringify(payload) });
+        showToast('✅ Zona creada');
+      }
+      document.getElementById('zonaEditModal').classList.remove('open');
+      loadZonas();
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+
+  function abrirNuevaZona() {
+    document.getElementById('zona-edit-id').value = '';
+    document.getElementById('zona-edit-nombre').value = '';
+    document.getElementById('zona-edit-nivel').value = 'verde';
+    document.getElementById('zona-edit-acepta').checked = true;
+    document.getElementById('zona-edit-verif').checked = false;
+    document.getElementById('zonaEditModal').classList.add('open');
+  }
 
   /* ══════════════════════════════════════════════════════
      NOTIFICACIONES

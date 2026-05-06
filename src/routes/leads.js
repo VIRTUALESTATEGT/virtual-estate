@@ -28,6 +28,22 @@ router.post('/', async (req, res) => {
   }
 });
 
+// PUT /:id — update lead
+router.put('/:id', async (req, res) => {
+  try {
+    const { nombre, email, telefono, empresa, estado, seguimiento, servicio, fuente, presupuesto } = req.body;
+    const { data, error } = await supabase
+      .from('leads')
+      .update({ nombre, email, telefono, empresa, estado, seguimiento, servicio, fuente, presupuesto })
+      .eq('id', req.params.id)
+      .select();
+    if (error) throw error;
+    res.json(data[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // DELETE lead por ID
 router.delete('/:id', async (req, res) => {
   try {

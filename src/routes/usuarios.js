@@ -18,7 +18,7 @@ router.get('/', verificarPermiso('ver_usuarios'), async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('usuarios')
-      .select('id, nombre, email, role, is_superadmin, estado, created_at')
+      .select('id, nombre, email, role, is_superadmin, estado')
       .order('id', { ascending: true });
     if (error) throw error;
     res.json(data);

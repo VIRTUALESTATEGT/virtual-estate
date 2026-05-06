@@ -34,6 +34,20 @@ router.post('/', verificarPermiso('crear_propiedad'), async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// PUT /:id — update property
+router.put('/:id', verificarPermiso('editar_propiedad'), async (req, res) => {
+  try {
+    const { nombre, tipo, modalidad, precio, m2, zona, linkTour3D } = req.body;
+    const { data, error } = await supabase
+      .from('propiedades')
+      .update({ nombre, tipo, modalidad, precio, m2, zona, linktour3d: linkTour3D })
+      .eq('id', req.params.id)
+      .select();
+    if (error) throw error;
+    res.json(data[0]);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // DELETE /:id — delete property (requires eliminar_propiedad)
 router.delete('/:id', verificarPermiso('eliminar_propiedad'), async (req, res) => {
   try {

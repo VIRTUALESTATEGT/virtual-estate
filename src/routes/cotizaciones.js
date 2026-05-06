@@ -26,6 +26,21 @@ router.post('/', async (req, res) => {
   }
 });
 
+router.put('/:id', async (req, res) => {
+  try {
+    const { cliente_id, proyecto_id, monto, anticipo, estado } = req.body;
+    const { data, error } = await supabase
+      .from('cotizaciones')
+      .update({ cliente_id, proyecto_id, monto, anticipo, estado })
+      .eq('id', req.params.id)
+      .select();
+    if (error) throw error;
+    res.json(data[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.delete('/:id', async (req, res) => {
   try {
     const { error } = await supabase.from('cotizaciones').delete().eq('id', req.params.id);

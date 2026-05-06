@@ -133,6 +133,33 @@ router.post('/generar', async (req, res) => {
   }
 });
 
+// PUT /api/cotizacion/zonas/:id — update zone (admin)
+router.put('/zonas/:id', async (req, res) => {
+  try {
+    const { zona, nivel_riesgo, descripcion, aceptar_trabajos, requiere_verificacion_extra } = req.body;
+    const { data, error } = await supabase
+      .from('zonas_seguridad')
+      .update({ zona, nivel_riesgo, descripcion, aceptar_trabajos, requiere_verificacion_extra })
+      .eq('id', req.params.id)
+      .select();
+    if (error) throw error;
+    res.json(data[0]);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/cotizacion/zonas — create new zone (admin)
+router.post('/zonas', async (req, res) => {
+  try {
+    const { zona, nivel_riesgo, descripcion, aceptar_trabajos, requiere_verificacion_extra } = req.body;
+    const { data, error } = await supabase
+      .from('zonas_seguridad')
+      .insert([{ zona, nivel_riesgo, descripcion: descripcion || '', aceptar_trabajos: aceptar_trabajos ?? true, requiere_verificacion_extra: requiere_verificacion_extra ?? false }])
+      .select();
+    if (error) throw error;
+    res.status(201).json(data[0]);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // GET /api/cotizacion/zonas — public: zone risk list for frontend
 router.get('/zonas', async (req, res) => {
   try {
