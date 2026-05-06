@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS notificaciones_admin (
 CREATE TABLE IF NOT EXISTS conversaciones_multicanal (
   id                    BIGSERIAL PRIMARY KEY,
   cliente_id            BIGINT REFERENCES clientes(id),
+  agente_id             BIGINT REFERENCES usuarios(id),
   canal                 TEXT NOT NULL CHECK (canal IN ('whatsapp','instagram','facebook','web')),
   estado                TEXT NOT NULL DEFAULT 'activa' CHECK (estado IN ('activa','cerrada')),
   ultima_respuesta_tipo TEXT CHECK (ultima_respuesta_tipo IN ('ia','agente_humano')),
@@ -106,6 +107,7 @@ CREATE TABLE IF NOT EXISTS mensajes (
 CREATE INDEX IF NOT EXISTS idx_mensajes_conv     ON mensajes(conversacion_id);
 CREATE INDEX IF NOT EXISTS idx_conv_estado       ON conversaciones_multicanal(estado);
 CREATE INDEX IF NOT EXISTS idx_conv_cliente      ON conversaciones_multicanal(cliente_id);
+CREATE INDEX IF NOT EXISTS idx_conv_agente       ON conversaciones_multicanal(agente_id);
 CREATE INDEX IF NOT EXISTS idx_verif_cliente     ON cliente_verificacion_identidad(cliente_id);
 CREATE INDEX IF NOT EXISTS idx_notif_estado      ON notificaciones_admin(estado);
 CREATE INDEX IF NOT EXISTS idx_instruc_activa    ON instrucciones_ia_dinamicas(activa);

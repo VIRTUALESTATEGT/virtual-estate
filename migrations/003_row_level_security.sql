@@ -45,6 +45,16 @@ AS $$
 $$;
 
 -- ────────────────────────────────────────────────────────────
+-- Schema additions (idempotent)
+-- agente_id was missing from the original 002 migration
+-- ────────────────────────────────────────────────────────────
+
+ALTER TABLE conversaciones_multicanal
+  ADD COLUMN IF NOT EXISTS agente_id BIGINT REFERENCES usuarios(id);
+
+CREATE INDEX IF NOT EXISTS idx_conv_agente ON conversaciones_multicanal(agente_id);
+
+-- ────────────────────────────────────────────────────────────
 -- Enable RLS on all sensitive tables
 -- ────────────────────────────────────────────────────────────
 
@@ -242,7 +252,8 @@ CREATE POLICY "cotizaciones_gerente_delete"
 
 -- ════════════════════════════════════════════════════════════
 -- TABLE: conversaciones_multicanal
--- Agents see their assigned; gerente/superadmin see all
+-- Agentes only see conversations assigned to them (agente_id = their id)
+-- Gerente/admin/superadmin see all
 -- ════════════════════════════════════════════════════════════
 
 CREATE POLICY "conversaciones_auth_select"
