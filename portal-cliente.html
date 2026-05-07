@@ -1313,7 +1313,6 @@
           <div class="form-group">
             <label class="form-label">Pronombre preferido</label>
             <select class="form-control" id="prof-pronombre">
-              <option value="neutro">Neutro — Bienvenide / elle</option>
               <option value="masculino">Masculino — Bienvenido / él</option>
               <option value="femenino">Femenino — Bienvenida / ella</option>
             </select>
@@ -1760,9 +1759,8 @@ function clienteCode(c) {
 }
 
 function greetWord(pronombre) {
-  if (pronombre === 'masculino') return 'Bienvenido';
-  if (pronombre === 'femenino')  return 'Bienvenida';
-  return 'Bienvenide';
+  if (pronombre === 'femenino') return 'Bienvenida';
+  return 'Bienvenido';
 }
 
 function fillUserUI() {
@@ -1775,7 +1773,7 @@ function fillUserUI() {
   if (el('p-avatar-lg')) el('p-avatar-lg').textContent = initials;
   if (el('p-name-lg')) el('p-name-lg').textContent = u.nombre || '—';
 
-  const pronombre = clienteData?.pronombre || 'neutro';
+  const pronombre = clienteData?.pronombre || 'masculino';
   const greet = greetWord(pronombre);
   const firstName = (clienteData?.nombre || u.nombre || '').split(' ')[0] || '';
 
@@ -1845,7 +1843,7 @@ async function savePerfil() {
   const nombre = [document.getElementById('prof-nombre')?.value.trim(), document.getElementById('prof-apellido')?.value.trim()].filter(Boolean).join(' ');
   const telefono = document.getElementById('prof-telefono')?.value.trim() || '';
   const empresa = document.getElementById('prof-empresa')?.value.trim() || '';
-  const pronombre = document.getElementById('prof-pronombre')?.value || 'neutro';
+  const pronombre = document.getElementById('prof-pronombre')?.value || 'masculino';
   if (!nombre) { showToast('El nombre es obligatorio'); return; }
   try {
     const updated = await apiFetch('/api/clientes/me', { method: 'PUT', body: JSON.stringify({ nombre, telefono, empresa, pronombre }) });

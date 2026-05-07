@@ -1,7 +1,7 @@
 -- Migration 005: pronombre on clientes, codigo_agente, solicitudes_agente table
 
 -- 1. Add pronombre to clientes (masculino / femenino / neutro)
-ALTER TABLE clientes ADD COLUMN IF NOT EXISTS pronombre TEXT DEFAULT 'neutro';
+ALTER TABLE clientes ADD COLUMN IF NOT EXISTS pronombre TEXT DEFAULT 'masculino';
 
 -- 2. Add codigo_agente to clientes (set when admin approves agent request)
 ALTER TABLE clientes ADD COLUMN IF NOT EXISTS codigo_agente TEXT DEFAULT NULL;
