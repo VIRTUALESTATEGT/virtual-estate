@@ -3,19 +3,88 @@ const router   = express.Router();
 const supabase = require('../config/supabase');
 const { notifyAdmin, sendWhatsAppMessage } = require('../utils/whatsapp');
 
-// Pricing table (USD)
-const PRICING = {
+// Fallback pricing (used if DB table doesn't exist yet)
+const PRICING_FALLBACK = {
   'escaneo_3d':  { base: 150, per_m2: 0.8,  min: 150  },
   'as_built':    { base: 400, per_m2: 1.2,  min: 400  },
   'real_estate': { base: 200, per_m2: 0.5,  min: 200  },
   'construccion':{ base: 300, per_m2: 0.9,  min: 300  },
 };
 
-function calcularMonto(tipo_servicio, m2 = 0) {
-  const p = PRICING[tipo_servicio];
+async function calcularMonto(tipo_servicio, m2 = 0) {
+  try {
+    const { data, error } = await supabase
+      .from('precios_servicios')
+      .select('precio_base, precio_por_m2, precio_minimo')
+      .eq('codigo', tipo_servicio)
+      .eq('activo', true)
+      .maybeSingle();
+    if (!error && data) {
+      return Math.max(data.precio_minimo, Math.round(data.precio_base + (data.precio_por_m2 * Number(m2))));
+    }
+  } catch {}
+  // Fallback to hardcoded
+  const p = PRICING_FALLBACK[tipo_servicio];
   if (!p) return null;
   return Math.max(p.min, Math.round(p.base + (p.per_m2 * Number(m2))));
 }
+
+// GET /api/cotizacion/precios — public: list all active services + prices
+router.get('/precios', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('precios_servicios')
+      .select('id, codigo, nombre, descripcion, precio_base, precio_por_m2, precio_minimo, moneda, activo')
+      .order('id');
+    if (error) throw error;
+    res.json(data);
+  } catch {
+    // Table may not exist yet — return fallback list
+    res.json(Object.entries(PRICING_FALLBACK).map(([codigo, p], i) => ({
+      id: i + 1, codigo, nombre: codigo.replace('_', ' ').toUpperCase(),
+      descripcion: '', precio_base: p.base, precio_por_m2: p.per_m2,
+      precio_minimo: p.min, moneda: 'USD', activo: true
+    })));
+  }
+});
+
+// PUT /api/cotizacion/precios/:id — admin: update a service price
+router.put('/precios/:id', async (req, res) => {
+  try {
+    const { nombre, descripcion, precio_base, precio_por_m2, precio_minimo, activo } = req.body;
+    const { data, error } = await supabase
+      .from('precios_servicios')
+      .update({ nombre, descripcion, precio_base: Number(precio_base), precio_por_m2: Number(precio_por_m2), precio_minimo: Number(precio_minimo), activo: activo !== false })
+      .eq('id', req.params.id)
+      .select()
+      .single();
+    if (error) throw error;
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/cotizacion/precios — admin: add new service
+router.post('/precios', async (req, res) => {
+  try {
+    const { codigo, nombre, descripcion, precio_base, precio_por_m2, precio_minimo } = req.body;
+    if (!codigo || !nombre) return res.status(400).json({ error: 'codigo y nombre son requeridos.' });
+    const { data, error } = await supabase
+      .from('precios_servicios')
+      .insert([{ codigo, nombre, descripcion: descripcion||'', precio_base: Number(precio_base)||0, precio_por_m2: Number(precio_por_m2)||0, precio_minimo: Number(precio_minimo)||0, moneda: 'USD', activo: true }])
+      .select().single();
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// DELETE /api/cotizacion/precios/:id — admin: remove service
+router.delete('/precios/:id', async (req, res) => {
+  try {
+    const { error } = await supabase.from('precios_servicios').delete().eq('id', req.params.id);
+    if (error) throw error;
+    res.json({ message: 'Servicio eliminado.' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
 
 // POST /api/cotizacion/generar
 router.post('/generar', async (req, res) => {
@@ -65,7 +134,7 @@ router.post('/generar', async (req, res) => {
     }
 
     // Calculate amount
-    const monto = calcularMonto(tipo_servicio, m2) || 0;
+    const monto = (await calcularMonto(tipo_servicio, m2)) || 0;
 
     // Find or create client
     let { data: cliente } = await supabase

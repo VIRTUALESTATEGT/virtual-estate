@@ -38,6 +38,15 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
+    // Ensure clientes record exists for portal users (in case registration upsert failed)
+    if (data.role === 'cliente') {
+      const { data: ec } = await supabase.from('clientes').select('id').eq('email', data.email).maybeSingle();
+      if (!ec) {
+        await supabase.from('clientes')
+          .insert([{ nombre: data.nombre, email: data.email, tipo: 'Cliente' }]);
+      }
+    }
+
     res.json({
       token,
       usuario: payload,
@@ -92,11 +101,17 @@ router.post('/registro-cliente', async (req, res) => {
       .single();
     if (uErr) throw uErr;
 
-    // Upsert clientes record (handles case where they were a lead before)
-    await supabase.from('clientes').upsert(
-      [{ nombre, email, telefono: telefono || '', tipo: 'Cliente' }],
-      { onConflict: 'email' }
-    );
+    // Ensure clientes record exists (insert or ignore if email already exists)
+    const { data: existingCliente } = await supabase
+      .from('clientes').select('id').eq('email', email).maybeSingle();
+    if (!existingCliente) {
+      const { error: cErr } = await supabase
+        .from('clientes')
+        .insert([{ nombre, email, telefono: telefono || '', tipo: 'Cliente' }]);
+      if (cErr && cErr.code !== '23505') {
+        console.error('[RegistroCliente] clientes insert:', cErr.message);
+      }
+    }
 
     const payload = {
       id: usuario.id,

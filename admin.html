@@ -431,9 +431,6 @@
     </div>
     <div class="topbar-actions">
       <button class="topbar-btn btn-sec"><i class="fas fa-bell"></i></button>
-      <button class="topbar-btn btn-primary" onclick="openModal()">
-        <i class="fas fa-plus"></i> Nuevo Lead
-      </button>
     </div>
   </div>
 
@@ -1161,9 +1158,9 @@
           <button class="topbar-btn btn-primary" id="btn-nuevo-usuario" onclick="abrirNuevoUsuario()"><i class="fas fa-plus"></i> Nuevo Usuario</button>
         </div>
         <table>
-          <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>SuperAdmin</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Rol</th><th>Código CLI</th><th>Código AGT</th><th>Estado</th><th>SuperAdmin</th><th>Acciones</th></tr></thead>
           <tbody id="usuarios-tbody">
-            <tr><td colspan="7" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
+            <tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -1301,6 +1298,21 @@
           <button onclick="guardarComisionGlobal()" style="width:100%;padding:.65rem;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:.2s;" onmouseover="this.style.background='var(--gold-lt)'" onmouseout="this.style.background='var(--gold)'">
             <i class="fas fa-save" style="margin-right:.4rem;"></i> Guardar estructura
           </button>
+        </div>
+
+        <!-- Precios de Servicios (editable) -->
+        <div style="grid-column:1/-1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem;">
+            <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:flex;align-items:center;gap:.5rem;"><i class="fas fa-tags"></i> Base de Datos de Precios</div>
+            <button class="topbar-btn btn-primary" onclick="abrirNuevoServicio()"><i class="fas fa-plus"></i> Nuevo servicio</button>
+          </div>
+          <p style="font-size:.73rem;color:var(--gray);line-height:1.6;margin-bottom:1rem;font-weight:400;">Precios en USD. Fórmula: <code style="background:var(--bg3);padding:.1rem .4rem;border-radius:3px;">max(min, base + (m² × precio_m2))</code></p>
+          <table style="width:100%;">
+            <thead><tr><th>Código</th><th>Servicio</th><th>Descripción</th><th>Base ($)</th><th>Por m² ($)</th><th>Mínimo ($)</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="precios-tbody">
+              <tr><td colspan="8" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
+            </tbody>
+          </table>
         </div>
 
         <!-- Integraciones -->
@@ -2323,6 +2335,7 @@
     else if (name === 'conversaciones') loadConversaciones();
     else if (name === 'verificaciones') loadVerificaciones();
     else if (name === 'zonas') loadZonas();
+    else if (name === 'config') loadPrecios();
     else if (name === 'notificaciones') loadNotificaciones();
   }
 
@@ -3065,24 +3078,38 @@
   async function loadUsuariosPermisos() {
     const tbody = document.getElementById('usuarios-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
     try {
-      const users = await apiFetch('/api/usuarios');
-      if (!users.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:2rem;">No hay usuarios.</td></tr>'; return; }
-      const ROLE_LABEL = { superadmin:'Superadmin', admin:'Admin', coordinador:'Coordinador', agente:'Agente', asistente:'Asistente' };
-      tbody.innerHTML = users.map(u => `<tr>
-        <td style="color:var(--gray);font-size:.72rem;">${u.id}</td>
-        <td class="td-bold">${u.nombre||'—'}</td>
-        <td style="color:var(--gray);">${u.email||'—'}</td>
-        <td><span class="badge ${u.role==='superadmin'||u.role==='admin'?'badge-active':'badge-process'}">${ROLE_LABEL[u.role]||u.rol||'—'}</span></td>
-        <td><span class="badge ${u.estado==='activo'?'badge-active':'badge-lost'}">${u.estado||'—'}</span></td>
-        <td style="text-align:center;">${u.is_superadmin ? '<i class="fas fa-star" style="color:var(--gold);" title="Superadmin"></i>' : '<span style="color:var(--gray);">—</span>'}</td>
-        <td><div class="action-btns">
-          <button class="act-btn" title="Editar permisos" onclick="abrirPermisos(${u.id},'${(u.nombre||'').replace(/'/g,'')}')"><i class="fas fa-key"></i></button>
-          ${!u.is_superadmin ? `<button class="act-btn danger" title="Eliminar" onclick="deleteUsuario(${u.id})"><i class="fas fa-trash"></i></button>` : ''}
-        </div></td>
-      </tr>`).join('');
-    } catch(e) { tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`; }
+      const [users, clientes] = await Promise.all([
+        apiFetch('/api/usuarios'),
+        apiFetch('/api/clientes').catch(() => [])
+      ]);
+      if (!users.length) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay usuarios.</td></tr>'; return; }
+      // Build email → cliente map for quick lookup
+      const clienteMap = {};
+      clientes.forEach(c => { if (c.email) clienteMap[c.email.toLowerCase()] = c; });
+      const year = String(new Date().getFullYear()).slice(-2);
+      const ROLE_LABEL = { superadmin:'Superadmin', admin:'Admin', coordinador:'Coordinador', agente:'Agente', asistente:'Asistente', cliente:'Cliente' };
+      tbody.innerHTML = users.map(u => {
+        const cl = clienteMap[(u.email||'').toLowerCase()];
+        const cliCode = cl ? `CLI-${year}-${String(cl.id).padStart(5,'0')}` : '—';
+        const agtCode = cl?.codigo_agente || '—';
+        return `<tr>
+          <td style="color:var(--gray);font-size:.72rem;">${u.id}</td>
+          <td class="td-bold">${u.nombre||'—'}</td>
+          <td style="color:var(--gray);">${u.email||'—'}</td>
+          <td><span class="badge ${u.role==='superadmin'||u.role==='admin'?'badge-active':'badge-process'}">${ROLE_LABEL[u.role]||u.rol||'—'}</span></td>
+          <td style="font-family:monospace;color:var(--gold);font-size:.75rem;">${cliCode}</td>
+          <td style="font-family:monospace;color:${agtCode!=='—'?'var(--gold)':'var(--gray)'};font-size:.75rem;">${agtCode}</td>
+          <td><span class="badge ${u.estado==='activo'?'badge-active':'badge-lost'}">${u.estado||'—'}</span></td>
+          <td style="text-align:center;">${u.is_superadmin ? '<i class="fas fa-star" style="color:var(--gold);" title="Superadmin"></i>' : '<span style="color:var(--gray);">—</span>'}</td>
+          <td><div class="action-btns">
+            <button class="act-btn" title="Editar permisos" onclick="abrirPermisos(${u.id},'${(u.nombre||'').replace(/'/g,'')}')"><i class="fas fa-key"></i></button>
+            ${!u.is_superadmin ? `<button class="act-btn danger" title="Eliminar" onclick="deleteUsuario(${u.id})"><i class="fas fa-trash"></i></button>` : ''}
+          </div></td>
+        </tr>`;
+      }).join('');
+    } catch(e) { tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`; }
   }
 
   async function abrirPermisos(userId, nombre) {
@@ -3380,6 +3407,69 @@
         </div>`;
       }).join('');
     } catch(e) { list.innerHTML = `<div style="color:#E08080;padding:1rem;">${e.message}</div>`; }
+  }
+
+  /* ── PRECIOS DE SERVICIOS ───────────────────────────────── */
+  let _preciosCache = {};
+  async function loadPrecios() {
+    const tbody = document.getElementById('precios-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
+    try {
+      const items = await apiFetch('/api/cotizacion/precios');
+      _preciosCache = {}; items.forEach(p => _preciosCache[p.id] = p);
+      if (!items.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem;">Sin precios registrados.</td></tr>'; return; }
+      tbody.innerHTML = items.map(p => `<tr id="precio-row-${p.id}">
+        <td style="font-family:monospace;color:var(--gold);font-size:.75rem;">${p.codigo}</td>
+        <td><input type="text" class="form-control" style="padding:.3rem .5rem;font-size:.75rem;" value="${p.nombre||''}" id="pn-${p.id}"/></td>
+        <td><input type="text" class="form-control" style="padding:.3rem .5rem;font-size:.72rem;" value="${p.descripcion||''}" id="pd-${p.id}" placeholder="Descripción opcional"/></td>
+        <td><input type="number" class="form-control" style="padding:.3rem .5rem;font-size:.75rem;width:80px;" value="${p.precio_base||0}" id="pb-${p.id}" min="0" step="1"/></td>
+        <td><input type="number" class="form-control" style="padding:.3rem .5rem;font-size:.75rem;width:80px;" value="${p.precio_por_m2||0}" id="pm-${p.id}" min="0" step="0.01"/></td>
+        <td><input type="number" class="form-control" style="padding:.3rem .5rem;font-size:.75rem;width:80px;" value="${p.precio_minimo||0}" id="pmin-${p.id}" min="0" step="1"/></td>
+        <td><span class="badge ${p.activo?'badge-active':'badge-lost'}" style="cursor:pointer;" onclick="togglePrecioActivo(${p.id})">${p.activo?'Activo':'Inactivo'}</span></td>
+        <td><div class="action-btns">
+          <button class="act-btn" title="Guardar" onclick="guardarPrecio(${p.id})"><i class="fas fa-save"></i></button>
+          <button class="act-btn danger" title="Eliminar" onclick="eliminarPrecio(${p.id})"><i class="fas fa-trash"></i></button>
+        </div></td>
+      </tr>`).join('');
+    } catch(e) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`; }
+  }
+
+  async function guardarPrecio(id) {
+    const g = s => { const el = document.getElementById(s+id); return el ? el.value.trim() : ''; };
+    try {
+      await apiFetch(`/api/cotizacion/precios/${id}`, { method: 'PUT', body: JSON.stringify({
+        nombre: g('pn-'), descripcion: g('pd-'),
+        precio_base: g('pb-'), precio_por_m2: g('pm-'), precio_minimo: g('pmin-'),
+        activo: _preciosCache[id]?.activo ?? true
+      })});
+      showToast('✅ Precio actualizado');
+      loadPrecios();
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+
+  async function togglePrecioActivo(id) {
+    const p = _preciosCache[id]; if (!p) return;
+    try {
+      await apiFetch(`/api/cotizacion/precios/${id}`, { method: 'PUT', body: JSON.stringify({ ...p, activo: !p.activo }) });
+      loadPrecios();
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+
+  async function eliminarPrecio(id) {
+    if (!confirm('¿Eliminar este servicio del catálogo de precios?')) return;
+    try { await apiFetch(`/api/cotizacion/precios/${id}`, { method: 'DELETE' }); showToast('Servicio eliminado'); loadPrecios(); }
+    catch(e) { showToast('Error: ' + e.message); }
+  }
+
+  function abrirNuevoServicio() {
+    const codigo = prompt('Código interno del servicio (ej: fotografia_drone):');
+    if (!codigo) return;
+    const nombre = prompt('Nombre visible del servicio:');
+    if (!nombre) return;
+    apiFetch('/api/cotizacion/precios', { method: 'POST', body: JSON.stringify({ codigo: codigo.trim().toLowerCase().replace(/\s+/g,'_'), nombre, precio_base: 0, precio_por_m2: 0, precio_minimo: 0 }) })
+      .then(() => { showToast('✅ Servicio creado'); loadPrecios(); })
+      .catch(e => showToast('Error: ' + e.message));
   }
 </script>
 </body>

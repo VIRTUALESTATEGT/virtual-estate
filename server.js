@@ -80,9 +80,14 @@ app.post('/api/leads/public', async (req, res) => {
 const webhookWARouter = require('./src/routes/webhook-whatsapp');
 app.use('/api/webhook/whatsapp', webhookWARouter);
 
-// ── Public: zone list + quote generation ─────────────────────────
+// ── Public: zone list, quote generation, and price list ──────────
 const cotizacionGenRouter = require('./src/routes/cotizacion-gen');
-app.use('/api/cotizacion', cotizacionGenRouter);
+// GET /api/cotizacion/* public; PUT/POST/DELETE /api/cotizacion/precios* admin-only
+app.use('/api/cotizacion', (req, res, next) => {
+  const isWrite = ['PUT','POST','DELETE'].includes(req.method) && req.path.startsWith('/precios');
+  if (isWrite) return authMiddleware(req, res, () => requireMinRole('gerente')(req, res, next));
+  next();
+}, cotizacionGenRouter);
 
 // ── Rutas protegidas con JWT ──────────────────────────────────────
 const leadsRouter = require('./src/routes/leads');

@@ -437,10 +437,14 @@
           <div class="kpi-val" id="kpi-cli-code" style="font-size:1.1rem;">—</div>
           <div class="kpi-sub" id="kpi-cli-sub">Identificación única</div>
         </div>
-        <div class="kpi-card">
+        <div class="kpi-card" style="cursor:pointer;" onclick="setTab('agente')" title="Ver programa de agentes">
           <div class="kpi-label">Código de agente</div>
           <div class="kpi-val" id="kpi-agt-code" style="font-size:1.1rem;color:var(--white);">—</div>
           <div class="kpi-sub" id="kpi-agt-sub">Sin código asignado</div>
+          <div style="margin-top:.6rem;background:rgba(193,146,89,.08);border:1px solid rgba(193,146,89,.2);border-radius:4px;padding:.5rem .7rem;">
+            <div style="font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.3rem;">Ejemplo de comisión</div>
+            <div style="font-size:.65rem;color:var(--gray);line-height:1.5;">Proyecto $2,000 · VE cobra 25% = $500<br/>Tu comisión (8% de $500) = <strong style="color:var(--gold);">$40</strong><br/><span style="font-size:.6rem;">El cliente siempre paga $2,000</span></div>
+          </div>
         </div>
       </div>
 

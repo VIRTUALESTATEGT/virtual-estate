@@ -1613,6 +1613,7 @@
           <a href="#" class="footer-link">Términos y Condiciones</a>
           <a href="#" class="footer-link">Política de Privacidad</a>
           <a href="#" class="footer-link">Contrato de Intermediación</a>
+          <a href="#" class="footer-link" onclick="abrirAcuerdoAgente(event)">Acuerdo de Agente Referido</a>
           <a href="#" class="footer-link">Requisitos AS BUILT</a>
           <a href="#" class="footer-link">Requisitos Real Estate</a>
         </div>
@@ -1806,6 +1807,79 @@ function toggleChat(){
     setTimeout(()=>addChatMsg('👋 ¡Hola! Soy el Asistente Virtual de Virtual Estate. ¿En qué puedo ayudarte hoy?',false),300);
   }
 }
+function abrirAcuerdoAgente(e) {
+  e.preventDefault();
+  document.getElementById('acuerdo-overlay').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function cerrarAcuerdoAgente() {
+  document.getElementById('acuerdo-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
 </script>
+
+<!-- Modal: Acuerdo de Agente Referido -->
+<div id="acuerdo-overlay" onclick="if(event.target===this)cerrarAcuerdoAgente()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#0D1A14;border:1px solid rgba(193,146,89,.3);border-radius:8px;width:100%;max-width:780px;max-height:88vh;overflow-y:auto;padding:2.5rem 2rem;position:relative;">
+    <button onclick="cerrarAcuerdoAgente()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer;"><i class="fas fa-times"></i></button>
+    <div style="font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:#C19259;font-weight:600;margin-bottom:.5rem;">Virtual Estate GT — Documento Legal</div>
+    <h2 style="font-family:'Raleway',sans-serif;font-size:1.3rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#fff;margin-bottom:1.5rem;">Acuerdo de Agente Referido</h2>
+    <div style="font-size:.78rem;color:#8A9A8F;line-height:1.85;">
+      <p style="margin-bottom:1rem;">El presente acuerdo regula la relación entre <strong style="color:#fff;">Virtual Estate GT</strong> (Paramétrica S.A., en adelante "la Empresa") y cualquier persona física que solicite y obtenga un código de agente referido a través del portal de clientes (en adelante "el Agente Referido").</p>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">1. NATURALEZA NO LABORAL</p>
+      <p style="margin-bottom:.8rem;">El presente instrumento constituye un acuerdo de colaboración por referidos y en ningún caso crea una relación laboral, patronal, societaria ni de representación legal entre las partes. El Agente Referido actúa de manera independiente, por cuenta propia y bajo su exclusiva responsabilidad. No existe subordinación, horario fijo, ni obligación de exclusividad. Virtual Estate GT no asume ninguna de las obligaciones propias de un empleador.</p>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">2. CÓDIGO DE REFERIDO</p>
+      <p style="margin-bottom:.8rem;">La Empresa asignará al Agente Referido aprobado un código alfanumérico único e intransferible con formato <strong style="color:#fff;">AGT-AÑO-XXXXX</strong>. Dicho código identifica las referencias realizadas por el Agente pero no le otorga poder de representación, autoridad para contratar en nombre de la Empresa ni para comprometer sus recursos o imagen de ninguna forma.</p>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">3. RESTRICCIONES DE USO DE MARCA</p>
+      <p style="margin-bottom:.4rem;">El Agente Referido <strong style="color:#fff;">NO está autorizado</strong> a:</p>
+      <ul style="padding-left:1.2rem;margin-bottom:.8rem;">
+        <li style="margin-bottom:.3rem;">Usar el nombre, logotipo, eslogan o identidad visual de Virtual Estate GT en materiales publicitarios propios sin aprobación escrita y previa de la Empresa.</li>
+        <li style="margin-bottom:.3rem;">Crear perfiles en redes sociales, páginas web, grupos de mensajería o cualquier canal digital que pueda confundirse con canales oficiales de la Empresa.</li>
+        <li style="margin-bottom:.3rem;">Firmar contratos, cotizaciones, presupuestos o documentos de cualquier tipo en nombre de Virtual Estate GT.</li>
+        <li style="margin-bottom:.3rem;">Cobrar dinero, anticipos o cualquier tipo de pago a clientes a nombre de la Empresa.</li>
+        <li style="margin-bottom:.3rem;">Ofrecer descuentos, condiciones especiales o términos distintos a los publicados oficialmente, sin autorización expresa.</li>
+      </ul>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">4. COMISIONES</p>
+      <p style="margin-bottom:.8rem;">El Agente Referido recibirá una comisión únicamente por proyectos efectivamente cerrados, facturados y cobrados por la Empresa, en los que su código de referido haya sido registrado <strong style="color:#fff;">antes del inicio del proyecto</strong>. La comisión proviene exclusivamente de la comisión interna que ya percibe Virtual Estate GT — el precio al cliente final nunca se modifica. Los pagos se realizan a la cuenta bancaria registrada en el proceso de solicitud, dentro del ciclo de pago establecido por la Empresa. Virtual Estate GT se reserva el derecho de modificar las tasas de comisión con 30 días de aviso previo.</p>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">5. CONFIDENCIALIDAD</p>
+      <p style="margin-bottom:.8rem;">El Agente Referido se compromete a mantener estricta confidencialidad sobre las tarifas, procesos internos, estructura de precios, base de clientes, proveedores y cualquier información no pública de Virtual Estate GT. Esta obligación permanece vigente durante toda la relación y por un período de <strong style="color:#fff;">dos (2) años</strong> contados desde la fecha de terminación del presente acuerdo.</p>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">6. PROHIBICIONES</p>
+      <p style="margin-bottom:.4rem;">Queda estrictamente prohibido:</p>
+      <ul style="padding-left:1.2rem;margin-bottom:.8rem;">
+        <li style="margin-bottom:.3rem;">Prometer al cliente condiciones, plazos o precios que no hayan sido expresamente autorizados por la Empresa.</li>
+        <li style="margin-bottom:.3rem;">Hablar negativamente o denigrar a Virtual Estate GT, sus empleados o sus servicios ante clientes actuales o potenciales.</li>
+        <li style="margin-bottom:.3rem;">Captar o redirigir clientes hacia empresas competidoras utilizando información, contactos o relaciones obtenidas a través de este acuerdo.</li>
+        <li style="margin-bottom:.3rem;">Falsificar, alterar o manipular capturas de pantalla, documentos, cotizaciones o cualquier material de Virtual Estate GT.</li>
+        <li style="margin-bottom:.3rem;">Transferir, vender o ceder el código de referido a terceros.</li>
+      </ul>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">7. TERMINACIÓN</p>
+      <p style="margin-bottom:.8rem;">Cualquiera de las partes puede dar por terminado el presente acuerdo en cualquier momento y sin expresión de causa, mediante notificación escrita (correo electrónico a la dirección oficial de la Empresa o viceversa). Las comisiones por proyectos ya cerrados y facturados antes de la terminación serán pagadas según lo pactado. El código de referido quedará inactivo de forma inmediata al comunicarse la terminación.</p>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">8. RESPONSABILIDAD</p>
+      <p style="margin-bottom:.8rem;">Virtual Estate GT no será responsable por declaraciones, promesas, compromisos u ofertas realizadas por el Agente Referido que no hayan sido expresamente autorizadas por escrito. El Agente Referido asumirá de manera exclusiva y total toda responsabilidad civil, penal, laboral, fiscal o de cualquier otra naturaleza derivada de su actuación independiente en el marco de este acuerdo.</p>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">9. VERIFICACIÓN DE IDENTIDAD</p>
+      <p style="margin-bottom:.8rem;">Como condición para la aprobación del código de agente, el solicitante consiente expresamente la verificación de su identidad mediante la presentación del Documento Personal de Identificación (DPI) y la captura de una fotografía en tiempo real. Dichos datos se utilizan exclusivamente para fines de seguridad interna y prevención de fraude, son tratados bajo estricta confidencialidad y nunca son compartidos con terceros salvo requerimiento legal expreso de autoridad competente.</p>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">10. LEY APLICABLE Y JURISDICCIÓN</p>
+      <p style="margin-bottom:1.5rem;">El presente acuerdo se rige por las leyes vigentes de la República de Guatemala. Cualquier controversia, disputa o reclamación derivada del mismo se someterá a la jurisdicción y competencia de los tribunales ordinarios guatemaltecos, renunciando expresamente las partes a cualquier otro fuero que pudiera corresponderles.</p>
+
+      <div style="border-top:1px solid rgba(193,146,89,.25);padding-top:1rem;font-size:.72rem;color:#6A7A6F;">
+        <strong style="color:#C19259;">Virtual Estate GT</strong> — Paramétrica S.A. · info@virtualestategt.com · +502 3990-2399 · Zona 10, Guatemala City<br/>
+        Este documento es informativo. La versión vinculante es la aceptada electrónicamente durante el proceso de solicitud de código de agente en el portal de clientes.
+      </div>
+    </div>
+    <button onclick="cerrarAcuerdoAgente()" style="margin-top:1.5rem;width:100%;padding:.7rem;background:#C19259;color:#0D1A14;border:none;border-radius:6px;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;">
+      Cerrar documento
+    </button>
+  </div>
+</div>
 </body>
 </html>

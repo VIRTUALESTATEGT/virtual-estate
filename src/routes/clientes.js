@@ -128,21 +128,39 @@ router.get('/me/favoritos', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+async function getOrCreateCliente(usuario) {
+  let { data: cliente, error: findErr } = await supabase
+    .from('clientes').select('id').eq('email', usuario.email).maybeSingle();
+  if (findErr) {
+    // maybeSingle throws if multiple rows — try limit(1)
+    const { data: rows } = await supabase.from('clientes').select('id').eq('email', usuario.email).limit(1);
+    cliente = rows?.[0] || null;
+  }
+  if (!cliente) {
+    const { data: nc, error: ce } = await supabase
+      .from('clientes')
+      .insert([{ nombre: usuario.nombre || usuario.email, email: usuario.email, tipo: 'Cliente' }])
+      .select('id').maybeSingle();
+    if (ce && ce.code === '23505') {
+      // Duplicate inserted by concurrent request — fetch it
+      const { data: ex } = await supabase.from('clientes').select('id').eq('email', usuario.email).limit(1);
+      cliente = ex?.[0] || null;
+    } else if (ce) {
+      throw ce;
+    } else {
+      cliente = nc;
+    }
+  }
+  if (!cliente?.id) throw new Error('No se pudo obtener el perfil de cliente.');
+  return cliente;
+}
+
 // POST /api/clientes/me/favoritos  { propiedad_id }
 router.post('/me/favoritos', async (req, res) => {
   try {
     const { propiedad_id } = req.body;
     if (!propiedad_id) return res.status(400).json({ error: 'propiedad_id requerido.' });
-    let { data: cliente } = await supabase
-      .from('clientes').select('id').eq('email', req.usuario.email).maybeSingle();
-    if (!cliente) {
-      const { data: nc, error: ce } = await supabase
-        .from('clientes')
-        .insert([{ nombre: req.usuario.nombre, email: req.usuario.email, tipo: 'Cliente' }])
-        .select('id').single();
-      if (ce) throw ce;
-      cliente = nc;
-    }
+    const cliente = await getOrCreateCliente(req.usuario);
     const { data, error } = await supabase
       .from('propiedades_favoritas')
       .upsert([{ cliente_id: cliente.id, propiedad_id: Number(propiedad_id) }],
@@ -156,16 +174,7 @@ router.post('/me/favoritos', async (req, res) => {
 // DELETE /api/clientes/me/favoritos/:propiedad_id
 router.delete('/me/favoritos/:propiedad_id', async (req, res) => {
   try {
-    let { data: cliente } = await supabase
-      .from('clientes').select('id').eq('email', req.usuario.email).maybeSingle();
-    if (!cliente) {
-      const { data: nc, error: ce } = await supabase
-        .from('clientes')
-        .insert([{ nombre: req.usuario.nombre, email: req.usuario.email, tipo: 'Cliente' }])
-        .select('id').single();
-      if (ce) throw ce;
-      cliente = nc;
-    }
+    const cliente = await getOrCreateCliente(req.usuario);
     const { error } = await supabase
       .from('propiedades_favoritas')
       .delete()
