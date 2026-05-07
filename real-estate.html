@@ -422,30 +422,23 @@
       <div class="filter-section">
         <div class="filter-section-title">Modalidad</div>
         <div class="filter-checks">
-          <label class="filter-check"><input type="checkbox" checked/> Venta</label>
-          <label class="filter-check"><input type="checkbox" checked/> Renta</label>
+          <label class="filter-check"><input type="checkbox" class="fc-modalidad" value="Venta" checked/> Venta</label>
+          <label class="filter-check"><input type="checkbox" class="fc-modalidad" value="Renta" checked/> Renta</label>
+          <label class="filter-check"><input type="checkbox" class="fc-modalidad" value="Venta / Renta" checked/> Venta / Renta</label>
         </div>
       </div>
 
       <div class="filter-section">
         <div class="filter-section-title">Tipo de Propiedad</div>
         <div class="filter-checks">
-          <label class="filter-check"><input type="checkbox" checked/> Casa</label>
-          <label class="filter-check"><input type="checkbox" checked/> Apartamento</label>
-          <label class="filter-check"><input type="checkbox" checked/> Oficina</label>
-          <label class="filter-check"><input type="checkbox" checked/> Bodega</label>
-          <label class="filter-check"><input type="checkbox" checked/> Local comercial</label>
-          <label class="filter-check"><input type="checkbox" checked/> Otro</label>
-        </div>
-      </div>
-
-      <div class="filter-section">
-        <div class="filter-section-title">Disponibilidad</div>
-        <div class="filter-checks">
-          <label class="filter-check"><input type="checkbox" checked/> Vacía (inmediata)</label>
-          <label class="filter-check"><input type="checkbox" checked/> Habitada de momento</label>
-          <label class="filter-check"><input type="checkbox" checked/> En construcción</label>
-          <label class="filter-check"><input type="checkbox" checked/> Airbnb</label>
+          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Casa" checked/> Casa</label>
+          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Apartamento" checked/> Apartamento</label>
+          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Penthouse" checked/> Penthouse</label>
+          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Oficina" checked/> Oficina</label>
+          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Bodega / Galera" checked/> Bodega / Galera</label>
+          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Local comercial" checked/> Local comercial</label>
+          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Terreno" checked/> Terreno</label>
+          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Finca" checked/> Finca</label>
         </div>
       </div>
 
@@ -460,36 +453,14 @@
       <div class="filter-section">
         <div class="filter-section-title">Metraje de construcción (m²)</div>
         <div class="price-row">
-          <input type="number" class="filter-input" placeholder="Desde"/>
-          <input type="number" class="filter-input" placeholder="Hasta"/>
+          <input type="number" class="filter-input" id="f-m2-min" placeholder="Desde"/>
+          <input type="number" class="filter-input" id="f-m2-max" placeholder="Hasta"/>
         </div>
       </div>
 
       <div class="filter-section">
         <div class="filter-section-title">Ubicación / Zona</div>
-        <select class="filter-input" style="width:100%;margin-bottom:.5rem;">
-          <option value="">Todas las zonas</option>
-          <option>Zona 10</option>
-          <option>Zona 14</option>
-          <option>Zona 15</option>
-          <option>Villa Nueva</option>
-          <option>Mixco</option>
-          <option>Otro departamento</option>
-        </select>
-      </div>
-
-      <div class="filter-section">
-        <div class="filter-section-title">Ambientes</div>
-        <div class="filter-checks">
-          <label class="filter-check"><input type="checkbox"/> Jardín</label>
-          <label class="filter-check"><input type="checkbox"/> Terraza</label>
-          <label class="filter-check"><input type="checkbox"/> Estacionamiento</label>
-          <label class="filter-check"><input type="checkbox"/> Bodega</label>
-          <label class="filter-check"><input type="checkbox"/> Área de servicio</label>
-          <label class="filter-check"><input type="checkbox"/> Amenidades</label>
-          <label class="filter-check"><input type="checkbox"/> Cisterna de agua</label>
-          <label class="filter-check"><input type="checkbox"/> Planta de tratamiento</label>
-        </div>
+        <input type="text" class="filter-input" id="f-zona" placeholder="Ej: Zona 10, Mixco..." style="width:100%;"/>
       </div>
 
       <!-- ADICIONALES APLICADOS -->
@@ -540,219 +511,6 @@
       </div>
 
       <div class="properties-grid" id="propsGrid">
-        <!-- 9 property cards - using the new code structure [TIPO]-[AÑO]-[SEQ] -->
-
-        <div class="prop-card">
-          <div class="prop-img">
-            <div class="prop-img-ph"><i class="fas fa-building"></i><span>Tour virtual disponible</span></div>
-            <span class="prop-badge badge-venta">Venta</span>
-            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
-          </div>
-          <div class="prop-body">
-            <div class="prop-code">PRO-26-0001</div>
-            <div class="prop-name"><i class="fas fa-building" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Apartamento Zona 14</div>
-            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Zona 14, Guatemala</div>
-            <div class="prop-specs">
-              <span class="prop-spec"><i class="fas fa-bed"></i> 3 hab.</span>
-              <span class="prop-spec"><i class="fas fa-bath"></i> 2 baños</span>
-              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 145 m²</span>
-              <span class="prop-spec"><i class="fas fa-car"></i> 2 est.</span>
-            </div>
-            <div class="prop-price" data-code="PRO-26-0001">$185,000</div>
-          </div>
-          <div class="prop-foot">
-            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
-            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0001')"></i>
-          </div>
-        </div>
-
-        <div class="prop-card">
-          <div class="prop-img">
-            <div class="prop-img-ph"><i class="fas fa-home"></i><span>Tour virtual disponible</span></div>
-            <span class="prop-badge badge-venta">Venta</span>
-            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
-          </div>
-          <div class="prop-body">
-            <div class="prop-code">PRO-26-0002</div>
-            <div class="prop-name"><i class="fas fa-home" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Casa Colonia Oakland</div>
-            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Villa Nueva, Guatemala</div>
-            <div class="prop-specs">
-              <span class="prop-spec"><i class="fas fa-bed"></i> 4 hab.</span>
-              <span class="prop-spec"><i class="fas fa-bath"></i> 3 baños</span>
-              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 290 m²</span>
-              <span class="prop-spec"><i class="fas fa-tree"></i> Jardín</span>
-            </div>
-            <div class="prop-price" data-code="PRO-26-0002">$320,000</div>
-          </div>
-          <div class="prop-foot">
-            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
-            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0002')"></i>
-          </div>
-        </div>
-
-        <div class="prop-card">
-          <div class="prop-img">
-            <div class="prop-img-ph"><i class="fas fa-store"></i><span>Tour virtual disponible</span></div>
-            <span class="prop-badge badge-renta">Renta</span>
-            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
-          </div>
-          <div class="prop-body">
-            <div class="prop-code">PRO-26-0003</div>
-            <div class="prop-name"><i class="fas fa-briefcase" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Oficina Pradera Torre 4</div>
-            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Zona 10, Guatemala</div>
-            <div class="prop-specs">
-              <span class="prop-spec"><i class="fas fa-users"></i> 8 puestos</span>
-              <span class="prop-spec"><i class="fas fa-bath"></i> 1 baño</span>
-              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 95 m²</span>
-            </div>
-            <div class="prop-price" data-code="PRO-26-0003">$1,200 / mes</div>
-          </div>
-          <div class="prop-foot">
-            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
-            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0003')"></i>
-          </div>
-        </div>
-
-        <div class="prop-card">
-          <div class="prop-img">
-            <div class="prop-img-ph"><i class="fas fa-city"></i><span>Tour virtual disponible</span></div>
-            <span class="prop-badge badge-venta">Venta</span>
-            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
-          </div>
-          <div class="prop-body">
-            <div class="prop-code">PRO-26-0004</div>
-            <div class="prop-name"><i class="fas fa-city" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Penthouse Zona 15</div>
-            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Zona 15, Guatemala</div>
-            <div class="prop-specs">
-              <span class="prop-spec"><i class="fas fa-bed"></i> 3 hab.</span>
-              <span class="prop-spec"><i class="fas fa-bath"></i> 3 baños</span>
-              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 220 m²</span>
-              <span class="prop-spec"><i class="fas fa-sun"></i> Terraza</span>
-            </div>
-            <div class="prop-price" data-code="PRO-26-0004">$480,000</div>
-          </div>
-          <div class="prop-foot">
-            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
-            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0004')"></i>
-          </div>
-        </div>
-
-        <div class="prop-card">
-          <div class="prop-img">
-            <div class="prop-img-ph"><i class="fas fa-warehouse"></i><span>Tour virtual disponible</span></div>
-            <span class="prop-badge badge-renta">Renta</span>
-            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
-          </div>
-          <div class="prop-body">
-            <div class="prop-code">PRO-26-0005</div>
-            <div class="prop-name"><i class="fas fa-warehouse" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Bodega Industrial Mixco</div>
-            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Mixco, Guatemala</div>
-            <div class="prop-specs">
-              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 800 m²</span>
-              <span class="prop-spec"><i class="fas fa-truck"></i> Acceso</span>
-              <span class="prop-spec"><i class="fas fa-bolt"></i> 220V</span>
-            </div>
-            <div class="prop-price" data-code="PRO-26-0005">$3,500 / mes</div>
-          </div>
-          <div class="prop-foot">
-            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
-            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0005')"></i>
-          </div>
-        </div>
-
-        <div class="prop-card">
-          <div class="prop-img">
-            <div class="prop-img-ph"><i class="fas fa-home"></i><span>Tour virtual disponible</span></div>
-            <span class="prop-badge badge-venta">Venta</span>
-            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
-          </div>
-          <div class="prop-body">
-            <div class="prop-code">PRO-26-0006</div>
-            <div class="prop-name"><i class="fas fa-home" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Casa Condominio Norte</div>
-            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Fraijanes, Guatemala</div>
-            <div class="prop-specs">
-              <span class="prop-spec"><i class="fas fa-bed"></i> 3 hab.</span>
-              <span class="prop-spec"><i class="fas fa-bath"></i> 2 baños</span>
-              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 180 m²</span>
-              <span class="prop-spec"><i class="fas fa-shield-alt"></i> Seg.</span>
-            </div>
-            <div class="prop-price" data-code="PRO-26-0006">$195,000</div>
-          </div>
-          <div class="prop-foot">
-            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
-            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0006')"></i>
-          </div>
-        </div>
-
-        <div class="prop-card">
-          <div class="prop-img">
-            <div class="prop-img-ph"><i class="fas fa-store-alt"></i><span>Tour virtual disponible</span></div>
-            <span class="prop-badge badge-renta">Renta</span>
-            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
-          </div>
-          <div class="prop-body">
-            <div class="prop-code">PRO-26-0007</div>
-            <div class="prop-name"><i class="fas fa-store" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Local Comercial Zona 4</div>
-            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Zona 4, Guatemala</div>
-            <div class="prop-specs">
-              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 65 m²</span>
-              <span class="prop-spec"><i class="fas fa-users"></i> Alto flujo</span>
-            </div>
-            <div class="prop-price" data-code="PRO-26-0007">$850 / mes</div>
-          </div>
-          <div class="prop-foot">
-            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
-            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0007')"></i>
-          </div>
-        </div>
-
-        <!-- Multiple units same building: PRO-26-0008-01, -02 -->
-        <div class="prop-card">
-          <div class="prop-img">
-            <div class="prop-img-ph"><i class="fas fa-building"></i><span>Tour virtual disponible</span></div>
-            <span class="prop-badge badge-venta">Venta</span>
-            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
-          </div>
-          <div class="prop-body">
-            <div class="prop-code">PRO-26-0008-01</div>
-            <div class="prop-name"><i class="fas fa-building" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Apartamento Torre Azul — Unidad A</div>
-            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Zona 10, Guatemala</div>
-            <div class="prop-specs">
-              <span class="prop-spec"><i class="fas fa-bed"></i> 2 hab.</span>
-              <span class="prop-spec"><i class="fas fa-bath"></i> 2 baños</span>
-              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 110 m²</span>
-            </div>
-            <div class="prop-price" data-code="PRO-26-0008-01">$220,000</div>
-          </div>
-          <div class="prop-foot">
-            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
-            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0008-01')"></i>
-          </div>
-        </div>
-
-        <div class="prop-card">
-          <div class="prop-img">
-            <div class="prop-img-ph"><i class="fas fa-building"></i><span>Tour virtual disponible</span></div>
-            <span class="prop-badge badge-venta">Venta</span>
-            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
-          </div>
-          <div class="prop-body">
-            <div class="prop-code">PRO-26-0008-02</div>
-            <div class="prop-name"><i class="fas fa-building" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Apartamento Torre Azul — Unidad B</div>
-            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Zona 10, Guatemala</div>
-            <div class="prop-specs">
-              <span class="prop-spec"><i class="fas fa-bed"></i> 2 hab.</span>
-              <span class="prop-spec"><i class="fas fa-bath"></i> 2 baños</span>
-              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 115 m²</span>
-            </div>
-            <div class="prop-price" data-code="PRO-26-0008-02">$235,000</div>
-          </div>
-          <div class="prop-foot">
-            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
-            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0008-02')"></i>
-          </div>
-        </div>
-
       </div><!-- /grid -->
 
       <div class="pagination">
@@ -1051,21 +809,148 @@ window.addEventListener('scroll',()=>{
   document.getElementById('scroll-top').classList.toggle('visible',window.scrollY>300);
 });
 function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
-function toggleFav(el,code){
-  event.stopPropagation();
-  el.classList.toggle('far');el.classList.toggle('fas');
-  el.classList.toggle('faved');
-  showToast(el.classList.contains('fas')?`❤ ${code} guardada. Inicia sesión para guardar permanentemente.`:`Propiedad removida de favoritos`);
+/* ── PUBLIC API ─────────────────────────────────────────── */
+const API_URL = (location.hostname==='localhost'||location.hostname==='127.0.0.1') ? 'http://localhost:3000' : '';
+let allProps = []; // cache for sort without re-fetching
+
+const TIPO_ICON = {Apartamento:'fa-building',Casa:'fa-home',Terreno:'fa-map','Local comercial':'fa-store',Oficina:'fa-briefcase',Penthouse:'fa-city','Bodega / Galera':'fa-warehouse'};
+
+function propCardHTML(p) {
+  const icon = TIPO_ICON[p.tipo] || 'fa-home';
+  const precio = p.precio ? '$' + Number(p.precio).toLocaleString() : 'Consultar';
+  const isRenta = (p.modalidad||'').toLowerCase().includes('renta');
+  const code = 'PROP-' + String(p.id).padStart(5,'0');
+  const adics = (p.propiedades_adicionales||[]).map(a=>a.nombre);
+  const habSpec = adics.find(a=>a.match(/\d+ hab/i)) || '';
+  const m2Spec = p.m2 ? `${p.m2} m²` : '';
+  return `<div class="prop-card" data-id="${p.id}" data-adics='${JSON.stringify(adics)}'>
+    <div class="prop-img">
+      <div class="prop-img-ph"><i class="fas ${icon}"></i><span>${p.linktour3d?'Tour virtual disponible':'Sin tour aún'}</span></div>
+      <span class="prop-badge ${isRenta?'badge-renta':'badge-venta'}">${p.modalidad||'Venta'}</span>
+      ${p.linktour3d?`<span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>`:''}
+    </div>
+    <div class="prop-body">
+      <div class="prop-code">${code}</div>
+      <div class="prop-name"><i class="fas ${icon}" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>${p.nombre}</div>
+      <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> ${p.zona||'Guatemala'}</div>
+      <div class="prop-specs">
+        ${p.tipo?`<span class="prop-spec"><i class="fas ${icon}"></i> ${p.tipo}</span>`:''}
+        ${m2Spec?`<span class="prop-spec"><i class="fas fa-ruler-combined"></i> ${m2Spec}</span>`:''}
+      </div>
+      <div class="prop-price" data-usd="${p.precio||0}">${precio}</div>
+    </div>
+    <div class="prop-foot">
+      ${p.linktour3d
+        ? `<a href="${p.linktour3d}" target="_blank" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>`
+        : `<a href="index.html#cotizador" class="prop-link">Agendar visita <i class="fas fa-arrow-right"></i></a>`}
+      <i class="far fa-heart prop-heart" onclick="toggleFav(this,'${code}',${p.id})" title="Guardar en favoritos"></i>
+    </div>
+  </div>`;
 }
+
+async function loadPropiedades() {
+  const grid = document.getElementById('propsGrid');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--gray);"><i class="fas fa-spinner fa-spin" style="font-size:1.4rem;color:var(--gold);"></i><div style="margin-top:.8rem;font-size:.8rem;">Cargando propiedades...</div></div>';
+
+  const params = new URLSearchParams();
+  // Modalidad checkboxes
+  const mods = [...document.querySelectorAll('.fc-modalidad:checked')].map(c=>c.value);
+  const allMods = document.querySelectorAll('.fc-modalidad').length;
+  if(mods.length && mods.length < allMods) params.set('modalidad', mods[0]);
+  // Tipo checkboxes
+  const tipos = [...document.querySelectorAll('.fc-tipo:checked')].map(c=>c.value);
+  const allTipos = document.querySelectorAll('.fc-tipo').length;
+  if(tipos.length && tipos.length < allTipos) params.set('tipo', tipos[0]);
+  const zona = document.getElementById('f-zona')?.value.trim();
+  const pMin = document.getElementById('f-min')?.value;
+  const pMax = document.getElementById('f-max')?.value;
+  const m2Min = document.getElementById('f-m2-min')?.value;
+  const m2Max = document.getElementById('f-m2-max')?.value;
+  if(zona) params.set('zona', zona);
+  if(pMin) params.set('precio_min', pMin);
+  if(pMax) params.set('precio_max', pMax);
+  if(m2Min) params.set('m2_min', m2Min);
+  if(m2Max) params.set('m2_max', m2Max);
+
+  try {
+    const qs = params.toString();
+    let props = await fetch(API_URL + '/api/propiedades/public' + (qs?'?'+qs:'')).then(r=>r.json());
+    // Multi-select client-side
+    if(tipos.length && tipos.length < allTipos) props = props.filter(p=>tipos.includes(p.tipo));
+    if(mods.length && mods.length < allMods) props = props.filter(p=>mods.includes(p.modalidad));
+    // Adicionales filter
+    if(adicSeleccionados && adicSeleccionados.size) {
+      props = props.filter(p => {
+        const propAdics = (p.propiedades_adicionales||[]).map(a=>a.nombre);
+        return [...adicSeleccionados].every(a => propAdics.includes(a));
+      });
+    }
+    allProps = props;
+    document.getElementById('prop-count').textContent = props.length;
+    if(!props.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--gray);"><i class="fas fa-search" style="font-size:2rem;opacity:.3;display:block;margin-bottom:1rem;"></i>Sin propiedades con esos filtros.</div>';
+    } else {
+      grid.innerHTML = props.map(propCardHTML).join('');
+      applyCurrency();
+    }
+  } catch(e) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#E08080;">Error al cargar propiedades: ${e.message}</div>`;
+  }
+}
+
 function setView(v){
   const grid=document.getElementById('propsGrid');
   document.getElementById('btn-grid').classList.toggle('active',v==='grid');
   document.getElementById('btn-list').classList.toggle('active',v==='list');
   grid.classList.toggle('list-view',v==='list');
 }
-function aplicarFiltros(){showToast('Filtros aplicados — ' + document.getElementById('prop-count').textContent + ' resultados');}
-function resetFiltros(){showToast('Filtros reiniciados');}
-function sortProperties(v){showToast('Ordenado: '+v);}
+function aplicarFiltros(){ loadPropiedades(); }
+function resetFiltros(){
+  document.querySelectorAll('.fc-tipo,.fc-modalidad').forEach(cb=>cb.checked=true);
+  ['f-min','f-max','f-m2-min','f-m2-max','f-zona'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  limpiarAdic();
+  loadPropiedades();
+}
+function sortProperties(v){
+  if(!allProps.length) return;
+  let sorted=[...allProps];
+  if(v==='price-asc') sorted.sort((a,b)=>(a.precio||0)-(b.precio||0));
+  else if(v==='price-desc') sorted.sort((a,b)=>(b.precio||0)-(a.precio||0));
+  else if(v==='m2-desc') sorted.sort((a,b)=>(b.m2||0)-(a.m2||0));
+  else if(v==='newest') sorted.sort((a,b)=>b.id-a.id);
+  document.getElementById('propsGrid').innerHTML = sorted.map(propCardHTML).join('');
+  applyCurrency();
+}
+
+/* ── FAVORITES ───────────────────────────────────────────── */
+async function toggleFav(el, code, propId) {
+  event.stopPropagation();
+  const token = localStorage.getItem('ve_portal_token');
+  if(!token) {
+    // Briefly animate heart then show login prompt
+    el.classList.add('fas'); el.classList.remove('far'); el.style.color='var(--gold)';
+    setTimeout(()=>{ el.classList.remove('fas'); el.classList.add('far'); el.style.color=''; }, 1400);
+    showToast('💛 Crea tu cuenta o inicia sesión en el portal para guardar propiedades en tu lista.');
+    return;
+  }
+  // Logged in — save via portal API
+  const isFaved = el.classList.contains('fas');
+  if(isFaved) {
+    try {
+      await fetch(API_URL + `/api/clientes/me/favoritos/${propId}`, { method:'DELETE', headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'} });
+      el.classList.remove('fas'); el.classList.add('far'); el.style.color='';
+      showToast('Removido de favoritos');
+    } catch { showToast('Error al remover favorito'); }
+  } else {
+    try {
+      await fetch(API_URL + '/api/clientes/me/favoritos', { method:'POST', headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}, body:JSON.stringify({propiedad_id:propId}) });
+      el.classList.add('fas'); el.classList.remove('far'); el.style.color='var(--gold)';
+      showToast(`❤ ${code} guardada en tu portal.`);
+    } catch { showToast('Error al guardar favorito'); }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => { loadPropiedades(); });
 
 /* ── CAROUSEL ─────────────────────────────────────────── */
 document.querySelectorAll('.prop-img').forEach(img=>{
@@ -1212,7 +1097,7 @@ function aplicarAdicionales(){
   } else {
     countEl.style.display='none';
   }
-  showToast(count>0?`Filtrando por ${count} adicional${count!==1?'es':''}...`:'Adicionales eliminados del filtro');
+  loadPropiedades();
 }
 function renderChips(){
   const container=document.getElementById('adic-chips-container');
@@ -1241,19 +1126,18 @@ function quitarChip(val){
 /* ── TOGGLE MONEDA REAL ESTATE ────────────────────────── */
 const RE_TASA = 7.90;
 let reCurrency = 'USD';
-// Precios USD originales para cada propiedad
-const RE_PRICES_USD = {
-  'PRO-26-0001': 185000,
-  'PRO-26-0002': 320000,
-  'PRO-26-0003': 1200,   // mensual
-  'PRO-26-0004': 480000,
-  'PRO-26-0005': 3500,   // mensual
-  'PRO-26-0006': 195000,
-  'PRO-26-0007': 850,    // mensual
-  'PRO-26-0008-01': 220000,
-  'PRO-26-0008-02': 235000,
-};
-const RE_RENTA = ['PRO-26-0003','PRO-26-0005','PRO-26-0007']; // propiedades en renta (precio mensual)
+
+function applyCurrency() {
+  document.querySelectorAll('.prop-price[data-usd]').forEach(el=>{
+    const usd = parseFloat(el.getAttribute('data-usd'));
+    if(!usd) return;
+    if(reCurrency==='GTQ'){
+      el.textContent = 'Q' + Math.round(usd * RE_TASA).toLocaleString('es-GT');
+    } else {
+      el.textContent = '$' + usd.toLocaleString('en-US');
+    }
+  });
+}
 
 function setReCurrency(cur){
   reCurrency = cur;
@@ -1261,20 +1145,7 @@ function setReCurrency(cur){
   document.getElementById('re-btn-usd').style.color      = cur==='USD' ? 'var(--bg)'   : 'var(--gray)';
   document.getElementById('re-btn-gtq').style.background = cur==='GTQ' ? 'var(--gold)' : 'transparent';
   document.getElementById('re-btn-gtq').style.color      = cur==='GTQ' ? 'var(--bg)'   : 'var(--gray)';
-
-  document.querySelectorAll('.prop-price[data-code]').forEach(el=>{
-    const code = el.getAttribute('data-code');
-    const usd  = RE_PRICES_USD[code];
-    if(!usd) return;
-    const isRenta = RE_RENTA.includes(code);
-    if(cur==='GTQ'){
-      const q = Math.round(usd * RE_TASA).toLocaleString('es-GT');
-      el.textContent = isRenta ? `Q${q} / mes` : `Q${q}`;
-    } else {
-      const u = usd.toLocaleString('en-US');
-      el.textContent = isRenta ? `$${u} / mes` : `$${u}`;
-    }
-  });
+  applyCurrency();
 }
 </script>
 </body>

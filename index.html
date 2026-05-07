@@ -1280,7 +1280,7 @@
             <input type="text" class="form-control" id="cot-nombre" placeholder="Nombre o empresa"/>
           </div>
           <div class="form-group">
-            <label class="form-label">NIT <span style="color:var(--gray);text-transform:none;font-size:.62rem;">para factura</span></label>
+            <label class="form-label">NIT</label>
             <input type="text" class="form-control" id="cot-nit" placeholder="CF o 0000000-0"/>
           </div>
         </div>
@@ -1696,9 +1696,16 @@ function validarPromo(){
 function toggleFav(el,code){
   el.classList.toggle('far');el.classList.toggle('fas');
   el.style.color=el.classList.contains('fas')?'var(--gold)':'';
-  showToast(el.classList.contains('fas')
-    ?`❤ ${code} guardada en favoritos. Inicia sesión para guardar permanentemente.`
-    :`Propiedad removida de favoritos`);
+  if(el.classList.contains('fas')){
+    const loggedIn=!!localStorage.getItem('ve_portal_token');
+    if(loggedIn){
+      showToast(`❤ ${code} guardada en favoritos.`);
+    } else {
+      showToast('💛 Para ver tu lista de favoritos, inicia sesión o crea tu cuenta en el portal de clientes.');
+    }
+  } else {
+    showToast('Propiedad removida de favoritos');
+  }
 }
 
 /* ── COTIZADOR ───────────────────────────────────────── */
