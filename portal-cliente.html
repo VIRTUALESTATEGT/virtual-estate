@@ -1905,7 +1905,7 @@ async function solicitarCodigo() {
 
 function agtPaso2Siguiente() {
   const frontFile = document.getElementById('agt-dpi-front').files[0];
-  if (!frontFile) { showToast('⚠️ Sube la foto del frente de tu DPI'); return; }
+  if (!frontFile) { showToast('⚠️ Debes subir la foto del frente de tu DPI antes de continuar'); return; }
   if (!agtSelfieDataUrl) { showToast('⚠️ Toma una selfie en vivo antes de continuar'); return; }
   setAgtStep(3);
 }

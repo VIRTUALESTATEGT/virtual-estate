@@ -110,6 +110,8 @@ app.use('/api/propiedades',   authMiddleware, requireMinRole('asistente'), propi
 app.use('/api/proyectos',     authMiddleware, requireMinRole('asistente'), proyectosRouter);
 app.use('/api/cotizaciones',  authMiddleware, requireMinRole('asistente'), cotizacionesRouter);
 app.use('/api/agentes',       authMiddleware, requireMinRole('gerente'),   agentesRouter);
+const constructoresRouter = require('./src/routes/constructores');
+app.use('/api/constructores', authMiddleware, requireMinRole('asistente'), constructoresRouter);
 app.use('/api/usuarios',      authMiddleware, requireSuperadmin,           usuariosRouter);
 app.use('/api/agente-ia',     authMiddleware, requireMinRole('asistente'), agenteIARouter);
 app.use('/api/conversaciones',authMiddleware, requireMinRole('asistente'), conversacionesRouter);

@@ -4,7 +4,10 @@ const supabase = require('../config/supabase');
 
 router.get('/', async (req, res) => {
   try {
-    const { data, error } = await supabase.from('cotizaciones').select('*').order('id', { ascending: false });
+    const { data, error } = await supabase
+      .from('cotizaciones')
+      .select('*, clientes(id, nombre)')
+      .order('id', { ascending: false });
     if (error) throw error;
     res.json(data);
   } catch (error) {
@@ -14,10 +17,10 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { cliente_id, proyecto_id, monto, anticipo, estado } = req.body;
+    const { cliente_id, proyecto_id, monto, anticipo, estado, tipo_servicio, canal } = req.body;
     const { data, error } = await supabase
       .from('cotizaciones')
-      .insert([{ cliente_id, proyecto_id, monto, anticipo, estado }])
+      .insert([{ cliente_id, proyecto_id, monto, anticipo, estado, tipo_servicio, canal: canal || 'crm' }])
       .select();
     if (error) throw error;
     res.status(201).json(data[0]);
@@ -28,10 +31,13 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const { cliente_id, proyecto_id, monto, anticipo, estado } = req.body;
+    const { cliente_id, proyecto_id, monto, anticipo, estado, tipo_servicio, canal } = req.body;
+    const updateObj = { cliente_id, proyecto_id, monto, anticipo, estado };
+    if (tipo_servicio !== undefined) updateObj.tipo_servicio = tipo_servicio;
+    if (canal !== undefined) updateObj.canal = canal;
     const { data, error } = await supabase
       .from('cotizaciones')
-      .update({ cliente_id, proyecto_id, monto, anticipo, estado })
+      .update(updateObj)
       .eq('id', req.params.id)
       .select();
     if (error) throw error;

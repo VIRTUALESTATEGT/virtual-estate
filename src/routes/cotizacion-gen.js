@@ -233,7 +233,7 @@ router.post('/zonas', async (req, res) => {
 router.get('/zonas', async (req, res) => {
   try {
     const { data, error } = await supabase
-      .from('zonas_seguridad').select('zona, nivel_riesgo, requiere_verificacion_extra, aceptar_trabajos')
+      .from('zonas_seguridad').select('id, zona, nivel_riesgo, requiere_verificacion_extra, aceptar_trabajos')
       .order('zona');
     if (error) throw error;
     res.json(data);
