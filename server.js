@@ -95,6 +95,7 @@ const { router: usuariosRouter } = require('./src/routes/usuarios');
 const agenteIARouter = require('./src/routes/agente-ia');
 const conversacionesRouter = require('./src/routes/conversaciones');
 const verificacionRouter = require('./src/routes/verificacion');
+const agenteSolicitudRouter = require('./src/routes/agente-solicitud');
 
 const { requireMinRole, requirePortalOrStaff, requireSuperadmin } = require('./src/middleware/roles');
 
@@ -108,6 +109,12 @@ app.use('/api/usuarios',      authMiddleware, requireSuperadmin,           usuar
 app.use('/api/agente-ia',     authMiddleware, requireMinRole('asistente'), agenteIARouter);
 app.use('/api/conversaciones',authMiddleware, requireMinRole('asistente'), conversacionesRouter);
 app.use('/api/cliente/verificacion-identidad', authMiddleware, requirePortalOrStaff('asistente'), verificacionRouter);
+// Agent applications: /solicitud* = portal clients; /solicitudes* = admin (gerente+)
+app.use('/api/agente', authMiddleware, (req, res, next) => {
+  if (req.path === '/solicitud' || req.path.startsWith('/solicitud/'))
+    return requirePortalOrStaff('asistente')(req, res, next);
+  return requireMinRole('gerente')(req, res, next);
+}, agenteSolicitudRouter);
 
 // Notificaciones admin (inline — simple read/list endpoint)
 app.get('/api/notificaciones', authMiddleware, requireMinRole('asistente'), async (req, res) => {

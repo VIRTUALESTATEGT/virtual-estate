@@ -421,26 +421,26 @@
 
     <!-- TAB: INICIO / RESUMEN -->
     <div class="tab-panel active" id="panel-inicio">
-      <div class="kpi-row">
+      <div class="kpi-row" style="grid-template-columns:repeat(4,1fr);">
         <div class="kpi-card">
           <div class="kpi-label">Propiedades guardadas</div>
-          <div class="kpi-val">3</div>
+          <div class="kpi-val" id="kpi-favs">0</div>
           <div class="kpi-sub">En tu lista de favoritos</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Cotizaciones</div>
-          <div class="kpi-val" style="color:var(--white);">2</div>
-          <div class="kpi-sub">1 pendiente de revisión</div>
+          <div class="kpi-val" id="kpi-cots" style="color:var(--white);">0</div>
+          <div class="kpi-sub" id="kpi-cots-sub">—</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Mi código</div>
-          <div class="kpi-val" style="font-size:1.2rem;">CLI-26-0001</div>
-          <div class="kpi-sub">Identificación única</div>
+          <div class="kpi-label">Código de cliente</div>
+          <div class="kpi-val" id="kpi-cli-code" style="font-size:1.1rem;">—</div>
+          <div class="kpi-sub" id="kpi-cli-sub">Identificación única</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Miembro desde</div>
-          <div class="kpi-val" style="font-size:1.2rem;color:var(--white);">Abr 2026</div>
-          <div class="kpi-sub">Cliente Virtual Estate</div>
+          <div class="kpi-label">Código de agente</div>
+          <div class="kpi-val" id="kpi-agt-code" style="font-size:1.1rem;color:var(--white);">—</div>
+          <div class="kpi-sub" id="kpi-agt-sub">Sin código asignado</div>
         </div>
       </div>
 
@@ -745,117 +745,184 @@
     <!-- TAB: AGENTE -->
     <div class="tab-panel" id="panel-agente" style="anchor-name:--agente;">
 
-      <!-- STATE: SIN SOLICITUD (default) -->
+      <!-- STATE: SIN SOLICITUD (default) — 3-step form -->
       <div id="agente-state-none">
         <div style="max-width:680px;margin:0 auto;">
-          <div style="margin-bottom:2rem;">
+          <div style="margin-bottom:1.5rem;">
             <span class="label">Programa de Agentes</span>
-            <h2 style="font-size:1.4rem;text-transform:uppercase;letter-spacing:.06em;margin:.5rem 0 .8rem;">Obtén tu código de referido personalizado</h2>
-            <p style="font-size:.83rem;color:var(--gray);line-height:1.85;font-weight:400;">
-              Recomienda nuestros servicios a propietarios, agentes inmobiliarios, arquitectos o cualquier persona que pueda necesitarlos.
-              Cada proyecto cerrado con tu código genera una comisión directa para ti.
-            </p>
+            <h2 style="font-size:1.4rem;text-transform:uppercase;letter-spacing:.06em;margin:.5rem 0 .5rem;">Obtén tu código de referido personalizado</h2>
+            <p style="font-size:.8rem;color:var(--gray);line-height:1.8;font-weight:400;">Recomienda nuestros servicios y gana una comisión por cada proyecto cerrado. Necesitamos verificar tu identidad para proteger a todos.</p>
           </div>
 
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem;">
-            <div style="border:1px solid var(--border);border-radius:var(--r);padding:1.2rem;text-align:center;background:var(--bg3);">
-              <i class="fas fa-share-alt" style="font-size:1.4rem;color:var(--gold);margin-bottom:.6rem;display:block;"></i>
-              <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;">1. Comparte</div>
-              <p style="font-size:.72rem;color:var(--gray);line-height:1.5;font-weight:400;">Recomienda Virtual Estate con tu código único personalizado.</p>
+          <!-- Step indicator -->
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1.8rem;">
+            <div id="agt-step-1" class="active" style="display:flex;align-items:center;gap:.4rem;font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);transition:.2s;">
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--gold);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;">1</div>
+              Datos y banco
             </div>
-            <div style="border:1px solid var(--border);border-radius:var(--r);padding:1.2rem;text-align:center;background:var(--bg3);">
-              <i class="fas fa-handshake" style="font-size:1.4rem;color:var(--gold);margin-bottom:.6rem;display:block;"></i>
-              <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;">2. Se cierra</div>
-              <p style="font-size:.72rem;color:var(--gray);line-height:1.5;font-weight:400;">Cuando el proyecto se confirma, tu comisión queda registrada.</p>
+            <div style="flex:1;height:1px;background:var(--border);"></div>
+            <div id="agt-step-2" style="display:flex;align-items:center;gap:.4rem;font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray);transition:.2s;">
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--gray);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;">2</div>
+              Verificación DPI
             </div>
-            <div style="border:1px solid var(--border);border-radius:var(--r);padding:1.2rem;text-align:center;background:var(--bg3);">
-              <i class="fas fa-money-bill-wave" style="font-size:1.4rem;color:var(--gold);margin-bottom:.6rem;display:block;"></i>
-              <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;">3. Cobras</div>
-              <p style="font-size:.72rem;color:var(--gray);line-height:1.5;font-weight:400;">Recibe tu comisión al cierre o según el calendario de pagos acordado.</p>
+            <div style="flex:1;height:1px;background:var(--border);"></div>
+            <div id="agt-step-3" style="display:flex;align-items:center;gap:.4rem;font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray);transition:.2s;">
+              <div style="width:24px;height:24px;border-radius:50%;background:var(--border);color:var(--gray);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;">3</div>
+              Acuerdo
             </div>
           </div>
 
-          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:2rem;">
-            <div class="profile-form-title">Solicitar mi código de agente</div>
+          <!-- PASO 1: Bank data + referral type -->
+          <div id="agt-panel-1" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:2rem;">
+            <div class="profile-form-title">Paso 1 — Datos bancarios y preferencias</div>
             <div class="form-group">
-              <label class="form-label">Tu código de agente asignado</label>
+              <label class="form-label">Tu código de agente (se asigna al aprobar)</label>
               <div style="display:flex;align-items:center;gap:.75rem;padding:.9rem 1rem;background:rgba(193,146,89,.06);border:1px solid var(--border);border-radius:var(--r);">
                 <i class="fas fa-id-badge" style="color:var(--gold);font-size:1.2rem;"></i>
-                <span style="font-family:'Raleway',sans-serif;font-size:1.1rem;font-weight:700;color:var(--gold);letter-spacing:.14em;" id="agt-preview-code">AGT-0006</span>
+                <span style="font-family:'Raleway',sans-serif;font-size:1.1rem;font-weight:700;color:var(--gold);letter-spacing:.14em;" id="agt-preview-code">AGT-XX-XXXXX</span>
               </div>
-              <div style="font-size:.68rem;color:var(--gray);margin-top:.3rem;">Se te asignará un código numérico único al aprobar tu solicitud.</div>
             </div>
             <div class="form-group">
               <label class="form-label">¿A quién principalmente referirías? (opcional)</label>
               <select class="form-control" id="agt-tipo">
                 <option value="">— Seleccionar —</option>
-                <option>Propietarios de inmuebles</option>
-                <option>Agentes de bienes raíces</option>
-                <option>Arquitectos / Diseñadores</option>
-                <option>Constructores / Contratistas</option>
-                <option>Amigos y familia</option>
-                <option>Empresas / Corporativos</option>
-                <option>Otro</option>
+                <option>Propietarios de inmuebles</option><option>Agentes de bienes raíces</option>
+                <option>Arquitectos / Diseñadores</option><option>Constructores / Contratistas</option>
+                <option>Amigos y familia</option><option>Empresas / Corporativos</option><option>Otro</option>
               </select>
             </div>
             <div class="form-group">
               <label class="form-label">Comentarios adicionales (opcional)</label>
-              <textarea class="form-control" id="agt-notas" placeholder="Cuéntanos un poco sobre tu red de contactos o cómo planeas usar el código..." style="min-height:80px;resize:vertical;"></textarea>
+              <textarea class="form-control" id="agt-notas" placeholder="Cuéntanos sobre tu red de contactos..." style="min-height:60px;resize:vertical;"></textarea>
             </div>
-
-            <!-- Datos bancarios — obligatorio (#7) -->
             <div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:var(--r);padding:1.4rem;margin-bottom:1.2rem;">
               <div style="font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.3rem;"><i class="fas fa-university" style="margin-right:.4rem;"></i>Datos bancarios para recibir comisiones <span style="color:#E08080;">*</span></div>
-              <p style="font-size:.7rem;color:var(--gray);line-height:1.5;margin-bottom:1rem;font-weight:400;">Necesario para procesar tus comisiones. Los pagos se realizan únicamente a cuentas bancarias a tu nombre. <strong style="color:var(--white);">No se realizan depósitos en efectivo.</strong></p>
+              <p style="font-size:.7rem;color:var(--gray);line-height:1.5;margin-bottom:1rem;font-weight:400;">Únicamente cuentas bancarias a tu nombre. <strong style="color:var(--white);">No se realizan depósitos en efectivo.</strong></p>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;">
-                <div class="form-group">
-                  <label class="form-label">Banco <span style="color:#E08080;">*</span></label>
+                <div class="form-group"><label class="form-label">Banco <span style="color:#E08080;">*</span></label>
                   <select class="form-control" id="req-bank-nombre">
-                    <option value="">— Seleccionar banco —</option>
-                    <option>Banco Industrial</option>
-                    <option>Banrural</option>
-                    <option>BAC Credomatic</option>
-                    <option>G&T Continental</option>
-                    <option>Banco Agromercantil</option>
-                    <option>Bantrab</option>
-                    <option>Banco de los Trabajadores</option>
-                    <option>Otro</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Tipo de cuenta <span style="color:#E08080;">*</span></label>
+                    <option value="">— Seleccionar —</option>
+                    <option>Banco Industrial</option><option>Banrural</option><option>BAC Credomatic</option>
+                    <option>G&T Continental</option><option>Banco Agromercantil</option>
+                    <option>Bantrab</option><option>Banco de los Trabajadores</option><option>Otro</option>
+                  </select></div>
+                <div class="form-group"><label class="form-label">Tipo de cuenta <span style="color:#E08080;">*</span></label>
                   <select class="form-control" id="req-bank-tipo">
-                    <option value="">— Tipo —</option>
-                    <option>Monetaria (cheques)</option>
-                    <option>Ahorro</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Número de cuenta <span style="color:#E08080;">*</span></label>
-                  <input type="text" class="form-control" id="req-bank-cuenta" placeholder="0000-0000-0000"/>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Titular de la cuenta <span style="color:#E08080;">*</span></label>
-                  <input type="text" class="form-control" id="req-bank-titular" placeholder="Nombre completo según DPI"/>
-                </div>
+                    <option value="">— Tipo —</option><option>Monetaria (cheques)</option><option>Ahorro</option>
+                  </select></div>
+                <div class="form-group"><label class="form-label">Número de cuenta <span style="color:#E08080;">*</span></label>
+                  <input type="text" class="form-control" id="req-bank-cuenta" placeholder="0000-0000-0000"/></div>
+                <div class="form-group"><label class="form-label">Titular (según DPI) <span style="color:#E08080;">*</span></label>
+                  <input type="text" class="form-control" id="req-bank-titular" placeholder="Nombre completo"/></div>
+              </div>
+            </div>
+            <button class="w-btn w-btn-gold" onclick="solicitarCodigo()">
+              <i class="fas fa-arrow-right"></i> Continuar a verificación
+            </button>
+          </div>
+
+          <!-- PASO 2: DPI + Selfie -->
+          <div id="agt-panel-2" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:2rem;">
+            <div class="profile-form-title">Paso 2 — Verificación de identidad</div>
+            <p style="font-size:.77rem;color:var(--gray);line-height:1.7;margin-bottom:1.2rem;font-weight:400;">Para proteger a Virtual Estate y a sus clientes, necesitamos confirmar que eres quien dices ser. Tus documentos se revisan manualmente por nuestro equipo y nunca son compartidos con terceros.</p>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+              <div class="form-group">
+                <label class="form-label">DPI — Frente <span style="color:#E08080;">*</span></label>
+                <label id="agt-dpi-front-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.2rem;border:1.5px dashed var(--border);border-radius:var(--r);cursor:pointer;min-height:90px;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor=document.getElementById('agt-dpi-front').files.length?'var(--gold)':'var(--border)'">
+                  <i class="fas fa-id-card" style="font-size:1.5rem;color:var(--gold);margin-bottom:.4rem;"></i>
+                  <span style="font-size:.65rem;color:var(--gray);">Haz clic para subir</span>
+                  <input id="agt-dpi-front" type="file" accept="image/*" style="display:none;" onchange="previewFile(this,'agt-dpi-front-label','agt-dpi-front-prev')"/>
+                </label>
+                <img id="agt-dpi-front-prev" src="" style="display:none;width:100%;border-radius:var(--r);margin-top:.4rem;max-height:90px;object-fit:cover;"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">DPI — Reverso (opcional)</label>
+                <label id="agt-dpi-back-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.2rem;border:1.5px dashed var(--border);border-radius:var(--r);cursor:pointer;min-height:90px;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+                  <i class="fas fa-id-card" style="font-size:1.5rem;color:var(--gray);margin-bottom:.4rem;"></i>
+                  <span style="font-size:.65rem;color:var(--gray);">Haz clic para subir</span>
+                  <input id="agt-dpi-back" type="file" accept="image/*" style="display:none;" onchange="previewFile(this,'agt-dpi-back-label','agt-dpi-back-prev')"/>
+                </label>
+                <img id="agt-dpi-back-prev" src="" style="display:none;width:100%;border-radius:var(--r);margin-top:.4rem;max-height:90px;object-fit:cover;"/>
               </div>
             </div>
 
-            <!-- Buyer awareness warning #9 -->
-            <div style="background:rgba(193,146,89,.07);border:1px solid rgba(193,146,89,.3);border-left:3px solid var(--gold);border-radius:var(--r);padding:1rem 1.2rem;margin-bottom:1.2rem;">
-              <div style="font-size:.72rem;font-weight:700;color:var(--gold);margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem;"><i class="fas fa-exclamation-triangle"></i> Aviso importante para el comprador</div>
-              <p style="font-size:.72rem;color:var(--gray);line-height:1.65;font-weight:400;">
-                Al compartir tu código, el cliente debe saber que está siendo referido por un agente afiliado de Virtual Estate GT.<br/>
-                <strong style="color:var(--white);">Tu comisión sale de la comisión que ya cobra VE</strong> — no representa ningún costo adicional para el cliente ni modifica el precio del servicio.
-              </p>
+            <div class="form-group">
+              <label class="form-label">Selfie en vivo <span style="color:#E08080;">*</span> <span style="font-size:.62rem;color:var(--gray);font-weight:400;">(toma la foto ahora mismo)</span></label>
+              <div id="agt-selfie-area" style="border:1.5px dashed var(--border);border-radius:var(--r);padding:1.2rem;text-align:center;">
+                <video id="agt-selfie-video" autoplay playsinline style="display:none;width:100%;max-width:260px;border-radius:var(--r);margin-bottom:.6rem;"></video>
+                <canvas id="agt-selfie-canvas" style="display:none;"></canvas>
+                <img id="agt-selfie-preview" src="" style="display:none;width:100%;max-width:260px;border-radius:var(--r);margin-bottom:.6rem;"/>
+                <div id="agt-selfie-placeholder">
+                  <i class="fas fa-camera" style="font-size:2rem;color:var(--gold);margin-bottom:.5rem;display:block;"></i>
+                  <p style="font-size:.7rem;color:var(--gray);margin-bottom:.8rem;">Toma una selfie en vivo para confirmar tu identidad</p>
+                </div>
+                <button id="agt-selfie-btn-open" onclick="openAgtSelfie()" style="padding:.5rem 1.2rem;background:transparent;border:1px solid var(--gold);color:var(--gold);border-radius:var(--r);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;">
+                  <i class="fas fa-video"></i> Abrir cámara
+                </button>
+                <button id="agt-selfie-btn-capture" onclick="captureAgtSelfie()" style="display:none;padding:.5rem 1.2rem;background:var(--gold);border:none;color:var(--bg);border-radius:var(--r);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;">
+                  <i class="fas fa-camera"></i> Tomar selfie
+                </button>
+                <button id="agt-selfie-btn-retry" onclick="retryAgtSelfie()" style="display:none;padding:.5rem 1rem;background:transparent;border:1px solid var(--border);color:var(--gray);border-radius:var(--r);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;margin-left:.4rem;">
+                  <i class="fas fa-redo"></i> Reintentar
+                </button>
+              </div>
             </div>
 
-            <button class="w-btn w-btn-gold" style="margin-top:.5rem;" onclick="solicitarCodigo()">
-              <i class="fas fa-paper-plane"></i> Enviar solicitud
-            </button>
-            <p style="font-size:.7rem;color:var(--gray);margin-top:.8rem;line-height:1.6;">
-              Revisamos cada solicitud individualmente. Recibirás una respuesta en 1-2 días hábiles por correo electrónico o WhatsApp.
-            </p>
+            <div style="display:flex;gap:.8rem;margin-top:.5rem;">
+              <button class="w-btn w-btn-out" onclick="setAgtStep(1)" style="flex:.4;">
+                <i class="fas fa-arrow-left"></i> Atrás
+              </button>
+              <button class="w-btn w-btn-gold" onclick="agtPaso2Siguiente()" style="flex:1;">
+                <i class="fas fa-arrow-right"></i> Continuar al acuerdo
+              </button>
+            </div>
+          </div>
+
+          <!-- PASO 3: Legal agreement + e-signature -->
+          <div id="agt-panel-3" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:2rem;">
+            <div class="profile-form-title">Paso 3 — Acuerdo de Colaboración</div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1.2rem;max-height:260px;overflow-y:auto;font-size:.72rem;color:var(--gray);line-height:1.75;margin-bottom:1.2rem;" id="agt-acuerdo-texto">
+              <strong style="color:var(--white);font-size:.78rem;display:block;margin-bottom:.6rem;">ACUERDO DE AGENTE REFERIDO — VIRTUAL ESTATE GT</strong>
+              <p>El presente acuerdo se celebra entre <strong style="color:var(--white);">Virtual Estate GT</strong> (en adelante "la Empresa") y el suscrito (en adelante "el Agente Referido"), quienes acuerdan los siguientes términos:</p>
+              <p><strong style="color:var(--white);">1. NATURALEZA DEL ACUERDO.</strong> El presente instrumento constituye un acuerdo de colaboración por referidos. El Agente Referido no es empleado, socio, ni representante legal de Virtual Estate GT. No existe entre las partes ninguna relación laboral, vínculo patronal ni contrato de trabajo de ningún tipo.</p>
+              <p><strong style="color:var(--white);">2. CÓDIGO DE REFERIDO.</strong> La Empresa asignará al Agente Referido un código alfanumérico único e intransferible (formato AGT-YY-XXXXX). Dicho código identifica las referencias del Agente pero no le confiere autoridad para representar, comprometer ni actuar en nombre de Virtual Estate GT frente a terceros.</p>
+              <p><strong style="color:var(--white);">3. USO DE LA MARCA.</strong> El Agente Referido NO está autorizado a: (a) usar el nombre, logotipo o identidad visual de Virtual Estate GT en materiales publicitarios propios sin aprobación escrita previa; (b) crear perfiles, páginas o cuentas que puedan confundirse con canales oficiales de la Empresa; (c) firmar contratos, presupuestos o compromisos en nombre de Virtual Estate GT; (d) cobrar dinero a clientes a nombre de la Empresa.</p>
+              <p><strong style="color:var(--white);">4. COMISIONES.</strong> El Agente Referido recibirá una comisión acordada únicamente por proyectos efectivamente cerrados y cobrados por la Empresa en los que su código de referido haya sido registrado previamente al inicio del proyecto. Las comisiones se pagarán a la cuenta bancaria registrada en este acuerdo. Virtual Estate GT se reserva el derecho de modificar las tasas de comisión con 30 días de aviso previo.</p>
+              <p><strong style="color:var(--white);">5. CONFIDENCIALIDAD.</strong> El Agente Referido se compromete a mantener confidencialidad sobre las tarifas, procesos internos, estructura de precios y datos de clientes de Virtual Estate GT. Esta obligación permanece vigente por 2 años tras la terminación de este acuerdo.</p>
+              <p><strong style="color:var(--white);">6. PROHIBICIONES.</strong> Queda estrictamente prohibido: (a) prometer descuentos o condiciones no autorizadas por la Empresa; (b) denigrar o hablar negativamente de la Empresa ante clientes; (c) captar clientes para competidores utilizando información obtenida a través de este acuerdo; (d) falsificar capturas de pantalla, documentos o cotizaciones de Virtual Estate GT.</p>
+              <p><strong style="color:var(--white);">7. TERMINACIÓN.</strong> Cualquiera de las partes puede dar por terminado este acuerdo en cualquier momento, sin expresión de causa, mediante notificación escrita. Las comisiones por proyectos ya cerrados serán pagadas según lo pactado. El código de referido quedará inactivo de inmediato.</p>
+              <p><strong style="color:var(--white);">8. RESPONSABILIDAD.</strong> Virtual Estate GT no será responsable por declaraciones, promesas u ofertas realizadas por el Agente Referido que no hayan sido expresamente autorizadas. El Agente Referido asumirá toda responsabilidad derivada de su actuación independiente.</p>
+              <p><strong style="color:var(--white);">9. VERIFICACIÓN DE IDENTIDAD.</strong> El Agente Referido consiente expresamente la verificación de su identidad mediante el documento DPI y la fotografía en tiempo real proporcionados en esta solicitud, exclusivamente para fines de seguridad y prevención de fraude.</p>
+              <p><strong style="color:var(--white);">10. LEY APLICABLE.</strong> Este acuerdo se rige por las leyes de la República de Guatemala. Cualquier controversia se someterá a la jurisdicción de los tribunales guatemaltecos competentes.</p>
+              <p style="color:var(--white);margin-top:.8rem;font-size:.72rem;">Al firmar electrónicamente este documento, el Agente Referido declara haber leído, comprendido y aceptado íntegramente los términos descritos.</p>
+            </div>
+
+            <div style="display:flex;align-items:flex-start;gap:.6rem;padding:1rem;background:rgba(193,146,89,.06);border:1px solid rgba(193,146,89,.25);border-radius:var(--r);margin-bottom:1rem;">
+              <input type="checkbox" id="agt-acepta" style="margin-top:.15rem;accent-color:var(--gold);width:16px;height:16px;flex-shrink:0;"/>
+              <label for="agt-acepta" style="font-size:.73rem;color:var(--gray);line-height:1.6;cursor:pointer;">He leído y acepto íntegramente el <strong style="color:var(--white);">Acuerdo de Agente Referido</strong> de Virtual Estate GT, incluyendo las restricciones de uso de marca, confidencialidad y naturaleza no laboral de esta colaboración.</label>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Firma electrónica — escribe tu nombre completo <span style="color:#E08080;">*</span></label>
+              <input type="text" class="form-control" id="agt-firma" placeholder="Tu nombre completo tal como aparece en tu DPI" style="font-family:'Raleway',sans-serif;font-style:italic;font-size:1rem;"/>
+              <div style="font-size:.62rem;color:var(--gray);margin-top:.3rem;">Al escribir tu nombre confirmas que la firma electrónica tiene el mismo valor legal que una firma manuscrita.</div>
+            </div>
+
+            <div style="background:rgba(193,146,89,.07);border:1px solid rgba(193,146,89,.3);border-left:3px solid var(--gold);border-radius:var(--r);padding:.9rem 1.1rem;margin-bottom:1.2rem;">
+              <div style="font-size:.7rem;font-weight:700;color:var(--gold);margin-bottom:.3rem;"><i class="fas fa-exclamation-triangle" style="margin-right:.3rem;"></i>Aviso para referidos</div>
+              <p style="font-size:.7rem;color:var(--gray);line-height:1.6;font-weight:400;">Tu comisión sale de la comisión que ya cobra VE — no representa costo adicional para el cliente ni modifica el precio del servicio.</p>
+            </div>
+
+            <div style="display:flex;gap:.8rem;">
+              <button class="w-btn w-btn-out" onclick="setAgtStep(2)" style="flex:.4;">
+                <i class="fas fa-arrow-left"></i> Atrás
+              </button>
+              <button id="agt-submit-btn" class="w-btn w-btn-gold" onclick="enviarSolicitudAgente()" style="flex:1;">
+                <i class="fas fa-paper-plane"></i> Enviar solicitud
+              </button>
+            </div>
+            <p style="font-size:.68rem;color:var(--gray);margin-top:.8rem;line-height:1.6;">Revisamos cada solicitud individualmente. Recibirás respuesta en 1-2 días hábiles.</p>
           </div>
         </div>
       </div>
@@ -1222,6 +1289,17 @@
 
         <div class="profile-card">
           <div class="profile-form-title">Editar información</div>
+          <!-- Codes display -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem;">
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:.7rem 1rem;">
+              <div style="font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:.2rem;">Código de cliente</div>
+              <div style="font-family:'Raleway',sans-serif;font-size:.95rem;font-weight:700;color:var(--gold);" id="prof-cli-code">—</div>
+            </div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:.7rem 1rem;">
+              <div style="font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:.2rem;">Código de agente</div>
+              <div style="font-family:'Raleway',sans-serif;font-size:.95rem;font-weight:700;color:var(--white);" id="prof-agt-code">—</div>
+            </div>
+          </div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Nombre</label>
@@ -1231,6 +1309,14 @@
               <label class="form-label">Apellido</label>
               <input type="text" class="form-control" id="prof-apellido" value=""/>
             </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pronombre preferido</label>
+            <select class="form-control" id="prof-pronombre">
+              <option value="neutro">Neutro — Bienvenide / elle</option>
+              <option value="masculino">Masculino — Bienvenido / él</option>
+              <option value="femenino">Femenino — Bienvenida / ella</option>
+            </select>
           </div>
           <div class="form-group">
             <label class="form-label">Correo electrónico</label>
@@ -1481,6 +1567,7 @@ function updateFavCount() {
   const el = document.getElementById('favs-num'); if (el) el.textContent = n;
   const badge = document.getElementById('fav-badge'); if (badge) badge.textContent = n;
   const badge2 = document.getElementById('fav-badge-sub'); if (badge2) badge2.textContent = n;
+  const kpiFavs = document.getElementById('kpi-favs'); if (kpiFavs) kpiFavs.textContent = n;
   const empty = document.getElementById('favs-empty');
   const grid = document.getElementById('favs-grid');
   if (empty && grid) { empty.style.display = n === 0 ? 'block' : 'none'; grid.style.display = n === 0 ? 'none' : 'grid'; }
@@ -1654,9 +1741,28 @@ async function loadPortalData() {
   try {
     const cots = await apiFetch('/api/clientes/me/cotizaciones');
     renderCotizaciones(cots);
-    const kpiCot = document.querySelectorAll('.kpi-card .kpi-val')[1];
-    if (kpiCot) { kpiCot.textContent = cots.length; kpiCot.parentElement.querySelector('.kpi-sub').textContent = cots.filter(c => (c.estado||'').toLowerCase() === 'pendiente').length + ' pendiente(s)'; }
+    const kpiCot = document.getElementById('kpi-cots');
+    const kpiCotSub = document.getElementById('kpi-cots-sub');
+    if (kpiCot) kpiCot.textContent = cots.length;
+    if (kpiCotSub) kpiCotSub.textContent = cots.filter(c => (c.estado||'').toLowerCase() === 'pendiente').length + ' pendiente(s)';
   } catch {}
+  // Load agent application status
+  try {
+    const sol = await apiFetch('/api/agente/solicitud/mi-solicitud');
+    if (sol) renderAgenteEstado(sol);
+  } catch {}
+}
+
+function clienteCode(c) {
+  if (!c) return '—';
+  const year = String(new Date(c.fechacreacion || Date.now()).getFullYear()).slice(-2);
+  return `CLI-${year}-${String(c.id).padStart(5,'0')}`;
+}
+
+function greetWord(pronombre) {
+  if (pronombre === 'masculino') return 'Bienvenido';
+  if (pronombre === 'femenino')  return 'Bienvenida';
+  return 'Bienvenide';
 }
 
 function fillUserUI() {
@@ -1666,30 +1772,54 @@ function fillUserUI() {
   if (el('portal-avatar')) el('portal-avatar').textContent = initials;
   if (el('portal-username')) el('portal-username').textContent = u.nombre || u.email;
   if (el('portal-code')) el('portal-code').textContent = u.email;
-  if (el('welcome-name')) el('welcome-name').textContent = 'Bienvenido/a, ' + (u.nombre ? u.nombre.split(' ')[0] : '');
-  if (el('welcome-code')) el('welcome-code').textContent = 'Portal Virtual Estate';
   if (el('p-avatar-lg')) el('p-avatar-lg').textContent = initials;
   if (el('p-name-lg')) el('p-name-lg').textContent = u.nombre || '—';
+
+  const pronombre = clienteData?.pronombre || 'neutro';
+  const greet = greetWord(pronombre);
+  const firstName = (clienteData?.nombre || u.nombre || '').split(' ')[0] || '';
+
+  if (el('welcome-name')) el('welcome-name').textContent = `${greet}, ${firstName}`;
+  if (el('welcome-code')) el('welcome-code').textContent = 'Portal Virtual Estate';
+
   if (clienteData) {
-    const code = `CLI-${String(clienteData.id).padStart(5,'0')}`;
-    if (el('portal-code')) el('portal-code').textContent = code;
-    if (el('welcome-code')) el('welcome-code').textContent = 'Código de cliente: ' + code;
+    const cliCode = clienteCode(clienteData);
+    const agtCode = clienteData.codigo_agente || null;
+
+    if (el('portal-code')) el('portal-code').textContent = cliCode;
+    if (el('welcome-code')) el('welcome-code').textContent = 'Código: ' + cliCode;
     if (el('p-name-lg')) el('p-name-lg').textContent = clienteData.nombre || u.nombre;
-    if (el('p-code-lg')) el('p-code-lg').textContent = code;
-    const kpiCode = document.querySelectorAll('.kpi-card .kpi-val')[2];
-    if (kpiCode) { kpiCode.textContent = code; kpiCode.parentElement.querySelector('.kpi-sub').textContent = 'Identificación única'; }
+    if (el('p-code-lg')) el('p-code-lg').textContent = cliCode;
+
+    // KPI cards (by ID now)
+    if (el('kpi-cli-code')) { el('kpi-cli-code').textContent = cliCode; el('kpi-cli-code').style.color = 'var(--gold)'; }
+    if (el('kpi-agt-code')) { el('kpi-agt-code').textContent = agtCode || '—'; el('kpi-agt-code').style.color = agtCode ? 'var(--gold)' : 'var(--gray)'; }
+    if (el('kpi-agt-sub')) el('kpi-agt-sub').textContent = agtCode ? 'Agente activo' : 'Sin código asignado';
+
+    // Profile form
     const parts = (clienteData.nombre || '').split(' ');
     if (el('prof-nombre')) el('prof-nombre').value = parts[0] || '';
     if (el('prof-apellido')) el('prof-apellido').value = parts.slice(1).join(' ') || '';
     if (el('prof-email')) el('prof-email').value = clienteData.email || u.email;
     if (el('prof-telefono')) el('prof-telefono').value = clienteData.telefono || '';
     if (el('prof-empresa')) el('prof-empresa').value = clienteData.empresa || '';
+    if (el('prof-pronombre')) el('prof-pronombre').value = pronombre;
+
+    // Codes in profile card
+    if (el('prof-cli-code')) el('prof-cli-code').textContent = cliCode;
+    if (el('prof-agt-code')) { el('prof-agt-code').textContent = agtCode || '—'; el('prof-agt-code').style.color = agtCode ? 'var(--gold)' : 'var(--gray)'; }
+
     const piEls = document.querySelectorAll('.profile-item');
     if (piEls[0]) piEls[0].innerHTML = `<i class="fas fa-envelope"></i> ${clienteData.email || u.email}`;
     if (piEls[1] && clienteData.telefono) piEls[1].innerHTML = `<i class="fab fa-whatsapp"></i> ${clienteData.telefono}`;
+
+    // Show agent code preview in agent tab
+    if (el('agt-preview-code')) {
+      el('agt-preview-code').textContent = agtCode || 'AGT-XX-XXXXX';
+    }
   }
-  const kpiFavs = document.querySelectorAll('.kpi-card .kpi-val')[0];
-  if (kpiFavs) kpiFavs.textContent = dbFavs.length;
+  // KPI favs
+  if (el('kpi-favs')) el('kpi-favs').textContent = dbFavs.length;
 }
 
 function renderCotizaciones(cots) {
@@ -1715,10 +1845,11 @@ async function savePerfil() {
   const nombre = [document.getElementById('prof-nombre')?.value.trim(), document.getElementById('prof-apellido')?.value.trim()].filter(Boolean).join(' ');
   const telefono = document.getElementById('prof-telefono')?.value.trim() || '';
   const empresa = document.getElementById('prof-empresa')?.value.trim() || '';
+  const pronombre = document.getElementById('prof-pronombre')?.value || 'neutro';
   if (!nombre) { showToast('El nombre es obligatorio'); return; }
   try {
-    const updated = await apiFetch('/api/clientes/me', { method: 'PUT', body: JSON.stringify({ nombre, telefono, empresa }) });
-    if (updated) clienteData = updated;
+    const updated = await apiFetch('/api/clientes/me', { method: 'PUT', body: JSON.stringify({ nombre, telefono, empresa, pronombre }) });
+    if (updated) clienteData = { ...clienteData, ...updated };
     showToast('✅ Información actualizada');
     fillUserUI();
   } catch (e) { showToast('⚠️ ' + e.message); }
@@ -1728,26 +1859,96 @@ async function savePerfil() {
 let agenteState = 'none';
 let savedBankData = null;
 
-function solicitarCodigo() {
+function renderAgenteEstado(sol) {
+  if (!sol) return;
+  if (sol.estado === 'pendiente') {
+    document.getElementById('agente-state-none').style.display = 'none';
+    document.getElementById('agente-state-pending').style.display = 'block';
+    document.getElementById('agente-state-active').style.display = 'none';
+    const el = document.getElementById('pending-code-display');
+    if (el) el.textContent = 'Pendiente de aprobación';
+  } else if (sol.estado === 'aprobado' && sol.codigo_asignado) {
+    activarCodigo(sol.codigo_asignado);
+    // Update clienteData too
+    if (clienteData) clienteData.codigo_agente = sol.codigo_asignado;
+    fillUserUI();
+  }
+}
+
+// Agente form step navigation
+let agtStep = 1;
+function setAgtStep(n) {
+  agtStep = n;
+  [1,2,3].forEach(i => {
+    const s = document.getElementById(`agt-step-${i}`);
+    const p = document.getElementById(`agt-panel-${i}`);
+    if (s) s.classList.toggle('active', i <= n);
+    if (p) p.style.display = i === n ? 'block' : 'none';
+  });
+}
+
+async function solicitarCodigo() {
+  // Step 1: bank data
   const banco = document.getElementById('req-bank-nombre').value;
   const tipo = document.getElementById('req-bank-tipo').value;
   const cuenta = document.getElementById('req-bank-cuenta').value.trim();
   const titular = document.getElementById('req-bank-titular').value.trim();
-  if (!banco || !tipo || !cuenta || !titular) { showToast('⚠️ Completa los datos bancarios — son obligatorios para recibir comisiones'); document.getElementById('req-bank-nombre').focus(); return; }
+  if (!banco || !tipo || !cuenta || !titular) {
+    showToast('⚠️ Completa los datos bancarios — son obligatorios para recibir comisiones');
+    document.getElementById('req-bank-nombre').focus(); return;
+  }
   savedBankData = { banco, tipo, cuenta, titular };
-  renderPerfilBanco();
-  const code = 'AGT-' + String(Math.floor(Math.random() * 9000) + 1000);
-  agenteState = 'pending';
-  document.getElementById('pending-code-display').textContent = code;
-  document.getElementById('agente-state-none').style.display = 'none';
-  document.getElementById('agente-state-pending').style.display = 'block';
-  document.getElementById('agente-state-active').style.display = 'none';
-  showToast(`✅ Solicitud enviada — Código provisional: ${code}`);
+  setAgtStep(2);
+}
+
+function agtPaso2Siguiente() {
+  const frontFile = document.getElementById('agt-dpi-front').files[0];
+  if (!frontFile) { showToast('⚠️ Sube la foto del frente de tu DPI'); return; }
+  if (!agtSelfieDataUrl) { showToast('⚠️ Toma una selfie en vivo antes de continuar'); return; }
+  setAgtStep(3);
+}
+
+async function enviarSolicitudAgente() {
+  const firma = document.getElementById('agt-firma').value.trim();
+  const acepta = document.getElementById('agt-acepta').checked;
+  if (!acepta) { showToast('⚠️ Debes aceptar el Acuerdo de Colaboración'); return; }
+  if (firma.length < 5) { showToast('⚠️ Escribe tu nombre completo como firma electrónica'); return; }
+
+  const frontFile = document.getElementById('agt-dpi-front').files[0];
+  const backFile  = document.getElementById('agt-dpi-back').files[0];
+  const toB64 = (file) => new Promise(res => { if (!file) { res(null); return; } const r = new FileReader(); r.onload = e => res(e.target.result); r.readAsDataURL(file); });
+
+  const btn = document.getElementById('agt-submit-btn');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+
+  try {
+    const [dpiF, dpiB] = await Promise.all([toB64(frontFile), toB64(backFile)]);
+    await apiFetch('/api/agente/solicitud', {
+      method: 'POST',
+      body: JSON.stringify({
+        banco: savedBankData.banco, tipo_cuenta: savedBankData.tipo,
+        cuenta_bancaria: savedBankData.cuenta, titular_cuenta: savedBankData.titular,
+        tipo_referido: document.getElementById('agt-tipo')?.value || '',
+        notas: document.getElementById('agt-notas')?.value || '',
+        dpi_frente: dpiF, dpi_reverso: dpiB, selfie: agtSelfieDataUrl,
+        acepta_terminos: true, firma_electronica: firma
+      })
+    });
+    renderPerfilBanco();
+    document.getElementById('agente-state-none').style.display = 'none';
+    document.getElementById('agente-state-pending').style.display = 'block';
+    document.getElementById('agente-state-active').style.display = 'none';
+    showToast('✅ Solicitud enviada. Revisaremos tus documentos en 1-2 días hábiles.');
+  } catch (e) {
+    showToast('⚠️ ' + e.message);
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar solicitud';
+  }
 }
 
 function activarCodigo(code) {
   agenteState = 'active';
-  document.getElementById('active-code-display').textContent = code || 'AGT-0003';
+  const el = document.getElementById('active-code-display');
+  if (el) el.textContent = code || 'AGT-XX-XXXXX';
   document.getElementById('agente-state-none').style.display = 'none';
   document.getElementById('agente-state-pending').style.display = 'none';
   document.getElementById('agente-state-active').style.display = 'block';
@@ -1938,6 +2139,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.href = '/portal.html';
   }
 });
+
+/* ── AGENT SELFIE CAMERA ─────────────────────────────────── */
+let agtSelfieStream = null;
+let agtSelfieDataUrl = null;
+
+async function openAgtSelfie() {
+  try {
+    agtSelfieStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+    const video = document.getElementById('agt-selfie-video');
+    video.srcObject = agtSelfieStream;
+    video.style.display = 'block';
+    document.getElementById('agt-selfie-placeholder').style.display = 'none';
+    document.getElementById('agt-selfie-btn-open').style.display = 'none';
+    document.getElementById('agt-selfie-btn-capture').style.display = 'inline-block';
+  } catch (e) { showToast('No se pudo acceder a la cámara: ' + e.message); }
+}
+
+function captureAgtSelfie() {
+  const video  = document.getElementById('agt-selfie-video');
+  const canvas = document.getElementById('agt-selfie-canvas');
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  agtSelfieDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+  const preview = document.getElementById('agt-selfie-preview');
+  preview.src = agtSelfieDataUrl;
+  preview.style.display = 'block';
+  video.style.display = 'none';
+  canvas.style.display = 'none';
+  document.getElementById('agt-selfie-btn-capture').style.display = 'none';
+  document.getElementById('agt-selfie-btn-retry').style.display = 'inline-block';
+  if (agtSelfieStream) { agtSelfieStream.getTracks().forEach(t => t.stop()); agtSelfieStream = null; }
+}
+
+function retryAgtSelfie() {
+  agtSelfieDataUrl = null;
+  document.getElementById('agt-selfie-preview').style.display = 'none';
+  document.getElementById('agt-selfie-btn-retry').style.display = 'none';
+  document.getElementById('agt-selfie-placeholder').style.display = 'block';
+  document.getElementById('agt-selfie-btn-open').style.display = 'inline-block';
+}
 
 /* ── IDENTITY VERIFICATION ──────────────────────────────── */
 let selfieStream = null;
