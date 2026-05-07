@@ -47,7 +47,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// SIGNUP
+// SIGNUP (internal staff — kept for compatibility)
 router.post('/signup', async (req, res) => {
   try {
     const { nombre, email, password } = req.body;
@@ -64,6 +64,56 @@ router.post('/signup', async (req, res) => {
     res.status(201).json({ message: 'Usuario creado', usuario: data[0] });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// REGISTRO CLIENTE — creates usuarios (role:cliente) + clientes record, returns JWT
+router.post('/registro-cliente', async (req, res) => {
+  try {
+    const { nombre, email, password, telefono } = req.body;
+    if (!nombre || !email || !password)
+      return res.status(400).json({ error: 'Nombre, email y contraseña son requeridos' });
+    if (password.length < 8)
+      return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
+
+    // Check duplicate email
+    const { data: existing } = await supabase
+      .from('usuarios').select('id').eq('email', email).maybeSingle();
+    if (existing)
+      return res.status(409).json({ error: 'Ya existe una cuenta con este correo electrónico' });
+
+    const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+
+    // Create usuarios record
+    const { data: usuario, error: uErr } = await supabase
+      .from('usuarios')
+      .insert([{ nombre, email, password: hashedPassword, role: 'cliente', estado: 'activo' }])
+      .select('id, nombre, email, role, is_superadmin')
+      .single();
+    if (uErr) throw uErr;
+
+    // Upsert clientes record (handles case where they were a lead before)
+    await supabase.from('clientes').upsert(
+      [{ nombre, email, telefono: telefono || '', tipo: 'Cliente' }],
+      { onConflict: 'email' }
+    );
+
+    const payload = {
+      id: usuario.id,
+      email: usuario.email,
+      nombre: usuario.nombre,
+      rol: 'cliente',
+      role: 'cliente',
+      is_superadmin: false,
+    };
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES });
+
+    res.status(201).json({ token, usuario: payload });
+  } catch (e) {
+    console.error('[RegistroCliente]', e.message);
+    if (e.code === '23505')
+      return res.status(409).json({ error: 'Ya existe una cuenta con este correo electrónico' });
+    res.status(500).json({ error: e.message });
   }
 });
 

@@ -352,20 +352,20 @@
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Nombre *</label>
-          <input type="text" class="form-control" placeholder="Tu nombre"/>
+          <input type="text" class="form-control" id="r-nombre" placeholder="Tu nombre"/>
         </div>
         <div class="form-group">
           <label class="form-label">Apellido *</label>
-          <input type="text" class="form-control" placeholder="Tu apellido"/>
+          <input type="text" class="form-control" id="r-apellido" placeholder="Tu apellido"/>
         </div>
       </div>
       <div class="form-group">
         <label class="form-label">Correo electrónico *</label>
-        <input type="email" class="form-control" placeholder="tu@correo.com"/>
+        <input type="email" class="form-control" id="r-email" placeholder="tu@correo.com"/>
       </div>
       <div class="form-group">
         <label class="form-label">Teléfono / WhatsApp</label>
-        <input type="tel" class="form-control" placeholder="+502 0000-0000"/>
+        <input type="tel" class="form-control" id="r-telefono" placeholder="+502 0000-0000"/>
       </div>
       <div class="form-group">
         <label class="form-label">Contraseña *</label>
@@ -1445,10 +1445,10 @@ async function doLogin() {
 
 /* ── REGISTER ───────────────────────────────────────────── */
 async function doRegister() {
-  const inputs = document.querySelectorAll('#form-register input[type="text"]');
-  const nombre = inputs[0]?.value.trim() || '';
-  const apellido = inputs[1]?.value.trim() || '';
-  const email = document.querySelector('#form-register input[type="email"]')?.value.trim() || '';
+  const nombre = document.getElementById('r-nombre')?.value.trim() || '';
+  const apellido = document.getElementById('r-apellido')?.value.trim() || '';
+  const email = document.getElementById('r-email')?.value.trim() || '';
+  const telefono = document.getElementById('r-telefono')?.value.trim() || '';
   const pw = document.getElementById('r-pass').value;
   if (!nombre || !email || !pw) { showToast('Completa nombre, correo y contraseña'); return; }
   if (pw.length < 8) { showToast('La contraseña debe tener al menos 8 caracteres'); return; }
@@ -1458,14 +1458,17 @@ async function doRegister() {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando cuenta...';
   btn.disabled = true;
   try {
-    const r = await fetch(API_URL + '/api/auth/signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nombre: (nombre + ' ' + apellido).trim(), email, password: pw }) });
+    const r = await fetch(API_URL + '/api/auth/registro-cliente', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre: (nombre + ' ' + apellido).trim(), email, password: pw, telefono })
+    });
     const data = await r.json();
     if (!r.ok) throw new Error(data.error || 'Error al crear cuenta');
-    showToast('✅ Cuenta creada. Iniciando sesión...');
-    document.getElementById('l-email').value = email;
-    document.getElementById('l-pass').value = pw;
-    switchTab('login');
-    setTimeout(() => doLogin(), 800);
+    setToken(data.token);
+    currentUser = data.usuario;
+    showToast('✅ ¡Cuenta creada! Bienvenido/a a Virtual Estate.');
+    setTimeout(() => { window.location.href = '/portal-cliente.html'; }, 800);
   } catch (e) { showToast('⚠️ ' + e.message); }
   finally { btn.innerHTML = orig; btn.disabled = false; }
 }

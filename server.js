@@ -96,10 +96,10 @@ const agenteIARouter = require('./src/routes/agente-ia');
 const conversacionesRouter = require('./src/routes/conversaciones');
 const verificacionRouter = require('./src/routes/verificacion');
 
-const { requireMinRole, requireSuperadmin } = require('./src/middleware/roles');
+const { requireMinRole, requirePortalOrStaff, requireSuperadmin } = require('./src/middleware/roles');
 
 app.use('/api/leads',         authMiddleware, requireMinRole('asistente'), leadsRouter);
-app.use('/api/clientes',      authMiddleware, requireMinRole('asistente'), clientesRouter);
+app.use('/api/clientes',      authMiddleware, requirePortalOrStaff('asistente'), clientesRouter);
 app.use('/api/propiedades',   authMiddleware, requireMinRole('asistente'), propiedadesRouter);
 app.use('/api/proyectos',     authMiddleware, requireMinRole('asistente'), proyectosRouter);
 app.use('/api/cotizaciones',  authMiddleware, requireMinRole('asistente'), cotizacionesRouter);
@@ -107,7 +107,7 @@ app.use('/api/agentes',       authMiddleware, requireMinRole('gerente'),   agent
 app.use('/api/usuarios',      authMiddleware, requireSuperadmin,           usuariosRouter);
 app.use('/api/agente-ia',     authMiddleware, requireMinRole('asistente'), agenteIARouter);
 app.use('/api/conversaciones',authMiddleware, requireMinRole('asistente'), conversacionesRouter);
-app.use('/api/cliente/verificacion-identidad', authMiddleware, verificacionRouter);
+app.use('/api/cliente/verificacion-identidad', authMiddleware, requirePortalOrStaff('asistente'), verificacionRouter);
 
 // Notificaciones admin (inline — simple read/list endpoint)
 app.get('/api/notificaciones', authMiddleware, requireMinRole('asistente'), async (req, res) => {
