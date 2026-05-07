@@ -1689,7 +1689,7 @@ function fillUserUI() {
     if (piEls[1] && clienteData.telefono) piEls[1].innerHTML = `<i class="fab fa-whatsapp"></i> ${clienteData.telefono}`;
   }
   const kpiFavs = document.querySelectorAll('.kpi-card .kpi-val')[0];
-  if (kpiFavs) kpiFavs.textContent = getLocalFavs().length;
+  if (kpiFavs) kpiFavs.textContent = dbFavs.length;
 }
 
 function renderCotizaciones(cots) {
