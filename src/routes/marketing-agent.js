@@ -199,6 +199,9 @@ router.put('/posts/:id', async (req, res) => {
 // ============================================================
 
 router.post('/generate', async (req, res) => {
+  if (!process.env.SUPABASE_URL)        return res.status(500).json({ error: 'SUPABASE_URL no configurada en Vercel' });
+  if (!process.env.SUPABASE_SECRET_KEY) return res.status(500).json({ error: 'SUPABASE_SECRET_KEY no configurada en Vercel' });
+  if (!process.env.CLAUDE_API_KEY)      return res.status(500).json({ error: 'CLAUDE_API_KEY no configurada en Vercel' });
   try {
     const biz = BIZ_ID(req);
     const [{ data: brand }, { data: instructions }, { data: orders }] = await Promise.all([
