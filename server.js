@@ -156,7 +156,12 @@ const html = (file) => (req, res) => res.sendFile(path.join(__dirname, file));
 app.get('/',                html('index.html'));
 app.get('/index.html',      html('index.html'));
 app.get('/admin.html',                 html('admin.html'));
-app.get('/marketing-agent-panel.html', html('public/marketing-agent-panel.html'));
+app.get('/marketing-agent-panel.html', (req, res) => {
+  const fs = require('fs');
+  const filePath = require('path').join(__dirname, 'public', 'marketing-agent-panel.html');
+  res.setHeader('Content-Type', 'text/html');
+  res.send(fs.readFileSync(filePath, 'utf8'));
+});
 app.get('/portal.html',          html('portal.html'));
 app.get('/portal-cliente.html',  html('portal-cliente.html'));
 app.get('/landing.html',         html('landing.html'));
