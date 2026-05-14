@@ -100,7 +100,8 @@ const { router: usuariosRouter } = require('./src/routes/usuarios');
 const agenteIARouter = require('./src/routes/agente-ia');
 const conversacionesRouter = require('./src/routes/conversaciones');
 const verificacionRouter = require('./src/routes/verificacion');
-const agenteSolicitudRouter = require('./src/routes/agente-solicitud');
+const agenteSolicitudRouter  = require('./src/routes/agente-solicitud');
+const marketingAgent         = require('./src/routes/marketing-agent');
 
 const { requireMinRole, requirePortalOrStaff, requireSuperadmin } = require('./src/middleware/roles');
 
@@ -109,6 +110,7 @@ app.use('/api/clientes',      authMiddleware, requirePortalOrStaff('asistente'),
 app.use('/api/propiedades',   authMiddleware, requireMinRole('asistente'), propiedadesRouter);
 app.use('/api/proyectos',     authMiddleware, requireMinRole('asistente'), proyectosRouter);
 app.use('/api/cotizaciones',  authMiddleware, requireMinRole('asistente'), cotizacionesRouter);
+app.use('/api/marketing',    authMiddleware, requireMinRole('gerente'),   marketingAgent);
 app.use('/api/agentes',       authMiddleware, requireMinRole('gerente'),   agentesRouter);
 const constructoresRouter = require('./src/routes/constructores');
 app.use('/api/constructores', authMiddleware, requireMinRole('asistente'), constructoresRouter);
@@ -153,7 +155,8 @@ app.get('/api/debug', (req, res) => {
 const html = (file) => (req, res) => res.sendFile(path.join(__dirname, file));
 app.get('/',                html('index.html'));
 app.get('/index.html',      html('index.html'));
-app.get('/admin.html',      html('admin.html'));
+app.get('/admin.html',                 html('admin.html'));
+app.get('/marketing-agent-panel.html', html('marketing-agent-panel.html'));
 app.get('/portal.html',          html('portal.html'));
 app.get('/portal-cliente.html',  html('portal-cliente.html'));
 app.get('/landing.html',         html('landing.html'));

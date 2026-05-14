@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agente IA Marketing — Virtual Estate</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f1117; --surface: #1a1d27; --card: #22263a; --border: #2e3347;
+      --primary: #4f8a3a; --gold: #b8860b; --text: #e2e8f0; --muted: #8892a4;
+      --danger: #e53e3e; --success: #38a169; --warning: #d69e2e; --info: #3182ce;
+      --radius: 10px;
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 60px; }
+    .header-brand { display: flex; align-items: center; gap: 12px; }
+    .header-brand img { height: 32px; }
+    .header-brand h1 { font-size: 16px; font-weight: 600; }
+    .header-brand span { font-size: 12px; color: var(--primary); font-weight: 600; background: rgba(79,138,58,.15); padding: 2px 8px; border-radius: 20px; }
+    .header-actions { display: flex; gap: 10px; }
+    .layout { display: flex; height: calc(100vh - 60px); }
+    .sidebar { width: 200px; background: var(--surface); border-right: 1px solid var(--border); padding: 16px 0; flex-shrink: 0; }
+    .nav-item { padding: 10px 20px; cursor: pointer; font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 10px; transition: all .15s; border-left: 3px solid transparent; }
+    .nav-item:hover { color: var(--text); background: rgba(255,255,255,.04); }
+    .nav-item.active { color: var(--text); background: rgba(79,138,58,.12); border-left-color: var(--primary); }
+    .nav-section { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; padding: 12px 20px 4px; }
+    .main { flex: 1; overflow-y: auto; padding: 24px; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .card-title { font-size: 14px; font-weight: 600; }
+    .card-subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+    input, textarea, select { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 9px 12px; color: var(--text); font-size: 13px; transition: border-color .15s; }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--primary); }
+    textarea { resize: vertical; min-height: 80px; }
+    .form-group { margin-bottom: 14px; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: #3d6e2c; }
+    .btn-gold { background: var(--gold); color: #fff; }
+    .btn-gold:hover { background: #9a7009; }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 20px; }
+    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: center; }
+    .stat-num { font-size: 28px; font-weight: 700; color: var(--primary); }
+    .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .posts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 16px; }
+    .post-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: border-color .15s; }
+    .post-card:hover { border-color: var(--primary); }
+    .post-image { height: 160px; background: linear-gradient(135deg,#1a2e14,#2d5016); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+    .post-image img { width: 100%; height: 100%; object-fit: cover; }
+    .post-body { padding: 14px; }
+    .post-theme { font-size: 11px; color: var(--primary); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+    .post-caption { font-size: 12px; color: var(--text); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .post-hashtags { font-size: 11px; color: var(--info); margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .post-actions { display: flex; gap: 6px; padding: 10px 14px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+    .post-date { font-size: 11px; color: var(--muted); padding: 0 14px 10px; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; position: absolute; top: 8px; right: 8px; }
+    .badge-pending  { background: rgba(214,158,46,.15); color: var(--warning); }
+    .badge-approved { background: rgba(56,161,105,.15); color: var(--success); }
+    .badge-rejected { background: rgba(229,62,62,.15);  color: var(--danger); }
+    .badge-published{ background: rgba(49,130,206,.15); color: var(--info); }
+    .generate-area { background: linear-gradient(135deg,rgba(79,138,58,.12),rgba(184,134,11,.08)); border: 1px dashed var(--primary); border-radius: var(--radius); padding: 32px; text-align: center; margin-bottom: 20px; }
+    .generate-area h3 { font-size: 18px; margin-bottom: 6px; }
+    .generate-area p  { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+    .order-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+    .history-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; display: flex; gap: 14px; align-items: center; }
+    .history-thumb { width: 56px; height: 56px; border-radius: 6px; background: linear-gradient(135deg,#1a2e14,#2d5016); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; overflow: hidden; }
+    .history-info { flex: 1; min-width: 0; }
+    .history-theme { font-size: 11px; color: var(--primary); font-weight: 600; }
+    .history-caption { font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+    .history-date { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    #toast { position: fixed; bottom: 24px; right: 24px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; font-size: 13px; z-index: 9999; transform: translateY(80px); opacity: 0; transition: all .25s; pointer-events: none; max-width: 320px; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 8000; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; width: 90%; max-width: 560px; max-height: 85vh; overflow-y: auto; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .modal-title { font-size: 16px; font-weight: 600; }
+    .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.2); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
+    .empty-state span { font-size: 40px; display: block; margin-bottom: 12px; }
+    .empty-state p { font-size: 13px; }
+    .color-row { display: flex; align-items: center; gap: 10px; }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-brand">
+    <img src="/images/assets/logo-isotipo.png" alt="VE" onerror="this.style.display='none'">
+    <h1>Agente IA Marketing</h1>
+    <span>BETA</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost btn-sm" onclick="window.location='/admin.html'">← CRM</button>
+    <button class="btn btn-gold btn-sm" onclick="generateContent()">✨ Generar contenido</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="nav-section">Panel</div>
+    <div class="nav-item active" onclick="showSection('dashboard',this)">📊 Dashboard</div>
+    <div class="nav-section">Configuración</div>
+    <div class="nav-item" onclick="showSection('brand',this)">🎨 Identidad de Marca</div>
+    <div class="nav-item" onclick="showSection('instructions',this)">📋 Instrucciones</div>
+    <div class="nav-item" onclick="showSection('orders',this)">📌 Órdenes de Contenido</div>
+    <div class="nav-section">Contenido</div>
+    <div class="nav-item" onclick="showSection('pending',this)">⏳ Posts Pendientes</div>
+    <div class="nav-item" onclick="showSection('history',this)">✅ Publicados</div>
+  </nav>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section id="sec-dashboard" class="section active">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-num" id="stat-pending">—</div><div class="stat-label">Pendientes</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-approved">—</div><div class="stat-label">Aprobados</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-published">—</div><div class="stat-label">Publicados</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-orders">—</div><div class="stat-label">Órdenes activas</div></div>
+      </div>
+      <div class="generate-area">
+        <h3>✨ Generar contenido con IA</h3>
+        <p>El agente analizará tu marca, instrucciones y órdenes activas para crear 5 posts listos para aprobar.</p>
+        <button class="btn btn-gold" id="btn-generate" onclick="generateContent()">
+          <span class="spinner" id="gen-spinner"></span>
+          Generar 5 posts ahora
+        </button>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Posts recientes para revisar</div><div class="card-subtitle">Últimos generados pendientes de aprobación</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="showSection('pending',document.querySelectorAll('.nav-item')[4])">Ver todos</button>
+        </div>
+        <div id="dashboard-pending-list"></div>
+      </div>
+    </section>
+
+    <!-- BRAND -->
+    <section id="sec-brand" class="section">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">🎨 Identidad de Marca</div><div class="card-subtitle">Colores y lineamientos visuales</div></div>
+          <button class="btn btn-primary btn-sm" onclick="saveBrand()">Guardar cambios</button>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label>URL del Logo</label><input type="url" id="b-logo" placeholder="https://..." oninput="updateLogoPreview()"></div>
+          <div class="form-group"><label>Vista previa</label>
+            <div style="height:42px;display:flex;align-items:center">
+              <img id="b-logo-preview" src="" style="max-height:40px;max-width:180px;display:none;border-radius:4px">
+              <span id="b-logo-empty" style="font-size:12px;color:var(--muted)">Ingresa una URL</span>
+            </div>
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="form-group"><label>Color Primario</label>
+            <div class="color-row">
+              <input type="color" id="b-color1" value="#2D5016" style="width:42px;height:42px;padding:2px;cursor:pointer;flex-shrink:0" oninput="document.getElementById('b-color1-hex').value=this.value">
+              <input type="text"  id="b-color1-hex" value="#2D5016" style="flex:1" oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value))document.getElementById('b-color1').value=this.value">
+            </div>
+          </div>
+          <div class="form-group"><label>Color Secundario</label>
+            <div class="color-row">
+              <input type="color" id="b-color2" value="#B8860B" style="width:42px;height:42px;padding:2px;cursor:pointer;flex-shrink:0" oninput="document.getElementById('b-color2-hex').value=this.value">
+              <input type="text"  id="b-color2-hex" value="#B8860B" style="flex:1" oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value))document.getElementById('b-color2').value=this.value">
+            </div>
+          </div>
+          <div class="form-group"><label>Color de Acento</label>
+            <div class="color-row">
+              <input type="color" id="b-color3" value="#FFFFFF" style="width:42px;height:42px;padding:2px;cursor:pointer;flex-shrink:0" oninput="document.getElementById('b-color3-hex').value=this.value">
+              <input type="text"  id="b-color3-hex" value="#FFFFFF" style="flex:1" oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value))document.getElementById('b-color3').value=this.value">
+            </div>
+          </div>
+        </div>
+        <div class="form-group"><label>Lineamientos de Marca</label><textarea id="b-guidelines" rows="5" placeholder="Tono, personalidad, qué evitar, estilo visual..."></textarea></div>
+      </div>
+    </section>
+
+    <!-- INSTRUCTIONS -->
+    <section id="sec-instructions" class="section">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">📋 Instrucciones Globales del Agente</div><div class="card-subtitle">Usadas en cada generación de contenido</div></div>
+          <button class="btn btn-primary btn-sm" onclick="saveInstructions()">Guardar cambios</button>
+        </div>
+        <div class="grid-2">
+          <div class="form-group"><label>Tono de comunicación</label>
+            <select id="i-tone">
+              <option value="profesional">Profesional</option>
+              <option value="profesional y cercano" selected>Profesional y cercano</option>
+              <option value="elegante">Elegante y sofisticado</option>
+              <option value="inspiracional">Inspiracional</option>
+              <option value="informativo">Informativo y educativo</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Posts mínimos por semana</label><input type="number" id="i-frequency" value="5" min="1" max="21"></div>
+        </div>
+        <div class="form-group"><label>Hashtags predeterminados (uno por línea)</label><textarea id="i-hashtags" rows="5" placeholder="#VirtualEstateGT&#10;#InmobiliariaGuatemala"></textarea></div>
+        <div class="form-group"><label>Llamada a la acción (CTA)</label><input type="text" id="i-cta" placeholder="Escríbenos por WhatsApp para más información"></div>
+        <div class="form-group"><label>Horarios preferidos (HH:MM, uno por línea)</label><textarea id="i-times" rows="3" placeholder="09:00&#10;13:00&#10;18:00"></textarea></div>
+        <div class="form-group"><label>Temas a EVITAR</label><input type="text" id="i-avoid" placeholder="política, precios exactos, competidores"></div>
+        <div class="form-group"><label>Instrucciones adicionales</label><textarea id="i-extra" rows="4" placeholder="Cualquier instrucción adicional permanente..."></textarea></div>
+      </div>
+    </section>
+
+    <!-- ORDERS -->
+    <section id="sec-orders" class="section">
+      <div class="card">
+        <div class="card-header"><div class="card-title">📌 Nueva Orden de Contenido</div></div>
+        <div class="grid-2">
+          <div class="form-group"><label>Instrucción principal *</label><textarea id="o-instruction" rows="3" placeholder="Ej: Posts destacando el servicio de escaneo 3D para construcción"></textarea></div>
+          <div class="form-group"><label>Tema / Campaña</label><input type="text" id="o-theme" placeholder="Ej: Campaña Construcción Q2"></div>
+        </div>
+        <div class="grid-3">
+          <div class="form-group"><label>Prioridad (1-5)</label><input type="number" id="o-priority" value="1" min="1" max="5"></div>
+          <div class="form-group"><label>Fecha inicio</label><input type="date" id="o-start"></div>
+          <div class="form-group"><label>Fecha fin</label><input type="date" id="o-end"></div>
+        </div>
+        <button class="btn btn-primary" onclick="addOrder()">+ Agregar orden</button>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Órdenes activas</div></div>
+        <div id="orders-list"><div class="empty-state"><span>📌</span><p>No hay órdenes activas</p></div></div>
+      </div>
+    </section>
+
+    <!-- PENDING POSTS -->
+    <section id="sec-pending" class="section">
+      <div class="card-header" style="margin-bottom:16px">
+        <div><div class="card-title" style="font-size:16px">⏳ Posts Pendientes</div><div class="card-subtitle" style="margin-top:4px">Aprueba, edita o rechaza posts generados por IA</div></div>
+        <button class="btn btn-ghost btn-sm" onclick="loadPendingPosts()">↻ Actualizar</button>
+      </div>
+      <div class="posts-grid" id="pending-grid"><div class="empty-state" style="grid-column:1/-1"><span>⏳</span><p>Cargando...</p></div></div>
+    </section>
+
+    <!-- HISTORY -->
+    <section id="sec-history" class="section">
+      <div class="card-header" style="margin-bottom:16px">
+        <div><div class="card-title" style="font-size:16px">✅ Posts Publicados</div><div class="card-subtitle" style="margin-top:4px">Historial de contenido publicado en Instagram</div></div>
+        <button class="btn btn-ghost btn-sm" onclick="loadHistory()">↻ Actualizar</button>
+      </div>
+      <div id="history-list"><div class="empty-state"><span>✅</span><p>Cargando...</p></div></div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<div class="modal-overlay" id="post-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-theme">Detalle del post</div>
+      <button class="btn btn-ghost btn-sm" onclick="closePostModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+    <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end" id="modal-actions"></div>
+  </div>
+</div>
+
+<script>
+const API   = '/api/marketing';
+const TOKEN = localStorage.getItem('ve_token') || '';
+
+async function api(method, path, body) {
+  const res = await fetch(API + path, {
+    method,
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+function showSection(name, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + name)?.classList.add('active');
+  if (el) el.classList.add('active');
+  ({ dashboard: loadDashboard, brand: loadBrand, instructions: loadInstructions, orders: loadOrders, pending: loadPendingPosts, history: loadHistory })[name]?.();
+}
+
+function toast(msg, type = 'default') {
+  const t = document.getElementById('toast');
+  t.style.color = ({ success: '#38a169', danger: '#e53e3e' })[type] || '#e2e8f0';
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ── DASHBOARD ──
+async function loadDashboard() {
+  try {
+    const [pending, published, orders] = await Promise.all([api('GET','/posts/pending'), api('GET','/posts/published'), api('GET','/orders')]);
+    document.getElementById('stat-pending').textContent   = pending.filter(p => p.status==='pending').length;
+    document.getElementById('stat-approved').textContent  = pending.filter(p => p.status==='approved').length;
+    document.getElementById('stat-published').textContent = published.length;
+    document.getElementById('stat-orders').textContent    = orders.length;
+    const recent = pending.filter(p => p.status==='pending').slice(0,3);
+    const cont = document.getElementById('dashboard-pending-list');
+    cont.innerHTML = recent.length ? recent.map(p => `
+      <div style="display:flex;gap:12px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;align-items:center">
+        <div style="width:48px;height:48px;border-radius:6px;background:linear-gradient(135deg,#1a2e14,#2d5016);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">📸</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;color:var(--primary);font-weight:600">${p.theme||'Sin tema'}</div>
+          <div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.instagram_caption||p.content||''}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="btn btn-success btn-sm" onclick="approvePost(${p.id})">✓</button>
+          <button class="btn btn-ghost btn-sm" onclick="openPostModal(${p.id})">Ver</button>
+        </div>
+      </div>`).join('') : '<div class="empty-state"><span>✨</span><p>No hay posts pendientes.</p></div>';
+  } catch (e) { toast('Error: '+e.message,'danger'); }
+}
+
+// ── BRAND ──
+async function loadBrand() {
+  try {
+    const b = await api('GET','/brand-identity');
+    document.getElementById('b-logo').value       = b.logo_url||'';
+    document.getElementById('b-color1').value     = b.color_primary||'#2D5016';
+    document.getElementById('b-color1-hex').value = b.color_primary||'#2D5016';
+    document.getElementById('b-color2').value     = b.color_secondary||'#B8860B';
+    document.getElementById('b-color2-hex').value = b.color_secondary||'#B8860B';
+    document.getElementById('b-color3').value     = b.color_accent||'#FFFFFF';
+    document.getElementById('b-color3-hex').value = b.color_accent||'#FFFFFF';
+    document.getElementById('b-guidelines').value = b.brand_guidelines||'';
+    updateLogoPreview();
+  } catch(e) { toast('Error: '+e.message,'danger'); }
+}
+async function saveBrand() {
+  try {
+    await api('POST','/brand-identity',{ logo_url: document.getElementById('b-logo').value, color_primary: document.getElementById('b-color1-hex').value, color_secondary: document.getElementById('b-color2-hex').value, color_accent: document.getElementById('b-color3-hex').value, brand_guidelines: document.getElementById('b-guidelines').value });
+    toast('Identidad de marca guardada ✓','success');
+  } catch(e) { toast('Error: '+e.message,'danger'); }
+}
+function updateLogoPreview() {
+  const url=document.getElementById('b-logo').value, img=document.getElementById('b-logo-preview'), empty=document.getElementById('b-logo-empty');
+  if(url){img.src=url;img.style.display='block';empty.style.display='none';}else{img.style.display='none';empty.style.display='block';}
+}
+
+// ── INSTRUCTIONS ──
+async function loadInstructions() {
+  try {
+    const d = await api('GET','/instructions');
+    document.getElementById('i-tone').value      = d.tone||'profesional y cercano';
+    document.getElementById('i-frequency').value = d.min_posts_per_week||5;
+    document.getElementById('i-cta').value       = d.required_cta||'';
+    document.getElementById('i-avoid').value     = d.avoid_topics||'';
+    document.getElementById('i-extra').value     = d.extra_instructions||'';
+    document.getElementById('i-hashtags').value  = (d.hashtags||[]).join('\n');
+    document.getElementById('i-times').value     = (d.publish_times||['09:00','13:00','18:00']).join('\n');
+  } catch(e) { toast('Error: '+e.message,'danger'); }
+}
+async function saveInstructions() {
+  try {
+    await api('POST','/instructions',{ tone: document.getElementById('i-tone').value, min_posts_per_week: Number(document.getElementById('i-frequency').value), required_cta: document.getElementById('i-cta').value, avoid_topics: document.getElementById('i-avoid').value, extra_instructions: document.getElementById('i-extra').value, hashtags: document.getElementById('i-hashtags').value.split('\n').map(h=>h.trim()).filter(Boolean), publish_times: document.getElementById('i-times').value.split('\n').map(t=>t.trim()).filter(Boolean) });
+    toast('Instrucciones guardadas ✓','success');
+  } catch(e) { toast('Error: '+e.message,'danger'); }
+}
+
+// ── ORDERS ──
+async function loadOrders() {
+  try {
+    const orders = await api('GET','/orders');
+    document.getElementById('stat-orders').textContent = orders.length;
+    document.getElementById('orders-list').innerHTML = orders.length ? orders.map(o=>`
+      <div class="order-item">
+        <div style="flex:1">
+          <div style="font-size:11px;color:var(--gold);font-weight:600">⭐ Prioridad ${o.priority}${o.focus_theme?' · '+o.focus_theme:''}</div>
+          <div style="font-size:13px;color:var(--text);margin-top:2px">${o.instruction}</div>
+          ${o.start_date?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${o.start_date}${o.end_date?' → '+o.end_date:''}</div>`:''}
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="removeOrder(${o.id})" title="Completar">✕</button>
+      </div>`).join('') : '<div class="empty-state"><span>📌</span><p>No hay órdenes activas</p></div>';
+  } catch(e) { toast('Error: '+e.message,'danger'); }
+}
+async function addOrder() {
+  const instruction=document.getElementById('o-instruction').value.trim();
+  if(!instruction){toast('Escribe una instrucción primero','danger');return;}
+  try {
+    await api('POST','/orders',{ instruction, focus_theme: document.getElementById('o-theme').value, priority: Number(document.getElementById('o-priority').value)||1, start_date: document.getElementById('o-start').value||null, end_date: document.getElementById('o-end').value||null });
+    ['o-instruction','o-theme','o-start','o-end'].forEach(id=>document.getElementById(id).value='');
+    toast('Orden agregada ✓','success'); loadOrders();
+  } catch(e) { toast('Error: '+e.message,'danger'); }
+}
+async function removeOrder(id) {
+  try { await api('DELETE','/orders/'+id); toast('Orden completada ✓','success'); loadOrders(); }
+  catch(e) { toast('Error: '+e.message,'danger'); }
+}
+
+// ── GENERATE ──
+async function generateContent() {
+  const btn=document.getElementById('btn-generate'), sp=document.getElementById('gen-spinner');
+  btn.disabled=true; sp.style.display='block'; btn.lastChild.textContent=' Generando con IA...';
+  try {
+    const r=await api('POST','/generate');
+    toast(`✨ Se generaron ${r.generated} posts exitosamente`,'success');
+    loadDashboard();
+  } catch(e) { toast('Error: '+e.message,'danger'); }
+  finally { btn.disabled=false; sp.style.display='none'; btn.lastChild.textContent=' Generar 5 posts ahora'; }
+}
+
+// ── PENDING POSTS ──
+let _cache={};
+async function loadPendingPosts() {
+  const grid=document.getElementById('pending-grid');
+  grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><span>⏳</span><p>Cargando...</p></div>';
+  try {
+    const posts=await api('GET','/posts/pending');
+    _cache={}; posts.forEach(p=>{_cache[p.id]=p;});
+    grid.innerHTML=posts.length ? posts.map(p=>{
+      const badgeClass={pending:'badge-pending',approved:'badge-approved',rejected:'badge-rejected',published:'badge-published'}[p.status]||'';
+      const statusLabel={pending:'Pendiente',approved:'Aprobado',rejected:'Rechazado',published:'Publicado'}[p.status]||p.status;
+      const date=p.scheduled_time?new Date(p.scheduled_time).toLocaleString('es-GT',{dateStyle:'short',timeStyle:'short'}):'—';
+      return `<div class="post-card">
+        <div class="post-image">
+          ${p.image_url?`<img src="${p.image_url}" onerror="this.parentElement.innerHTML='<div style=font-size:40px;color:#2e3347>🏠</div>'">`:'<div style="font-size:40px;color:#2e3347">🏠</div>'}
+          <span class="badge ${badgeClass}">${statusLabel}</span>
+        </div>
+        <div class="post-body">
+          <div class="post-theme">${p.theme||'Sin tema'}</div>
+          <div class="post-caption">${p.instagram_caption||p.content||''}</div>
+          <div class="post-hashtags">${(p.hashtags||[]).slice(0,4).join(' ')}</div>
+        </div>
+        <div class="post-date">📅 ${date}</div>
+        <div class="post-actions">
+          ${p.status==='pending'?`<button class="btn btn-success btn-sm" onclick="approvePost(${p.id})">✓ Aprobar</button><button class="btn btn-danger btn-sm" onclick="rejectPost(${p.id})">✕</button>`:''}
+          ${p.status==='approved'?`<button class="btn btn-primary btn-sm" onclick="publishPost(${p.id})">📤 Publicar</button>`:''}
+          <button class="btn btn-ghost btn-sm" onclick="openPostModal(${p.id})">Ver</button>
+        </div>
+      </div>`;}).join('') : '<div class="empty-state" style="grid-column:1/-1"><span>✨</span><p>No hay posts pendientes.</p></div>';
+  } catch(e) { grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1"><span>❌</span><p>${e.message}</p></div>`; }
+}
+async function approvePost(id) {
+  try { await api('PUT',`/posts/${id}/approve`,{}); toast('Post aprobado ✓','success'); loadPendingPosts(); loadDashboard(); }
+  catch(e) { toast('Error: '+e.message,'danger'); }
+}
+async function rejectPost(id) {
+  const notes=prompt('Motivo del rechazo (opcional):')||'';
+  try { await api('PUT',`/posts/${id}/reject`,{notes}); toast('Post rechazado'); loadPendingPosts(); loadDashboard(); }
+  catch(e) { toast('Error: '+e.message,'danger'); }
+}
+async function publishPost(id) {
+  if(!confirm('¿Publicar este post en Instagram ahora?'))return;
+  try { await api('POST',`/posts/${id}/publish`); toast('Publicado en Instagram ✓','success'); loadPendingPosts(); loadDashboard(); }
+  catch(e) { toast('Error: '+e.message,'danger'); }
+}
+
+// ── POST MODAL ──
+function openPostModal(id) {
+  const p=_cache[id]; if(!p)return;
+  document.getElementById('modal-theme').textContent=p.theme||'Detalle';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="form-group"><label>Instagram Caption</label><textarea id="m-ig" rows="5">${p.instagram_caption||''}</textarea></div>
+    <div class="form-group"><label>Facebook Caption</label><textarea id="m-fb" rows="5">${p.facebook_caption||''}</textarea></div>
+    <div class="form-group"><label>Hashtags (uno por línea)</label><textarea id="m-tags" rows="3">${(p.hashtags||[]).join('\n')}</textarea></div>
+    <div class="form-group"><label>Descripción de imagen ideal</label><textarea rows="3" readonly style="color:var(--muted)">${p.image_description||'—'}</textarea></div>
+    <div class="form-group"><label>Horario programado</label><input type="datetime-local" id="m-sched" value="${p.scheduled_time?p.scheduled_time.slice(0,16):''}"></div>`;
+  document.getElementById('modal-actions').innerHTML=`
+    <button class="btn btn-ghost btn-sm" onclick="closePostModal()">Cancelar</button>
+    <button class="btn btn-primary btn-sm" onclick="savePostEdits(${id})">Guardar</button>
+    ${p.status==='pending'?`<button class="btn btn-success btn-sm" onclick="approvePost(${id});closePostModal()">Aprobar</button>`:''}`;
+  document.getElementById('post-modal').classList.add('open');
+}
+async function savePostEdits(id) {
+  try {
+    await api('PUT',`/posts/${id}`,{ instagram_caption: document.getElementById('m-ig').value, facebook_caption: document.getElementById('m-fb').value, hashtags: document.getElementById('m-tags').value.split('\n').map(h=>h.trim()).filter(Boolean), scheduled_time: document.getElementById('m-sched').value||null });
+    toast('Post actualizado ✓','success'); closePostModal(); loadPendingPosts();
+  } catch(e) { toast('Error: '+e.message,'danger'); }
+}
+function closePostModal() { document.getElementById('post-modal').classList.remove('open'); }
+document.getElementById('post-modal').addEventListener('click',e=>{if(e.target===document.getElementById('post-modal'))closePostModal();});
+
+// ── HISTORY ──
+async function loadHistory() {
+  const cont=document.getElementById('history-list');
+  try {
+    const posts=await api('GET','/posts/published');
+    cont.innerHTML=posts.length?posts.map(p=>`
+      <div class="history-item">
+        <div class="history-thumb">${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.textContent='🏠'">`:'🏠'}</div>
+        <div class="history-info">
+          <div class="history-theme">${p.theme||'Sin tema'}</div>
+          <div class="history-caption">${p.instagram_caption||p.content||''}</div>
+          <div class="history-date">📅 ${p.published_at?new Date(p.published_at).toLocaleString('es-GT',{dateStyle:'medium',timeStyle:'short'}):'—'}${p.instagram_post_id?` · <a href="https://instagram.com/p/${p.instagram_post_id}" target="_blank" style="color:var(--info)">Ver en IG</a>`:''}</div>
+        </div>
+      </div>`).join(''):'<div class="empty-state"><span>✅</span><p>Aún no hay posts publicados</p></div>';
+  } catch(e) { cont.innerHTML=`<div class="empty-state"><span>❌</span><p>${e.message}</p></div>`; }
+}
+
+loadDashboard();
+</script>
+</body>
+</html>
