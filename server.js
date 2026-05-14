@@ -160,7 +160,7 @@ app.get('/portal.html',          html('portal.html'));
 app.get('/portal-cliente.html',  html('portal-cliente.html'));
 app.get('/landing.html',         html('landing.html'));
 app.get('/real-estate.html',          html('real-estate.html'));
-app.get('/marketing-agent-panel.html', html('marketing-agent-panel.html'));
+app.get('/marketing-agent-panel.html', html('public/marketing-agent-panel.html'));
 app.get('/as-built.html',   html('as-built.html'));
 app.get('/construccion.html',html('construccion.html'));
 
