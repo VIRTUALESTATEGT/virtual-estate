@@ -156,6 +156,9 @@ const html = (file) => (req, res) => res.sendFile(path.join(__dirname, file));
 app.get('/',                html('index.html'));
 app.get('/index.html',      html('index.html'));
 app.get('/admin.html',                 html('admin.html'));
+app.get('/test-debug', (req, res) => {
+  res.json({ message: 'Server is working', __dirname: __dirname });
+});
 app.get('/marketing-agent-panel.html', (req, res) => {
   const fs = require('fs');
   const filePath = require('path').join(__dirname, 'public', 'marketing-agent-panel.html');
