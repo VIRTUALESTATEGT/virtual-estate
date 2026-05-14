@@ -112,6 +112,8 @@ app.use('/api/cotizaciones',  authMiddleware, requireMinRole('asistente'), cotiz
 app.use('/api/agentes',       authMiddleware, requireMinRole('gerente'),   agentesRouter);
 const constructoresRouter = require('./src/routes/constructores');
 app.use('/api/constructores', authMiddleware, requireMinRole('asistente'), constructoresRouter);
+const marketingAgentRouter = require('./src/routes/marketing-agent');
+app.use('/api/marketing', authMiddleware, requireMinRole('gerente'), marketingAgentRouter);
 app.use('/api/usuarios',      authMiddleware, requireSuperadmin,           usuariosRouter);
 app.use('/api/agente-ia',     authMiddleware, requireMinRole('asistente'), agenteIARouter);
 app.use('/api/conversaciones',authMiddleware, requireMinRole('asistente'), conversacionesRouter);
@@ -157,7 +159,8 @@ app.get('/admin.html',      html('admin.html'));
 app.get('/portal.html',          html('portal.html'));
 app.get('/portal-cliente.html',  html('portal-cliente.html'));
 app.get('/landing.html',         html('landing.html'));
-app.get('/real-estate.html',html('real-estate.html'));
+app.get('/real-estate.html',          html('real-estate.html'));
+app.get('/marketing-agent-panel.html', html('marketing-agent-panel.html'));
 app.get('/as-built.html',   html('as-built.html'));
 app.get('/construccion.html',html('construccion.html'));
 
