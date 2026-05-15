@@ -199,6 +199,12 @@ router.put('/posts/:id', async (req, res) => {
 // ============================================================
 
 router.post('/generate', async (req, res) => {
+  // DEBUG
+  console.log('Variables de entorno disponibles:', Object.keys(process.env).filter(k => k.includes('CLAUDE') || k.includes('SUPABASE')));
+  console.log('CLAUDE_API_KEY:', process.env.CLAUDE_API_KEY ? 'definida' : 'UNDEFINED');
+  console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? 'definida' : 'UNDEFINED');
+  console.log('SUPABASE_SECRET_KEY:', process.env.SUPABASE_SECRET_KEY ? 'definida' : 'UNDEFINED');
+
   if (!process.env.SUPABASE_URL)        return res.status(500).json({ error: 'SUPABASE_URL no configurada en Vercel' });
   if (!process.env.SUPABASE_SECRET_KEY) return res.status(500).json({ error: 'SUPABASE_SECRET_KEY no configurada en Vercel' });
   if (!process.env.CLAUDE_API_KEY)      return res.status(500).json({ error: 'CLAUDE_API_KEY no configurada en Vercel' });
