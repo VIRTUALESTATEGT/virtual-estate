@@ -5,7 +5,10 @@ const supabase = require('../config/supabase');
 const Anthropic = require('@anthropic-ai/sdk');
 const axios    = require('axios');
 
-const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
+const getAnthropicClient = (req) => {
+  const apiKey = req?.headers?.['x-api-key'] || process.env.CLAUDE_API_KEY;
+  return new Anthropic({ apiKey });
+};
 
 const INSTAGRAM_API        = 'https://graph.instagram.com/v18.0';
 const INSTAGRAM_ACCOUNT_ID = process.env.INSTAGRAM_ACCOUNT_ID || '';
@@ -207,7 +210,7 @@ router.post('/generate', async (req, res) => {
       supabase.from('pending_orders').select('*').eq('business_id', biz).eq('status', 'active')
     ]);
 
-    const message = await client.messages.create({
+    const message = await getAnthropicClient(req).messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 3000,
       messages: [{ role: 'user', content: buildGenerationPrompt(brand, instructions, orders) }]
