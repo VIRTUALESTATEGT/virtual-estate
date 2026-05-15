@@ -306,14 +306,11 @@ Responde ÚNICAMENTE con un JSON array válido, sin texto adicional:
 }
 
 function parseGeneratedContent(content) {
-  try {
-    const match = content.match(/\[[\s\S]*\]/);
-    if (!match) throw new Error('No JSON array found');
-    return JSON.parse(match[0]).map((post, idx) => ({ ...post, scheduled_time: calculateScheduleTime(idx) }));
-  } catch (e) {
-    console.error('[parseGeneratedContent]', e.message);
-    return [];
-  }
+  // Strip markdown code fences if present
+  const cleaned = content.replace(/```(?:json)?\s*/gi, '').replace(/```/g, '').trim();
+  const match = cleaned.match(/\[[\s\S]*\]/);
+  if (!match) throw new Error(`No JSON array found in Claude response. Preview: ${cleaned.slice(0, 200)}`);
+  return JSON.parse(match[0]).map((post, idx) => ({ ...post, scheduled_time: calculateScheduleTime(idx) }));
 }
 
 function calculateScheduleTime(index) {
