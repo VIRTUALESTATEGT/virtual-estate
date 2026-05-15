@@ -301,18 +301,17 @@ ${orders?.map(o => `- [Prioridad ${o.priority}] ${o.instruction}`).join('\n') ||
 Genera exactamente 5 posts. Para cada uno incluye TODOS estos campos:
 - theme, content, instagram_caption, facebook_caption, hashtags (array), image_description
 
-Responde ÚNICAMENTE con un JSON array válido, sin texto adicional:
+Responde SOLO con un JSON array válido, sin backticks, sin etiqueta "json", sin explicación. Directamente el array:
 [{"theme":"...","content":"...","instagram_caption":"...","facebook_caption":"...","hashtags":["..."],"image_description":"..."}]`;
 }
 
 function parseGeneratedContent(content) {
-  const cleaned = content
-    .replace(/^```(?:json)?\n?/, '')
-    .replace(/\n?```$/, '')
-    .trim();
-  const match = cleaned.match(/\[[\s\S]*\]/);
-  if (!match) throw new Error(`No JSON array found in Claude response. Preview: ${cleaned.slice(0, 200)}`);
-  return JSON.parse(match[0]).map((post, idx) => ({ ...post, scheduled_time: calculateScheduleTime(idx) }));
+  let jsonStr = content.trim();
+  if (jsonStr.startsWith('```')) {
+    jsonStr = jsonStr.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
+  }
+  const posts = JSON.parse(jsonStr);
+  return posts.map((post, idx) => ({ ...post, scheduled_time: calculateScheduleTime(idx) }));
 }
 
 function calculateScheduleTime(index) {
