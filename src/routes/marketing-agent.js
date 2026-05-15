@@ -216,7 +216,9 @@ router.post('/generate', async (req, res) => {
       messages: [{ role: 'user', content: buildGenerationPrompt(brand, instructions, orders) }]
     });
 
+    console.log('[generate] Claude raw response:', message.content[0].text.slice(0, 300));
     const posts = parseGeneratedContent(message.content[0].text);
+    console.log('[generate] Posts parsed:', posts.length);
     const inserted = [];
     for (const post of posts) {
       const { data, error } = await supabase
@@ -235,7 +237,8 @@ router.post('/generate', async (req, res) => {
           scheduled_time:    post.scheduled_time
         })
         .select().single();
-      if (!error) inserted.push(data);
+      if (error) console.error('[generate] Insert error:', error.message, error.code);
+      else inserted.push(data);
     }
 
     res.json({ generated: inserted.length, posts: inserted });
