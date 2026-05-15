@@ -306,11 +306,18 @@ Responde SOLO con un JSON array válido, sin backticks, sin etiqueta "json", sin
 }
 
 function parseGeneratedContent(content) {
-  let jsonStr = content.trim();
-  if (jsonStr.startsWith('```')) {
-    jsonStr = jsonStr.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
+  let posts = [];
+  const jsonMatch = content.match(/\[[\s\S]*\]/);
+  if (jsonMatch) {
+    try {
+      posts = JSON.parse(jsonMatch[0]);
+    } catch (e) {
+      const cleaned = jsonMatch[0].replace(/\n/g, ' ').replace(/\r/g, '');
+      posts = JSON.parse(cleaned);
+    }
+  } else {
+    throw new Error('No JSON array found in Claude response');
   }
-  const posts = JSON.parse(jsonStr);
   return posts.map((post, idx) => ({ ...post, scheduled_time: calculateScheduleTime(idx) }));
 }
 
