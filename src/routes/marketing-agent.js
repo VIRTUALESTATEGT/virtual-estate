@@ -210,14 +210,55 @@ router.post('/generate', async (req, res) => {
       supabase.from('pending_orders').select('*').eq('business_id', biz).eq('status', 'active')
     ]);
 
+    const numPosts = 5;
+    const systemPrompt = buildSystemPrompt(brand, instructions);
+    const userPrompt = `
+Genera ${numPosts} posts para redes sociales de Virtual Estate GT.
+
+IMPORTANTE: Devuelve EXACTAMENTE en este formato (sin JSON, sin markdown, sin backticks):
+
+---POST---
+content: Texto del post aquí (1-2 párrafos)
+hashtags: #hashtag1 #hashtag2 #hashtag3
+theme: Tema/categoría del post
+---POST---
+content: Siguiente post
+hashtags: #tag1 #tag2
+theme: Tema
+---POST---
+
+Repite el patrón ${numPosts} veces.
+${orders?.length ? '\nÓRDENES ACTIVAS:\n' + orders.map(o => `- [Prioridad ${o.priority}] ${o.instruction}`).join('\n') : ''}
+`;
+
     const message = await getAnthropicClient(req).messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 3000,
-      messages: [{ role: 'user', content: buildGenerationPrompt(brand, instructions, orders) }]
+      model: 'claude-opus-4-6',
+      max_tokens: 2000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }]
     });
 
-    console.log('[generate] Claude raw response:', message.content[0].text.slice(0, 300));
-    const posts = parseGeneratedContent(message.content[0].text);
+    const claudeResponse = message.content[0].text;
+    console.log('[generate] Claude raw response:', claudeResponse.slice(0, 300));
+
+    const postBlocks = claudeResponse.split('---POST---').filter(block => block.trim());
+    const posts = postBlocks.map((block, idx) => {
+      const lines = block.split('\n').map(l => l.trim()).filter(l => l);
+      const content = lines.find(l => l.startsWith('content:'))?.replace('content:', '').trim() || '';
+      const hashtags = lines.find(l => l.startsWith('hashtags:'))?.replace('hashtags:', '').trim() || '';
+      const theme = lines.find(l => l.startsWith('theme:'))?.replace('theme:', '').trim() || 'General';
+      return {
+        content,
+        hashtags: hashtags.split(' ').filter(h => h.startsWith('#')),
+        theme,
+        image_url: null,
+        image_description: null,
+        instagram_caption: content,
+        facebook_caption: content,
+        scheduled_time: calculateScheduleTime(idx)
+      };
+    }).filter(p => p.content);
+
     console.log('[generate] Posts parsed:', posts.length);
     const inserted = [];
     for (const post of posts) {
@@ -226,12 +267,12 @@ router.post('/generate', async (req, res) => {
         .insert({
           business_id: biz,
           content:           post.content,
-          image_url:         post.image_url || null,
+          image_url:         null,
           instagram_caption: post.instagram_caption,
           facebook_caption:  post.facebook_caption,
           hashtags:          post.hashtags,
           theme:             post.theme,
-          image_description: post.image_description || null,
+          image_description: null,
           source:            'auto',
           status:            'pending',
           scheduled_time:    post.scheduled_time
@@ -280,46 +321,18 @@ router.post('/posts/:id/publish', async (req, res) => {
 // HELPERS
 // ============================================================
 
-function buildGenerationPrompt(brand, instructions, orders) {
-  return `Eres un generador de contenido para redes sociales de Virtual Estate GT, empresa inmobiliaria y de escaneo 3D en Guatemala.
+function buildSystemPrompt(brand, instructions) {
+  return `Eres un experto en marketing inmobiliario para Virtual Estate GT, empresa de escaneo 3D y fotografía inmobiliaria en Guatemala.
 
 IDENTIDAD DE MARCA:
-- Color primario: ${brand?.color_primary || '#2D5016'}
-- Color secundario: ${brand?.color_secondary || '#B8860B'}
 - Guidelines: ${brand?.brand_guidelines || 'Profesional, elegante, enfocado en propiedades'}
 
-INSTRUCCIONES GLOBALES:
+INSTRUCCIONES:
 - Tono: ${instructions?.tone || 'profesional'}
-- Hashtags: ${(instructions?.hashtags || ['#inmobiliarioGuatemala','#virtualestate']).join(' ')}
-- CTA: ${instructions?.required_cta || 'Contáctanos por WhatsApp'}
-- Posts por semana: ${instructions?.min_posts_per_week || 5}
-- Horarios: ${(instructions?.publish_times || ['09:00','13:00','18:00']).join(', ')}
-
-ÓRDENES ACTIVAS:
-${orders?.map(o => `- [Prioridad ${o.priority}] ${o.instruction}`).join('\n') || '- Genera contenido inmobiliario general de Virtual Estate GT'}
-
-Genera exactamente 5 posts. Para cada uno incluye TODOS estos campos:
-- theme, content, instagram_caption, facebook_caption, hashtags (array), image_description
-
-Responde SOLO con un JSON array válido, sin backticks, sin etiqueta "json", sin explicación. Directamente el array:
-[{"theme":"...","content":"...","instagram_caption":"...","facebook_caption":"...","hashtags":["..."],"image_description":"..."}]`;
+- Hashtags preferidos: ${(instructions?.hashtags || ['#inmobiliarioGuatemala', '#virtualestate']).join(' ')}
+- CTA: ${instructions?.required_cta || 'Contáctanos por WhatsApp'}`;
 }
 
-function parseGeneratedContent(content) {
-  let posts = [];
-  const jsonMatch = content.match(/\[[\s\S]*\]/);
-  if (jsonMatch) {
-    try {
-      posts = JSON.parse(jsonMatch[0]);
-    } catch (e) {
-      const cleaned = jsonMatch[0].replace(/\n/g, ' ').replace(/\r/g, '');
-      posts = JSON.parse(cleaned);
-    }
-  } else {
-    throw new Error('No JSON array found in Claude response');
-  }
-  return posts.map((post, idx) => ({ ...post, scheduled_time: calculateScheduleTime(idx) }));
-}
 
 function calculateScheduleTime(index) {
   const times = ['09:00', '13:00', '18:00'];
