@@ -213,18 +213,26 @@ router.post('/generate', async (req, res) => {
     const numPosts = 5;
     const systemPrompt = buildSystemPrompt(brand, instructions);
     const userPrompt = `
-Genera ${numPosts} posts para redes sociales de Virtual Estate GT.
+Genera ${numPosts} posts para redes sociales en formato simple.
 
-IMPORTANTE: Devuelve EXACTAMENTE en este formato (sin JSON, sin markdown, sin backticks):
+IMPORTANTE: Devuelve EXACTAMENTE en este formato:
 
 ---POST---
-content: Texto del post aquí (1-2 párrafos)
-hashtags: #hashtag1 #hashtag2 #hashtag3
-theme: Tema/categoría del post
-image_prompt: Descripción detallada para generar imagen en DALL-E (máximo 1 línea)
+content: Texto del post aquí
+hashtags: #hashtag1 #hashtag2
+theme: Tema del post
+image_prompt: [DESCRIPCIÓN DETALLADA PARA DALL-E/MIDJOURNEY] Profesional real estate image featuring [main subject], [specific details], high-quality photography style, [color palette: primarily dark green #2D5016 and gold #B8860B accents], [lighting description], [composition], modern minimalist aesthetic, sharp focus, architectural details visible, [additional specific elements related to real estate/Guatemala market]
 ---POST---
 
-Repite el patrón ${numPosts} veces.
+IMPORTANTE en image_prompt:
+- Sé EXTREMADAMENTE DETALLADO y ESPECÍFICO
+- Incluye: qué va en la imagen, detalles arquitectónicos, colores exactos (#2D5016 verde oscuro, #B8860B oro)
+- Especifica: estilo fotográfico, iluminación, composición, ángulo de cámara
+- Añade: materiales, texturas, elementos decorativos
+- Menciona: estado de ánimo, profesionalismo, calidad de producción
+- NO uses "imagen profesional y atractiva" — sé específico con cada elemento
+
+Repite ${numPosts} veces.
 ${orders?.length ? '\nÓRDENES ACTIVAS:\n' + orders.map(o => `- [Prioridad ${o.priority}] ${o.instruction}`).join('\n') : ''}
 `;
 
