@@ -102,6 +102,7 @@ const conversacionesRouter = require('./src/routes/conversaciones');
 const verificacionRouter = require('./src/routes/verificacion');
 const agenteSolicitudRouter  = require('./src/routes/agente-solicitud');
 const marketingAgent         = require('./src/routes/marketing-agent');
+const imageGallery           = require('./src/routes/image-gallery');
 
 const { requireMinRole, requirePortalOrStaff, requireSuperadmin } = require('./src/middleware/roles');
 
@@ -111,6 +112,7 @@ app.use('/api/propiedades',   authMiddleware, requireMinRole('asistente'), propi
 app.use('/api/proyectos',     authMiddleware, requireMinRole('asistente'), proyectosRouter);
 app.use('/api/cotizaciones',  authMiddleware, requireMinRole('asistente'), cotizacionesRouter);
 app.use('/api/marketing',    authMiddleware, requireMinRole('gerente'),   marketingAgent);
+app.use('/api/gallery',      authMiddleware, requireMinRole('gerente'),   imageGallery);
 app.use('/api/agentes',       authMiddleware, requireMinRole('gerente'),   agentesRouter);
 const constructoresRouter = require('./src/routes/constructores');
 app.use('/api/constructores', authMiddleware, requireMinRole('asistente'), constructoresRouter);
