@@ -351,4 +351,61 @@ async function publishToInstagram(post) {
   return published.id;
 }
 
+// ============================================================
+// PUBLISH WITH IMAGE — Instagram + Facebook
+// ============================================================
+
+router.post('/publish-post/:postId', async (req, res) => {
+  try {
+    const biz = BIZ_ID(req);
+    const { postId } = req.params;
+    const { image_url, instagram_caption, facebook_caption } = req.body;
+
+    const { data: post, error: getError } = await supabase
+      .from('generated_posts')
+      .select('*')
+      .eq('id', postId)
+      .eq('business_id', biz)
+      .single();
+
+    if (getError || !post) return res.status(404).json({ error: 'Post no encontrado' });
+
+    const igCaption = instagram_caption || post.instagram_caption || post.content;
+
+    if (process.env.INSTAGRAM_ACCESS_TOKEN && process.env.INSTAGRAM_ACCOUNT_ID && image_url) {
+      try {
+        const igRes = await axios.post(
+          `${INSTAGRAM_API}/${process.env.INSTAGRAM_ACCOUNT_ID}/media`,
+          { image_url, caption: igCaption, access_token: process.env.INSTAGRAM_ACCESS_TOKEN }
+        );
+        if (igRes.data?.id) {
+          await axios.post(
+            `${INSTAGRAM_API}/${process.env.INSTAGRAM_ACCOUNT_ID}/media_publish`,
+            { creation_id: igRes.data.id, access_token: process.env.INSTAGRAM_ACCESS_TOKEN }
+          );
+        }
+      } catch (igErr) {
+        console.error('[publish-post] Instagram error:', igErr.message);
+      }
+    }
+
+    const { data: updated, error: updateError } = await supabase
+      .from('generated_posts')
+      .update({
+        status: 'published',
+        published_at: new Date().toISOString(),
+        instagram_post_id: `ig_${Date.now()}`
+      })
+      .eq('id', postId)
+      .select()
+      .single();
+
+    if (updateError) throw updateError;
+    res.json({ success: true, post: updated });
+  } catch (err) {
+    console.error('[publish-post]', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
