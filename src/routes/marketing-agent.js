@@ -221,10 +221,7 @@ IMPORTANTE: Devuelve EXACTAMENTE en este formato (sin JSON, sin markdown, sin ba
 content: Texto del post aquí (1-2 párrafos)
 hashtags: #hashtag1 #hashtag2 #hashtag3
 theme: Tema/categoría del post
----POST---
-content: Siguiente post
-hashtags: #tag1 #tag2
-theme: Tema
+image_prompt: Descripción detallada para generar imagen en DALL-E (máximo 1 línea)
 ---POST---
 
 Repite el patrón ${numPosts} veces.
@@ -244,15 +241,17 @@ ${orders?.length ? '\nÓRDENES ACTIVAS:\n' + orders.map(o => `- [Prioridad ${o.p
     const postBlocks = claudeResponse.split('---POST---').filter(block => block.trim());
     const posts = postBlocks.map((block, idx) => {
       const lines = block.split('\n').map(l => l.trim()).filter(l => l);
-      const content = lines.find(l => l.startsWith('content:'))?.replace('content:', '').trim() || '';
-      const hashtags = lines.find(l => l.startsWith('hashtags:'))?.replace('hashtags:', '').trim() || '';
-      const theme = lines.find(l => l.startsWith('theme:'))?.replace('theme:', '').trim() || 'General';
+      const content      = lines.find(l => l.startsWith('content:'))?.replace('content:', '').trim() || '';
+      const hashtags     = lines.find(l => l.startsWith('hashtags:'))?.replace('hashtags:', '').trim() || '';
+      const theme        = lines.find(l => l.startsWith('theme:'))?.replace('theme:', '').trim() || 'General';
+      const image_prompt = lines.find(l => l.startsWith('image_prompt:'))?.replace('image_prompt:', '').trim() || 'Imagen profesional relacionada al tema';
       return {
         content,
         hashtags: hashtags.split(' ').filter(h => h.startsWith('#')),
         theme,
+        image_prompt,
         image_url: null,
-        image_description: null,
+        image_description: image_prompt,
         instagram_caption: content,
         facebook_caption: content,
         scheduled_time: calculateScheduleTime(idx)
