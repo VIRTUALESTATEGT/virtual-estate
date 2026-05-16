@@ -1,6 +1,8 @@
 const express = require('express');
+const multer  = require('multer');
 const supabase = require('../config/supabase');
 const router = express.Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
 const BIZ_ID = (req) => req.user?.id || 'virtual-estate';
 
@@ -106,19 +108,18 @@ router.delete('/references/:id', async (req, res) => {
 });
 
 // POST - Subir archivo a Supabase Storage y guardar en BD
-router.post('/upload-image', async (req, res) => {
+router.post('/upload-image', upload.single('file'), async (req, res) => {
   try {
     const businessId = BIZ_ID(req);
-    const { file, description, category, type } = req.body;
 
-    if (!file) return res.status(400).json({ error: 'No file provided' });
+    if (!req.file) return res.status(400).json({ error: 'No file provided' });
 
-    const buffer = Buffer.from(file.split(',')[1], 'base64');
-    const fileName = `${businessId}/${type}/${Date.now()}.jpg`;
+    const { type, description, category, what_to_copy } = req.body;
+    const fileName = `${businessId}/${type}/${Date.now()}-${req.file.originalname}`;
 
     const { error: uploadError } = await supabase.storage
       .from('virtual-estate-images')
-      .upload(fileName, buffer, { contentType: 'image/jpeg' });
+      .upload(fileName, req.file.buffer, { contentType: req.file.mimetype });
 
     if (uploadError) throw uploadError;
 
@@ -135,7 +136,7 @@ router.post('/upload-image', async (req, res) => {
       insertData.image_description = description;
     } else {
       insertData.reference_description = description;
-      insertData.what_to_copy = description;
+      insertData.what_to_copy = what_to_copy;
     }
 
     const { data: dbData, error: dbError } = await supabase
