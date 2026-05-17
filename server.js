@@ -177,6 +177,108 @@ app.use('/assets',    express.static(path.join(__dirname, 'images', 'assets'), {
 app.use('/images',    express.static(path.join(__dirname, 'images'),    { dotfiles: 'ignore' }));
 app.use('/documentos',express.static(path.join(__dirname, 'documentos'),{ dotfiles: 'ignore' }));
 
+// ============================================================
+// WHATSAPP WEBHOOK — Meta Business API
+// ============================================================
+
+const _waSupabase = require('./src/config/supabase');
+const _waAnthropic = new (require('@anthropic-ai/sdk'))({ apiKey: process.env.CLAUDE_API_KEY });
+
+async function _waGenerateResponse(phone, userMessage) {
+  // Historial reciente (últimas 10 conversaciones)
+  const { data: history } = await _waSupabase
+    .from('whatsapp_messages')
+    .select('message, direction')
+    .eq('phone_number', phone)
+    .order('timestamp', { ascending: false })
+    .limit(10);
+
+  const historyMessages = (history || []).reverse().map(m => ({
+    role: m.direction === 'incoming' ? 'user' : 'assistant',
+    content: m.message
+  }));
+
+  historyMessages.push({ role: 'user', content: userMessage });
+
+  const response = await _waAnthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 500,
+    system: `Eres el asistente virtual de Virtual Estate GT, empresa de escaneo 3D, fotografía inmobiliaria y documentación técnica en Guatemala. Responde de forma amigable, profesional y concisa. Si el cliente pregunta por precios o servicios específicos, indícale que te ponga en contacto con un asesor. CTA: "Escríbenos al WhatsApp empresarial para más información."`,
+    messages: historyMessages
+  });
+
+  return response.content[0].text;
+}
+
+async function _waSendMessage(phone, message) {
+  const axios = require('axios');
+  const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const token   = process.env.WHATSAPP_ACCESS_TOKEN;
+  if (!phoneId || !token || token === 'pendiente_cuando_meta_apruebe') return;
+
+  await axios.post(
+    `https://graph.facebook.com/v18.0/${phoneId}/messages`,
+    {
+      messaging_product: 'whatsapp',
+      to: phone,
+      type: 'text',
+      text: { body: message }
+    },
+    { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
+  );
+}
+
+// GET — verificación del webhook por Meta
+app.get('/api/whatsapp/webhook', (req, res) => {
+  const mode      = req.query['hub.mode'];
+  const token     = req.query['hub.verify_token'];
+  const challenge = req.query['hub.challenge'];
+  if (mode === 'subscribe' && token === process.env.WHATSAPP_VERIFY_TOKEN) {
+    console.log('[WhatsApp] Webhook verificado');
+    return res.status(200).send(challenge);
+  }
+  res.sendStatus(403);
+});
+
+// POST — recibir mensajes entrantes
+app.post('/api/whatsapp/webhook', async (req, res) => {
+  res.sendStatus(200); // Meta requiere 200 inmediato
+
+  try {
+    const entry   = req.body?.entry?.[0];
+    const changes = entry?.changes?.[0]?.value;
+    const msg     = changes?.messages?.[0];
+    if (!msg || msg.type !== 'text') return;
+
+    const phone      = msg.from;
+    const text       = msg.text?.body || '';
+    const message_id = msg.id;
+
+    // Guardar mensaje entrante
+    await _waSupabase.from('whatsapp_messages').insert({
+      phone_number: phone,
+      message: text,
+      message_id,
+      direction: 'incoming'
+    });
+
+    // Generar respuesta con Claude
+    const reply = await _waGenerateResponse(phone, text);
+
+    // Guardar respuesta saliente
+    await _waSupabase.from('whatsapp_messages').insert({
+      phone_number: phone,
+      message: reply,
+      direction: 'outgoing'
+    });
+
+    // Enviar respuesta a WhatsApp
+    await _waSendMessage(phone, reply);
+  } catch (e) {
+    console.error('[WhatsApp/webhook]', e.message);
+  }
+});
+
 // Exportar el app para Vercel (api/index.js lo importa)
 module.exports = app;
 
