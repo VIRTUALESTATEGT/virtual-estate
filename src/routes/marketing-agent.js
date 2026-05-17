@@ -379,21 +379,24 @@ router.post('/publish-post/:postId', async (req, res) => {
 
     const igCaption = instagram_caption || post.instagram_caption || post.content;
 
-    if (process.env.INSTAGRAM_ACCESS_TOKEN && process.env.INSTAGRAM_ACCOUNT_ID && image_url) {
-      try {
-        const igRes = await axios.post(
-          `${INSTAGRAM_API}/${process.env.INSTAGRAM_ACCOUNT_ID}/media`,
-          { image_url, caption: igCaption, access_token: process.env.INSTAGRAM_ACCESS_TOKEN }
-        );
-        if (igRes.data?.id) {
-          await axios.post(
-            `${INSTAGRAM_API}/${process.env.INSTAGRAM_ACCOUNT_ID}/media_publish`,
-            { creation_id: igRes.data.id, access_token: process.env.INSTAGRAM_ACCESS_TOKEN }
-          );
-        }
-      } catch (igErr) {
-        console.error('[publish-post] Instagram error:', igErr.message);
-      }
+    const igAccountId = process.env.INSTAGRAM_ACCOUNT_ID || '17841443547214652';
+    const igToken     = process.env.INSTAGRAM_ACCESS_TOKEN;
+    let   igPostId    = null;
+
+    if (igToken && image_url) {
+      const igRes = await axios.post(
+        `${INSTAGRAM_API}/${igAccountId}/media`,
+        { image_url, caption: igCaption, access_token: igToken }
+      );
+      if (!igRes.data?.id) throw new Error('Instagram no devolvió container ID');
+      const igPub = await axios.post(
+        `${INSTAGRAM_API}/${igAccountId}/media_publish`,
+        { creation_id: igRes.data.id, access_token: igToken }
+      );
+      igPostId = igPub.data?.id || null;
+      console.log('[publish-post] Instagram publicado:', igPostId);
+    } else {
+      console.log('[publish-post] Sin token o imagen — marcando publicado sin enviar a Instagram');
     }
 
     const { data: updated, error: updateError } = await supabase
@@ -401,7 +404,7 @@ router.post('/publish-post/:postId', async (req, res) => {
       .update({
         status: 'published',
         published_at: new Date().toISOString(),
-        instagram_post_id: `ig_${Date.now()}`
+        instagram_post_id: igPostId
       })
       .eq('id', postId)
       .select()
