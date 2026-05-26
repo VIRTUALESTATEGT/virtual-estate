@@ -3514,8 +3514,11 @@
         </tr>`).join('')}</tbody>
       </table>`;
     }
+    const descMontoDet=Number(det.descuento_monto)||0;
+    const descLabel=det.descuento_tipo==='porcentaje'?`Descuento (${det.descuento_valor||0}%)`:det.descuento_tipo==='cantidad_fija'?'Descuento (fijo)':'';
+    const descRowDet=descMontoDet>0&&descLabel?`<div><span style="color:var(--gray);">${descLabel}</span></div><div style="text-align:right;color:#E08080;">-${fmt(descMontoDet)}</div>`:'';
     const resumen=det.total?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-top:.6rem;font-size:.75rem;border-top:1px solid var(--border);padding-top:.5rem;">
-      <div><span style="color:var(--gray);">Descuento</span></div><div style="text-align:right;">${det.descuento_porcentaje||0}%</div>
+      ${descRowDet}
       <div><span style="color:var(--gray);">IVA 12%</span></div><div style="text-align:right;">${fmt(det.iva_monto)}</div>
       <div><b>TOTAL</b></div><div style="text-align:right;color:var(--gold);font-weight:700;">${fmt(det.total)}</div>
       <div><span style="color:var(--gray);">Anticipo</span></div><div style="text-align:right;">${c.anticipo?fmt(c.anticipo):'—'}</div>
@@ -3574,7 +3577,7 @@
       const unit=s.tipo_precio==='por_m2'?(s.cantidad||0)+' m²':s.tipo_precio==='cotizar'?'A cotizar':'1 unidad';
       return '<tr><td>'+( s.descripcion||'—')+'</td><td style="text-align:center">'+unit+'</td><td class="r">'+fmt(s.subtotal||0)+'</td></tr>';
     }).join('');
-    const discRow=descMonto>0?('<tr class="sub"><td colspan="2">'+(descTipo==='porcentaje'?'Descuento ('+descValor+'%)':'Descuento')+'</td><td class="r">-'+fmt(descMonto)+'</td></tr>'):'';
+    const discRow=descMonto>0?('<tr class="sub"><td colspan="2">'+(descTipo==='porcentaje'?'Descuento ('+descValorInput+'%)':'Descuento')+'</td><td class="r">-'+fmt(descMonto)+'</td></tr>'):'';
     const sub2Row=descMonto>0?('<tr class="sub"><td colspan="2">Subtotal neto</td><td class="r">'+fmt(subtotal2)+'</td></tr>'):'';
     const tbodyHtml=svcRows+
       '<tr><td></td><td></td><td></td></tr>'+

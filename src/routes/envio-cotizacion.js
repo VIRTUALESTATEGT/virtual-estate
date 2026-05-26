@@ -69,7 +69,9 @@ function buildCotizacionHTML(cot) {
 
   const machoteFile = path.join(process.cwd(), 'public', 'assets', 'machote-cotizacion.html');
   let html = fs.readFileSync(machoteFile, 'utf8');
+  // Strip scripts and external font links (Google Fonts blocks networkidle in serverless)
   html = html.replace(/<script[\s\S]*?<\/script>/gi, '');
+  html = html.replace(/<link[^>]*fonts\.(googleapis|gstatic)\.com[^>]*>/gi, '');
 
   const dataScript = `<script>(function(){
     var codEl=document.querySelector(".doc-codigo-valor");if(codEl)codEl.textContent=${JSON.stringify(codigo)};
@@ -103,7 +105,7 @@ async function generarCotizacionPDF(cot) {
 
     const page = await browser.newPage();
     const html = buildCotizacionHTML(cot);
-    await page.setContent(html, { waitUntil: 'networkidle0', timeout: 15000 });
+    await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 15000 });
     const pdf = await page.pdf({ format: 'A4', printBackground: true });
     return Buffer.from(pdf);
   } catch (puppErr) {
@@ -331,7 +333,7 @@ router.post('/email/enviar-cotizacion', async (req, res) => {
       attachments,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#fff;">
-          <div style="background:#0f0f0f;padding:1.5rem 2rem;text-align:center;border-bottom:3px solid #C19259;">
+          <div style="background:#0D4137;padding:1.5rem 2rem;text-align:center;border-bottom:3px solid #B09A6C;">
             <img src="${logoUrl}" alt="Virtual Estate GT" width="180" style="display:inline-block;max-width:180px;" />
           </div>
           <div style="padding:2rem 2rem 1rem;">
@@ -369,8 +371,8 @@ router.post('/email/enviar-cotizacion', async (req, res) => {
               o al <a href="tel:+50239902399" style="color:#C19259;text-decoration:none;">+502 3990 2399</a>
             </p>
           </div>
-          <div style="background:#0f0f0f;padding:1rem 2rem;text-align:center;">
-            <p style="font-size:.65rem;color:#666;margin:0;">Virtual Estate GT · Guatemala City · www.virtualestategt.com</p>
+          <div style="background:#0D4137;padding:1rem 2rem;text-align:center;">
+            <p style="font-size:.65rem;color:rgba(255,255,255,.6);margin:0;">Virtual Estate GT · Guatemala City · www.virtualestategt.com</p>
             <p style="font-size:.65rem;color:#555;margin:.3rem 0 0;">Si no solicitaste esta cotización, puedes ignorar este mensaje.</p>
           </div>
         </div>
