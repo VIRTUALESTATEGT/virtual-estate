@@ -1478,7 +1478,7 @@
       </div>
       <div class="form-group">
         <label class="form-label">Apellido</label>
-        <input type="text" class="form-control" placeholder="Apellido"/>
+        <input type="text" id="lead-apellido" class="form-control" placeholder="Apellido"/>
       </div>
     </div>
     <div class="form-row">
@@ -2438,7 +2438,7 @@
       const BADGE = { 'Nuevo':'badge-new','Contactado':'badge-contact','En seguimiento':'badge-contact','Cotizado':'badge-quote','Ganado':'badge-won','Perdido':'badge-lost' };
       tbody.innerHTML = leads.map(l => `<tr>
         <td style="color:var(--gray);font-size:.72rem;">${l.id || '—'}</td>
-        <td><span class="td-bold">${l.nombre||'—'}</span><br/><span style="color:var(--gray);font-size:.68rem;">${l.email||''}${l.telefono?' · '+l.telefono:''}</span></td>
+        <td><span class="td-bold">${capitalizarNombre([l.nombre,l.apellido].filter(Boolean).join(' '))||'—'}</span><br/><span style="color:var(--gray);font-size:.68rem;">${l.email||''}${l.telefono?' · '+l.telefono:''}</span></td>
         <td>${l.empresa||'—'}</td>
         <td>${l.servicio||'—'}</td>
         <td>${l.fuente||'—'}</td>
@@ -2459,6 +2459,7 @@
     const l = _leadsCache[id]; if (!l) return;
     _editLeadId = id;
     document.getElementById('lead-nombre').value    = l.nombre || '';
+    document.getElementById('lead-apellido').value  = l.apellido || '';
     document.getElementById('lead-email').value     = l.email || '';
     document.getElementById('lead-telefono').value  = l.telefono || '';
     document.getElementById('lead-empresa').value   = l.empresa || '';
@@ -2536,7 +2537,7 @@
   function closeModal() {
     _editLeadId = null;
     document.getElementById('modalOverlay').classList.remove('open');
-    ['lead-nombre','lead-email','lead-telefono','lead-empresa','lead-presupuesto','lead-seguimiento'].forEach(id => {
+    ['lead-nombre','lead-apellido','lead-email','lead-telefono','lead-empresa','lead-presupuesto','lead-seguimiento'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
@@ -2548,6 +2549,7 @@
     if (!nombre || !email) { showToast('Nombre y email son requeridos'); return; }
     const payload = {
       nombre, email,
+      apellido: document.getElementById('lead-apellido').value.trim() || null,
       telefono: document.getElementById('lead-telefono').value.trim(),
       empresa: document.getElementById('lead-empresa').value.trim(),
       estado: document.getElementById('lead-estado').value,

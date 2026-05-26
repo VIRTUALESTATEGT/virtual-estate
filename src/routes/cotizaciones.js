@@ -1,9 +1,32 @@
 const express = require('express');
-const router = express.Router();
+const router  = express.Router();
 const supabase = require('../config/supabase');
 const { sendWhatsAppMessage } = require('../utils/whatsapp');
+const { cotCode, generarCotizacionPDF, subirPDFSupabase } = require('../utils/pdf');
 
-// GET /api/cotizaciones/codigo-siguiente — preview next COT code
+// Generate PDF and persist documento_url — called after insert/update with content change
+async function generarYGuardarPDF(cotId) {
+  try {
+    const { data: cot } = await supabase
+      .from('cotizaciones')
+      .select('*, clientes(nombre, empresa, email, telefono), leads(nombre, apellido, email, telefono)')
+      .eq('id', cotId)
+      .maybeSingle();
+    if (!cot) return null;
+
+    const pdfBuf  = await generarCotizacionPDF(cot);
+    const filename = `${cotCode(cotId)}.pdf`;
+    const url      = await subirPDFSupabase(pdfBuf, filename);
+
+    await supabase.from('cotizaciones').update({ documento_url: url }).eq('id', cotId);
+    return url;
+  } catch (err) {
+    console.error('[PDF] generarYGuardarPDF error:', err.message);
+    return null;
+  }
+}
+
+// GET /api/cotizaciones/codigo-siguiente
 router.get('/codigo-siguiente', async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -13,8 +36,7 @@ router.get('/codigo-siguiente', async (req, res) => {
       .limit(1);
     if (error) throw error;
     const nextId = (data?.[0]?.id || 0) + 1;
-    const year = new Date().getFullYear();
-    const yr2 = String(year).slice(-2);
+    const yr2 = String(new Date().getFullYear()).slice(-2);
     res.json({ next_id: nextId, codigo: `COT-${yr2}-${String(nextId).padStart(5, '0')}` });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -63,12 +85,24 @@ router.post('/', async (req, res) => {
       ubicacion_completa: ubicacion_completa || null,
     };
 
-    const { data, error } = await supabase
+    const { data: inserted, error } = await supabase
       .from('cotizaciones')
       .insert([insert])
-      .select();
+      .select('id')
+      .single();
     if (error) throw error;
-    res.status(201).json(data[0]);
+
+    // Generate PDF and store URL (detalles_json present = has content)
+    const documento_url = detalles_json ? await generarYGuardarPDF(inserted.id) : null;
+
+    // Return full row
+    const { data: full } = await supabase
+      .from('cotizaciones')
+      .select('*, clientes(id, nombre)')
+      .eq('id', inserted.id)
+      .single();
+
+    res.status(201).json({ ...full, documento_url: documento_url || full?.documento_url || null });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -103,19 +137,22 @@ router.put('/:id', async (req, res) => {
       .select('*, clientes(telefono)');
     if (error) throw error;
     const cot = data[0];
+
+    // Regenerate PDF only when content changed (detalles_json was part of request)
+    if (detalles_json !== undefined) {
+      generarYGuardarPDF(Number(req.params.id)).catch(() => {});
+    }
+
     res.json(cot);
 
     // Auto-send via originating channel when approved from CRM
-    const SEND_CANALES = ['whatsapp'];
     const APPROVED = ['aprobada', 'confirmada'];
-    if (estado && APPROVED.includes(estado) && SEND_CANALES.includes(cot.canal)) {
+    if (estado && APPROVED.includes(estado) && cot.canal === 'whatsapp') {
       const tel = cot.clientes?.telefono;
       if (tel) {
-        const yr2 = String(new Date().getFullYear()).slice(-2);
-        const codigo = `COT-${yr2}-${String(cot.id).padStart(5, '0')}`;
-        const link = `${process.env.APP_URL || 'https://www.virtualestategt.com'}/portal/cotizacion/${cot.id}`;
-        const msg = `Hola 👋 Tu cotización *${codigo}* fue aprobada.\n\nRevisa y confirma aquí:\n${link}`;
-        sendWhatsAppMessage(tel, msg).catch(() => {});
+        const codigo = cotCode(cot.id);
+        const link   = `${process.env.APP_URL || 'https://www.virtualestategt.com'}/portal/cotizacion/${cot.id}`;
+        sendWhatsAppMessage(tel, `Hola 👋 Tu cotización *${codigo}* fue aprobada.\n\nRevisa y confirma aquí:\n${link}`).catch(() => {});
         supabase.from('cotizaciones').update({ estado_envio: 'enviado', metodo_envio_manual: cot.canal, fecha_envio_manual: new Date().toISOString() }).eq('id', cot.id).then(() => {}).catch(() => {});
       }
     }
