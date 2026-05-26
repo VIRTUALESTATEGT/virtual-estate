@@ -116,9 +116,9 @@ router.post('/email/enviar-cotizacion', async (req, res) => {
     const anticipo   = Number(cot?.anticipo || 0);
     const descMonto  = Number(det.descuento_monto || 0);
 
-    // 4-column services table rows
+    // 4-column services table rows (no totals inside)
     const svcRowsHTML = servicios.map((s, i) => {
-      const bg      = i % 2 === 0 ? '#ffffff' : '#fafaf8';
+      const bg       = i % 2 === 0 ? '#ffffff' : '#fafaf8';
       const cantidad = s.tipo_precio === 'por_m2' ? `${s.cantidad || 0} m²`
                      : s.tipo_precio === 'cotizar' ? 'A cotizar' : '1 ud';
       const unitPrice = s.tipo_precio === 'cotizar' ? '—' : fmtE(s.precio_unitario || 0);
@@ -130,30 +130,27 @@ router.post('/email/enviar-cotizacion', async (req, res) => {
       </tr>`;
     }).join('');
 
-    // Discount row (only if exists)
-    const descRowHTML = descMonto > 0 ? `
-      <tr>
-        <td colspan="3" style="padding:7px 10px;font-size:13px;text-align:right;color:#555;">${det.descuento_tipo === 'porcentaje' ? `Descuento (${det.descuento_valor}%)` : 'Descuento'}</td>
-        <td style="padding:7px 10px;font-size:13px;text-align:right;color:#D9534F;font-weight:600;">-${fmtE(descMonto)}</td>
-      </tr>` : '';
-
-    const ivaRow = `
-      <tr>
-        <td colspan="3" style="padding:7px 10px;font-size:13px;text-align:right;color:#555;">IVA (12%)</td>
-        <td style="padding:7px 10px;font-size:13px;text-align:right;color:#555;">${fmtE(det.iva_monto || 0)}</td>
-      </tr>`;
-
-    const totalRow = `
-      <tr style="background:#0D4137;">
-        <td colspan="3" style="padding:9px 10px;font-size:14px;font-weight:700;color:#B09A6C;text-align:right;">TOTAL</td>
-        <td style="padding:9px 10px;font-size:14px;font-weight:700;color:#ffffff;text-align:right;">${fmtE(det.total || cot?.monto || 0)}</td>
-      </tr>`;
-
-    const anticipoRow = anticipo > 0 ? `
-      <tr style="background:#f5f0e8;">
-        <td colspan="3" style="padding:8px 10px;font-size:13px;font-weight:700;text-align:right;color:#555;">Anticipo requerido</td>
-        <td style="padding:8px 10px;font-size:13px;font-weight:700;text-align:right;color:#B09A6C;">${fmtE(anticipo)}</td>
-      </tr>` : '';
+    // Totals mini (same structure as portal .totals-mini)
+    const ROW   = 'display:flex;justify-content:space-between;padding:4px 0;font-size:13px;';
+    const descLabel = det.descuento_tipo === 'porcentaje' ? `Descuento (${det.descuento_valor}%)` : 'Descuento';
+    const totalsMiniHTML = `
+      <div style="border:1px solid rgba(176,154,108,.2);border-radius:4px;padding:12px 16px;margin:16px 0;">
+        ${det.subtotal != null ? `<div style="${ROW}color:#555;"><span>Subtotal</span><span>${fmtE(det.subtotal)}</span></div>` : ''}
+        ${descMonto > 0 ? `<div style="${ROW}color:#D9534F;"><span>${descLabel}</span><span>-${fmtE(descMonto)}</span></div>` : ''}
+        <div style="${ROW}color:#555;"><span>IVA 12%</span><span>${fmtE(det.iva_monto || 0)}</span></div>
+        <div style="${ROW}font-weight:700;color:#B09A6C;border-top:1px solid rgba(176,154,108,.2);margin-top:6px;padding-top:8px;">
+          <span>TOTAL</span><span>${fmtE(det.total || cot?.monto || 0)}</span>
+        </div>
+      </div>
+      ${anticipo > 0 ? `
+      <div style="background:rgba(176,154,108,.06);border:1px solid rgba(176,154,108,.22);border-radius:4px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px;">Anticipo para iniciar</div>
+          <div style="font-size:22px;font-weight:700;color:#B09A6C;margin-top:3px;">${fmtE(anticipo)}</div>
+        </div>
+        <div style="font-size:11px;color:#888;text-align:right;line-height:1.6;">50% del total<br/>Restante: ${fmtE(Math.max(0, (det.total || 0) - anticipo))}</div>
+      </div>` : ''}
+    `;
 
     // Attach PDF
     let attachments = [];
@@ -191,7 +188,7 @@ router.post('/email/enviar-cotizacion', async (req, res) => {
   </div>
 
   ${servicios.length ? `
-  <!-- Tabla servicios -->
+  <!-- Tabla servicios (4 columnas) -->
   <div style="padding:0 24px;">
     <table style="width:100%;border-collapse:collapse;border:1px solid #e0e0e0;">
       <thead>
@@ -202,15 +199,12 @@ router.post('/email/enviar-cotizacion', async (req, res) => {
           <th style="padding:9px 10px;font-size:12px;text-align:right;color:#B09A6C;letter-spacing:.5px;text-transform:uppercase;">Subtotal</th>
         </tr>
       </thead>
-      <tbody>
-        ${svcRowsHTML}
-        ${descRowHTML}
-        ${ivaRow}
-        ${totalRow}
-        ${anticipoRow}
-      </tbody>
+      <tbody>${svcRowsHTML}</tbody>
     </table>
   </div>` : ''}
+
+  <!-- Totals mini (mismo estilo que portal confirmación) -->
+  <div style="padding:0 24px;">${totalsMiniHTML}</div>
 
   <!-- CTA -->
   <div style="padding:24px;">

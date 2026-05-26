@@ -85,8 +85,12 @@ async function generarCotizacionPDF(cot) {
     });
 
     const page = await browser.newPage();
+    // emulateMediaType('print') applies @media print CSS — removes grey body background,
+    // makes .pagina fill the full page width, removes box-shadow. Without this puppeteer
+    // renders the screen layout (816px card on grey) which looks completely wrong as a PDF.
+    await page.emulateMediaType('print');
     await page.setContent(buildCotizacionHTML(cot), { waitUntil: 'domcontentloaded', timeout: 15000 });
-    const pdf = await page.pdf({ format: 'A4', printBackground: true });
+    const pdf = await page.pdf({ format: 'A4', printBackground: true, margin: { top: '0', right: '0', bottom: '0', left: '0' } });
     return Buffer.from(pdf);
   } catch (puppErr) {
     console.error('[PDF] puppeteer failed, falling back to pdfkit:', puppErr.message);
