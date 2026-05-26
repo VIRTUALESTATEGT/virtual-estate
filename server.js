@@ -80,6 +80,11 @@ app.post('/api/leads/public', async (req, res) => {
 const webhookWARouter = require('./src/routes/webhook-whatsapp');
 app.use('/api/webhook/whatsapp', webhookWARouter);
 
+// ── Public: Cotización confirmation portal (no auth — leads access via email link) ──
+const confirmacionRouter = require('./src/routes/confirmacion');
+app.use('/api/confirmacion', confirmacionRouter);
+app.use('/api/cron', confirmacionRouter);
+
 // ── Public: zone list, quote generation, and price list ──────────
 const cotizacionGenRouter = require('./src/routes/cotizacion-gen');
 // GET /api/cotizacion/* public; PUT/POST/DELETE /api/cotizacion/precios* admin-only
@@ -127,6 +132,14 @@ app.use('/api/agente', authMiddleware, (req, res, next) => {
   return requireMinRole('gerente')(req, res, next);
 }, agenteSolicitudRouter);
 
+// ── Public: WhatsApp webhook (must be before the /api auth catch-all below) ──
+app.get('/api/whatsapp/webhook',  _waWebhookVerify);
+app.post('/api/whatsapp/webhook', _waWebhookPost);
+
+// ── Envío de cotizaciones por canal ──────────────────────────────────────────
+const envioCotizacionRouter = require('./src/routes/envio-cotizacion');
+app.use('/api', authMiddleware, requireMinRole('asistente'), envioCotizacionRouter);
+
 // Notificaciones admin (inline — simple read/list endpoint)
 app.get('/api/notificaciones', authMiddleware, requireMinRole('asistente'), async (req, res) => {
   const supabase = require('./src/config/supabase');
@@ -167,12 +180,24 @@ app.get('/marketing-agent-panel.html', (req, res) => {
 });
 app.get('/portal.html',          html('portal.html'));
 app.get('/portal-cliente.html',  html('portal-cliente.html'));
+app.get('/portal/cotizacion/:id', (req, res) => res.sendFile(path.join(__dirname, 'public', 'portal', 'cotizacion.html')));
 app.get('/landing.html',         html('landing.html'));
 app.get('/real-estate.html',html('real-estate.html'));
 app.get('/as-built.html',   html('as-built.html'));
 app.get('/construccion.html',html('construccion.html'));
 
+app.get('/privacy', (req, res) => {
+  res.setHeader('Content-Type', 'text/html');
+  res.send(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Política de Privacidad — Virtual Estate GT</title><style>body{font-family:system-ui,sans-serif;max-width:800px;margin:40px auto;padding:0 24px;color:#1a1a1a;line-height:1.7}h1{color:#2D5016}h2{color:#2D5016;font-size:1.1rem;margin-top:2rem}a{color:#2D5016}footer{margin-top:3rem;padding-top:1rem;border-top:1px solid #ddd;font-size:.85rem;color:#666}</style></head><body><h1>Política de Privacidad</h1><p><strong>Virtual Estate GT</strong> — Última actualización: mayo 2026</p><h2>1. Información que recopilamos</h2><p>Recopilamos información que usted nos proporciona directamente, como nombre, correo electrónico, número de teléfono y detalles sobre propiedades de interés cuando utiliza nuestros formularios de contacto o cotización.</p><h2>2. Uso de la información</h2><p>Utilizamos la información recopilada para: responder consultas y solicitudes, enviar cotizaciones y propuestas, mejorar nuestros servicios de fotografía y escaneo 3D, y comunicarnos sobre proyectos en curso.</p><h2>3. Compartir información</h2><p>No vendemos ni compartimos su información personal con terceros, excepto cuando sea necesario para prestar el servicio solicitado o cuando la ley lo requiera.</p><h2>4. Cookies</h2><p>Nuestro sitio web puede utilizar cookies técnicas necesarias para el funcionamiento básico. No utilizamos cookies de rastreo publicitario de terceros.</p><h2>5. Seguridad</h2><p>Implementamos medidas de seguridad razonables para proteger su información. Los datos se almacenan en servidores seguros con cifrado.</p><h2>6. Sus derechos</h2><p>Usted puede solicitar acceso, corrección o eliminación de sus datos personales escribiéndonos a <a href="mailto:info@virtualestategt.com">info@virtualestategt.com</a>.</p><h2>7. Contacto</h2><p>Para cualquier consulta sobre esta política, contáctenos en: <a href="mailto:info@virtualestategt.com">info@virtualestategt.com</a></p><footer><a href="/">← Volver al inicio</a> &nbsp;|&nbsp; <a href="/terms">Términos de Servicio</a></footer></body></html>`);
+});
+
+app.get('/terms', (req, res) => {
+  res.setHeader('Content-Type', 'text/html');
+  res.send(`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Términos de Servicio — Virtual Estate GT</title><style>body{font-family:system-ui,sans-serif;max-width:800px;margin:40px auto;padding:0 24px;color:#1a1a1a;line-height:1.7}h1{color:#2D5016}h2{color:#2D5016;font-size:1.1rem;margin-top:2rem}a{color:#2D5016}footer{margin-top:3rem;padding-top:1rem;border-top:1px solid #ddd;font-size:.85rem;color:#666}</style></head><body><h1>Términos de Servicio</h1><p><strong>Virtual Estate GT</strong> — Última actualización: mayo 2026</p><h2>1. Aceptación de términos</h2><p>Al utilizar los servicios de Virtual Estate GT, usted acepta estos términos. Si no está de acuerdo, por favor no utilice nuestros servicios.</p><h2>2. Descripción del servicio</h2><p>Virtual Estate GT ofrece servicios de fotografía inmobiliaria profesional, escaneo 3D, tours virtuales y producción de contenido visual para el sector inmobiliario en Guatemala.</p><h2>3. Uso aceptable</h2><p>Usted se compromete a utilizar nuestros servicios únicamente para fines legales y a no reproducir, distribuir o utilizar comercialmente el contenido producido por Virtual Estate GT sin autorización escrita previa.</p><h2>4. Propiedad intelectual</h2><p>Todo el contenido producido por Virtual Estate GT (fotografías, modelos 3D, videos) es propiedad de Virtual Estate GT hasta la entrega y pago completo del servicio contratado, momento en que los derechos de uso se transfieren al cliente según lo acordado.</p><h2>5. Pagos y cancelaciones</h2><p>Los términos de pago, anticipos y políticas de cancelación se establecen en la cotización o contrato individual de cada proyecto.</p><h2>6. Limitación de responsabilidad</h2><p>Virtual Estate GT no será responsable por daños indirectos, incidentales o consecuentes derivados del uso de nuestros servicios más allá del monto pagado por el servicio específico.</p><h2>7. Modificaciones</h2><p>Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios serán publicados en esta página.</p><h2>8. Contacto</h2><p>Para consultas sobre estos términos: <a href="mailto:info@virtualestategt.com">info@virtualestategt.com</a></p><footer><a href="/">← Volver al inicio</a> &nbsp;|&nbsp; <a href="/privacy">Política de Privacidad</a></footer></body></html>`);
+});
+
 // Assets estáticos (imágenes, documentos)
+app.use('/assets',    express.static(path.join(__dirname, 'public', 'assets'), { dotfiles: 'ignore' }));
 app.use('/assets',    express.static(path.join(__dirname, 'images', 'assets'), { dotfiles: 'ignore' }));
 app.use('/images',    express.static(path.join(__dirname, 'images'),    { dotfiles: 'ignore' }));
 app.use('/documentos',express.static(path.join(__dirname, 'documentos'),{ dotfiles: 'ignore' }));
@@ -182,54 +207,228 @@ app.use('/documentos',express.static(path.join(__dirname, 'documentos'),{ dotfil
 // ============================================================
 
 const _waSupabase = require('./src/config/supabase');
-const _waAnthropic = new (require('@anthropic-ai/sdk'))({ apiKey: process.env.CLAUDE_API_KEY });
 
 async function _waGenerateResponse(phone, userMessage) {
-  // Historial reciente (últimas 10 conversaciones)
-  const { data: history } = await _waSupabase
-    .from('whatsapp_messages')
-    .select('message, direction')
-    .eq('phone_number', phone)
-    .order('timestamp', { ascending: false })
-    .limit(10);
+  console.log('[WA] _waGenerateResponse — CLAUDE_API_KEY present:', !!process.env.CLAUDE_API_KEY, '— key prefix:', (process.env.CLAUDE_API_KEY || '').slice(0, 10));
+  try {
+    const Anthropic = require('@anthropic-ai/sdk');
+    const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
 
-  const historyMessages = (history || []).reverse().map(m => ({
-    role: m.direction === 'incoming' ? 'user' : 'assistant',
-    content: m.message
-  }));
+    const { data: history } = await _waSupabase
+      .from('whatsapp_messages')
+      .select('message, direction')
+      .eq('phone_number', phone)
+      .order('timestamp', { ascending: false })
+      .limit(10);
 
-  historyMessages.push({ role: 'user', content: userMessage });
+    console.log('[WA] _waGenerateResponse — history rows:', (history || []).length);
 
-  const response = await _waAnthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 500,
-    system: `Eres el asistente virtual de Virtual Estate GT, empresa de escaneo 3D, fotografía inmobiliaria y documentación técnica en Guatemala. Responde de forma amigable, profesional y concisa. Si el cliente pregunta por precios o servicios específicos, indícale que te ponga en contacto con un asesor. CTA: "Escríbenos al WhatsApp empresarial para más información."`,
-    messages: historyMessages
-  });
+    const historyMessages = (history || []).reverse().map(m => ({
+      role: m.direction === 'incoming' ? 'user' : 'assistant',
+      content: m.message
+    }));
+    historyMessages.push({ role: 'user', content: userMessage });
 
-  return response.content[0].text;
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      system: `Eres tu asistente virtual de Virtual Estate GT, especializado en real estate, escaneo 3D, fotografía inmobiliaria, documentación técnica y servicios de construcción en Guatemala.
+
+ACLARACIÓN INICIAL (solo primer contacto):
+"Soy tu asistente virtual preparado para responder tus consultas. Si en algún momento necesitas atención personalizada de un agente, te conectaremos con alguien del equipo real."
+
+IDENTIDAD Y TONO:
+- Responde como si fueras un miembro del equipo real
+- Amigable, profesional, conciso
+- Usa "nosotros" al hablar de la empresa
+- NUNCA menciones nombres de personas específicas
+- NUNCA inventes información
+
+CANALES DE CONTACTO (ÚNICOS):
+- WhatsApp: +502 39902399
+- Facebook Messenger: facebook.com/virtualestategt
+- Instagram: @virtualestategt
+- Email: info@virtualestategt.com
+- Página web: www.virtualestategt.com
+
+SERVICIOS OFRECIDOS:
+1. Real estate 🏠 (venta y alquiler de propiedades)
+2. Escaneo 3D 📐 de propiedades
+3. Fotografía inmobiliaria 📸 profesional
+4. Tours virtuales 🎥 interactivos
+5. Documentación técnica 📋 y planos as-built
+6. Servicios de construcción 🔨 y ejecución de obras
+
+PRECIOS (INFORMACIÓN PERMITIDA):
+
+ESCANEO 3D:
+- Precio mínimo: $150 USD / Q1,200
+- Sujeto a medidas reales de la propiedad y ubicación
+- Frase: "El precio final depende de las medidas exactas, complejidad y ubicación"
+
+CONSTRUCCIÓN:
+- Presupuestos personalizados (demoran más tiempo - proceso manual)
+- NO dar presupuestos rápidos, recopilar información completa
+- "Nuestro equipo de construcción revisará tu proyecto y te enviará un presupuesto detallado en breve"
+
+RESPUESTAS A PREGUNTAS FRECUENTES:
+
+"¿Qué servicios ofrecen?"
+→ "Ofrecemos: 1. Real estate 🏠, 2. Escaneo 3D 📐, 3. Fotografía inmobiliaria 📸, 4. Tours virtuales 🎥, 5. Documentación técnica 📋, 6. Servicios de construcción 🔨. ¿Cuál te interesa?"
+
+"¿Cuál es el precio?"
+→ "Precio mínimo de escaneo: $150 USD / Q1,200. El precio final depende de medidas exactas, complejidad y ubicación. ¿Tienes una propiedad en mente?"
+
+"¿Dónde están ubicados?"
+→ "Operamos en toda Guatemala. Para detalles y ver nuestro portafolio, visita www.virtualestategt.com"
+
+"¿Cómo agendar?"
+→ "Disponemos L-V de 8am-6pm. Cuéntanos qué necesitas y coordinamos al instante."
+
+"¿Ven propiedades en [ZONA]?"
+→ "¿Cuál es la ubicación específica? Nos gustaría validar si podemos asistirte. De momento contamos con cobertura en la mayoría de zonas, pero algunos casos especiales los evaluamos individualmente."
+
+RESPUESTAS SECCIONADAS (IMPORTANTE):
+- Responde SOLO sobre el servicio/tema que el cliente preguntó
+- NO ofrezcas múltiples servicios en un mismo mensaje
+- Espera su próxima pregunta antes de ampliar
+- Esto mantiene conversación natural y no saturada
+
+CUANDO EL CLIENTE SOLICITA COTIZACIÓN:
+Solicita TODOS estos datos:
+- Nombre completo
+- Correo electrónico
+- Teléfono
+- Ubicación exacta de la propiedad
+- Descripción del proyecto / qué necesita
+- Tipo de servicio (escaneo, construcción, otro)
+- (Opcional) Si tiene código de cliente o código de agente asignado
+
+RESPUESTA AL CLIENTE:
+"Perfecto, tomaremos tu solicitud. Nuestro equipo estará procesando tu [cotización/solicitud] y te la haremos llegar en breve."
+
+IMPORTANTE:
+- NO envíes cotización automáticamente — espera aprobación del owner
+- NO ofrezcas cotización de entrada (espera a que cliente la solicite o se vea clara intención)
+- Solo sugiere cotización cuando haya interés real demostrado
+
+ORIENTACIÓN SOBRE SERVICIOS:
+Siempre que un cliente consulte por un servicio, indícale para qué es IDEAL:
+- "El escaneo 3D es ideal para: [caso de uso]. ¿Es tu caso?"
+- "La fotografía inmobiliaria es perfecta para: [caso de uso]. ¿Te interesa?"
+- Así orientas hacia el servicio que realmente necesita
+
+CUANDO NO SEPAS LA RESPUESTA:
+
+CASO 1 - Respuestas simples/básicas que debes validar:
+→ "Déjanos validar esa información y te respondemos en breve" (30-40 seg max)
+
+CASO 2 - Preguntas complejas/sensibles:
+→ Lanza alerta al owner → espera aprobación → envía respuesta aprobada
+
+NUNCA digas "no sé" al cliente.
+
+Si pasaron 5+ minutos sin aprobación:
+→ "Nuestro equipo está revisando tu consulta detalladamente. Te responderemos cuanto antes con la información más precisa."
+
+HORARIOS Y DISPONIBILIDAD:
+- Responder consultas: 24/7 (este chat)
+- Agendar servicios/visitas: L-V 8am-6pm
+
+Si cliente pide servicio fuera de horario laboral:
+→ "Tomaremos tu solicitud. Mañana cuando iniciemos labores (8am) un agente se pondrá en contacto para coordinar. ¡Gracias por tu paciencia!"
+
+MENSAJE DE BIENVENIDA (FIJO):
+Solo enviar cuando detectes nuevo chat (después de 3h inactividad y cliente vuelve a escribir O primer contacto)
+
+"¡Hola! 👋 Bienvenido/a a Virtual Estate GT. Soy tu asistente virtual y estoy aquí para ayudarte.
+
+Somos especialistas en:
+1. Real estate 🏠
+2. Escaneo 3D 📐
+3. Fotografía inmobiliaria 📸
+4. Tours virtuales 🎥
+5. Documentación técnica 📋
+6. Servicios de construcción 🔨
+
+¿Qué necesitas hoy?
+(Puedes escribir el número o tu pregunta)"
+
+RECORDATORIO DESPUÉS DE 1 HORA INACTIVIDAD:
+"¿Aún tienes dudas? Aquí seguimos para ayudarte 😊
+
+(Nota: Este chat se reiniciará después de 3 horas de inactividad para mejor servicio)"
+
+OPCIONES NUMERADAS:
+- Cliente puede escribir número (1, 2, 3) O pregunta completa
+- Acepta ambas formas sin error
+
+SOBRE PROPIEDADES Y PORTAFOLIO:
+
+"¿Tienen propiedades disponibles?"
+→ "Sí, visita www.virtualestategt.com donde encontrarás nuestro portafolio completo con filtros de búsqueda personalizables (zona, tipo, precio, etc). Puedes crear tu perfil y armar tu carrito con propiedades de tu interés."
+
+"¿Pueden sugerir propiedades?"
+→ "Claro, cuéntame qué buscas (zona, tipo, presupuesto) y te sugiero opciones. Luego tú armas tu carrito en el portal para guardar y comparar propiedades."
+
+IMPORTANTE:
+- Puedes SUGERIR propiedades pero NO armas el carrito por ellos
+- Ellos deben crear su perfil y armar carrito en www.virtualestategt.com
+- Esto mantiene engagement en web + tracking real de clientes
+
+NO MENCIONAR NUNCA:
+- Nombres de personas
+- Teléfono +50251272731 (inválido)
+- Precios por metro cuadrado
+- Que "no sabes" algo
+- Que eres IA (solo mencionar al inicio que eres asistente virtual)
+
+GESTIÓN DE CONVERSACIONES:
+
+DESPUÉS DE 1 HORA DE INACTIVIDAD:
+→ Enviar recordatorio con nota de reinicio
+
+DESPUÉS DE 3 HORAS DE INACTIVIDAD:
+→ Borra silenciosamente el historial del chat
+→ Cuando cliente vuelva a escribir → envía mensaje de bienvenida (nuevo chat)
+→ TRACKING: Los datos siempre se guardan en prospect_tracking (para métrica de contactos)`,
+      messages: historyMessages
+    });
+
+    return response.content[0].text;
+  } catch (e) {
+    console.error('[WA] _waGenerateResponse ERROR:', e.message);
+    throw e;
+  }
 }
 
 async function _waSendMessage(phone, message) {
   const axios = require('axios');
   const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   const token   = process.env.WHATSAPP_ACCESS_TOKEN;
-  if (!phoneId || !token || token === 'pendiente_cuando_meta_apruebe') return;
+  console.log('[WA] _waSendMessage — phoneId:', phoneId, '— token present:', !!token, '— token prefix:', (token || '').slice(0, 15));
 
-  await axios.post(
-    `https://graph.facebook.com/v18.0/${phoneId}/messages`,
-    {
-      messaging_product: 'whatsapp',
-      to: phone,
-      type: 'text',
-      text: { body: message }
-    },
-    { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
-  );
+  if (!phoneId || !token || token === 'pendiente_cuando_meta_apruebe') {
+    console.log('[WA] _waSendMessage — ABORTADO: credenciales faltantes o token pendiente');
+    return;
+  }
+
+  try {
+    const result = await axios.post(
+      `https://graph.facebook.com/v18.0/${phoneId}/messages`,
+      { messaging_product: 'whatsapp', to: phone, type: 'text', text: { body: message } },
+      { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
+    );
+    console.log('[WA] _waSendMessage — respuesta Meta:', JSON.stringify(result.data));
+  } catch (e) {
+    const detail = e.response?.data ? JSON.stringify(e.response.data) : e.message;
+    console.error('[WA] _waSendMessage ERROR:', detail);
+    throw e;
+  }
 }
 
 // GET — verificación del webhook por Meta
-app.get('/api/whatsapp/webhook', (req, res) => {
+function _waWebhookVerify(req, res) {
   const mode      = req.query['hub.mode'];
   const token     = req.query['hub.verify_token'];
   const challenge = req.query['hub.challenge'];
@@ -238,46 +437,186 @@ app.get('/api/whatsapp/webhook', (req, res) => {
     return res.status(200).send(challenge);
   }
   res.sendStatus(403);
-});
+}
 
 // POST — recibir mensajes entrantes
-app.post('/api/whatsapp/webhook', async (req, res) => {
-  res.sendStatus(200); // Meta requiere 200 inmediato
+const WA_OWNER_NUMBERS = ['50239902399', '50250175832'];
+
+async function _waHandleOwnerCommand(phone, text) {
+  const parts = text.trim().split(/\s+/);
+  const cmd   = parts[0]?.toLowerCase();
+
+  if (cmd === '!ver') {
+    const { data } = await _waSupabase
+      .from('whatsapp_contacts')
+      .select('phone_number, contact_type, name, respond')
+      .order('created_at', { ascending: false })
+      .limit(20);
+    const list = (data || []).map(c => `${c.phone_number} [${c.contact_type}] ${c.name || ''} respond:${c.respond}`).join('\n');
+    return `Contactos guardados:\n${list || 'Ninguno'}`;
+  }
+
+  if (cmd === '!personal' && parts[1]) {
+    const target = parts[1];
+    await _waSupabase.from('whatsapp_contacts').upsert(
+      { phone_number: target, contact_type: 'personal', respond: false, updated_at: new Date() },
+      { onConflict: 'phone_number' }
+    );
+    return `✓ ${target} marcado como PERSONAL — no recibirá respuestas automáticas.`;
+  }
+
+  if (cmd === '!cliente' && parts[1]) {
+    const target = parts[1];
+    await _waSupabase.from('whatsapp_contacts').upsert(
+      { phone_number: target, contact_type: 'client', respond: true, updated_at: new Date() },
+      { onConflict: 'phone_number' }
+    );
+    return `✓ ${target} marcado como CLIENTE — recibirá respuestas automáticas.`;
+  }
+
+  return `Comandos disponibles:\n!ver — lista contactos\n!personal [número] — marcar como personal\n!cliente [número] — marcar como cliente`;
+}
+
+async function _waWebhookPost(req, res) {
+  console.log('[WA] 1. Webhook recibido:', JSON.stringify(req.body, null, 2));
 
   try {
     const entry   = req.body?.entry?.[0];
     const changes = entry?.changes?.[0]?.value;
     const msg     = changes?.messages?.[0];
-    if (!msg || msg.type !== 'text') return;
+
+    // Log phone_number_id para diagnóstico de configuración
+    const incomingPhoneId = changes?.metadata?.phone_number_id;
+    const configuredId    = process.env.WHATSAPP_PHONE_NUMBER_ID;
+    console.log('[WA] 2.7 WHATSAPP_PHONE_NUMBER_ID — incoming:', incomingPhoneId, '— configured:', configuredId, '— match:', incomingPhoneId === configuredId);
+
+    if (!msg || msg.type !== 'text') {
+      console.log('[WA] Sin mensaje de texto — abortando');
+      res.sendStatus(200);
+      return;
+    }
 
     const phone      = msg.from;
     const text       = msg.text?.body || '';
     const message_id = msg.id;
+    const isOwner    = WA_OWNER_NUMBERS.includes(phone);
+    const isCommand  = text.trim().startsWith('!');
 
-    // Guardar mensaje entrante
-    await _waSupabase.from('whatsapp_messages').insert({
-      phone_number: phone,
-      message: text,
-      message_id,
-      direction: 'incoming'
-    });
+    console.log('[WA] from:', phone, '—', isOwner ? 'OWNER' : 'externo', '— isCommand:', isCommand, '— text:', text);
 
-    // Generar respuesta con Claude
-    const reply = await _waGenerateResponse(phone, text);
+    // ── PASO 1: Verificar inactividad ANTES de insertar ──────────────────
+    const { data: lastMsgs } = await _waSupabase
+      .from('whatsapp_messages')
+      .select('created_at')
+      .eq('phone_number', phone)
+      .order('created_at', { ascending: false })
+      .limit(1);
 
-    // Guardar respuesta saliente
-    await _waSupabase.from('whatsapp_messages').insert({
-      phone_number: phone,
-      message: reply,
-      direction: 'outgoing'
-    });
+    const lastMsg = lastMsgs?.[0];
+    const horasSinActividad = lastMsg
+      ? (Date.now() - new Date(lastMsg.created_at).getTime()) / 3600000
+      : null;
 
-    // Enviar respuesta a WhatsApp
-    await _waSendMessage(phone, reply);
-  } catch (e) {
-    console.error('[WhatsApp/webhook]', e.message);
+    let esNuevoChat = !lastMsg; // primer contacto = nuevo chat
+
+    if (lastMsg && horasSinActividad >= 3) {
+      console.log('[WA] >3h inactividad (', horasSinActividad.toFixed(1), 'h) — borrando historial silenciosamente');
+      await _waSupabase.from('whatsapp_messages').delete().eq('phone_number', phone);
+      esNuevoChat = true;
+    } else {
+      console.log('[WA] Horas sin actividad:', horasSinActividad?.toFixed(1) ?? 'primer contacto');
+    }
+
+    // ── PASO 2: Guardar mensaje entrante ─────────────────────────────────
+    const { error: inErr } = await _waSupabase.from('whatsapp_messages')
+      .insert({ phone_number: phone, message: text, message_id, direction: 'incoming' });
+    if (inErr) console.error('[WA] Supabase incoming ERROR:', inErr.message, inErr.code);
+    else console.log('[WA] Supabase incoming OK ✓');
+
+    // ── PASO 3: Upsert prospect_tracking ─────────────────────────────────
+    const { data: prospect } = await _waSupabase
+      .from('prospect_tracking')
+      .select('id, contact_count')
+      .eq('phone_number', phone)
+      .single();
+
+    if (prospect) {
+      await _waSupabase.from('prospect_tracking')
+        .update({ contact_count: prospect.contact_count + 1, last_contact: new Date() })
+        .eq('phone_number', phone);
+      console.log('[WA] prospect_tracking updated — count:', prospect.contact_count + 1);
+    } else {
+      await _waSupabase.from('prospect_tracking')
+        .insert({ phone_number: phone, contact_count: 1, status: 'lead' });
+      console.log('[WA] prospect_tracking new lead:', phone);
+    }
+
+    // ── Comandos owner ────────────────────────────────────────────────────
+    if (isOwner && isCommand) {
+      const cmd = text.trim().split(/\s+/)[0]?.toLowerCase();
+      console.log('[WA] from:', phone, '— OWNER detected — command:', cmd);
+      const reply = await _waHandleOwnerCommand(phone, text);
+      await _waSendMessage(phone, reply);
+      console.log('[WA] Owner command response sent:', reply);
+      res.sendStatus(200);
+      return;
+    }
+
+    // ── PASO 4: Verificar contact_type ───────────────────────────────────
+    console.log('[WA] Consultando contact_type para:', phone, '...');
+    const { data: contact, error: contactErr } = await _waSupabase
+      .from('whatsapp_contacts')
+      .select('contact_type, respond, name')
+      .eq('phone_number', phone)
+      .single();
+
+    if (contactErr && contactErr.code !== 'PGRST116') {
+      console.error('[WA] Error consultando contacto:', contactErr.message, contactErr.code);
+    }
+
+    const contactType = contact?.contact_type || 'null';
+    const esPersonal  = contactType === 'personal' || contact?.respond === false;
+    console.log('[WA] contact_type:', contactType, '— Decisión:', esPersonal ? 'NO responder' : 'responder SI');
+
+    if (esPersonal) {
+      console.log('[WA] Número', phone, 'es personal — sin respuesta.');
+    } else {
+      // ── PASO 5: Si es nuevo chat → enviar bienvenida primero ─────────
+      if (esNuevoChat) {
+        console.log('[WA] Nuevo chat detectado — enviando bienvenida');
+        const bienvenida = `¡Hola! 👋 Bienvenido/a a Virtual Estate GT. Soy tu asistente virtual y estoy aquí para ayudarte.\n\nSomos especialistas en:\n1. Real estate 🏠\n2. Escaneo 3D 📐\n3. Fotografía inmobiliaria 📸\n4. Tours virtuales 🎥\n5. Documentación técnica 📋\n6. Servicios de construcción 🔨\n\n¿Qué necesitas hoy?\n(Puedes escribir el número o tu pregunta)`;
+        await _waSendMessage(phone, bienvenida);
+        await _waSupabase.from('whatsapp_messages')
+          .insert({ phone_number: phone, message: bienvenida, direction: 'outgoing' });
+      }
+
+      // ── Recordatorio 1h ───────────────────────────────────────────────
+      if (!esNuevoChat && horasSinActividad !== null && horasSinActividad >= 1) {
+        console.log('[WA] >1h inactividad — enviando recordatorio');
+        await _waSendMessage(phone, '¿Aún tienes dudas? Aquí seguimos para ayudarte 😊\n\n(Nota: Este chat se reiniciará después de 3 horas de inactividad para mejor servicio)');
+      }
+
+      // ── PASO 6: Responder con Claude ──────────────────────────────────
+      console.log('[WA] 3. Llamando a Claude...');
+      const reply = await _waGenerateResponse(phone, text);
+      console.log('[WA] 4. Respuesta de Claude:', reply);
+
+      const { error: outErr } = await _waSupabase.from('whatsapp_messages')
+        .insert({ phone_number: phone, message: reply, direction: 'outgoing' });
+      if (outErr) console.error('[WA] Supabase outgoing ERROR:', outErr.message);
+      else console.log('[WA] Supabase outgoing OK ✓');
+
+      console.log('[WA] 5. Enviando a WhatsApp...');
+      await _waSendMessage(phone, reply);
+      console.log('[WA] 6. Éxito — mensaje enviado a', phone);
+    }
+  } catch (error) {
+    console.error('[WA] ERROR:', error.message);
+    console.error('[WA] STACK:', error.stack);
   }
-});
+
+  res.sendStatus(200);
+}
 
 // Exportar el app para Vercel (api/index.js lo importa)
 module.exports = app;

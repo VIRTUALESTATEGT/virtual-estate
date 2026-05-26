@@ -26,12 +26,29 @@ router.post('/', async (req, res) => {
   }
 });
 
+// GET /api/clientes/:id — single client record (admin)
+router.get('/:id', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('clientes').select('*').eq('id', req.params.id).maybeSingle();
+    if (error) throw error;
+    if (!data) return res.status(404).json({ error: 'Cliente no encontrado' });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.put('/:id', async (req, res) => {
   try {
-    const { nombre, email, telefono, empresa, tipo } = req.body;
+    const { nombre, email, telefono, empresa, tipo, direccion, zona, ciudad } = req.body;
+    const update = { nombre, email, telefono, empresa, tipo };
+    if (direccion !== undefined) update.direccion = direccion;
+    if (zona      !== undefined) update.zona      = zona;
+    if (ciudad    !== undefined) update.ciudad    = ciudad;
     const { data, error } = await supabase
       .from('clientes')
-      .update({ nombre, email, telefono, empresa, tipo })
+      .update(update)
       .eq('id', req.params.id)
       .select();
     if (error) throw error;

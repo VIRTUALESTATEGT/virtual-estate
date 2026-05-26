@@ -3,5 +3,11 @@
     { "source": "/api/:path*", "destination": "/api/index.js" },
     { "source": "/assets/:path*", "destination": "/api/index.js" },
     { "source": "/:path*", "destination": "/api/index.js" }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/limpiar",
+      "schedule": "0 6 * * *"
+    }
   ]
 }

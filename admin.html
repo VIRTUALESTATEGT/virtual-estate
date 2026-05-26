@@ -402,10 +402,6 @@
       <i class="fas fa-cog"></i> Configuración
     </div>
     <div class="nav-item">
-      <i class="fas fa-robot"></i>
-      <a href="/marketing-agent-panel.html" style="color:inherit;">Agente IA - Redes Sociales</a>
-    </div>
-    <div class="nav-item">
       <i class="fas fa-external-link-alt"></i>
       <a href="index.html" style="color:inherit;">Ver Sitio Web</a>
     </div>
@@ -482,7 +478,7 @@
         <div class="panel">
           <div class="panel-head">
             <span class="table-head-title">Leads Recientes</span>
-            <button class="topbar-btn btn-sec" onclick="showView('leads', document.querySelector('[onclick*=\"leads\"]'))">Ver todos</button>
+            <button class="topbar-btn btn-sec" onclick="showView('leads')">Ver todos</button>
           </div>
           <table>
             <thead>
@@ -568,7 +564,7 @@
       <div class="panel">
         <div class="panel-head">
           <span class="table-head-title">Proyectos en Curso</span>
-          <button class="topbar-btn btn-sec" onclick="showView('proyectos', document.querySelector('[onclick*=\"proyectos\"]'))">Ver todos</button>
+          <button class="topbar-btn btn-sec" onclick="showView('proyectos')">Ver todos</button>
         </div>
         <table>
           <thead>
@@ -645,7 +641,7 @@
         </div>
         <table>
           <thead>
-            <tr><th>Nro.</th><th>Cliente</th><th>Servicio</th><th>Monto</th><th>Anticipo</th><th>Canal</th><th>Estado</th><th>Fecha</th><th>Acciones</th></tr>
+            <tr><th>Nro.</th><th>Cliente</th><th>Canal</th><th>Monto</th><th>Anticipo</th><th>Moneda</th><th>Estado</th><th>Fecha</th><th>Acciones</th></tr>
           </thead>
           <tbody id="cotizaciones-tbody">
             <tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
@@ -781,26 +777,14 @@
     <div class="view" id="view-precios">
       <div class="table-wrap">
         <div class="table-head">
-          <span class="table-head-title">Tabla de Precios Oficial</span>
+          <span class="table-head-title">Catálogo de Precios</span>
+          <button class="topbar-btn btn-primary" onclick="abrirNuevoServicio()"><i class="fas fa-plus"></i> Nuevo Servicio</button>
         </div>
+        <p style="font-size:.73rem;color:var(--gray);line-height:1.6;margin:.2rem 1.2rem .8rem;font-weight:400;">Precios en USD. Fórmula: <code style="background:var(--bg3);padding:.1rem .4rem;border-radius:3px;">max(mínimo, base + (m² × precio_m2))</code></p>
         <table>
-          <thead><tr><th>#</th><th>Categoría</th><th>Servicio / Descripción</th><th>Precio</th><th>Unidad</th><th>Condición</th></tr></thead>
-          <tbody>
-            <tr><td colspan="6" style="background:var(--bg3); color:var(--gold); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; padding:.5rem 1rem;">1. Tours Virtuales</td></tr>
-            <tr><td style="color:var(--gray);">1.1</td><td>Tour Virtual</td><td>Pequeña (hasta 120 m²)</td><td class="td-gold">$3.00/m²</td><td>m²</td><td style="color:var(--gray);">Mínimo $250</td></tr>
-            <tr><td style="color:var(--gray);">1.2</td><td>Tour Virtual</td><td>Mediana (120–250 m²)</td><td class="td-gold">$2.50/m²</td><td>m²</td><td style="color:var(--gray);">—</td></tr>
-            <tr><td style="color:var(--gray);">1.3</td><td>Tour Virtual</td><td>Grande (250 m²+)</td><td class="td-gold">$1.75/m²</td><td>m²</td><td style="color:var(--gray);">—</td></tr>
-            <tr><td colspan="6" style="background:var(--bg3); color:var(--gold); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; padding:.5rem 1rem;">2. Paquetes Inmobiliarios</td></tr>
-            <tr><td style="color:var(--gray);">2.1</td><td>Paquete BÁSICO</td><td>Fotos 360° + Video recorrido</td><td class="td-gold">$250</td><td>fijo</td><td style="color:var(--gray);">Precio mínimo</td></tr>
-            <tr><td style="color:var(--gray);">2.2</td><td>Paquete INTERMEDIO</td><td>360° + Gemelo 3D + Planos PDF</td><td class="td-gold">$500</td><td>fijo</td><td style="color:var(--gray);">Planos a $3.50/m²</td></tr>
-            <tr><td style="color:var(--gray);">2.3</td><td>Paquete PREMIUM</td><td>360° + Foto prof. + Gemelo + Dollhouse + Planos PDF</td><td class="td-gold">$1,000</td><td>fijo</td><td style="color:var(--gray);">Foto según alianza</td></tr>
-            <tr><td colspan="6" style="background:var(--bg3); color:var(--gold); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; padding:.5rem 1rem;">3. AS BUILT</td></tr>
-            <tr><td style="color:var(--gray);">3.1</td><td>AS BUILT</td><td>Planos PDF</td><td class="td-gold">$3.00/m²</td><td>m²</td><td style="color:var(--gray);">—</td></tr>
-            <tr><td style="color:var(--gray);">3.2</td><td>AS BUILT</td><td>Planos PDF</td><td class="td-gold">$3.50/m²</td><td>m²</td><td style="color:var(--gray);">$15 por plano en portal</td></tr>
-            <tr><td style="color:var(--gray);">3.3</td><td>AS BUILT</td><td>Cotas / Muros / Anotaciones</td><td class="td-gold">$0.40/m²</td><td>m²</td><td style="color:var(--gray);">Cada uno</td></tr>
-            <tr><td style="color:var(--gray);">3.4</td><td>AS BUILT</td><td>Levantamiento 3D</td><td class="td-gold">$2.00/m²</td><td>m²</td><td style="color:var(--gray);">—</td></tr>
-            <tr><td style="color:var(--gray);">3.5</td><td>AS BUILT</td><td>Modelo con toma de medidas</td><td class="td-gold">$0.40/m²</td><td>m²</td><td style="color:var(--gray);">—</td></tr>
-            <tr><td style="color:var(--gray);">3.6</td><td>AS BUILT</td><td>Vistas dollhouse</td><td class="td-gold">$0.40/m²</td><td>m²</td><td style="color:var(--gray);">—</td></tr>
+          <thead><tr><th>Código</th><th>Categoría</th><th>Servicio / Descripción</th><th>Tipo</th><th>Tarifa</th><th>Mínimo</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="precios-tbody">
+            <tr><td colspan="8" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -1306,21 +1290,6 @@
           <button onclick="guardarComisionGlobal()" style="width:100%;padding:.65rem;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:.2s;" onmouseover="this.style.background='var(--gold-lt)'" onmouseout="this.style.background='var(--gold)'">
             <i class="fas fa-save" style="margin-right:.4rem;"></i> Guardar estructura
           </button>
-        </div>
-
-        <!-- Precios de Servicios (editable) -->
-        <div style="grid-column:1/-1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem;">
-            <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;display:flex;align-items:center;gap:.5rem;"><i class="fas fa-tags"></i> Base de Datos de Precios</div>
-            <button class="topbar-btn btn-primary" onclick="abrirNuevoServicio()"><i class="fas fa-plus"></i> Nuevo servicio</button>
-          </div>
-          <p style="font-size:.73rem;color:var(--gray);line-height:1.6;margin-bottom:1rem;font-weight:400;">Precios en USD. Fórmula: <code style="background:var(--bg3);padding:.1rem .4rem;border-radius:3px;">max(min, base + (m² × precio_m2))</code></p>
-          <table style="width:100%;">
-            <thead><tr><th>Código</th><th>Servicio</th><th>Descripción</th><th>Base ($)</th><th>Por m² ($)</th><th>Mínimo ($)</th><th>Estado</th><th>Acciones</th></tr></thead>
-            <tbody id="precios-tbody">
-              <tr><td colspan="8" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
-            </tbody>
-          </table>
         </div>
 
         <!-- Integraciones -->
@@ -2062,27 +2031,168 @@
 </div>
 
 <!-- ── MODAL: NUEVA COTIZACIÓN ──────────────────────────────────── -->
-<div class="modal-overlay" id="cotizacionModal">
-  <div class="modal">
-    <div class="modal-title" id="modal-cotizacion-title">Nueva Cotización</div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Cliente ID</label><input type="number" id="cot-cliente-id" class="form-control" placeholder="ID del cliente"/></div>
-      <div class="form-group"><label class="form-label">Proyecto ID</label><input type="number" id="cot-proyecto-id" class="form-control" placeholder="ID del proyecto"/></div>
+<div class="modal-overlay" id="cotizacionModal" style="align-items:flex-start;padding:1.2rem;overflow-y:auto;">
+  <div class="modal" style="max-width:820px;width:100%;margin:auto;padding:0;max-height:none;">
+
+    <!-- HEADER -->
+    <div style="position:sticky;top:0;background:var(--bg2);z-index:10;padding:1.1rem 1.6rem .9rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.2rem;" id="cot-codigo-preview">COT-26-—</div>
+        <div class="modal-title" id="modal-cotizacion-title" style="font-size:1rem;">Nueva Cotización</div>
+      </div>
+      <button onclick="closeCotizacionModal()" style="background:none;border:none;color:var(--gray);font-size:1rem;cursor:pointer;padding:.3rem;line-height:1;"><i class="fas fa-times"></i></button>
     </div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Monto Total (USD) *</label><input type="number" id="cot-monto" class="form-control" placeholder="1000"/></div>
-      <div class="form-group"><label class="form-label">Anticipo (USD)</label><input type="number" id="cot-anticipo" class="form-control" placeholder="500"/></div>
+
+    <!-- FORM BODY -->
+    <div style="padding:1.4rem 1.6rem;" id="cot-form-body">
+
+      <!-- S1: CLIENTE -->
+      <div style="font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;padding-bottom:.4rem;border-bottom:1px solid var(--border);">1 · CLIENTE</div>
+      <div class="form-row" style="margin-bottom:.5rem;">
+        <div class="form-group">
+          <label class="form-label">Buscar cliente existente</label>
+          <select id="cot-cli-select" class="form-control" style="font-size:.78rem;" onchange="onCotClienteChange()">
+            <option value="">— Seleccionar cliente —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">O crear desde lead</label>
+          <select id="cot-lead-select" class="form-control" style="font-size:.78rem;" onchange="onCotLeadChange()">
+            <option value="">— Seleccionar lead —</option>
+          </select>
+        </div>
+      </div>
+      <div id="cot-cli-info" style="display:none;background:rgba(193,146,89,.06);border:1px solid rgba(193,146,89,.14);border-radius:var(--r);padding:.7rem 1rem;font-size:.74rem;margin-bottom:.8rem;"></div>
+
+      <!-- Ubicación del trabajo -->
+      <div style="font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin:.9rem 0 .6rem;padding-bottom:.3rem;border-bottom:1px solid var(--border);">Ubicación del Trabajo</div>
+      <div class="form-row" style="margin-bottom:.6rem;">
+        <div class="form-group" style="flex:2;">
+          <label class="form-label">Dirección / Calle</label>
+          <input type="text" id="cot-ubic-calle" class="form-control" placeholder="Calle, No., Apto."/>
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Zona</label>
+          <input type="text" id="cot-ubic-zona" class="form-control" placeholder="Zona 10"/>
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Ciudad</label>
+          <input type="text" id="cot-ubic-ciudad" class="form-control" placeholder="Guatemala"/>
+        </div>
+      </div>
+
+      <!-- S2: SERVICIOS -->
+      <div style="font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin:1.2rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--border);">2 · SERVICIOS</div>
+      <div style="overflow-x:auto;margin-bottom:.7rem;">
+        <table style="width:100%;min-width:580px;border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th style="font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--gray);padding:.45rem .5rem;text-align:left;border-bottom:1px solid var(--border);">Servicio / Descripción</th>
+              <th style="font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--gray);padding:.45rem .5rem;text-align:center;border-bottom:1px solid var(--border);width:70px;">Cant.</th>
+              <th style="font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--gray);padding:.45rem .5rem;text-align:right;border-bottom:1px solid var(--border);width:110px;">P. Unit.</th>
+              <th style="font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--gray);padding:.45rem .5rem;text-align:right;border-bottom:1px solid var(--border);width:100px;">Subtotal</th>
+              <th style="border-bottom:1px solid var(--border);width:32px;"></th>
+            </tr>
+          </thead>
+          <tbody id="cot-servicios-tbody">
+            <tr id="cot-servicios-empty"><td colspan="6" style="text-align:center;color:var(--gray);padding:1rem;font-size:.73rem;font-style:italic;">Sin servicios — agrega al menos uno</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <button class="topbar-btn btn-sec" style="font-size:.7rem;" onclick="agregarServicioFila()"><i class="fas fa-plus"></i> Agregar Servicio</button>
+
+      <!-- S3: CÁLCULOS -->
+      <div style="font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin:1.3rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--border);">3 · CÁLCULOS</div>
+      <div class="form-row" style="margin-bottom:.8rem;">
+        <div class="form-group">
+          <label class="form-label">Moneda</label>
+          <select id="cot-moneda" class="form-control" onchange="onMonedaChange()">
+            <option value="USD">USD — Dólar</option>
+            <option value="GTQ">GTQ — Quetzal</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo descuento</label>
+          <select id="cot-desc-tipo" class="form-control" onchange="recalcularTotalesCot()">
+            <option value="porcentaje">Porcentaje (%)</option>
+            <option value="cantidad_fija">Cantidad fija ($)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="cot-desc-label">Descuento (%)</label>
+          <input type="number" id="cot-desc-valor" class="form-control" value="0" min="0" step="0.01" oninput="recalcularTotalesCot()"/>
+        </div>
+      </div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:.9rem 1.1rem;font-size:.78rem;margin-bottom:.9rem;">
+        <div style="display:flex;justify-content:space-between;padding:.25rem 0;"><span style="color:var(--gray);">Subtotal</span><span id="cot-res-subtotal">$0.00</span></div>
+        <div style="display:flex;justify-content:space-between;padding:.25rem 0;" id="cot-res-desc-row"><span style="color:var(--gray);" id="cot-res-desc-lbl">Descuento</span><span id="cot-res-descuento" style="color:#E08080;">-$0.00</span></div>
+        <div style="display:flex;justify-content:space-between;padding:.25rem 0;"><span style="color:var(--gray);">Subtotal c/ desc.</span><span id="cot-res-subtotal2">$0.00</span></div>
+        <div style="display:flex;justify-content:space-between;padding:.25rem 0 .6rem;border-bottom:1px solid var(--border);"><span style="color:var(--gray);">IVA 12%</span><span id="cot-res-iva">$0.00</span></div>
+        <div style="display:flex;justify-content:space-between;padding:.6rem 0 0;font-weight:700;"><span>TOTAL</span><span id="cot-res-total" style="color:var(--gold);font-size:.95rem;">$0.00</span></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Anticipo (%)</label>
+          <input type="number" id="cot-anticipo-pct" class="form-control" value="50" min="0" max="100" oninput="recalcularTotalesCot()"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Anticipo calculado</label>
+          <div id="cot-anticipo-calc" style="padding:.72rem .9rem;background:rgba(193,146,89,.08);border:1px solid rgba(193,146,89,.2);border-radius:var(--r);font-weight:700;color:var(--gold);font-size:.85rem;">$0.00</div>
+        </div>
+      </div>
+
+      <!-- S4: INFO ADICIONAL -->
+      <div style="font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin:1rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--border);">4 · INFORMACIÓN ADICIONAL</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Estado</label>
+          <select id="cot-estado" class="form-control">
+            <option value="borrador">Borrador</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="enviada">Enviada</option>
+            <option value="aprobada">Aprobada</option>
+            <option value="rechazada">Rechazada</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Canal</label>
+          <select id="cot-canal" class="form-control">
+            <option value="crm">CRM</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="web">Web</option>
+            <option value="instagram">Instagram</option>
+            <option value="facebook">Facebook</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas / Condiciones personalizadas</label>
+        <textarea id="cot-notas" class="form-control" rows="3" placeholder="Condiciones especiales, notas para el cliente..."></textarea>
+      </div>
+
+      <!-- S5: BOTONES -->
+      <div style="display:flex;gap:.6rem;margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--border);">
+        <button class="topbar-btn btn-sec" onclick="verPreviaCotizacionPDF()" style="flex:1;justify-content:center;font-size:.72rem;"><i class="fas fa-file-pdf"></i> Vista Previa PDF</button>
+        <button class="topbar-btn btn-primary" onclick="saveCotizacion()" style="flex:2;justify-content:center;" id="btn-guardar-cot"><i class="fas fa-save"></i> Guardar Cotización</button>
+        <button class="topbar-btn btn-sec" onclick="closeCotizacionModal()" style="flex:1;justify-content:center;font-size:.72rem;">Cancelar</button>
+      </div>
+    </div><!-- /cot-form-body -->
+
+    <!-- PANEL DE ÉXITO -->
+    <div id="cot-success-panel" style="display:none;padding:2.4rem 2rem;text-align:center;">
+      <div style="font-size:2.4rem;margin-bottom:.7rem;">✅</div>
+      <div style="font-family:'Raleway',sans-serif;font-size:1.05rem;font-weight:700;margin-bottom:.35rem;" id="cot-success-title">Cotización creada exitosamente</div>
+      <div style="font-size:.75rem;color:var(--gray);margin-bottom:1.3rem;">Comparte el link de confirmación con tu cliente</div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:.85rem 1rem;margin-bottom:1.1rem;">
+        <div style="font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);margin-bottom:.4rem;">Link del portal de confirmación</div>
+        <div id="cot-link-texto" style="font-size:.8rem;color:var(--gold);word-break:break-all;font-family:monospace;"></div>
+      </div>
+      <div style="display:flex;gap:.7rem;justify-content:center;">
+        <button class="topbar-btn btn-primary" onclick="copiarLinkCotizacion()" id="btn-copiar-link"><i class="fas fa-copy"></i> Copiar Link</button>
+        <button class="topbar-btn btn-sec" onclick="closeCotizacionModal();loadCotizaciones();">Cerrar</button>
+      </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Estado</label>
-      <select id="cot-estado" class="form-control">
-        <option>Pendiente</option><option>Enviada</option><option>Aprobada</option><option>Rechazada</option>
-      </select>
-    </div>
-    <div class="modal-actions">
-      <button class="topbar-btn btn-primary" onclick="saveCotizacion()" style="flex:1;justify-content:center;"><i class="fas fa-save"></i> Guardar</button>
-      <button class="topbar-btn btn-sec" onclick="closeCotizacionModal()">Cancelar</button>
-    </div>
+
   </div>
 </div>
 
@@ -2143,6 +2253,38 @@
 </div>
 
 <script>
+  /* ── UTILS ──────────────────────────────────────────────── */
+  function formatearTelefono(numero) {
+    if (!numero) return numero;
+    numero = String(numero).replace(/[\s\-()]/g, '');
+    if (!numero) return numero;
+    if (!numero.startsWith('+502')) {
+      if (numero.startsWith('502')) numero = '+' + numero;
+      else if (numero.length === 8) numero = '+502' + numero;
+    }
+    return numero;
+  }
+
+  function capitalizarNombre(nombre) {
+    if (!nombre) return nombre;
+    return String(nombre).toLowerCase().split(' ').map(w => w ? w.charAt(0).toUpperCase() + w.slice(1) : '').join(' ');
+  }
+
+  function convertirMoneda(monto, desde, hacia, tasa) {
+    tasa = tasa || 7.90;
+    monto = Number(monto) || 0;
+    if (desde === hacia) return monto;
+    if (desde === 'USD' && hacia === 'GTQ') return monto * tasa;
+    if (desde === 'GTQ' && hacia === 'USD') return monto / tasa;
+    return monto;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('input[type="tel"]').forEach(el => {
+      el.addEventListener('blur', () => { el.value = formatearTelefono(el.value); });
+    });
+  });
+
   /* ── API & AUTH ─────────────────────────────────────────── */
   const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'http://localhost:3000' : '';
@@ -2845,7 +2987,36 @@
   }
 
   /* ── COTIZACIONES ───────────────────────────────────────── */
-  let _cotizacionesCache={}, _editCotizacionId=null;
+  let _cotizacionesCache={}, _editCotizacionId=null, _cotizacionesServiciosLineas=[], _cotPreciosCache=[];
+  let _cotCliList=[], _cotLeadList=[], _cotMonedaAnterior='USD';
+
+  async function aprobarCotizacion(id){
+    try{
+      await apiFetch('/api/cotizaciones/'+id,{method:'PUT',body:JSON.stringify({estado:'aprobada'})});
+      showToast('✅ Cotización aprobada');
+      await loadCotizaciones();
+      // Open send modal for this cotizacion
+      const c=_cotizacionesCache[id];
+      if(c){
+        const portalLink=`${window.location.origin}/portal/cotizacion/${id}`;
+        await editCotizacion(id);
+        mostrarEnvioModal(id, portalLink);
+      }
+    }catch(e){showToast('Error: '+e.message);}
+  }
+
+  async function desaprobarCotizacion(id){
+    const motivo=prompt('Motivo de rechazo (opcional):');
+    if(motivo===null) return; // cancelled
+    try{
+      const det=_cotizacionesCache[id]?.detalles_json||{};
+      det.motivo_rechazo=motivo||null;
+      await apiFetch('/api/cotizaciones/'+id,{method:'PUT',body:JSON.stringify({estado:'rechazada',detalles_json:det})});
+      showToast('Cotización rechazada');
+      loadCotizaciones();
+    }catch(e){showToast('Error: '+e.message);}
+  }
+
   async function loadCotizaciones(){
     const tbody=document.getElementById('cotizaciones-tbody');
     if(!tbody)return;
@@ -2854,91 +3025,590 @@
       const items=await apiFetch('/api/cotizaciones');
       _cotizacionesCache={}; items.forEach(c=>_cotizacionesCache[c.id]=c);
       if(!items.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay cotizaciones.</td></tr>';return;}
-      const BADGE={'Pendiente':'badge-contact','borrador':'badge-contact','Enviada':'badge-quote','Aprobada':'badge-won','aprobada':'badge-won','Rechazada':'badge-lost'};
-      const SERV={'escaneo_3d':'Tour 3D','as_built':'AS BUILT','real_estate':'Real Estate','construccion':'Construcción'};
+      const BADGE={
+        'borrador':'badge-contact','pendiente':'badge-contact','Pendiente':'badge-contact',
+        'enviada':'badge-quote','Enviada':'badge-quote',
+        'aprobada':'badge-won','Aprobada':'badge-won','confirmada':'badge-won',
+        'rechazada':'badge-lost','Rechazada':'badge-lost'
+      };
       const yr = n => n ? String(new Date(n).getFullYear()).slice(-2) : String(new Date().getFullYear()).slice(-2);
       const cotCode = c => `COT-${yr(c.created_at)}-${String(c.id).padStart(5,'0')}`;
-      const cliName = c => c.clientes?.nombre || (c.cliente_id ? `#${c.cliente_id}` : '—');
+      const cliName = c => capitalizarNombre(c.clientes?.nombre) || (c.cliente_id ? `#${c.cliente_id}` : c.lead_id ? `Lead #${c.lead_id}` : '—');
+      const fmtM = (c) => {
+        const sym = c.moneda==='GTQ'?'Q':'$';
+        return c.monto ? sym+Number(c.monto).toLocaleString() : '—';
+      };
       tbody.innerHTML=items.map(c=>`<tr>
         <td style="font-family:monospace;color:var(--gold);font-size:.72rem;">${cotCode(c)}</td>
-        <td><span class="td-bold">${cliName(c)}</span>${c.clientes ? `<br/><span style="color:var(--gray);font-size:.65rem;">#${c.cliente_id}</span>` : ''}</td>
-        <td style="color:var(--gray);font-size:.78rem;">${SERV[c.tipo_servicio]||c.tipo_servicio||'—'}</td>
-        <td class="td-gold">${c.monto?'$'+Number(c.monto).toLocaleString():'—'}</td>
-        <td style="color:var(--gray);">${c.anticipo?'$'+Number(c.anticipo).toLocaleString():'—'}</td>
+        <td><span class="td-bold">${cliName(c)}</span></td>
         <td style="color:var(--gray);font-size:.72rem;">${c.canal||'—'}</td>
+        <td class="td-gold">${fmtM(c)}</td>
+        <td style="color:var(--gray);">${c.anticipo?((c.moneda==='GTQ'?'Q':'$')+Number(c.anticipo).toLocaleString()):'—'}</td>
+        <td style="color:var(--gray);font-size:.72rem;">${c.moneda||'USD'}</td>
         <td><span class="badge ${BADGE[c.estado]||'badge-contact'}">${c.estado||'—'}</span></td>
         <td style="color:var(--gray);font-size:.7rem;">${c.created_at?new Date(c.created_at).toLocaleDateString('es-GT'):'—'}</td>
         <td><div class="action-btns">
           <button class="act-btn" title="Detalle" onclick="verDetalleCotizacion(${c.id})"><i class="fas fa-eye"></i></button>
           <button class="act-btn" title="Editar" onclick="editCotizacion(${c.id})"><i class="fas fa-pencil-alt"></i></button>
+          ${c.estado!=='aprobada'&&c.estado!=='confirmada'?`<button class="act-btn" title="Aprobar" style="color:#3ECF8E;" onclick="aprobarCotizacion(${c.id})"><i class="fas fa-check"></i></button>`:''}
+          ${c.estado!=='rechazada'?`<button class="act-btn" title="Rechazar" style="color:#E08080;" onclick="desaprobarCotizacion(${c.id})"><i class="fas fa-times"></i></button>`:''}
           <button class="act-btn danger" onclick="deleteCotizacion(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
         </div></td>
       </tr>`).join('');
     }catch(e){tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
   }
-  function editCotizacion(id){
-    const c=_cotizacionesCache[id]; if(!c)return;
-    _editCotizacionId=id;
-    document.getElementById('cot-cliente-id').value=c.cliente_id||'';
-    document.getElementById('cot-proyecto-id').value=c.proyecto_id||'';
-    document.getElementById('cot-monto').value=c.monto||'';
-    document.getElementById('cot-anticipo').value=c.anticipo||'';
-    document.getElementById('cot-estado').value=c.estado||'Pendiente';
-    const t=document.getElementById('modal-cotizacion-title'); if(t)t.textContent='Editar Cotización #'+id;
-    document.getElementById('cotizacionModal').classList.add('open');
+
+  async function cargarClientesCot(){
+    const sel=document.getElementById('cot-cli-select'); if(!sel)return;
+    try{
+      const items=await apiFetch('/api/clientes');
+      _cotCliList=items||[];
+      sel.innerHTML='<option value="">— Sin cliente —</option>'+items.map(c=>`<option value="${c.id}">${capitalizarNombre(c.nombre)}${c.empresa?' ('+c.empresa+')':''}</option>`).join('');
+    }catch(e){sel.innerHTML='<option value="">Error cargando clientes</option>';}
   }
+
+  async function cargarLeadsCot(){
+    const sel=document.getElementById('cot-lead-select'); if(!sel)return;
+    try{
+      const items=await apiFetch('/api/leads');
+      _cotLeadList=items||[];
+      const activos=items.filter(l=>l.estado!=='Ganado'&&l.estado!=='Perdido');
+      sel.innerHTML='<option value="">— Sin lead —</option>'+activos.map(l=>`<option value="${l.id}">${capitalizarNombre(l.nombre)}${l.empresa?' ('+l.empresa+')':''}</option>`).join('');
+    }catch(e){sel.innerHTML='<option value="">Error cargando leads</option>';}
+  }
+
+  async function cargarPreciosCot(){
+    try{
+      const items=await apiFetch('/api/cotizacion/precios');
+      _cotPreciosCache=items||[];
+    }catch(e){_cotPreciosCache=[];}
+  }
+
+  async function cargarCodigoSiguienteCot(){
+    try{
+      const d=await apiFetch('/api/cotizaciones/codigo-siguiente');
+      const el=document.getElementById('cot-codigo-preview');
+      if(el) el.textContent=d.codigo||'—';
+    }catch(e){}
+  }
+
+  async function openCotizacionModal(){
+    _editCotizacionId=null;
+    _cotizacionesServiciosLineas=[];
+    const t=document.getElementById('modal-cotizacion-title'); if(t)t.textContent='Nueva Cotización';
+    document.getElementById('cotizacionModal').classList.add('open');
+    document.getElementById('cot-success-panel').style.display='none';
+    document.getElementById('cot-form-body').style.display='';
+    ['cot-estado','cot-canal','cot-notas'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=id==='cot-estado'?'borrador':id==='cot-canal'?'crm':'';});
+    document.getElementById('cot-moneda').value='USD';
+    _cotMonedaAnterior='USD';
+    document.getElementById('cot-desc-valor').value='0';
+    document.getElementById('cot-desc-tipo').value='porcentaje';
+    document.getElementById('cot-anticipo-pct').value='50';
+    ['cot-ubic-calle','cot-ubic-zona','cot-ubic-ciudad'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    renderServiciosTabla();
+    recalcularTotalesCot();
+    await Promise.all([cargarClientesCot(),cargarLeadsCot(),cargarPreciosCot(),cargarCodigoSiguienteCot()]);
+    document.getElementById('cot-cli-info').style.display='none';
+  }
+
+  function closeCotizacionModal(){
+    _editCotizacionId=null;
+    _cotizacionesServiciosLineas=[];
+    document.getElementById('cotizacionModal').classList.remove('open');
+  }
+
+  function onCotClienteChange(){
+    const sel=document.getElementById('cot-cli-select');
+    if(sel.value) document.getElementById('cot-lead-select').value='';
+    mostrarInfoCotCliente();
+  }
+
+  function onCotLeadChange(){
+    const sel=document.getElementById('cot-lead-select');
+    if(sel.value) document.getElementById('cot-cli-select').value='';
+    mostrarInfoCotCliente();
+  }
+
+  function mostrarInfoCotCliente(){
+    const panel=document.getElementById('cot-cli-info');
+    const cliId=document.getElementById('cot-cli-select').value;
+    const leadId=document.getElementById('cot-lead-select').value;
+    if(!cliId&&!leadId){panel.style.display='none';return;}
+    let nombre='',email='',tel='',empresa='',direccion='',zona='',ciudad='';
+    if(cliId){
+      const c=_cotCliList.find(x=>String(x.id)===String(cliId))||{};
+      nombre=c.nombre||''; email=c.email||''; tel=c.telefono||''; empresa=c.empresa||'';
+      direccion=c.direccion||''; zona=c.zona||''; ciudad=c.ciudad||'';
+    } else {
+      const l=_cotLeadList.find(x=>String(x.id)===String(leadId))||{};
+      nombre=l.nombre||''; email=l.email||''; tel=l.telefono||''; empresa=l.empresa||'';
+    }
+    const nombreMostrar=capitalizarNombre(nombre)||'—';
+    panel.style.display='';
+    panel.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;font-size:.75rem;">
+      <div><span style="color:var(--gray);font-size:.65rem;">Nombre</span><br/><b>${nombreMostrar}</b></div>
+      <div><span style="color:var(--gray);font-size:.65rem;">Empresa</span><br/>${empresa||'—'}</div>
+      <div><span style="color:var(--gray);font-size:.65rem;">Email</span><br/>${email||'—'}</div>
+      <div><span style="color:var(--gray);font-size:.65rem;">Teléfono</span><br/>${tel||'—'}</div>
+      ${direccion?`<div style="grid-column:1/-1"><span style="color:var(--gray);font-size:.65rem;">Dirección registrada</span><br/>${direccion}${zona?', '+zona:''}${ciudad?', '+ciudad:''}</div>`:''}
+    </div>`;
+    // Pre-fill location fields from client record (only if currently empty)
+    const calleEl=document.getElementById('cot-ubic-calle');
+    const zonaEl=document.getElementById('cot-ubic-zona');
+    const ciudadEl=document.getElementById('cot-ubic-ciudad');
+    if(calleEl&&!calleEl.value) calleEl.value=direccion;
+    if(zonaEl&&!zonaEl.value)   zonaEl.value=zona;
+    if(ciudadEl&&!ciudadEl.value) ciudadEl.value=ciudad||'Guatemala';
+  }
+
+  function agregarServicioFila(){
+    _cotizacionesServiciosLineas.push({descripcion:'',cantidad:1,precio_unitario:0,subtotal:0,tipo_precio:'fijo',_custom:true});
+    renderServiciosTabla();
+    recalcularTotalesCot();
+  }
+
+  function renderServiciosTabla(){
+    const tbody=document.getElementById('cot-servicios-tbody'); if(!tbody)return;
+    if(!_cotizacionesServiciosLineas.length){
+      tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--gray);font-size:.75rem;padding:.8rem;">Sin servicios. Presiona "+ Agregar Servicio".</td></tr>';
+      return;
+    }
+    const inp='background:var(--bg2,#1a1a1a);border:1px solid var(--border);color:var(--white);padding:.28rem .45rem;border-radius:4px;font-size:.74rem;';
+    // Group by categoria for the select
+    const cats={};
+    _cotPreciosCache.filter(p=>p.activo!==false).forEach(p=>{
+      const cat=p.categoria||'General';
+      if(!cats[cat])cats[cat]=[];
+      cats[cat].push(p);
+    });
+    const mon=document.getElementById('cot-moneda')?.value||'USD';
+    const symP=mon==='GTQ'?'Q':'$';
+    const fmtP=n=>symP+(convertirMoneda(Number(n)||0,'USD',mon)).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const preciosOptsFn=sid=>Object.entries(cats).map(([cat,ps])=>`<optgroup label="${cat}">${ps.map(p=>{
+      const ph=p.tipo_precio==='fijo'?(symP+fmtP(p.precio_minimo||0).slice(1)):p.tipo_precio==='por_m2'?(symP+(convertirMoneda(p.precio_por_m2||0,'USD',mon)).toFixed(2)+'/m²'):'cotizar';
+      return `<option value="${p.id}"${String(p.id)===String(sid)?' selected':''}>${p.servicio}${p.descripcion?' — '+p.descripcion:''} (${ph})</option>`;
+    }).join('')}</optgroup>`).join('');
+    tbody.innerHTML=_cotizacionesServiciosLineas.map((s,i)=>{
+      const esPorM2=s.tipo_precio==='por_m2'||s.tipo_precio==='rango_m2';
+      const esCotizar=s.tipo_precio==='cotizar';
+      const precioRO=esPorM2?'readonly style="'+inp+';opacity:.55;cursor:not-allowed;"':'style="'+inp+'"';
+      const cantLabel=esPorM2?'m²':'Cant.';
+      const rangoNota=esPorM2&&s.rango_m2_max?`<div style="font-size:.6rem;color:var(--gray);margin-top:.2rem;">Rango: ${s.rango_m2_min||0}–${s.rango_m2_max} m²</div>`:'';
+      const minNota=esPorM2&&s.precio_minimo>0?`<div style="font-size:.6rem;color:var(--gold);margin-top:.2rem;">Mín: ${fmtP(s.precio_minimo)}</div>`:'';
+      const cotNota=esCotizar?`<div style="font-size:.6rem;color:var(--gold);margin-top:.2rem;">Cotización personalizada</div>`:'';
+      const pUnitDisplay=convertirMoneda(s.precio_unitario||0,'USD',mon);
+      return `<tr>
+        <td style="min-width:200px;">
+          <select onchange="onServicioSelect(${i},this)" style="width:100%;${inp}">
+            <option value="">— Seleccionar —</option>${preciosOptsFn(s.precio_id||'')}
+            <option value="__custom__"${s._custom?' selected':''}>Personalizado</option>
+          </select>
+          <input type="text" placeholder="Descripción" value="${(s.descripcion||'').replace(/"/g,'&quot;')}"
+            onchange="_cotizacionesServiciosLineas[${i}].descripcion=this.value;"
+            style="margin-top:.3rem;width:100%;${inp}"/>
+          ${rangoNota}${minNota}${cotNota}
+        </td>
+        <td>
+          <div style="font-size:.6rem;color:var(--gray);text-align:center;margin-bottom:.2rem;">${cantLabel}</div>
+          <input type="number" value="${s.cantidad||0}" min="0" step="0.01"
+            onchange="onRowInputChange(${i},'cantidad',this.value)"
+            style="width:68px;${inp}"/>
+        </td>
+        <td>
+          <div style="font-size:.6rem;color:var(--gray);margin-bottom:.2rem;">${esPorM2?'P/m²':'Precio'}</div>
+          <input type="number" value="${pUnitDisplay.toFixed(2)}" min="0" step="0.01"
+            onchange="onRowInputChange(${i},'precio',this.value)"
+            ${precioRO}
+            style="width:92px;"/>
+        </td>
+        <td style="text-align:right;font-family:monospace;font-size:.8rem;color:var(--gold);" id="svc-sub-${i}">${fmtCot(s.subtotal||0)}</td>
+        <td style="text-align:center;"><button onclick="eliminarServicioFila(${i})" style="background:none;border:none;color:#E08080;cursor:pointer;font-size:.85rem;"><i class="fas fa-times"></i></button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  function onRowInputChange(i,field,val){
+    const s=_cotizacionesServiciosLineas[i]; if(!s)return;
+    const mon=document.getElementById('cot-moneda')?.value||'USD';
+    // Convert displayed value back to USD for storage
+    const v=convertirMoneda(Number(val)||0,mon,'USD');
+    if(field==='cantidad'){
+      // For m²-based services, val is already m² (not money), no conversion needed
+      const m2=Number(val)||0;
+      s.cantidad=m2;
+      if(s.tipo_precio==='por_m2'){
+        // Validate against range max if defined
+        if(s.rango_m2_max && m2>s.rango_m2_max){
+          const nextTier=_cotPreciosCache.find(x=>
+            x.categoria===s.precio_categoria && String(x.id)!==String(s.precio_id) &&
+            (Number(x.rango_m2_min)||0)<=m2 && (!x.rango_m2_max||Number(x.rango_m2_max)>=m2)
+          );
+          const maxLabel=s.rango_m2_max+' m²';
+          if(nextTier){
+            const nextName=nextTier.descripcion||nextTier.servicio||'siguiente rango';
+            if(confirm(`Este servicio cubre hasta ${maxLabel}.\n¿Cambiar a "${nextName}"?`)){
+              _aplicarPrecioALinea(s,nextTier);
+              s.cantidad=m2;
+              const raw=m2*(s.precio_unitario||0);
+              s.subtotal=s.precio_minimo>0?Math.max(s.precio_minimo,raw):raw;
+              renderServiciosTabla();
+              recalcularTotalesCot();
+              return;
+            }
+          } else {
+            alert(`Este servicio cubre hasta ${maxLabel}. Por favor elige otro servicio para metrajes mayores.`);
+          }
+          s.cantidad=0; s.subtotal=0;
+        } else {
+          const raw=m2*(s.precio_unitario||0);
+          s.subtotal=s.precio_minimo>0?Math.max(s.precio_minimo,raw):raw;
+        }
+      } else if(s.tipo_precio==='rango_m2'){
+        s.subtotal=m2>0?s.precio_en_rango||s.precio_unitario||0:0;
+      } else {
+        s.subtotal=m2*(s.precio_unitario||0);
+      }
+    } else {
+      // Price input: user enters in display currency, convert to USD for storage
+      s.precio_unitario=v;
+      s.subtotal=s.cantidad*v;
+    }
+    const cell=document.getElementById('svc-sub-'+i);
+    if(cell)cell.textContent=fmtCot(s.subtotal);
+    recalcularTotalesCot();
+  }
+
+  function _aplicarPrecioALinea(s, p){
+    s.tipo_precio=p.tipo_precio||'fijo';
+    s.precio_por_m2=Number(p.precio_por_m2)||0;
+    s.precio_minimo=Number(p.precio_minimo)||0;
+    s.precio_en_rango=Number(p.precio_en_rango)||0;
+    s.rango_m2_min=Number(p.rango_m2_min)||0;
+    s.rango_m2_max=p.rango_m2_max?Number(p.rango_m2_max):null;
+    s.precio_id=p.id;
+    s.precio_categoria=p.categoria||'';
+    s.descripcion=p.servicio+(p.descripcion?' — '+p.descripcion:'');
+    s._custom=false;
+    if(s.tipo_precio==='fijo'){
+      s.cantidad=1;
+      s.precio_unitario=Number(p.precio_minimo)||Number(p.precio_fijo)||0;
+      s.subtotal=s.precio_unitario;
+    } else if(s.tipo_precio==='por_m2'){
+      s.cantidad=s.cantidad||0;
+      s.precio_unitario=Number(p.precio_por_m2)||0;
+      s.subtotal=s.cantidad>0?Math.max(s.precio_minimo,s.cantidad*s.precio_unitario):0;
+    } else if(s.tipo_precio==='rango_m2'){
+      s.cantidad=s.cantidad||0;
+      s.precio_unitario=Number(p.precio_en_rango)||0;
+      s.subtotal=0;
+    } else {
+      s.cantidad=1;
+      s.precio_unitario=0;
+      s.subtotal=0;
+    }
+  }
+
+  function onServicioSelect(i,sel){
+    if(sel.value==='__custom__'){_cotizacionesServiciosLineas[i]._custom=true;_cotizacionesServiciosLineas[i].precio_id=null;renderServiciosTabla();return;}
+    if(!sel.value){return;}
+    const p=_cotPreciosCache.find(x=>String(x.id)===String(sel.value));
+    if(!p)return;
+    const s=_cotizacionesServiciosLineas[i];
+    s.cantidad=0;
+    _aplicarPrecioALinea(s,p);
+    renderServiciosTabla();
+    recalcularTotalesCot();
+  }
+
+  function eliminarServicioFila(i){
+    _cotizacionesServiciosLineas.splice(i,1);
+    renderServiciosTabla();
+    recalcularTotalesCot();
+  }
+
+  function fmtCot(n){
+    const mon=document.getElementById('cot-moneda')?.value||'USD';
+    const sym=mon==='GTQ'?'Q':'$';
+    const val=convertirMoneda(Number(n)||0,'USD',mon);
+    return sym+val.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+
+  function recalcularTotalesCot(){
+    const mon=document.getElementById('cot-moneda')?.value||'USD';
+    const sym=mon==='GTQ'?'Q':'$';
+    const subtotal=_cotizacionesServiciosLineas.reduce((s,l)=>s+(l.subtotal||0),0);
+    const subtotalDisp=convertirMoneda(subtotal,'USD',mon);
+    const descTipo=document.getElementById('cot-desc-tipo')?.value||'porcentaje';
+    const descValor=Number(document.getElementById('cot-desc-valor')?.value)||0;
+    // descValor is always in display currency; convert to USD for internal calc
+    const descValorUSD=descTipo==='porcentaje'?0:convertirMoneda(descValor,mon,'USD');
+    const descMonto=descTipo==='porcentaje'?subtotal*(descValor/100):Math.min(descValorUSD,subtotal);
+    const subtotal2=Math.max(0,subtotal-descMonto);
+    const ivaMonto=subtotal2*0.12;
+    const total=subtotal2+ivaMonto;
+    const anticPct=Number(document.getElementById('cot-anticipo-pct')?.value)||0;
+    const anticMonto=total*(anticPct/100);
+    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=fmtCot(v);};
+    set('cot-res-subtotal',subtotal);
+    set('cot-res-descuento',descMonto);
+    set('cot-res-subtotal2',subtotal2);
+    set('cot-res-iva',ivaMonto);
+    set('cot-res-total',total);
+    const acalc=document.getElementById('cot-anticipo-calc');
+    if(acalc) acalc.textContent=fmtCot(anticMonto);
+    const lbl=document.getElementById('cot-desc-label');
+    if(lbl) lbl.textContent=descTipo==='porcentaje'?'Descuento (%)':'Descuento ('+sym+')';
+    const rlbl=document.getElementById('cot-res-desc-lbl');
+    if(rlbl) rlbl.textContent=descTipo==='porcentaje'?`Descuento (${descValor}%)`:`Descuento (${sym}${descValor.toFixed(2)})`;
+  }
+
+  function onMonedaChange(){
+    const newMon=document.getElementById('cot-moneda')?.value||'USD';
+    const descTipo=document.getElementById('cot-desc-tipo')?.value;
+    if(descTipo==='monto'){
+      const descEl=document.getElementById('cot-desc-valor');
+      const descVal=Number(descEl?.value)||0;
+      if(_cotMonedaAnterior!==newMon && descVal>0){
+        const converted=convertirMoneda(descVal,_cotMonedaAnterior,newMon);
+        if(descEl) descEl.value=converted.toFixed(2);
+      }
+    }
+    _cotMonedaAnterior=newMon;
+    renderServiciosTabla();
+    recalcularTotalesCot();
+  }
+
+  async function editCotizacion(id){
+    const c=_cotizacionesCache[id]; if(!c)return;
+    await openCotizacionModal();
+    _editCotizacionId=id;
+    const t=document.getElementById('modal-cotizacion-title'); if(t)t.textContent='Editar Cotización #'+id;
+    if(c.cliente_id) document.getElementById('cot-cli-select').value=c.cliente_id;
+    if(c.lead_id) document.getElementById('cot-lead-select').value=c.lead_id;
+    document.getElementById('cot-moneda').value=c.moneda||'USD';
+    _cotMonedaAnterior=c.moneda||'USD';
+    document.getElementById('cot-estado').value=c.estado||'borrador';
+    document.getElementById('cot-canal').value=c.canal||'crm';
+    const det=c.detalles_json||{};
+    if(det.servicios&&det.servicios.length){
+      _cotizacionesServiciosLineas=det.servicios.map(s=>({descripcion:s.descripcion||'',cantidad:s.cantidad||1,precio_unitario:s.precio_unitario||0,subtotal:(s.cantidad||1)*(s.precio_unitario||0)}));
+    }
+    if(det.descuento_tipo) document.getElementById('cot-desc-tipo').value=det.descuento_tipo;
+    if(det.descuento_valor!=null) document.getElementById('cot-desc-valor').value=det.descuento_valor;
+    if(det.notas) document.getElementById('cot-notas').value=det.notas;
+    const calleEl=document.getElementById('cot-ubic-calle');
+    const zonaEl=document.getElementById('cot-ubic-zona');
+    const ciudadEl=document.getElementById('cot-ubic-ciudad');
+    if(calleEl) calleEl.value=c.ubicacion_calle||det.ubicacion_calle||'';
+    if(zonaEl)  zonaEl.value=c.ubicacion_zona||det.ubicacion_zona||'';
+    if(ciudadEl) ciudadEl.value=c.ubicacion_ciudad||det.ubicacion_ciudad||'Guatemala';
+    if(c.anticipo&&c.monto){ const pct=Math.round((c.anticipo/c.monto)*100); document.getElementById('cot-anticipo-pct').value=pct; }
+    renderServiciosTabla();
+    recalcularTotalesCot();
+    mostrarInfoCotCliente();
+  }
+
   async function deleteCotizacion(id){
     if(!confirm('¿Eliminar esta cotización?'))return;
     try{await apiFetch('/api/cotizaciones/'+id,{method:'DELETE'});showToast('Cotización eliminada');loadCotizaciones();}
     catch(e){showToast('Error: '+e.message);}
   }
-  function openCotizacionModal(){
-    _editCotizacionId=null;
-    const t=document.getElementById('modal-cotizacion-title'); if(t)t.textContent='Nueva Cotización';
-    document.getElementById('cotizacionModal').classList.add('open');
-  }
-  function closeCotizacionModal(){
-    _editCotizacionId=null;
-    document.getElementById('cotizacionModal').classList.remove('open');
-    ['cot-cliente-id','cot-proyecto-id','cot-monto','cot-anticipo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  }
-  function verDetalleCotizacion(id) {
-    const c = _cotizacionesCache[id]; if (!c) return;
-    const SERV={'escaneo_3d':'Tour 3D','as_built':'AS BUILT','real_estate':'Real Estate','construccion':'Construcción'};
-    const yr = n => n ? String(new Date(n).getFullYear()).slice(-2) : String(new Date().getFullYear()).slice(-2);
-    const det = c.detalles_json || {};
-    const html = `<div style="font-size:.8rem;line-height:1.8;">
-      <div style="font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:.8rem;">Cotización ${`COT-${yr(c.created_at)}-${String(c.id).padStart(5,'0')}`}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem .8rem;margin-bottom:.8rem;">
-        <div><span style="color:var(--gray);font-size:.68rem;">Servicio</span><br/><b>${SERV[c.tipo_servicio]||c.tipo_servicio||'—'}</b></div>
-        <div><span style="color:var(--gray);font-size:.68rem;">Canal</span><br/>${c.canal||'—'}</div>
-        <div><span style="color:var(--gray);font-size:.68rem;">Monto</span><br/><b style="color:var(--gold);">$${c.monto?Number(c.monto).toLocaleString():'—'}</b></div>
-        <div><span style="color:var(--gray);font-size:.68rem;">Anticipo</span><br/>${c.anticipo?'$'+Number(c.anticipo).toLocaleString():'—'}</div>
-        <div><span style="color:var(--gray);font-size:.68rem;">Metraje</span><br/>${det.m2||'—'} m²</div>
-        <div><span style="color:var(--gray);font-size:.68rem;">Zona</span><br/>${det.zona||'—'}</div>
-        <div><span style="color:var(--gray);font-size:.68rem;">Nivel de riesgo</span><br/>${det.nivel_riesgo||'—'}</div>
-        <div><span style="color:var(--gray);font-size:.68rem;">Estado</span><br/>${c.estado||'—'}</div>
-      </div>
-      ${det.detalles_adicionales?`<div style="margin-bottom:.5rem;"><span style="color:var(--gray);font-size:.68rem;">Detalles adicionales</span><br/>${det.detalles_adicionales}</div>`:''}
-    </div>`;
-    const overlay = document.getElementById('cot-detalle-overlay');
-    document.getElementById('cot-detalle-body').innerHTML = html;
-    overlay.style.display = 'flex';
-  }
+
   async function saveCotizacion(){
-    const monto=document.getElementById('cot-monto').value;
-    if(!monto){showToast('El monto es requerido');return;}
-    const payload={cliente_id:document.getElementById('cot-cliente-id').value||null,proyecto_id:document.getElementById('cot-proyecto-id').value||null,monto:Number(monto),anticipo:Number(document.getElementById('cot-anticipo').value)||null,estado:document.getElementById('cot-estado').value};
+    const lineas=_cotizacionesServiciosLineas.filter(l=>l.descripcion||l.precio_unitario);
+    const subtotal=lineas.reduce((s,l)=>s+(l.subtotal||0),0);
+    const descTipo=document.getElementById('cot-desc-tipo').value||'porcentaje';
+    const descValor=Number(document.getElementById('cot-desc-valor').value)||0;
+    const descMonto=descTipo==='porcentaje'?subtotal*(descValor/100):Math.min(descValor,subtotal);
+    const subtotal2=Math.max(0,subtotal-descMonto);
+    const ivaMonto=subtotal2*0.12;
+    const total=subtotal2+ivaMonto;
+    const anticPct=Number(document.getElementById('cot-anticipo-pct').value)||0;
+    const anticipo=total*(anticPct/100);
+    const ubCalle=document.getElementById('cot-ubic-calle')?.value||'';
+    const ubZona=document.getElementById('cot-ubic-zona')?.value||'';
+    const ubCiudad=document.getElementById('cot-ubic-ciudad')?.value||'Guatemala';
+    const ubCompleta=[ubCalle,ubZona,ubCiudad].filter(Boolean).join(', ');
+    const detalles_json={
+      servicios:lineas,
+      descuento_tipo:descTipo,
+      descuento_valor:descValor,
+      descuento_monto:descMonto,
+      iva_porcentaje:12,
+      subtotal,iva_monto:ivaMonto,total,
+      ubicacion_calle:ubCalle||null,
+      ubicacion_zona:ubZona||null,
+      ubicacion_ciudad:ubCiudad||null,
+      ubicacion_completa:ubCompleta||null,
+      notas:document.getElementById('cot-notas').value||null
+    };
+    const payload={
+      cliente_id:document.getElementById('cot-cli-select').value||null,
+      lead_id:document.getElementById('cot-lead-select').value||null,
+      monto:total,
+      anticipo:anticipo||null,
+      estado:document.getElementById('cot-estado').value,
+      canal:document.getElementById('cot-canal').value,
+      moneda:document.getElementById('cot-moneda').value,
+      ubicacion_calle:ubCalle||null,
+      ubicacion_zona:ubZona||null,
+      ubicacion_ciudad:ubCiudad||null,
+      ubicacion_completa:ubCompleta||null,
+      detalles_json
+    };
+    const btn=document.getElementById('btn-guardar-cot');
+    if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Guardando...';}
     try{
+      let result;
       if(_editCotizacionId){
-        await apiFetch('/api/cotizaciones/'+_editCotizacionId,{method:'PUT',body:JSON.stringify(payload)});
+        result=await apiFetch('/api/cotizaciones/'+_editCotizacionId,{method:'PUT',body:JSON.stringify(payload)});
         showToast('✅ Cotización actualizada');
+        closeCotizacionModal(); loadCotizaciones();
       }else{
-        await apiFetch('/api/cotizaciones',{method:'POST',body:JSON.stringify(payload)});
+        result=await apiFetch('/api/cotizaciones',{method:'POST',body:JSON.stringify(payload)});
         showToast('✅ Cotización creada');
+        loadCotizaciones();
+        const portalLink=`${window.location.origin}/portal/cotizacion/${result.id}`;
+        mostrarEnvioModal(result.id, portalLink);
       }
-      closeCotizacionModal();loadCotizaciones();
-    }catch(e){showToast('Error: '+e.message);}
+    }catch(e){
+      showToast('Error: '+e.message);
+      if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-save"></i> Guardar Cotización';}
+    }
+  }
+
+  function mostrarExitoCotizacion(cotId, link){
+    if(!link){ const base=window.location.origin; link=`${base}/portal/cotizacion/${cotId}`; }
+    document.getElementById('cot-link-texto').textContent=link;
+    document.getElementById('cot-form-body').style.display='none';
+    document.getElementById('cot-success-panel').style.display='';
+  }
+
+  function copiarLinkCotizacion(){
+    const txt=document.getElementById('cot-link-texto').textContent;
+    navigator.clipboard.writeText(txt).then(()=>showToast('Link copiado')).catch(()=>showToast('No se pudo copiar'));
+  }
+
+  function verDetalleCotizacion(id){
+    const c=_cotizacionesCache[id]; if(!c)return;
+    const yr=n=>n?String(new Date(n).getFullYear()).slice(-2):String(new Date().getFullYear()).slice(-2);
+    const cotCode=`COT-${yr(c.created_at)}-${String(c.id).padStart(5,'0')}`;
+    const det=c.detalles_json||{};
+    const sym=c.moneda==='GTQ'?'Q':'$';
+    const fmt=n=>sym+(Number(n)||0).toLocaleString('es-GT',{minimumFractionDigits:2});
+    let serviciosHtml='';
+    if(det.servicios&&det.servicios.length){
+      serviciosHtml=`<table style="width:100%;border-collapse:collapse;font-size:.75rem;margin-top:.5rem;">
+        <thead><tr style="border-bottom:1px solid var(--border);">
+          <th style="text-align:left;padding:.3rem .5rem;color:var(--gray);">Servicio</th>
+          <th style="text-align:right;padding:.3rem .5rem;color:var(--gray);">Cant.</th>
+          <th style="text-align:right;padding:.3rem .5rem;color:var(--gray);">P.Unit.</th>
+          <th style="text-align:right;padding:.3rem .5rem;color:var(--gray);">Subtotal</th>
+        </tr></thead>
+        <tbody>${det.servicios.map(s=>`<tr>
+          <td style="padding:.3rem .5rem;">${s.descripcion||'—'}</td>
+          <td style="text-align:right;padding:.3rem .5rem;">${s.cantidad||1}</td>
+          <td style="text-align:right;padding:.3rem .5rem;">${fmt(s.precio_unitario)}</td>
+          <td style="text-align:right;padding:.3rem .5rem;color:var(--gold);">${fmt((s.cantidad||1)*(s.precio_unitario||0))}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+    }
+    const resumen=det.total?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-top:.6rem;font-size:.75rem;border-top:1px solid var(--border);padding-top:.5rem;">
+      <div><span style="color:var(--gray);">Descuento</span></div><div style="text-align:right;">${det.descuento_porcentaje||0}%</div>
+      <div><span style="color:var(--gray);">IVA 12%</span></div><div style="text-align:right;">${fmt(det.iva_monto)}</div>
+      <div><b>TOTAL</b></div><div style="text-align:right;color:var(--gold);font-weight:700;">${fmt(det.total)}</div>
+      <div><span style="color:var(--gray);">Anticipo</span></div><div style="text-align:right;">${c.anticipo?fmt(c.anticipo):'—'}</div>
+    </div>`:'';
+    const html=`<div style="font-size:.8rem;line-height:1.8;">
+      <div style="font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:.6rem;">${cotCode}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;font-size:.75rem;margin-bottom:.5rem;">
+        <div><span style="color:var(--gray);font-size:.65rem;">Cliente/Lead</span><br/><b>${c.clientes?.nombre||'Lead #'+(c.lead_id||'—')}</b></div>
+        <div><span style="color:var(--gray);font-size:.65rem;">Canal</span><br/>${c.canal||'—'}</div>
+        <div><span style="color:var(--gray);font-size:.65rem;">Moneda</span><br/>${c.moneda||'USD'}</div>
+        <div><span style="color:var(--gray);font-size:.65rem;">Estado</span><br/>${c.estado||'—'}</div>
+      </div>
+      ${serviciosHtml}${resumen}
+      ${det.notas?`<div style="margin-top:.5rem;font-size:.72rem;color:var(--gray);">Notas: ${det.notas}</div>`:''}
+    </div>`;
+    const overlay=document.getElementById('cot-detalle-overlay');
+    document.getElementById('cot-detalle-body').innerHTML=html;
+    overlay.style.display='flex';
+  }
+
+  async function verPreviaCotizacionPDF(){
+    const lineas=_cotizacionesServiciosLineas.filter(l=>l.descripcion||l.precio_unitario);
+    const mon=document.getElementById('cot-moneda')?.value||'USD';
+    const factor=mon==='GTQ'?7.90:1;
+    const sym=mon==='GTQ'?'Q':'$';
+    // fmt() converts USD→display currency via factor
+    const fmt=n=>sym+((Number(n)||0)*factor).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+    // All intermediate calculations stay in USD
+    const subtotal=lineas.reduce((s,l)=>s+(l.subtotal||0),0);
+    const descTipo=document.getElementById('cot-desc-tipo')?.value||'porcentaje';
+    const descValorInput=Number(document.getElementById('cot-desc-valor')?.value)||0;
+    // descValorInput is in display currency; convert to USD for internal calc when monto type
+    const descValorUSD=descTipo==='porcentaje'?0:convertirMoneda(descValorInput,mon,'USD');
+    const descMonto=descTipo==='porcentaje'?subtotal*(descValorInput/100):Math.min(descValorUSD,subtotal);
+    const subtotal2=Math.max(0,subtotal-descMonto);
+    const ivaMonto=subtotal2*0.12;
+    const total=subtotal2+ivaMonto;
+    const anticPct=Number(document.getElementById('cot-anticipo-pct').value)||0;
+    const codigo=document.getElementById('cot-codigo-preview')?.textContent||'—';
+    const cliId=document.getElementById('cot-cli-select').value;
+    const leadId=document.getElementById('cot-lead-select').value;
+    let cliNombre='—',cliEmail='',cliTel='',cliEmpresa='';
+    if(cliId){const c=_cotCliList.find(x=>String(x.id)===cliId)||{};cliNombre=c.nombre||'—';cliEmail=c.email||'';cliTel=c.telefono||'';cliEmpresa=c.empresa||'';}
+    else if(leadId){const l=_cotLeadList.find(x=>String(x.id)===leadId)||{};cliNombre=l.nombre||'—';cliEmail=l.email||'';cliTel=l.telefono||'';cliEmpresa=l.empresa||'';}
+    const notas=document.getElementById('cot-notas').value||'';
+    const fecha=new Date().toLocaleDateString('es-GT',{day:'numeric',month:'long',year:'numeric'});
+    const telFmt=formatearTelefono(cliTel)||cliTel||'—';
+    const ubCalle=document.getElementById('cot-ubic-calle')?.value||'';
+    const ubZona=document.getElementById('cot-ubic-zona')?.value||'';
+    const ubCiudad=document.getElementById('cot-ubic-ciudad')?.value||'Guatemala';
+    const cliDir=[ubCalle,ubZona,ubCiudad].filter(Boolean).join(', ')||'Guatemala';
+    cliNombre=capitalizarNombre(cliNombre);
+
+    // Build tbody: 3-column (descripción | unidad | USD)
+    const svcRows=lineas.map(s=>{
+      const unit=s.tipo_precio==='por_m2'?(s.cantidad||0)+' m²':s.tipo_precio==='cotizar'?'A cotizar':'1 unidad';
+      return '<tr><td>'+( s.descripcion||'—')+'</td><td style="text-align:center">'+unit+'</td><td class="r">'+fmt(s.subtotal||0)+'</td></tr>';
+    }).join('');
+    const discRow=descMonto>0?('<tr class="sub"><td colspan="2">'+(descTipo==='porcentaje'?'Descuento ('+descValor+'%)':'Descuento')+'</td><td class="r">-'+fmt(descMonto)+'</td></tr>'):'';
+    const sub2Row=descMonto>0?('<tr class="sub"><td colspan="2">Subtotal neto</td><td class="r">'+fmt(subtotal2)+'</td></tr>'):'';
+    const tbodyHtml=svcRows+
+      '<tr><td></td><td></td><td></td></tr>'+
+      '<tr class="sub"><td colspan="2">Subtotal</td><td class="r">'+fmt(subtotal)+'</td></tr>'+
+      discRow+sub2Row+
+      '<tr class="sub"><td colspan="2">IVA 12 %</td><td class="r">'+fmt(ivaMonto)+'</td></tr>'+
+      '<tr class="tot"><td colspan="2">TOTAL</td><td class="r">'+fmt(total)+'</td></tr>';
+
+    try{
+      const resp=await fetch('/assets/machote-cotizacion.html');
+      if(!resp.ok) throw new Error('HTTP '+resp.status+' al cargar plantilla');
+      let html=await resp.text();
+      html=html.replace(/<script[\s\S]*?<\/script>/gi,'');
+      const dataScript='<script>(function(){'
+        +'var codEl=document.querySelector(".doc-codigo-valor");if(codEl)codEl.textContent='+JSON.stringify(codigo)+';'
+        +'var cv=document.querySelectorAll(".campo-val");'
+        +'if(cv[0])cv[0].textContent='+JSON.stringify(cliNombre)+';'
+        +'if(cv[1])cv[1].textContent='+JSON.stringify(cliEmpresa||'—')+';'
+        +'if(cv[2])cv[2].textContent='+JSON.stringify(telFmt)+';'
+        +'if(cv[3])cv[3].textContent='+JSON.stringify(cliEmail||'—')+';'
+        +'if(cv[4])cv[4].textContent='+JSON.stringify(cliDir)+';'
+        +'var fechaEl=document.getElementById("fecha-doc");if(fechaEl)fechaEl.textContent='+JSON.stringify(fecha)+';'
+        +'var tbody=document.querySelector(".tabla tbody");if(tbody)tbody.innerHTML='+JSON.stringify(tbodyHtml)+';'
+        +'var firmas=document.querySelectorAll(".firma-nom");if(firmas[1])firmas[1].textContent='+JSON.stringify(cliNombre)+';'
+        +(notas?'var ul=document.querySelector(".notas ul");if(ul){var li=document.createElement("li");li.textContent='+JSON.stringify(notas)+';ul.appendChild(li);}':'')
+        +'})();<\/script>';
+      html=html.replace('</body>',dataScript+'</body>');
+      const win=window.open('','_blank');
+      if(!win){showToast('Permite ventanas emergentes para ver la vista previa');return;}
+      win.document.write(html);
+      win.document.close();
+    }catch(e){
+      showToast('Error cargando plantilla PDF: '+e.message);
+    }
   }
 
   /* ── CONSTRUCTORES ────────────────────────────────────── */
@@ -3619,32 +4289,83 @@
     try {
       const items = await apiFetch('/api/cotizacion/precios');
       _preciosCache = {}; items.forEach(p => _preciosCache[p.id] = p);
-      if (!items.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem;">Sin precios registrados.</td></tr>'; return; }
-      tbody.innerHTML = items.map(p => `<tr id="precio-row-${p.id}">
-        <td style="font-family:monospace;color:var(--gold);font-size:.75rem;">${p.codigo}</td>
-        <td><input type="text" class="form-control" style="padding:.3rem .5rem;font-size:.75rem;" value="${p.nombre||''}" id="pn-${p.id}"/></td>
-        <td><input type="text" class="form-control" style="padding:.3rem .5rem;font-size:.72rem;" value="${p.descripcion||''}" id="pd-${p.id}" placeholder="Descripción opcional"/></td>
-        <td><input type="number" class="form-control" style="padding:.3rem .5rem;font-size:.75rem;width:80px;" value="${p.precio_base||0}" id="pb-${p.id}" min="0" step="1"/></td>
-        <td><input type="number" class="form-control" style="padding:.3rem .5rem;font-size:.75rem;width:80px;" value="${p.precio_por_m2||0}" id="pm-${p.id}" min="0" step="0.01"/></td>
-        <td><input type="number" class="form-control" style="padding:.3rem .5rem;font-size:.75rem;width:80px;" value="${p.precio_minimo||0}" id="pmin-${p.id}" min="0" step="1"/></td>
-        <td><span class="badge ${p.activo?'badge-active':'badge-lost'}" style="cursor:pointer;" onclick="togglePrecioActivo(${p.id})">${p.activo?'Activo':'Inactivo'}</span></td>
-        <td><div class="action-btns">
-          <button class="act-btn" title="Guardar" onclick="guardarPrecio(${p.id})"><i class="fas fa-save"></i></button>
-          <button class="act-btn danger" title="Eliminar" onclick="eliminarPrecio(${p.id})"><i class="fas fa-trash"></i></button>
-        </div></td>
-      </tr>`).join('');
+      if (!items.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem;">Sin precios. Usa "+ Nuevo Servicio".</td></tr>'; return; }
+      const TIPO_LABEL = { fijo:'Fijo', por_m2:'Por m²', rango_m2:'Rango m²', cotizar:'A cotizar' };
+      tbody.innerHTML = items.map(p => {
+        const tarifa = p.tipo_precio === 'fijo' ? ('$'+(p.precio_minimo||0)) :
+          p.tipo_precio === 'por_m2' ? ('$'+p.precio_por_m2+'/m²') :
+          p.tipo_precio === 'cotizar' ? '—' : ('$'+p.precio_en_rango);
+        const min = p.precio_minimo ? ('$'+p.precio_minimo) : '—';
+        return `<tr>
+          <td style="font-family:monospace;color:var(--gold);font-size:.72rem;">${p.codigo||'—'}</td>
+          <td style="color:var(--gray);font-size:.72rem;">${p.categoria||'—'}</td>
+          <td><span class="td-bold" style="font-size:.78rem;">${p.servicio||'—'}</span>${p.descripcion?`<br/><span style="color:var(--gray);font-size:.65rem;">${p.descripcion}</span>`:''}</td>
+          <td><span class="badge badge-contact" style="font-size:.62rem;">${TIPO_LABEL[p.tipo_precio]||p.tipo_precio}</span></td>
+          <td class="td-gold" style="font-size:.75rem;">${tarifa}</td>
+          <td style="color:var(--gray);font-size:.72rem;">${min}</td>
+          <td><span class="badge ${p.activo?'badge-active':'badge-lost'}" style="cursor:pointer;" onclick="togglePrecioActivo(${p.id})">${p.activo?'Activo':'Inactivo'}</span></td>
+          <td><div class="action-btns">
+            <button class="act-btn" title="Editar" onclick="abrirEditarPrecio(${p.id})"><i class="fas fa-pencil-alt"></i></button>
+            <button class="act-btn danger" title="Eliminar" onclick="eliminarPrecio(${p.id})"><i class="fas fa-trash"></i></button>
+          </div></td>
+        </tr>`;
+      }).join('');
     } catch(e) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`; }
   }
 
-  async function guardarPrecio(id) {
-    const g = s => { const el = document.getElementById(s+id); return el ? el.value.trim() : ''; };
+  function abrirEditarPrecio(id) {
+    const p = _preciosCache[id]; if (!p) return;
+    document.getElementById('ep-id').value = id;
+    document.getElementById('ep-codigo').value = p.codigo || '';
+    document.getElementById('ep-categoria').value = p.categoria || '';
+    document.getElementById('ep-servicio').value = p.servicio || '';
+    document.getElementById('ep-descripcion').value = p.descripcion || '';
+    document.getElementById('ep-tipo').value = p.tipo_precio || 'fijo';
+    document.getElementById('ep-precio-fijo').value = p.precio_minimo || p.precio_fijo || 0;
+    document.getElementById('ep-precio-m2').value = p.precio_por_m2 || 0;
+    document.getElementById('ep-rango-min').value = p.rango_m2_min || '';
+    document.getElementById('ep-rango-max').value = p.rango_m2_max || '';
+    document.getElementById('ep-precio-minimo').value = p.precio_minimo || 0;
+    document.getElementById('ep-notas').value = p.notas || '';
+    document.getElementById('ep-activo').checked = p.activo !== false;
+    actualizarCamposEP();
+    document.getElementById('editarPrecioModal').classList.add('open');
+  }
+
+  function actualizarCamposEP() {
+    const tipo = document.getElementById('ep-tipo').value;
+    document.getElementById('ep-row-fijo').style.display = tipo === 'fijo' ? '' : 'none';
+    document.getElementById('ep-row-m2').style.display = (tipo === 'por_m2' || tipo === 'rango_m2') ? '' : 'none';
+    document.getElementById('ep-row-rango').style.display = tipo === 'rango_m2' ? '' : 'none';
+    document.getElementById('ep-row-minimo').style.display = (tipo === 'fijo' || tipo === 'por_m2') ? '' : 'none';
+  }
+
+  async function guardarPrecioModal() {
+    const id = document.getElementById('ep-id').value;
+    const tipo = document.getElementById('ep-tipo').value;
+    const payload = {
+      codigo: document.getElementById('ep-codigo').value.trim(),
+      categoria: document.getElementById('ep-categoria').value.trim(),
+      servicio: document.getElementById('ep-servicio').value.trim(),
+      descripcion: document.getElementById('ep-descripcion').value.trim(),
+      tipo_precio: tipo,
+      precio_fijo: tipo === 'fijo' ? document.getElementById('ep-precio-fijo').value : null,
+      precio_por_m2: (tipo === 'por_m2' || tipo === 'rango_m2') ? document.getElementById('ep-precio-m2').value : null,
+      rango_m2_min: tipo === 'rango_m2' ? document.getElementById('ep-rango-min').value : null,
+      rango_m2_max: tipo === 'rango_m2' ? document.getElementById('ep-rango-max').value : null,
+      precio_minimo: document.getElementById('ep-precio-minimo').value || null,
+      notas: document.getElementById('ep-notas').value || null,
+      activo: document.getElementById('ep-activo').checked,
+    };
     try {
-      await apiFetch(`/api/cotizacion/precios/${id}`, { method: 'PUT', body: JSON.stringify({
-        nombre: g('pn-'), descripcion: g('pd-'),
-        precio_base: g('pb-'), precio_por_m2: g('pm-'), precio_minimo: g('pmin-'),
-        activo: _preciosCache[id]?.activo ?? true
-      })});
-      showToast('✅ Precio actualizado');
+      if (id) {
+        await apiFetch(`/api/cotizacion/precios/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        showToast('✅ Precio actualizado');
+      } else {
+        await apiFetch('/api/cotizacion/precios', { method: 'POST', body: JSON.stringify(payload) });
+        showToast('✅ Servicio creado');
+      }
+      document.getElementById('editarPrecioModal').classList.remove('open');
       loadPrecios();
     } catch(e) { showToast('Error: ' + e.message); }
   }
@@ -3652,25 +4373,95 @@
   async function togglePrecioActivo(id) {
     const p = _preciosCache[id]; if (!p) return;
     try {
-      await apiFetch(`/api/cotizacion/precios/${id}`, { method: 'PUT', body: JSON.stringify({ ...p, activo: !p.activo }) });
+      await apiFetch(`/api/cotizacion/precios/${id}`, { method: 'PUT', body: JSON.stringify({ activo: !p.activo }) });
       loadPrecios();
     } catch(e) { showToast('Error: ' + e.message); }
   }
 
   async function eliminarPrecio(id) {
-    if (!confirm('¿Eliminar este servicio del catálogo de precios?')) return;
-    try { await apiFetch(`/api/cotizacion/precios/${id}`, { method: 'DELETE' }); showToast('Servicio eliminado'); loadPrecios(); }
+    if (!confirm('¿Desactivar este servicio del catálogo?')) return;
+    try { await apiFetch(`/api/cotizacion/precios/${id}`, { method: 'DELETE' }); showToast('Servicio desactivado'); loadPrecios(); }
     catch(e) { showToast('Error: ' + e.message); }
   }
 
   function abrirNuevoServicio() {
-    const codigo = prompt('Código interno del servicio (ej: fotografia_drone):');
-    if (!codigo) return;
-    const nombre = prompt('Nombre visible del servicio:');
-    if (!nombre) return;
-    apiFetch('/api/cotizacion/precios', { method: 'POST', body: JSON.stringify({ codigo: codigo.trim().toLowerCase().replace(/\s+/g,'_'), nombre, precio_base: 0, precio_por_m2: 0, precio_minimo: 0 }) })
-      .then(() => { showToast('✅ Servicio creado'); loadPrecios(); })
-      .catch(e => showToast('Error: ' + e.message));
+    ['ep-id','ep-codigo','ep-categoria','ep-servicio','ep-descripcion','ep-precio-fijo','ep-precio-m2','ep-rango-min','ep-rango-max','ep-precio-minimo','ep-notas'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('ep-tipo').value = 'fijo';
+    document.getElementById('ep-activo').checked = true;
+    actualizarCamposEP();
+    document.getElementById('editarPrecioModal').classList.add('open');
+  }
+
+  /* ── ENVÍO DE COTIZACIONES POR CANAL ────────────────────── */
+  let _envioCotId=null, _envioLink='', _envioCanalesData={};
+
+  function mostrarEnvioModal(cotId, link){
+    _envioCotId=cotId; _envioLink=link;
+    const cliId=document.getElementById('cot-cli-select').value;
+    const leadId=document.getElementById('cot-lead-select').value;
+    let nombre='',tel='',email='';
+    if(cliId){ const c=_cotCliList.find(x=>String(x.id)===String(cliId))||{}; nombre=c.nombre||''; tel=c.telefono||''; email=c.email||''; }
+    else if(leadId){ const l=_cotLeadList.find(x=>String(x.id)===String(leadId))||{}; nombre=l.nombre||''; tel=l.telefono||''; email=l.email||''; }
+    tel=formatearTelefono(tel);
+    _envioCanalesData={tel,email,nombre};
+    const sub=document.getElementById('envio-cot-subtitulo');
+    if(sub) sub.textContent=nombre?`Cliente: ${nombre}`:'';
+    const yr=String(new Date().getFullYear()).slice(-2);
+    const codigo=`COT-${yr}-${String(cotId).padStart(5,'0')}`;
+    const canales=document.getElementById('envio-canales');
+    const opt=(icon,label,val,disabled,hint,checked=false)=>`
+      <label style="display:flex;align-items:center;gap:.7rem;padding:.65rem .9rem;border:1px solid var(--border);border-radius:var(--r);cursor:${disabled?'not-allowed':'pointer'};opacity:${disabled?'.45':'1'};">
+        <input type="checkbox" class="envio-canal-cb" value="${val}" ${disabled?'disabled':''} ${checked&&!disabled?'checked':''} style="accent-color:var(--gold);width:15px;height:15px;">
+        <i class="${icon}" style="color:var(--gold);width:16px;text-align:center;"></i>
+        <span style="font-size:.8rem;">${label}</span>
+        ${hint?`<span style="margin-left:auto;font-size:.68rem;color:var(--gray);">${hint}</span>`:''}
+      </label>`;
+    canales.innerHTML=
+      opt('fab fa-whatsapp','WhatsApp','whatsapp',!tel,tel||'Sin teléfono',!!tel)+
+      opt('fas fa-envelope','Email','email',!email,email||'Sin email',!!email)+
+      opt('fab fa-facebook-messenger','Facebook Messenger','facebook',true,'(próximamente)')+
+      opt('fab fa-instagram','Instagram DM','instagram',true,'(próximamente)');
+    document.getElementById('envio-result').textContent='';
+    document.getElementById('envioCotizacionModal').classList.add('open');
+  }
+
+  function cerrarEnvioModal(){
+    document.getElementById('envioCotizacionModal').classList.remove('open');
+    mostrarExitoCotizacion(_envioCotId, _envioLink);
+  }
+
+  async function confirmarEnvioCotizacion(){
+    const checks=Array.from(document.querySelectorAll('.envio-canal-cb:checked'));
+    if(!checks.length){showToast('Selecciona al menos un canal');return;}
+    const btn=document.getElementById('btn-confirmar-envio');
+    btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Enviando...';
+    const resultEl=document.getElementById('envio-result');
+    const {tel,email}=_envioCanalesData;
+    const envios=checks.map(cb=>{
+      const canal=cb.value;
+      const body={cotizacion_id:_envioCotId,link:_envioLink};
+      let endpoint='';
+      if(canal==='whatsapp'){endpoint='/api/whatsapp/enviar-cotizacion';body.phone_number=tel;}
+      else if(canal==='email'){endpoint='/api/email/enviar-cotizacion';body.email=email;}
+      else if(canal==='facebook'){endpoint='/api/facebook/enviar-cotizacion';}
+      else if(canal==='instagram'){endpoint='/api/instagram/enviar-cotizacion';}
+      if(!endpoint) return Promise.resolve({canal,ok:false,skip:true});
+      return apiFetch(endpoint,{method:'POST',body:JSON.stringify(body)})
+        .then(()=>({canal,ok:true}))
+        .catch(e=>({canal,ok:false,error:e.message}));
+    });
+    try{
+      const results=await Promise.all(envios);
+      const ok=results.filter(r=>r.ok).map(r=>r.canal).join(', ');
+      const fail=results.filter(r=>!r.ok&&!r.skip).map(r=>`${r.canal}: ${r.error}`).join('; ');
+      if(ok) {resultEl.textContent='✅ Enviado por: '+ok; resultEl.style.color='var(--gold)';}
+      if(fail){resultEl.textContent+=(ok?'\n':'')+'⚠️ Error en: '+fail; resultEl.style.color='#E08080';}
+      if(ok) setTimeout(()=>cerrarEnvioModal(),2000);
+      else {btn.disabled=false; btn.innerHTML='<i class="fas fa-paper-plane"></i> Reintentar';}
+    }catch(e){
+      resultEl.textContent='Error: '+e.message; resultEl.style.color='#E08080';
+      btn.disabled=false; btn.innerHTML='<i class="fas fa-paper-plane"></i> Reintentar';
+    }
   }
 </script>
 <!-- Modal: detalle cotización -->
@@ -3678,6 +4469,61 @@
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);width:90%;max-width:540px;padding:2rem;position:relative;max-height:90vh;overflow-y:auto;">
     <button onclick="document.getElementById('cot-detalle-overlay').style.display='none'" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--gray);font-size:1rem;cursor:pointer;"><i class="fas fa-times"></i></button>
     <div id="cot-detalle-body"></div>
+  </div>
+</div>
+
+<!-- Modal: editar precio de servicio -->
+<div class="modal-overlay" id="editarPrecioModal">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-title" style="font-size:.95rem;">Editar / Nuevo Servicio</div>
+    <input type="hidden" id="ep-id"/>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Código *</label><input type="text" id="ep-codigo" class="form-control" placeholder="ej: 1.1"/></div>
+      <div class="form-group"><label class="form-label">Categoría *</label><input type="text" id="ep-categoria" class="form-control" placeholder="Tours Virtuales"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Nombre del servicio *</label><input type="text" id="ep-servicio" class="form-control" placeholder="Tours Virtuales — Pequeña"/></div>
+    <div class="form-group"><label class="form-label">Descripción</label><input type="text" id="ep-descripcion" class="form-control" placeholder="Hasta 120 m²"/></div>
+    <div class="form-group">
+      <label class="form-label">Tipo de precio *</label>
+      <select id="ep-tipo" class="form-control" onchange="actualizarCamposEP()">
+        <option value="fijo">Fijo — precio único</option>
+        <option value="por_m2">Por m² — precio por metro cuadrado</option>
+        <option value="rango_m2">Rango m² — precio según rango</option>
+        <option value="cotizar">A cotizar — precio manual</option>
+      </select>
+    </div>
+    <div id="ep-row-fijo" class="form-group"><label class="form-label">Precio fijo ($)</label><input type="number" id="ep-precio-fijo" class="form-control" min="0" step="0.01" placeholder="250"/></div>
+    <div id="ep-row-m2" class="form-row" style="display:none">
+      <div class="form-group"><label class="form-label">Precio por m² ($)</label><input type="number" id="ep-precio-m2" class="form-control" min="0" step="0.0001" placeholder="3.00"/></div>
+    </div>
+    <div id="ep-row-rango" class="form-row" style="display:none">
+      <div class="form-group"><label class="form-label">Rango desde (m²)</label><input type="number" id="ep-rango-min" class="form-control" min="0" placeholder="0"/></div>
+      <div class="form-group"><label class="form-label">Rango hasta (m²)</label><input type="number" id="ep-rango-max" class="form-control" min="0" placeholder="120"/></div>
+    </div>
+    <div id="ep-row-minimo" class="form-group"><label class="form-label">Precio mínimo ($)</label><input type="number" id="ep-precio-minimo" class="form-control" min="0" step="0.01" placeholder="250"/></div>
+    <div class="form-group"><label class="form-label">Notas internas</label><input type="text" id="ep-notas" class="form-control" placeholder="Ej: $15 por plano en portal"/></div>
+    <div class="form-group" style="display:flex;align-items:center;gap:.6rem;margin-top:.3rem;">
+      <input type="checkbox" id="ep-activo" checked style="accent-color:var(--gold);width:16px;height:16px;"/>
+      <label for="ep-activo" class="form-label" style="margin:0;">Servicio activo (visible en cotizaciones)</label>
+    </div>
+    <div style="display:flex;gap:.6rem;margin-top:1.2rem;">
+      <button class="topbar-btn btn-primary" onclick="guardarPrecioModal()" style="flex:2;justify-content:center;"><i class="fas fa-save"></i> Guardar</button>
+      <button class="topbar-btn btn-sec" onclick="document.getElementById('editarPrecioModal').classList.remove('open')" style="flex:1;justify-content:center;">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: envío de cotización por canal -->
+<div class="modal-overlay" id="envioCotizacionModal" style="z-index:10001;">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-title" style="font-size:.95rem;margin-bottom:.3rem;">Enviar cotización al cliente</div>
+    <div id="envio-cot-subtitulo" style="font-size:.72rem;color:var(--gray);margin-bottom:1.3rem;"></div>
+    <div id="envio-canales" style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.3rem;"></div>
+    <div style="display:flex;gap:.6rem;">
+      <button class="topbar-btn btn-primary" onclick="confirmarEnvioCotizacion()" id="btn-confirmar-envio" style="flex:2;justify-content:center;"><i class="fas fa-paper-plane"></i> Enviar</button>
+      <button class="topbar-btn btn-sec" onclick="cerrarEnvioModal()" style="flex:1;justify-content:center;font-size:.72rem;">No enviar</button>
+    </div>
+    <div id="envio-result" style="margin-top:.8rem;min-height:1.5rem;font-size:.75rem;text-align:center;color:var(--gold);"></div>
   </div>
 </div>
 </body>

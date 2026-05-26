@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Confirmar Cotización — Virtual Estate GT</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Raleway:wght@600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#0D1A14;--bg2:#0E1615;--bg3:#1E3028;--gold:#C19259;--gold-lt:#D4A96A;--white:#F5F0E8;--gray:#8A9990;--border:rgba(193,146,89,.18);--r:4px;--green:#5AE08A;--red:#E08080;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--white);font-family:'Montserrat',sans-serif;font-weight:400;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:2rem 1rem;}
+
+    .header{width:100%;max-width:580px;display:flex;align-items:center;justify-content:space-between;margin-bottom:2.5rem;}
+    .logo img{width:220px;height:auto;display:block;}
+    .logo-text{font-family:'Raleway',sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:.06em;color:var(--white);}
+    .logo-text span{color:var(--gold);}
+    .secure-badge{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);display:flex;align-items:center;gap:.4rem;}
+    .secure-badge::before{content:'🔒';}
+
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;width:100%;max-width:580px;overflow:hidden;}
+    .card-header{background:var(--bg3);padding:1.4rem 1.8rem;border-bottom:1px solid var(--border);}
+    .card-label{font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.35rem;}
+    .card-title{font-family:'Raleway',sans-serif;font-size:1.35rem;font-weight:700;}
+    .card-sub{font-size:.75rem;color:var(--gray);margin-top:.25rem;}
+    .card-body{padding:1.8rem;}
+
+    .cot-nro{font-size:.68rem;font-family:monospace;color:var(--gold);letter-spacing:.12em;margin-bottom:1.4rem;}
+
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem;}
+    .info-item label{display:block;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gray);margin-bottom:.3rem;}
+    .info-item .value{font-size:.9rem;font-weight:600;color:var(--white);}
+    .info-item .value.gold{color:var(--gold);font-size:1.1rem;}
+    .info-item.full{grid-column:1/-1;}
+
+    .divider{height:1px;background:var(--border);margin:1.4rem 0;}
+
+    .servicios-title{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gray);margin-bottom:.8rem;}
+    .servicio-item{display:flex;align-items:center;justify-content:space-between;padding:.6rem .8rem;background:rgba(193,146,89,.06);border:1px solid rgba(193,146,89,.1);border-radius:var(--r);margin-bottom:.5rem;font-size:.78rem;}
+    .servicio-item .s-name{color:var(--white);}
+    .servicio-item .s-val{color:var(--gold);font-weight:600;}
+    .servicio-item .s-unit{font-size:.68rem;color:var(--gray);margin-left:.4rem;}
+
+    .totals-mini{background:rgba(193,146,89,.04);border:1px solid rgba(193,146,89,.1);border-radius:var(--r);padding:.8rem 1rem;margin-bottom:1.2rem;font-size:.78rem;}
+    .totals-row{display:flex;justify-content:space-between;padding:.2rem 0;}
+    .totals-row.total{font-weight:700;font-size:.9rem;color:var(--gold);border-top:1px solid var(--border);margin-top:.4rem;padding-top:.6rem;}
+
+    .anticipo-box{background:rgba(193,146,89,.08);border:1px solid rgba(193,146,89,.22);border-radius:var(--r);padding:1.1rem 1.4rem;margin-bottom:1.6rem;display:flex;align-items:center;justify-content:space-between;}
+    .anticipo-label{font-size:.7rem;color:var(--gray);}
+    .anticipo-label strong{display:block;font-size:1.4rem;color:var(--gold);font-weight:700;margin-top:.15rem;}
+    .anticipo-note{font-size:.62rem;color:var(--gray);text-align:right;line-height:1.5;}
+
+    .checks{display:flex;flex-direction:column;gap:.9rem;margin-bottom:1.8rem;}
+    .check-item{display:flex;align-items:flex-start;gap:.75rem;cursor:pointer;}
+    .check-item input[type="checkbox"]{width:18px;height:18px;flex-shrink:0;accent-color:var(--gold);cursor:pointer;margin-top:.1rem;}
+    .check-item .check-text{font-size:.78rem;color:rgba(245,240,232,.75);line-height:1.5;}
+    .check-item .check-text a{color:var(--gold);text-decoration:none;}
+    .check-item .check-text a:hover{text-decoration:underline;}
+
+    .btn-confirmar{width:100%;padding:1rem;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-family:'Montserrat',sans-serif;font-size:.8rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:background .2s,opacity .2s;display:flex;align-items:center;justify-content:center;gap:.6rem;}
+    .btn-confirmar:hover:not(:disabled){background:var(--gold-lt);}
+    .btn-confirmar:disabled{opacity:.4;cursor:not-allowed;}
+    .btn-confirmar .spinner{width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:var(--bg);border-radius:50%;animation:spin .6s linear infinite;display:none;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    .vencimiento{font-size:.65rem;color:var(--gray);text-align:center;margin-top:.9rem;}
+
+    #state-loading,#state-error,#state-success,#state-already{display:none;}
+    #state-loading.visible,#state-error.visible,#state-success.visible,#state-already.visible,#state-form.visible{display:block;}
+    #state-form{display:none;}
+
+    .loading-wrap{display:flex;flex-direction:column;align-items:center;padding:3rem;gap:1rem;color:var(--gray);font-size:.8rem;}
+    .loading-spinner{width:28px;height:28px;border:2px solid rgba(193,146,89,.2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;}
+
+    .state-card{text-align:center;padding:3rem 2rem;}
+    .state-icon{font-size:3rem;margin-bottom:1rem;display:block;}
+    .state-title{font-family:'Raleway',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:.6rem;}
+    .state-sub{font-size:.78rem;color:var(--gray);line-height:1.6;}
+    .state-code{display:inline-block;background:rgba(193,146,89,.12);border:1px solid rgba(193,146,89,.3);border-radius:var(--r);padding:.4rem 1rem;font-family:monospace;color:var(--gold);font-size:.9rem;letter-spacing:.1em;margin:.8rem 0;}
+
+    .footer{margin-top:2rem;font-size:.62rem;color:var(--gray);text-align:center;line-height:1.8;}
+    .footer a{color:var(--gray);text-decoration:none;}
+    .footer a:hover{color:var(--gold);}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">
+    <img src="/images/assets/logo-letras.png" alt="Virtual Estate GT"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/>
+    <div class="logo-text" style="display:none;">Virtual<span>Estate</span> GT</div>
+  </div>
+  <div class="secure-badge">Conexión segura</div>
+</div>
+
+<!-- Estado: Cargando -->
+<div class="card" id="state-loading">
+  <div class="loading-wrap">
+    <div class="loading-spinner"></div>
+    <span>Cargando tu cotización...</span>
+  </div>
+</div>
+
+<!-- Estado: Error -->
+<div class="card" id="state-error">
+  <div class="state-card">
+    <span class="state-icon">⚠️</span>
+    <div class="state-title">Cotización no encontrada</div>
+    <div class="state-sub" id="error-msg">No pudimos cargar la información. Verifica el enlace o contáctanos.</div>
+  </div>
+</div>
+
+<!-- Estado: Ya confirmada -->
+<div class="card" id="state-already">
+  <div class="state-card">
+    <span class="state-icon">✅</span>
+    <div class="state-title">Cotización ya confirmada</div>
+    <div class="state-sub">Esta cotización ya fue confirmada anteriormente.</div>
+    <div class="state-code" id="already-codigo"></div>
+    <div class="state-sub" style="margin-top:.5rem;">Revisa tu correo o accede a tu portal de cliente.</div>
+  </div>
+</div>
+
+<!-- Estado: Éxito -->
+<div class="card" id="state-success">
+  <div class="state-card">
+    <span class="state-icon">🎉</span>
+    <div class="state-title">¡Confirmación exitosa!</div>
+    <div class="state-sub">Tu cotización ha sido confirmada. Te hemos enviado un email con los detalles.</div>
+    <div class="state-code" id="success-codigo"></div>
+    <div class="state-sub" style="margin-top:.5rem;">
+      Guarda este código. Nuestro equipo se comunicará contigo en <strong>24–48 horas</strong>
+      para coordinar el pago del anticipo y los próximos pasos.
+    </div>
+  </div>
+</div>
+
+<!-- Estado: Formulario -->
+<div id="state-form">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-label">Confirmación de Cotización</div>
+      <div class="card-title" id="cliente-nombre">—</div>
+      <div class="card-sub" id="cliente-sub">Por favor revisa los detalles antes de confirmar</div>
+    </div>
+    <div class="card-body">
+      <div class="cot-nro" id="cot-nro">COT-26-00001</div>
+
+      <!-- Info del cliente -->
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Metraje</label>
+          <div class="value" id="info-m2">—</div>
+        </div>
+        <div class="info-item">
+          <label>Zona</label>
+          <div class="value" id="info-zona">—</div>
+        </div>
+        <div class="info-item full" id="info-dir-row" style="display:none;">
+          <label>Dirección</label>
+          <div class="value" id="info-direccion">—</div>
+        </div>
+      </div>
+
+      <!-- Lista de servicios -->
+      <div class="servicios-title">Servicios cotizados</div>
+      <div id="servicios-list">
+        <div class="servicio-item">
+          <span class="s-name" id="info-servicio">—</span>
+          <span class="s-val" id="info-monto">—</span>
+        </div>
+      </div>
+
+      <!-- Totales -->
+      <div class="totals-mini" id="totals-section" style="display:none;">
+        <div class="totals-row" id="row-subtotal"><span style="color:var(--gray)">Subtotal</span><span id="t-subtotal">—</span></div>
+        <div class="totals-row" id="row-descuento" style="display:none;"><span style="color:var(--gray)" id="t-desc-lbl">Descuento</span><span id="t-descuento" style="color:#E08080;">—</span></div>
+        <div class="totals-row" id="row-iva"><span style="color:var(--gray)">IVA 12%</span><span id="t-iva">—</span></div>
+        <div class="totals-row total"><span>TOTAL</span><span id="t-total">—</span></div>
+      </div>
+
+      <div class="anticipo-box">
+        <div>
+          <div class="anticipo-label">Anticipo requerido (50%)</div>
+          <div class="anticipo-label"><strong id="anticipo-monto">—</strong></div>
+        </div>
+        <div class="anticipo-note" id="anticipo-note"></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="checks">
+        <label class="check-item">
+          <input type="checkbox" id="chk-terminos" onchange="actualizarBoton()"/>
+          <span class="check-text">
+            He leído y estoy de acuerdo con los
+            <a href="/terms" target="_blank">Términos y Condiciones</a> y la
+            <a href="/privacy" target="_blank">Política de Privacidad</a> de Virtual Estate GT.
+          </span>
+        </label>
+        <label class="check-item">
+          <input type="checkbox" id="chk-anticipo" onchange="actualizarBoton()"/>
+          <span class="check-text" id="chk-anticipo-text">
+            Confirmo que autorizo el anticipo indicado y entiendo que este compromiso inicia el proceso de trabajo.
+          </span>
+        </label>
+      </div>
+
+      <button class="btn-confirmar" id="btn-confirmar" disabled onclick="confirmar()">
+        <div class="spinner" id="btn-spinner"></div>
+        <span id="btn-text">Confirmar Cotización</span>
+      </button>
+
+      <div class="vencimiento" id="vencimiento-txt"></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <a href="/">virtualestategt.com</a> &nbsp;·&nbsp;
+  <a href="/privacy">Privacidad</a> &nbsp;·&nbsp;
+  <a href="/terms">Términos</a>
+</div>
+
+<script>
+const SERV_NOMBRES = {
+  escaneo_3d: 'Tour Virtual 3D', as_built: 'AS BUILT / Documentación',
+  real_estate: 'Real Estate', construccion: 'Construcción y Remodelación'
+};
+
+let _cotData = null;
+let _cotizacionId = null;
+let _leadId = null;
+
+function getIdFromUrl() {
+  const parts = window.location.pathname.split('/');
+  return parts[parts.length - 1] || new URLSearchParams(window.location.search).get('id');
+}
+
+function show(id) {
+  ['state-loading','state-error','state-already','state-success','state-form'].forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.style.display = s === id ? 'block' : 'none';
+  });
+}
+
+function fmt(n, moneda) {
+  const m = moneda === 'GTQ' ? 'Q' : '$';
+  return m + Number(n).toLocaleString('es-GT', { minimumFractionDigits: 2 });
+}
+
+function capitalizarNombre(nombre) {
+  if (!nombre) return nombre;
+  return String(nombre).toLowerCase().split(' ').map(w => w ? w.charAt(0).toUpperCase() + w.slice(1) : '').join(' ');
+}
+
+async function cargarCotizacion() {
+  _cotizacionId = getIdFromUrl();
+  if (!_cotizacionId || isNaN(Number(_cotizacionId))) {
+    show('state-error');
+    document.getElementById('error-msg').textContent = 'URL inválida. Verifica el enlace recibido.';
+    return;
+  }
+
+  show('state-loading');
+  try {
+    const res = await fetch(`/api/confirmacion/cotizacion/${_cotizacionId}`);
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+
+    if (data.ya_confirmada) {
+      show('state-already');
+      document.getElementById('already-codigo').textContent = data.codigo_cliente || 'Confirmada';
+      return;
+    }
+
+    _cotData = data;
+    _leadId = data.lead_id || null;
+
+    // Header
+    const yr = new Date(data.created_at || Date.now()).getFullYear().toString().slice(-2);
+    document.getElementById('cot-nro').textContent = `COT-${yr}-${String(data.cotizacion_id).padStart(5, '0')}`;
+    document.getElementById('cliente-nombre').textContent = capitalizarNombre(data.cliente_nombre) || '—';
+
+    const det = data.detalles_json || {};
+    const mon = data.moneda || 'USD';
+
+    // Info grid
+    const m2 = det.m2 || (det.servicios && det.servicios.reduce((s, l) => s + (l.cantidad || 0), 0)) || null;
+    document.getElementById('info-m2').textContent = m2 ? m2 + ' m²' : '—';
+    document.getElementById('info-zona').textContent = det.zona || det.ubicacion_zona || data.detalles_json?.ubicacion_zona || '—';
+
+    const dirCompleta = det.ubicacion_completa || [det.ubicacion_calle, det.ubicacion_zona, det.ubicacion_ciudad].filter(Boolean).join(', ');
+    if (dirCompleta) {
+      document.getElementById('info-direccion').textContent = dirCompleta;
+      document.getElementById('info-dir-row').style.display = '';
+    }
+
+    // Services list
+    const serviciosEl = document.getElementById('servicios-list');
+    const servicios = det.servicios || [];
+    if (servicios.length) {
+      serviciosEl.innerHTML = servicios.map(s => {
+        const unit = s.tipo_precio === 'por_m2' ? `${s.cantidad || 0} m²` : s.tipo_precio === 'cotizar' ? 'A cotizar' : '';
+        return `<div class="servicio-item">
+          <span class="s-name">${s.descripcion || '—'}${unit ? '<span class="s-unit">'+unit+'</span>' : ''}</span>
+          <span class="s-val">${fmt(s.subtotal || 0, mon)}</span>
+        </div>`;
+      }).join('');
+    } else {
+      // Fallback: show single service from tipo_servicio
+      serviciosEl.innerHTML = `<div class="servicio-item">
+        <span class="s-name">${SERV_NOMBRES[data.tipo_servicio] || data.tipo_servicio || '—'}</span>
+        <span class="s-val">${fmt(data.monto_total, mon)}</span>
+      </div>`;
+    }
+
+    // Totals mini section
+    if (det.subtotal != null) {
+      document.getElementById('totals-section').style.display = '';
+      document.getElementById('t-subtotal').textContent = fmt(det.subtotal, mon);
+      document.getElementById('t-iva').textContent = fmt(det.iva_monto || det.subtotal * 0.12, mon);
+      document.getElementById('t-total').textContent = fmt(det.total || data.monto_total, mon);
+      if (det.descuento_monto > 0) {
+        document.getElementById('row-descuento').style.display = '';
+        document.getElementById('t-desc-lbl').textContent = det.descuento_tipo === 'porcentaje' ? `Descuento (${det.descuento_valor}%)` : 'Descuento';
+        document.getElementById('t-descuento').textContent = '-' + fmt(det.descuento_monto, mon);
+      }
+    }
+
+    // Anticipo
+    const anticipo = data.anticipo_monto;
+    document.getElementById('anticipo-monto').textContent = fmt(anticipo, mon);
+    document.getElementById('anticipo-note').innerHTML = `${data.anticipo_porcentaje}% del total<br/><span style="color:var(--gold)">Restante: ${fmt(data.monto_total - anticipo, mon)}</span>`;
+    document.getElementById('chk-anticipo-text').innerHTML = `Confirmo que autorizo el anticipo de <strong style="color:var(--gold)">${fmt(anticipo, mon)}</strong> y entiendo que este compromiso inicia el proceso de trabajo.`;
+
+    // Vencimiento
+    if (data.created_at) {
+      const vence = new Date(data.created_at);
+      vence.setDate(vence.getDate() + 90);
+      const diasRestantes = Math.ceil((vence - new Date()) / 86400000);
+      document.getElementById('vencimiento-txt').textContent = diasRestantes > 0
+        ? `Esta cotización vence en ${diasRestantes} día${diasRestantes !== 1 ? 's' : ''} (${vence.toLocaleDateString('es-GT', { dateStyle: 'long' })})`
+        : 'Esta cotización ha vencido. Contáctanos para renovarla.';
+    }
+
+    show('state-form');
+  } catch (e) {
+    show('state-error');
+    document.getElementById('error-msg').textContent = e.message;
+  }
+}
+
+function actualizarBoton() {
+  const ok = document.getElementById('chk-terminos').checked && document.getElementById('chk-anticipo').checked;
+  document.getElementById('btn-confirmar').disabled = !ok;
+}
+
+async function confirmar() {
+  const btn = document.getElementById('btn-confirmar');
+  const spinner = document.getElementById('btn-spinner');
+  const txt = document.getElementById('btn-text');
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  txt.textContent = 'Procesando...';
+
+  try {
+    let ip = null;
+    try { const r = await fetch('https://api.ipify.org?format=json'); ip = (await r.json()).ip; } catch (_) {}
+
+    const det = _cotData.detalles_json || {};
+    const body = {
+      cotizacion_id:        _cotizacionId,
+      anticipo_confirmado:  _cotData.anticipo_monto,
+      ip,
+      version_terminos:     '1.0',
+      servicios_json:       det.servicios || null,
+      tamano_propiedad_m2:  det.m2 || null,
+      zona:                 det.zona || det.ubicacion_zona || null,
+      ubicacion_completa:   det.ubicacion_completa || [det.ubicacion_calle, det.ubicacion_zona, det.ubicacion_ciudad].filter(Boolean).join(', ') || null,
+      user_agent:           navigator.userAgent,
+    };
+
+    const endpoint = _leadId
+      ? `/api/confirmacion/lead/${_leadId}/terminos`
+      : `/api/confirmacion/cotizacion/confirmar`;
+
+    if (!_leadId) body.lead_id = null;
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+
+    show('state-success');
+    document.getElementById('success-codigo').textContent = data.codigo_cliente || 'Confirmada';
+  } catch (e) {
+    spinner.style.display = 'none';
+    txt.textContent = 'Confirmar Cotización';
+    btn.disabled = false;
+    alert('Error: ' + e.message + '\n\nIntenta de nuevo o contáctanos directamente.');
+  }
+}
+
+cargarCotizacion();
+</script>
+</body>
+</html>

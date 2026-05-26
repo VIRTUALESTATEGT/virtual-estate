@@ -34,27 +34,51 @@ router.get('/precios', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('precios_servicios')
-      .select('id, codigo, nombre, descripcion, precio_base, precio_por_m2, precio_minimo, moneda, activo')
+      .select('*')
+      .order('orden', { nullsFirst: false })
       .order('id');
     if (error) throw error;
     res.json(data);
   } catch {
     // Table may not exist yet — return fallback list
     res.json(Object.entries(PRICING_FALLBACK).map(([codigo, p], i) => ({
-      id: i + 1, codigo, nombre: codigo.replace('_', ' ').toUpperCase(),
-      descripcion: '', precio_base: p.base, precio_por_m2: p.per_m2,
-      precio_minimo: p.min, moneda: 'USD', activo: true
+      id: i + 1, codigo, categoria: 'General',
+      servicio: codigo.replace(/_/g, ' ').toUpperCase(),
+      descripcion: '', tipo_precio: 'por_m2',
+      precio_por_m2: p.per_m2, precio_minimo: p.min, activo: true
     })));
   }
 });
 
-// PUT /api/cotizacion/precios/:id — admin: update a service price
+// PUT /api/cotizacion/precios/:id — admin: update a service
 router.put('/precios/:id', async (req, res) => {
   try {
-    const { nombre, descripcion, precio_base, precio_por_m2, precio_minimo, activo } = req.body;
+    const {
+      codigo, categoria, servicio, descripcion, tipo_precio,
+      precio_fijo, precio_por_m2, rango_m2_min, rango_m2_max,
+      precio_en_rango, precio_minimo, notas, activo, orden
+    } = req.body;
+    const update = {
+      updated_at: new Date().toISOString(),
+    };
+    if (codigo      !== undefined) update.codigo       = codigo;
+    if (categoria   !== undefined) update.categoria    = categoria;
+    if (servicio    !== undefined) update.servicio      = servicio;
+    if (descripcion !== undefined) update.descripcion  = descripcion;
+    if (tipo_precio !== undefined) update.tipo_precio  = tipo_precio;
+    if (precio_fijo       !== undefined) update.precio_fijo       = precio_fijo ? Number(precio_fijo) : null;
+    if (precio_por_m2     !== undefined) update.precio_por_m2     = precio_por_m2 ? Number(precio_por_m2) : null;
+    if (rango_m2_min      !== undefined) update.rango_m2_min      = rango_m2_min ? Number(rango_m2_min) : null;
+    if (rango_m2_max      !== undefined) update.rango_m2_max      = rango_m2_max ? Number(rango_m2_max) : null;
+    if (precio_en_rango   !== undefined) update.precio_en_rango   = precio_en_rango ? Number(precio_en_rango) : null;
+    if (precio_minimo     !== undefined) update.precio_minimo     = precio_minimo ? Number(precio_minimo) : null;
+    if (notas       !== undefined) update.notas        = notas;
+    if (activo      !== undefined) update.activo       = activo !== false && activo !== 'false';
+    if (orden       !== undefined) update.orden        = orden ? Number(orden) : null;
+
     const { data, error } = await supabase
       .from('precios_servicios')
-      .update({ nombre, descripcion, precio_base: Number(precio_base), precio_por_m2: Number(precio_por_m2), precio_minimo: Number(precio_minimo), activo: activo !== false })
+      .update(update)
       .eq('id', req.params.id)
       .select()
       .single();
@@ -66,23 +90,46 @@ router.put('/precios/:id', async (req, res) => {
 // POST /api/cotizacion/precios — admin: add new service
 router.post('/precios', async (req, res) => {
   try {
-    const { codigo, nombre, descripcion, precio_base, precio_por_m2, precio_minimo } = req.body;
-    if (!codigo || !nombre) return res.status(400).json({ error: 'codigo y nombre son requeridos.' });
+    const {
+      codigo, categoria, servicio, descripcion, tipo_precio,
+      precio_fijo, precio_por_m2, rango_m2_min, rango_m2_max,
+      precio_en_rango, precio_minimo, notas, orden
+    } = req.body;
+    if (!codigo || !servicio) return res.status(400).json({ error: 'codigo y servicio son requeridos.' });
     const { data, error } = await supabase
       .from('precios_servicios')
-      .insert([{ codigo, nombre, descripcion: descripcion||'', precio_base: Number(precio_base)||0, precio_por_m2: Number(precio_por_m2)||0, precio_minimo: Number(precio_minimo)||0, moneda: 'USD', activo: true }])
-      .select().single();
+      .insert([{
+        codigo: codigo.trim().toLowerCase().replace(/\s+/g, '_'),
+        categoria: categoria || 'General',
+        servicio,
+        descripcion: descripcion || '',
+        tipo_precio: tipo_precio || 'fijo',
+        precio_fijo:     precio_fijo     ? Number(precio_fijo)     : null,
+        precio_por_m2:   precio_por_m2   ? Number(precio_por_m2)   : null,
+        rango_m2_min:    rango_m2_min    ? Number(rango_m2_min)    : null,
+        rango_m2_max:    rango_m2_max    ? Number(rango_m2_max)    : null,
+        precio_en_rango: precio_en_rango ? Number(precio_en_rango) : null,
+        precio_minimo:   precio_minimo   ? Number(precio_minimo)   : null,
+        notas: notas || null,
+        activo: true,
+        orden: orden ? Number(orden) : null,
+      }])
+      .select()
+      .single();
     if (error) throw error;
     res.status(201).json(data);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// DELETE /api/cotizacion/precios/:id — admin: remove service
+// DELETE /api/cotizacion/precios/:id — admin: soft-delete (activo=false)
 router.delete('/precios/:id', async (req, res) => {
   try {
-    const { error } = await supabase.from('precios_servicios').delete().eq('id', req.params.id);
+    const { error } = await supabase
+      .from('precios_servicios')
+      .update({ activo: false, updated_at: new Date().toISOString() })
+      .eq('id', req.params.id);
     if (error) throw error;
-    res.json({ message: 'Servicio eliminado.' });
+    res.json({ message: 'Servicio desactivado.' });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
