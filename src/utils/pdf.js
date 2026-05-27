@@ -74,16 +74,16 @@ function buildCotizacionHTML(cot) {
 // @sparticuz/chromium only works in Lambda/Vercel serverless.
 // In local dev (macOS/Windows) we use the system Chrome instead.
 async function _puppeteerLaunch() {
-  const puppeteer = require('puppeteer-core');
+  const { default: puppeteer } = await import('puppeteer-core');
   const isServerless = !!(process.env.VERCEL || process.env.AWS_EXECUTION_ENV
                        || process.env.LAMBDA_TASK_ROOT || process.env.AWS_LAMBDA_FUNCTION_NAME);
 
   let executablePath, args, defaultViewport, headless;
 
   if (isServerless) {
-    const chromium = require('@sparticuz/chromium');
-    executablePath = await chromium.executablePath();
-    args           = chromium.args;
+    const { default: chromium } = await import('@sparticuz/chromium');
+    executablePath  = await chromium.executablePath();
+    args            = chromium.args;
     defaultViewport = chromium.defaultViewport;
     headless        = chromium.headless;
   } else {
