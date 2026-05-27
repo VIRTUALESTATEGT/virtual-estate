@@ -71,18 +71,41 @@ function buildCotizacionHTML(cot) {
 }
 
 // ── Shared puppeteer launcher ─────────────────────────────────────────────────
+// @sparticuz/chromium only works in Lambda/Vercel serverless.
+// In local dev (macOS/Windows) we use the system Chrome instead.
 async function _puppeteerLaunch() {
-  const chromium  = require('@sparticuz/chromium');
   const puppeteer = require('puppeteer-core');
-  const execPath  = await chromium.executablePath();
-  console.log('[PDF] chromium executablePath:', execPath);
-  const browser = await puppeteer.launch({
-    args:            chromium.args,
-    defaultViewport: chromium.defaultViewport,
-    executablePath:  execPath,
-    headless:        chromium.headless,
-  });
-  return browser;
+  const isServerless = !!(process.env.VERCEL || process.env.AWS_EXECUTION_ENV
+                       || process.env.LAMBDA_TASK_ROOT || process.env.AWS_LAMBDA_FUNCTION_NAME);
+
+  let executablePath, args, defaultViewport, headless;
+
+  if (isServerless) {
+    const chromium = require('@sparticuz/chromium');
+    executablePath = await chromium.executablePath();
+    args           = chromium.args;
+    defaultViewport = chromium.defaultViewport;
+    headless        = chromium.headless;
+  } else {
+    // Local dev: pick the first Chrome/Chromium binary that exists
+    const fs = require('fs');
+    const candidates = [
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      '/Applications/Chromium.app/Contents/MacOS/Chromium',
+      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+      '/usr/bin/google-chrome',
+      '/usr/bin/chromium-browser',
+    ];
+    executablePath  = candidates.find(p => { try { return fs.existsSync(p); } catch { return false; } });
+    if (!executablePath) throw new Error('[PDF] Chrome/Chromium not found locally — install Google Chrome');
+    args            = ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'];
+    defaultViewport = { width: 1280, height: 800 };
+    headless        = true;
+  }
+
+  console.log('[PDF] launching puppeteer | isServerless:', isServerless, '| executablePath:', executablePath);
+  return puppeteer.launch({ args, defaultViewport, executablePath, headless });
 }
 
 // ── Render HTML string → PDF buffer ──────────────────────────────────────────

@@ -3468,7 +3468,7 @@
         // Regenerate PDF in background (non-blocking on update)
         _buildMachotePDFHtml(_editCotizacionId).then(pdfHtml=>
           apiFetch('/api/cotizaciones/'+_editCotizacionId+'/generar-pdf',{method:'POST',body:JSON.stringify({html:pdfHtml})})
-        ).catch(e=>console.warn('[PDF] regeneración fallida:',e.message));
+        ).catch(e=>{console.warn('[PDF] regeneración fallida:',e.message);showToast('⚠️ PDF no se pudo regenerar: '+e.message);});
         showToast('✅ Cotización actualizada');
         closeCotizacionModal(); loadCotizaciones();
       }else{
@@ -3478,7 +3478,10 @@
         try{
           const pdfHtml=await _buildMachotePDFHtml(result.id);
           await apiFetch('/api/cotizaciones/'+result.id+'/generar-pdf',{method:'POST',body:JSON.stringify({html:pdfHtml})});
-        }catch(pdfErr){console.warn('[PDF] No se pudo generar PDF:',pdfErr.message);}
+        }catch(pdfErr){
+          console.warn('[PDF] No se pudo generar PDF:',pdfErr.message);
+          showToast('⚠️ PDF no se pudo generar: '+pdfErr.message);
+        }
         showToast('✅ Cotización creada');
         loadCotizaciones();
         const portalLink=`${window.location.origin}/portal/cotizacion/${result.id}`;
