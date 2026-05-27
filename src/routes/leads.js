@@ -44,12 +44,28 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE lead por ID
+// DELETE lead por ID — cascada: borra cotizaciones y datos WhatsApp relacionados
 router.delete('/:id', async (req, res) => {
+  const id = req.params.id;
   try {
-    const { error } = await supabase.from('leads').delete().eq('id', req.params.id);
+    // Obtener teléfono antes de borrar (para limpiar tablas WhatsApp)
+    const { data: lead } = await supabase.from('leads').select('telefono').eq('id', id).maybeSingle();
+    const tel = lead?.telefono;
+
+    // 1. Cotizaciones del lead
+    await supabase.from('cotizaciones').delete().eq('lead_id', id);
+
+    // 2. Datos de seguimiento WhatsApp (si existen, ignorar error si la tabla no existe)
+    if (tel) {
+      await supabase.from('prospect_tracking').delete().eq('phone_number', tel).then(() => {}).catch(() => {});
+      await supabase.from('whatsapp_messages').delete().eq('phone_number', tel).then(() => {}).catch(() => {});
+    }
+
+    // 3. Borrar el lead
+    const { error } = await supabase.from('leads').delete().eq('id', id);
     if (error) throw error;
-    res.json({ message: 'Lead eliminado' });
+
+    res.json({ message: 'Lead y datos relacionados eliminados' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

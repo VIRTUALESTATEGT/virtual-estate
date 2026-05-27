@@ -2473,14 +2473,32 @@
     openModal();
   }
 
+  // Helper: muestra modal de confirmación de borrado y ejecuta acción si confirma
+  function _confirmarEliminar({ titulo, cuerpo, accion }) {
+    document.getElementById('delete-confirm-title').textContent = titulo;
+    document.getElementById('delete-confirm-body').textContent  = cuerpo;
+    const btn = document.getElementById('delete-confirm-btn');
+    btn.onclick = async () => {
+      document.getElementById('deleteConfirmModal').classList.remove('open');
+      await accion();
+    };
+    document.getElementById('deleteConfirmModal').classList.add('open');
+  }
+
   async function deleteLead(id) {
-    if (!confirm('¿Eliminar este lead? Esta acción no se puede deshacer.')) return;
-    try {
-      await apiFetch('/api/leads/' + id, { method: 'DELETE' });
-      showToast('Lead eliminado');
-      loadLeads();
-      loadDashboard();
-    } catch (e) { showToast('Error al eliminar: ' + e.message); }
+    const l = _leadsCache[id];
+    const nombre = l ? (l.nombre + (l.apellido ? ' ' + l.apellido : '')) : 'este lead';
+    _confirmarEliminar({
+      titulo: 'Eliminar lead',
+      cuerpo: `¿Eliminar a "${nombre}"? Se borrarán también TODAS sus cotizaciones y datos de WhatsApp relacionados. Esta acción NO se puede deshacer.`,
+      accion: async () => {
+        try {
+          await apiFetch('/api/leads/' + id, { method: 'DELETE' });
+          showToast('Lead y sus datos eliminados');
+          loadLeads(); loadDashboard();
+        } catch (e) { showToast('Error al eliminar: ' + e.message); }
+      }
+    });
   }
 
   /* ── TOAST ──────────────────────────────────────────────── */
@@ -2884,9 +2902,16 @@
     document.getElementById('clienteModal').classList.add('open');
   }
   async function deleteCliente(id){
-    if(!confirm('¿Eliminar este cliente?'))return;
-    try{await apiFetch('/api/clientes/'+id,{method:'DELETE'});showToast('Cliente eliminado');loadClientes();}
-    catch(e){showToast('Error: '+e.message);}
+    const c = _clientesCache[id];
+    const nombre = c?.nombre || 'este cliente';
+    _confirmarEliminar({
+      titulo: 'Eliminar cliente',
+      cuerpo: `¿Eliminar a "${nombre}"? Se borrarán también TODAS sus cotizaciones y confirmaciones de portal. Esta acción NO se puede deshacer.`,
+      accion: async () => {
+        try{await apiFetch('/api/clientes/'+id,{method:'DELETE'});showToast('Cliente y sus datos eliminados');loadClientes();}
+        catch(e){showToast('Error: '+e.message);}
+      }
+    });
   }
   function openClienteModal(){
     _editClienteId=null;
@@ -4608,6 +4633,27 @@
     <div style="display:flex;gap:.6rem;margin-top:1.2rem;">
       <button class="topbar-btn btn-primary" onclick="guardarPrecioModal()" style="flex:2;justify-content:center;"><i class="fas fa-save"></i> Guardar</button>
       <button class="topbar-btn btn-sec" onclick="document.getElementById('editarPrecioModal').classList.remove('open')" style="flex:1;justify-content:center;">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: confirmación de eliminación en cascada -->
+<div class="modal-overlay" id="deleteConfirmModal" style="z-index:10010;">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title" style="color:#E08080;font-size:.95rem;margin-bottom:.5rem;">
+      <i class="fas fa-exclamation-triangle" style="margin-right:.4rem;"></i>
+      <span id="delete-confirm-title">¿Eliminar registro?</span>
+    </div>
+    <p id="delete-confirm-body" style="font-size:.8rem;line-height:1.6;color:var(--gray);margin-bottom:1.4rem;"></p>
+    <div style="display:flex;gap:.6rem;">
+      <button class="topbar-btn" onclick="document.getElementById('deleteConfirmModal').classList.remove('open')"
+        style="flex:1;justify-content:center;background:transparent;border:1px solid var(--border);font-size:.78rem;">
+        Cancelar
+      </button>
+      <button class="topbar-btn" id="delete-confirm-btn"
+        style="flex:2;justify-content:center;background:#E08080;border-color:#E08080;color:#fff;font-size:.78rem;">
+        <i class="fas fa-trash"></i> Sí, eliminar todo
+      </button>
     </div>
   </div>
 </div>

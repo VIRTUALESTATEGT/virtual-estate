@@ -58,11 +58,21 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// DELETE cliente por ID — cascada: borra cotizaciones y confirmaciones relacionadas
 router.delete('/:id', async (req, res) => {
+  const id = req.params.id;
   try {
-    const { error } = await supabase.from('clientes').delete().eq('id', req.params.id);
+    // 1. Cotizaciones del cliente
+    await supabase.from('cotizaciones').delete().eq('cliente_id', id);
+
+    // 2. Confirmaciones de registro (portal)
+    await supabase.from('confirmaciones_registro').delete().eq('cliente_id', id).then(() => {}).catch(() => {});
+
+    // 3. Borrar el cliente
+    const { error } = await supabase.from('clientes').delete().eq('id', id);
     if (error) throw error;
-    res.json({ message: 'Cliente eliminado' });
+
+    res.json({ message: 'Cliente y datos relacionados eliminados' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
