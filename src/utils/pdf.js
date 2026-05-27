@@ -70,30 +70,63 @@ function buildCotizacionHTML(cot) {
   return html.replace('</body>', dataScript + '</body>');
 }
 
-// ── Puppeteer PDF generation (domcontentloaded avoids Google Fonts hang) ──────
+// ── Shared puppeteer launcher ─────────────────────────────────────────────────
+async function _puppeteerLaunch() {
+  const chromium  = require('@sparticuz/chromium');
+  const puppeteer = require('puppeteer-core');
+  const execPath  = await chromium.executablePath();
+  console.log('[PDF] chromium executablePath:', execPath);
+  const browser = await puppeteer.launch({
+    args:            chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath:  execPath,
+    headless:        chromium.headless,
+  });
+  return browser;
+}
+
+// ── Render HTML string → PDF buffer ──────────────────────────────────────────
+// Used when the frontend sends the pre-built machote HTML (guarantees exact match to preview)
+async function generarCotizacionPDFFromHTML(html) {
+  let browser;
+  try {
+    // Strip Google Fonts (blocks domcontentloaded in serverless)
+    const cleanHtml = html.replace(/<link[^>]*fonts\.(googleapis|gstatic)\.com[^>]*>/gi, '');
+    console.log('[PDF] generarCotizacionPDFFromHTML — launching puppeteer, html length:', cleanHtml.length);
+    browser = await _puppeteerLaunch();
+    const page = await browser.newPage();
+    // emulateMediaType('print') applies @media print: no grey background, pagina fills page
+    await page.emulateMediaType('print');
+    await page.setContent(cleanHtml, { waitUntil: 'domcontentloaded', timeout: 20000 });
+    const pdf = await page.pdf({ format: 'A4', printBackground: true, margin: { top: '0', right: '0', bottom: '0', left: '0' } });
+    console.log('[PDF] generated from HTML, size:', pdf.length, 'bytes');
+    return Buffer.from(pdf);
+  } catch (e) {
+    console.error('[PDF] generarCotizacionPDFFromHTML FAILED:', e.constructor?.name, e.message);
+    throw e;
+  } finally {
+    if (browser) await browser.close().catch(() => {});
+  }
+}
+
+// ── Puppeteer PDF generation from server-side data (fallback path) ────────────
 async function generarCotizacionPDF(cot) {
   let browser;
   try {
-    const chromium  = require('@sparticuz/chromium');
-    const puppeteer = require('puppeteer-core');
-
-    browser = await puppeteer.launch({
-      args:            chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath:  await chromium.executablePath(),
-      headless:        true,
-    });
-
+    const html = buildCotizacionHTML(cot);
+    console.log('[PDF] generarCotizacionPDF — launching puppeteer, html length:', html.length);
+    browser = await _puppeteerLaunch();
     const page = await browser.newPage();
     // emulateMediaType('print') applies @media print CSS — removes grey body background,
     // makes .pagina fill the full page width, removes box-shadow. Without this puppeteer
     // renders the screen layout (816px card on grey) which looks completely wrong as a PDF.
     await page.emulateMediaType('print');
-    await page.setContent(buildCotizacionHTML(cot), { waitUntil: 'domcontentloaded', timeout: 15000 });
+    await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 20000 });
     const pdf = await page.pdf({ format: 'A4', printBackground: true, margin: { top: '0', right: '0', bottom: '0', left: '0' } });
+    console.log('[PDF] generated from data, size:', pdf.length, 'bytes');
     return Buffer.from(pdf);
   } catch (puppErr) {
-    console.error('[PDF] puppeteer failed, falling back to pdfkit:', puppErr.message);
+    console.error('[PDF] puppeteer FAILED (falling back to pdfkit):', puppErr.constructor?.name, puppErr.message);
     return generarCotizacionPDFFallback(cot);
   } finally {
     if (browser) await browser.close().catch(() => {});
@@ -199,4 +232,4 @@ async function subirPDFSupabase(pdfBuffer, filename) {
   return urlData.publicUrl;
 }
 
-module.exports = { cotCode, buildCotizacionHTML, generarCotizacionPDF, subirPDFSupabase };
+module.exports = { cotCode, buildCotizacionHTML, generarCotizacionPDF, generarCotizacionPDFFromHTML, subirPDFSupabase };

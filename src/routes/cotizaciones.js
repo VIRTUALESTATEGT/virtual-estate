@@ -2,7 +2,7 @@ const express = require('express');
 const router  = express.Router();
 const supabase = require('../config/supabase');
 const { sendWhatsAppMessage } = require('../utils/whatsapp');
-const { cotCode, generarCotizacionPDF, subirPDFSupabase } = require('../utils/pdf');
+const { cotCode, generarCotizacionPDF, generarCotizacionPDFFromHTML, subirPDFSupabase } = require('../utils/pdf');
 
 // Generate PDF and persist documento_url — called after insert/update with content change
 async function generarYGuardarPDF(cotId) {
@@ -168,6 +168,25 @@ router.delete('/:id', async (req, res) => {
     if (error) throw error;
     res.json({ message: 'Cotización eliminada' });
   } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/cotizaciones/:id/generar-pdf
+// Receives the browser-rendered machote HTML and generates a PDF from it.
+// This guarantees the PDF is pixel-identical to the admin preview.
+router.post('/:id/generar-pdf', async (req, res) => {
+  const { html } = req.body;
+  if (!html) return res.status(400).json({ error: 'html is required' });
+  const cotId = Number(req.params.id);
+  try {
+    const pdfBuf       = await generarCotizacionPDFFromHTML(html);
+    const filename     = `${cotCode(cotId)}.pdf`;
+    const documento_url = await subirPDFSupabase(pdfBuf, filename);
+    await supabase.from('cotizaciones').update({ documento_url }).eq('id', cotId);
+    res.json({ ok: true, documento_url });
+  } catch (e) {
+    console.error('[generar-pdf] endpoint error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });

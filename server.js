@@ -19,7 +19,8 @@ app.use((req, res, next) => {
   }
 });
 
-app.use(express.json());
+// 2mb limit to support PDF HTML payloads (~600KB machote) sent from the admin frontend
+app.use(express.json({ limit: '2mb' }));
 
 // Auth (pública — sin protección)
 const authRouter = require('./src/routes/auth');

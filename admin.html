@@ -3465,10 +3465,20 @@
       let result;
       if(_editCotizacionId){
         result=await apiFetch('/api/cotizaciones/'+_editCotizacionId,{method:'PUT',body:JSON.stringify(payload)});
+        // Regenerate PDF in background (non-blocking on update)
+        _buildMachotePDFHtml(_editCotizacionId).then(pdfHtml=>
+          apiFetch('/api/cotizaciones/'+_editCotizacionId+'/generar-pdf',{method:'POST',body:JSON.stringify({html:pdfHtml})})
+        ).catch(e=>console.warn('[PDF] regeneración fallida:',e.message));
         showToast('✅ Cotización actualizada');
         closeCotizacionModal(); loadCotizaciones();
       }else{
         result=await apiFetch('/api/cotizaciones',{method:'POST',body:JSON.stringify(payload)});
+        // Generate PDF before showing send modal so documento_url is ready
+        if(btn){btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Generando PDF...';}
+        try{
+          const pdfHtml=await _buildMachotePDFHtml(result.id);
+          await apiFetch('/api/cotizaciones/'+result.id+'/generar-pdf',{method:'POST',body:JSON.stringify({html:pdfHtml})});
+        }catch(pdfErr){console.warn('[PDF] No se pudo generar PDF:',pdfErr.message);}
         showToast('✅ Cotización creada');
         loadCotizaciones();
         const portalLink=`${window.location.origin}/portal/cotizacion/${result.id}`;
@@ -3539,6 +3549,70 @@
     const overlay=document.getElementById('cot-detalle-overlay');
     document.getElementById('cot-detalle-body').innerHTML=html;
     overlay.style.display='flex';
+  }
+
+  // Shared HTML builder — fetches the machote and injects all cotización data.
+  // Used both by verPreviaCotizacionPDF() (opens new window) and saveCotizacion()
+  // (sends to backend for PDF generation), ensuring the PDF is identical to the preview.
+  async function _buildMachotePDFHtml(cotId){
+    const lineas=_cotizacionesServiciosLineas.filter(l=>l.descripcion||l.precio_unitario);
+    const mon=document.getElementById('cot-moneda')?.value||'USD';
+    const factor=mon==='GTQ'?7.90:1;
+    const sym=mon==='GTQ'?'Q':'$';
+    const fmt=n=>sym+((Number(n)||0)*factor).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const subtotal=lineas.reduce((s,l)=>s+(l.subtotal||0),0);
+    const descTipo=document.getElementById('cot-desc-tipo')?.value||'porcentaje';
+    const descValorInput=Number(document.getElementById('cot-desc-valor')?.value)||0;
+    const descValorUSD=descTipo==='porcentaje'?0:convertirMoneda(descValorInput,mon,'USD');
+    const descMonto=descTipo==='porcentaje'?subtotal*(descValorInput/100):Math.min(descValorUSD,subtotal);
+    const subtotal2=Math.max(0,subtotal-descMonto);
+    const ivaMonto=subtotal2*0.12;
+    const total=subtotal2+ivaMonto;
+    const yr2=String(new Date().getFullYear()).slice(-2);
+    const codigo=`COT-${yr2}-${String(cotId).padStart(5,'0')}`;
+    const cliId=document.getElementById('cot-cli-select').value;
+    const leadId=document.getElementById('cot-lead-select').value;
+    let cliNombre='—',cliEmail='',cliTel='',cliEmpresa='';
+    if(cliId){const c=_cotCliList.find(x=>String(x.id)===cliId)||{};cliNombre=c.nombre||'—';cliEmail=c.email||'';cliTel=c.telefono||'';cliEmpresa=c.empresa||'';}
+    else if(leadId){const l=_cotLeadList.find(x=>String(x.id)===leadId)||{};cliNombre=l.nombre||'—';cliEmail=l.email||'';cliTel=l.telefono||'';cliEmpresa=l.empresa||'';}
+    const notas=document.getElementById('cot-notas').value||'';
+    const fecha=new Date().toLocaleDateString('es-GT',{day:'numeric',month:'long',year:'numeric'});
+    const telFmt=formatearTelefono(cliTel)||cliTel||'—';
+    const ubCalle=document.getElementById('cot-ubic-calle')?.value||'';
+    const ubZona=document.getElementById('cot-ubic-zona')?.value||'';
+    const ubCiudad=document.getElementById('cot-ubic-ciudad')?.value||'Guatemala';
+    const cliDir=[ubCalle,ubZona,ubCiudad].filter(Boolean).join(', ')||'Guatemala';
+    cliNombre=capitalizarNombre(cliNombre);
+    const svcRows=lineas.map(s=>{
+      const unit=s.tipo_precio==='por_m2'?(s.cantidad||0)+' m²':s.tipo_precio==='cotizar'?'A cotizar':'1 unidad';
+      return '<tr><td>'+(s.descripcion||'—')+'</td><td style="text-align:center">'+unit+'</td><td class="r">'+fmt(s.subtotal||0)+'</td></tr>';
+    }).join('');
+    const discRow=descMonto>0?('<tr class="sub"><td colspan="2">'+(descTipo==='porcentaje'?'Descuento ('+descValorInput+'%)':'Descuento')+'</td><td class="r">-'+fmt(descMonto)+'</td></tr>'):'';
+    const sub2Row=descMonto>0?('<tr class="sub"><td colspan="2">Subtotal neto</td><td class="r">'+fmt(subtotal2)+'</td></tr>'):'';
+    const tbodyHtml=svcRows
+      +'<tr><td></td><td></td><td></td></tr>'
+      +'<tr class="sub"><td colspan="2">Subtotal</td><td class="r">'+fmt(subtotal)+'</td></tr>'
+      +discRow+sub2Row
+      +'<tr class="sub"><td colspan="2">IVA 12 %</td><td class="r">'+fmt(ivaMonto)+'</td></tr>'
+      +'<tr class="tot"><td colspan="2">TOTAL</td><td class="r">'+fmt(total)+'</td></tr>';
+    const resp=await fetch('/assets/machote-cotizacion.html');
+    if(!resp.ok) throw new Error('HTTP '+resp.status+' al cargar plantilla');
+    let html=await resp.text();
+    html=html.replace(/<script[\s\S]*?<\/script>/gi,'');
+    const dataScript='<script>(function(){'
+      +'var codEl=document.querySelector(".doc-codigo-valor");if(codEl)codEl.textContent='+JSON.stringify(codigo)+';'
+      +'var cv=document.querySelectorAll(".campo-val");'
+      +'if(cv[0])cv[0].textContent='+JSON.stringify(cliNombre)+';'
+      +'if(cv[1])cv[1].textContent='+JSON.stringify(cliEmpresa||'—')+';'
+      +'if(cv[2])cv[2].textContent='+JSON.stringify(telFmt)+';'
+      +'if(cv[3])cv[3].textContent='+JSON.stringify(cliEmail||'—')+';'
+      +'if(cv[4])cv[4].textContent='+JSON.stringify(cliDir)+';'
+      +'var fechaEl=document.getElementById("fecha-doc");if(fechaEl)fechaEl.textContent='+JSON.stringify(fecha)+';'
+      +'var tbody=document.querySelector(".tabla tbody");if(tbody)tbody.innerHTML='+JSON.stringify(tbodyHtml)+';'
+      +'var firmas=document.querySelectorAll(".firma-nom");if(firmas[1])firmas[1].textContent='+JSON.stringify(cliNombre)+';'
+      +(notas?'var ul=document.querySelector(".notas ul");if(ul){var li=document.createElement("li");li.textContent='+JSON.stringify(notas)+';ul.appendChild(li);}':'')
+      +'})();<\/script>';
+    return html.replace('</body>',dataScript+'</body>');
   }
 
   async function verPreviaCotizacionPDF(){
