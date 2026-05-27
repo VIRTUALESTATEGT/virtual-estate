@@ -118,6 +118,14 @@ async function generarCotizacionPDFFromHTML(html) {
     console.log('[PDF] generarCotizacionPDFFromHTML — launching puppeteer, html length:', cleanHtml.length);
     browser = await _puppeteerLaunch();
     const page = await browser.newPage();
+    // ── DEBUG PASO 4 ──────────────────────────────────────────────────────────
+    console.log('[DEBUG PASO 4] HTML a renderizar en puppeteer');
+    console.log('  Tamaño:', cleanHtml.length, 'chars');
+    console.log('  ¿Incluye <style>?', cleanHtml.includes('<style>'));
+    console.log('  ¿Incluye .pagina?', cleanHtml.includes('.pagina'));
+    console.log('  ¿Incluye @media print?', cleanHtml.includes('@media print'));
+    console.log('  Primeras 2000 chars:\n', cleanHtml.substring(0, 2000));
+    // ──────────────────────────────────────────────────────────────────────────
     // emulateMediaType('print') applies @media print: no grey background, pagina fills page
     await page.emulateMediaType('print');
     await page.setContent(cleanHtml, { waitUntil: 'domcontentloaded', timeout: 20000 });

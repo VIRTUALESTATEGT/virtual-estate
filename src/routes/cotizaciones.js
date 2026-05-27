@@ -179,6 +179,14 @@ router.post('/:id/generar-pdf', async (req, res) => {
   const { html } = req.body;
   if (!html) return res.status(400).json({ error: 'html is required' });
   const cotId = Number(req.params.id);
+  // ── DEBUG PASO 3 ────────────────────────────────────────────────────────────
+  console.log('[DEBUG PASO 3] HTML recibido del frontend');
+  console.log('  Tamaño total:', html.length, 'chars');
+  console.log('  ¿Incluye <style>?', html.includes('<style>'));
+  console.log('  ¿Incluye .pagina?', html.includes('.pagina'));
+  console.log('  ¿Incluye @media print?', html.includes('@media print'));
+  console.log('  Primeras 2000 chars:\n', html.substring(0, 2000));
+  // ────────────────────────────────────────────────────────────────────────────
   try {
     const pdfBuf       = await generarCotizacionPDFFromHTML(html);
     const filename     = `${cotCode(cotId)}.pdf`;

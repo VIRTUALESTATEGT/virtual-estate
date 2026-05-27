@@ -3615,7 +3615,16 @@
       +'var firmas=document.querySelectorAll(".firma-nom");if(firmas[1])firmas[1].textContent='+JSON.stringify(cliNombre)+';'
       +(notas?'var ul=document.querySelector(".notas ul");if(ul){var li=document.createElement("li");li.textContent='+JSON.stringify(notas)+';ul.appendChild(li);}':'')
       +'})();<\/script>';
-    return html.replace('</body>',dataScript+'</body>');
+    const finalHtml = html.replace('</body>',dataScript+'</body>');
+    // ── DEBUG ─────────────────────────────────────────────────────────────────
+    console.log('%c[DEBUG PASO 2] HTML PARA PDF (enviado al backend)','color:#05a;font-weight:bold');
+    console.log('  Tamaño total:', finalHtml.length, 'chars');
+    console.log('  ¿Incluye <style>?', finalHtml.includes('<style>'));
+    console.log('  ¿Incluye .pagina?', finalHtml.includes('.pagina'));
+    console.log('  ¿Incluye @media print?', finalHtml.includes('@media print'));
+    console.log('  Primeras 2000 chars:\n', finalHtml.substring(0, 2000));
+    // ──────────────────────────────────────────────────────────────────────────
+    return finalHtml;
   }
 
   async function verPreviaCotizacionPDF(){
@@ -3684,6 +3693,14 @@
         +(notas?'var ul=document.querySelector(".notas ul");if(ul){var li=document.createElement("li");li.textContent='+JSON.stringify(notas)+';ul.appendChild(li);}':'')
         +'})();<\/script>';
       html=html.replace('</body>',dataScript+'</body>');
+      // ── DEBUG ───────────────────────────────────────────────────────────────
+      console.log('%c[DEBUG PASO 1] HTML VISTA PREVIA','color:#0a0;font-weight:bold');
+      console.log('  Tamaño total:', html.length, 'chars');
+      console.log('  ¿Incluye <style>?', html.includes('<style>'));
+      console.log('  ¿Incluye .pagina?', html.includes('.pagina'));
+      console.log('  ¿Incluye @media print?', html.includes('@media print'));
+      console.log('  Primeras 2000 chars:\n', html.substring(0, 2000));
+      // ────────────────────────────────────────────────────────────────────────
       const win=window.open('','_blank');
       if(!win){showToast('Permite ventanas emergentes para ver la vista previa');return;}
       win.document.write(html);
