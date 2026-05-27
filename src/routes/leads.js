@@ -16,10 +16,10 @@ router.get('/', async (req, res) => {
 // POST nuevo lead
 router.post('/', async (req, res) => {
   try {
-    const { nombre, email, telefono, empresa, estado, servicio, fuente, presupuesto, seguimiento } = req.body;
+    const { nombre, apellido, email, telefono, empresa, estado, servicio, fuente, presupuesto, seguimiento } = req.body;
     const { data, error } = await supabase
       .from('leads')
-      .insert([{ nombre, email, telefono, empresa, estado: estado || 'Nuevo', servicio, fuente, presupuesto, seguimiento }])
+      .insert([{ nombre, apellido: apellido || null, email, telefono, empresa, estado: estado || 'Nuevo', servicio, fuente, presupuesto, seguimiento }])
       .select();
     if (error) throw error;
     res.status(201).json(data[0]);
@@ -31,10 +31,10 @@ router.post('/', async (req, res) => {
 // PUT /:id — update lead
 router.put('/:id', async (req, res) => {
   try {
-    const { nombre, email, telefono, empresa, estado, seguimiento, servicio, fuente, presupuesto } = req.body;
+    const { nombre, apellido, email, telefono, empresa, estado, seguimiento, servicio, fuente, presupuesto } = req.body;
     const { data, error } = await supabase
       .from('leads')
-      .update({ nombre, email, telefono, empresa, estado, seguimiento, servicio, fuente, presupuesto })
+      .update({ nombre, apellido: apellido || null, email, telefono, empresa, estado, seguimiento, servicio, fuente, presupuesto })
       .eq('id', req.params.id)
       .select();
     if (error) throw error;

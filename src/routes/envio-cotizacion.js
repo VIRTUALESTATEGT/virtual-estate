@@ -116,39 +116,39 @@ router.post('/email/enviar-cotizacion', async (req, res) => {
     const anticipo   = Number(cot?.anticipo || 0);
     const descMonto  = Number(det.descuento_monto || 0);
 
-    // 4-column services table rows (no totals inside)
+    // 4-column service rows — dark theme matching portal
     const svcRowsHTML = servicios.map((s, i) => {
-      const bg       = i % 2 === 0 ? '#ffffff' : '#fafaf8';
-      const cantidad = s.tipo_precio === 'por_m2' ? `${s.cantidad || 0} m²`
-                     : s.tipo_precio === 'cotizar' ? 'A cotizar' : '1 ud';
+      const bg        = i % 2 === 0 ? '#0E1615' : '#131f18';
+      const cantidad  = s.tipo_precio === 'por_m2' ? `${s.cantidad || 0} m²`
+                      : s.tipo_precio === 'cotizar' ? 'A cotizar' : '1 ud';
       const unitPrice = s.tipo_precio === 'cotizar' ? '—' : fmtE(s.precio_unitario || 0);
       return `<tr style="background:${bg};">
-        <td style="padding:8px 10px;font-size:13px;color:#333;border-bottom:1px solid #eee;">${s.descripcion || '—'}</td>
-        <td style="padding:8px 10px;font-size:13px;color:#555;text-align:center;border-bottom:1px solid #eee;">${cantidad}</td>
-        <td style="padding:8px 10px;font-size:13px;color:#555;text-align:right;border-bottom:1px solid #eee;">${unitPrice}</td>
-        <td style="padding:8px 10px;font-size:13px;color:#B09A6C;font-weight:600;text-align:right;border-bottom:1px solid #eee;">${fmtE(s.subtotal || 0)}</td>
+        <td style="padding:8px 10px;font-size:13px;color:#F5F0E8;border-bottom:1px solid rgba(193,146,89,.1);">${s.descripcion || '—'}</td>
+        <td style="padding:8px 10px;font-size:13px;color:#8A9990;text-align:center;border-bottom:1px solid rgba(193,146,89,.1);">${cantidad}</td>
+        <td style="padding:8px 10px;font-size:13px;color:#8A9990;text-align:right;border-bottom:1px solid rgba(193,146,89,.1);">${unitPrice}</td>
+        <td style="padding:8px 10px;font-size:13px;color:#B09A6C;font-weight:600;text-align:right;border-bottom:1px solid rgba(193,146,89,.1);">${fmtE(s.subtotal || 0)}</td>
       </tr>`;
     }).join('');
 
-    // Totals mini (same structure as portal .totals-mini)
-    const ROW   = 'display:flex;justify-content:space-between;padding:4px 0;font-size:13px;';
+    // Totals mini — estructura idéntica al portal .totals-mini, tema oscuro
+    const ROW      = 'display:flex;justify-content:space-between;padding:3px 0;font-size:13px;';
     const descLabel = det.descuento_tipo === 'porcentaje' ? `Descuento (${det.descuento_valor}%)` : 'Descuento';
     const totalsMiniHTML = `
-      <div style="border:1px solid rgba(176,154,108,.2);border-radius:4px;padding:12px 16px;margin:16px 0;">
-        ${det.subtotal != null ? `<div style="${ROW}color:#555;"><span>Subtotal</span><span>${fmtE(det.subtotal)}</span></div>` : ''}
-        ${descMonto > 0 ? `<div style="${ROW}color:#D9534F;"><span>${descLabel}</span><span>-${fmtE(descMonto)}</span></div>` : ''}
-        <div style="${ROW}color:#555;"><span>IVA 12%</span><span>${fmtE(det.iva_monto || 0)}</span></div>
-        <div style="${ROW}font-weight:700;color:#B09A6C;border-top:1px solid rgba(176,154,108,.2);margin-top:6px;padding-top:8px;">
+      <div style="background:rgba(193,146,89,.04);border:1px solid rgba(193,146,89,.18);border-radius:4px;padding:12px 16px;margin:16px 0;">
+        ${det.subtotal != null ? `<div style="${ROW}color:#8A9990;"><span>Subtotal</span><span>${fmtE(det.subtotal)}</span></div>` : ''}
+        ${descMonto > 0 ? `<div style="${ROW}color:#E08080;"><span>${descLabel}</span><span>-${fmtE(descMonto)}</span></div>` : ''}
+        <div style="${ROW}color:#8A9990;"><span>IVA 12%</span><span>${fmtE(det.iva_monto || 0)}</span></div>
+        <div style="${ROW}font-weight:700;color:#B09A6C;border-top:1px solid rgba(193,146,89,.18);margin-top:6px;padding-top:8px;">
           <span>TOTAL</span><span>${fmtE(det.total || cot?.monto || 0)}</span>
         </div>
       </div>
       ${anticipo > 0 ? `
-      <div style="background:rgba(176,154,108,.06);border:1px solid rgba(176,154,108,.22);border-radius:4px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
+      <div style="background:rgba(193,146,89,.08);border:1px solid rgba(193,146,89,.22);border-radius:4px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px;">Anticipo para iniciar</div>
+          <div style="font-size:11px;color:#8A9990;text-transform:uppercase;letter-spacing:.5px;">Anticipo para iniciar</div>
           <div style="font-size:22px;font-weight:700;color:#B09A6C;margin-top:3px;">${fmtE(anticipo)}</div>
         </div>
-        <div style="font-size:11px;color:#888;text-align:right;line-height:1.6;">50% del total<br/>Restante: ${fmtE(Math.max(0, (det.total || 0) - anticipo))}</div>
+        <div style="font-size:11px;color:#8A9990;text-align:right;line-height:1.6;">50% del total<br/>Restante: ${fmtE(Math.max(0, (det.total || 0) - anticipo))}</div>
       </div>` : ''}
     `;
 
@@ -169,57 +169,62 @@ router.post('/email/enviar-cotizacion', async (req, res) => {
       subject: `Tu Cotización Virtual Estate GT — ${codigo}`,
       attachments,
       html: `
-<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;">
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0D4137;padding:0;">
 
-  <!-- Header verde -->
-  <div style="background-color:#0D4137;padding:28px 24px;text-align:center;border-bottom:3px solid #B09A6C;">
+  <!-- Header -->
+  <div style="background:#0D4137;padding:28px 24px;text-align:center;border-bottom:3px solid #B09A6C;">
     <img src="${logoUrl}" alt="Virtual Estate GT" width="180" style="display:inline-block;max-width:180px;" />
     <h2 style="color:#B09A6C;margin:12px 0 0;font-size:15px;letter-spacing:1px;text-transform:uppercase;">Tu Cotización está lista</h2>
   </div>
 
-  <!-- Saludo -->
-  <div style="padding:24px 24px 0;">
-    <p style="font-size:16px;font-weight:700;color:#1a1a1a;margin:0 0 6px;">¡Hola ${nombreCompleto}! 👋</p>
-    <p style="font-size:14px;line-height:1.6;color:#555;margin:0 0 20px;">
-      Hemos preparado tu cotización <strong style="color:#0D4137;">${codigo}</strong>.
-      ${attachments.length ? 'La encuentras adjunta a este correo.' : ''}
-      Revisa los detalles y confírmala a través del enlace al final.
-    </p>
-  </div>
+  <!-- Card oscuro (igual portal) -->
+  <div style="background:#0E1615;border-left:1px solid rgba(193,146,89,.18);border-right:1px solid rgba(193,146,89,.18);">
 
-  ${servicios.length ? `
-  <!-- Tabla servicios (4 columnas) -->
-  <div style="padding:0 24px;">
-    <table style="width:100%;border-collapse:collapse;border:1px solid #e0e0e0;">
-      <thead>
-        <tr style="background-color:#0D4137;">
-          <th style="padding:9px 10px;font-size:12px;text-align:left;color:#B09A6C;letter-spacing:.5px;text-transform:uppercase;">Descripción</th>
-          <th style="padding:9px 10px;font-size:12px;text-align:center;color:#B09A6C;letter-spacing:.5px;text-transform:uppercase;">Cant.</th>
-          <th style="padding:9px 10px;font-size:12px;text-align:right;color:#B09A6C;letter-spacing:.5px;text-transform:uppercase;">P. Unit.</th>
-          <th style="padding:9px 10px;font-size:12px;text-align:right;color:#B09A6C;letter-spacing:.5px;text-transform:uppercase;">Subtotal</th>
-        </tr>
-      </thead>
-      <tbody>${svcRowsHTML}</tbody>
-    </table>
-  </div>` : ''}
+    <!-- Saludo -->
+    <div style="padding:24px 24px 0;">
+      <p style="font-size:16px;font-weight:700;color:#F5F0E8;margin:0 0 6px;">¡Hola ${nombreCompleto}! 👋</p>
+      <p style="font-size:14px;line-height:1.6;color:#8A9990;margin:0 0 20px;">
+        Hemos preparado tu cotización <strong style="color:#B09A6C;">${codigo}</strong>.
+        ${attachments.length ? 'La encuentras adjunta a este correo.' : ''}
+        Revisa los detalles y confírmala a través del enlace al final.
+      </p>
+    </div>
 
-  <!-- Totals mini (mismo estilo que portal confirmación) -->
-  <div style="padding:0 24px;">${totalsMiniHTML}</div>
+    ${servicios.length ? `
+    <!-- Tabla servicios -->
+    <div style="padding:0 24px;">
+      <table style="width:100%;border-collapse:collapse;border:1px solid rgba(193,146,89,.18);">
+        <thead>
+          <tr style="background-color:#1E3028;">
+            <th style="padding:9px 10px;font-size:12px;text-align:left;color:#B09A6C;letter-spacing:.5px;text-transform:uppercase;">Descripción</th>
+            <th style="padding:9px 10px;font-size:12px;text-align:center;color:#B09A6C;letter-spacing:.5px;text-transform:uppercase;">Cant.</th>
+            <th style="padding:9px 10px;font-size:12px;text-align:right;color:#B09A6C;letter-spacing:.5px;text-transform:uppercase;">P. Unit.</th>
+            <th style="padding:9px 10px;font-size:12px;text-align:right;color:#B09A6C;letter-spacing:.5px;text-transform:uppercase;">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>${svcRowsHTML}</tbody>
+      </table>
+    </div>` : ''}
 
-  <!-- CTA -->
-  <div style="padding:24px;">
-    <a href="${link}" style="display:block;background:#B09A6C;color:#fff;padding:14px 20px;border-radius:4px;text-decoration:none;font-weight:700;font-size:14px;text-align:center;letter-spacing:.5px;">
-      Ver y confirmar cotización →
-    </a>
-    <p style="font-size:12px;color:#aaa;margin-top:16px;text-align:center;line-height:1.6;">
-      ¿Tienes preguntas? Escríbenos a
-      <a href="mailto:info@virtualestategt.com" style="color:#B09A6C;text-decoration:none;">info@virtualestategt.com</a>
-      o al <a href="tel:+50239902399" style="color:#B09A6C;text-decoration:none;">+502 3990 2399</a>
-    </p>
-  </div>
+    <!-- Totals mini (estructura idéntica al portal .totals-mini) -->
+    <div style="padding:0 24px;">${totalsMiniHTML}</div>
 
-  <!-- Footer verde -->
-  <div style="background-color:#0D4137;padding:14px 24px;text-align:center;">
+    <!-- CTA -->
+    <div style="padding:24px;">
+      <a href="${link}" style="display:block;background:#B09A6C;color:#0D1A14;padding:14px 20px;border-radius:4px;text-decoration:none;font-weight:700;font-size:14px;text-align:center;letter-spacing:.5px;">
+        Ver y confirmar cotización →
+      </a>
+      <p style="font-size:12px;color:#8A9990;margin-top:16px;text-align:center;line-height:1.6;">
+        ¿Tienes preguntas? Escríbenos a
+        <a href="mailto:info@virtualestategt.com" style="color:#B09A6C;text-decoration:none;">info@virtualestategt.com</a>
+        o al <a href="tel:+50239902399" style="color:#B09A6C;text-decoration:none;">+502 3990 2399</a>
+      </p>
+    </div>
+
+  </div><!-- /card -->
+
+  <!-- Footer -->
+  <div style="background:#0D4137;padding:14px 24px;text-align:center;border-top:1px solid rgba(193,146,89,.2);">
     <p style="font-size:11px;color:rgba(255,255,255,.6);margin:0;">Virtual Estate GT · Guatemala City · www.virtualestategt.com</p>
     <p style="font-size:11px;color:rgba(255,255,255,.4);margin:4px 0 0;">Si no solicitaste esta cotización, puedes ignorar este mensaje.</p>
   </div>
