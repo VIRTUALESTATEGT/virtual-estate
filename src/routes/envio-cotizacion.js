@@ -131,15 +131,18 @@ router.post('/email/enviar-cotizacion', async (req, res) => {
     }).join('');
 
     // Totals mini — estructura idéntica al portal .totals-mini, tema oscuro
-    const ROW      = 'display:flex;justify-content:space-between;padding:3px 0;font-size:13px;';
+    // LBL/AMT: flex explícito para que etiqueta quede a la izquierda y monto a la derecha
+    const ROW      = 'display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:13px;';
+    const LBL      = 'flex:1;text-align:left;';
+    const AMT      = 'flex:0 0 110px;text-align:right;font-variant-numeric:tabular-nums;';
     const descLabel = det.descuento_tipo === 'porcentaje' ? `Descuento (${det.descuento_valor}%)` : 'Descuento';
     const totalsMiniHTML = `
       <div style="background:rgba(193,146,89,.04);border:1px solid rgba(193,146,89,.18);border-radius:4px;padding:12px 16px;margin:16px 0;">
-        ${det.subtotal != null ? `<div style="${ROW}color:#8A9990;"><span>Subtotal</span><span>${fmtE(det.subtotal)}</span></div>` : ''}
-        ${descMonto > 0 ? `<div style="${ROW}color:#E08080;"><span>${descLabel}</span><span>-${fmtE(descMonto)}</span></div>` : ''}
-        <div style="${ROW}color:#8A9990;"><span>IVA 12%</span><span>${fmtE(det.iva_monto || 0)}</span></div>
+        ${det.subtotal != null ? `<div style="${ROW}color:#8A9990;"><span style="${LBL}">Subtotal</span><span style="${AMT}">${fmtE(det.subtotal)}</span></div>` : ''}
+        ${descMonto > 0 ? `<div style="${ROW}color:#E08080;"><span style="${LBL}">${descLabel}</span><span style="${AMT}">-${fmtE(descMonto)}</span></div>` : ''}
+        <div style="${ROW}color:#8A9990;"><span style="${LBL}">IVA 12%</span><span style="${AMT}">${fmtE(det.iva_monto || 0)}</span></div>
         <div style="${ROW}font-weight:700;color:#B09A6C;border-top:1px solid rgba(193,146,89,.18);margin-top:6px;padding-top:8px;">
-          <span>TOTAL</span><span>${fmtE(det.total || cot?.monto || 0)}</span>
+          <span style="${LBL}">TOTAL</span><span style="${AMT}">${fmtE(det.total || cot?.monto || 0)}</span>
         </div>
       </div>
       ${anticipo > 0 ? `

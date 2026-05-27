@@ -3602,7 +3602,7 @@
     const leadId=document.getElementById('cot-lead-select').value;
     let cliNombre='—',cliEmail='',cliTel='',cliEmpresa='';
     if(cliId){const c=_cotCliList.find(x=>String(x.id)===cliId)||{};cliNombre=c.nombre||'—';cliEmail=c.email||'';cliTel=c.telefono||'';cliEmpresa=c.empresa||'';}
-    else if(leadId){const l=_cotLeadList.find(x=>String(x.id)===leadId)||{};cliNombre=l.nombre||'—';cliEmail=l.email||'';cliTel=l.telefono||'';cliEmpresa=l.empresa||'';}
+    else if(leadId){const l=_cotLeadList.find(x=>String(x.id)===leadId)||{};cliNombre=[l.nombre,l.apellido].filter(Boolean).join(' ')||'—';cliEmail=l.email||'';cliTel=l.telefono||'';cliEmpresa=l.empresa||'';}
     const notas=document.getElementById('cot-notas').value||'';
     const fecha=new Date().toLocaleDateString('es-GT',{day:'numeric',month:'long',year:'numeric'});
     const telFmt=formatearTelefono(cliTel)||cliTel||'—';
@@ -3675,7 +3675,7 @@
     const leadId=document.getElementById('cot-lead-select').value;
     let cliNombre='—',cliEmail='',cliTel='',cliEmpresa='';
     if(cliId){const c=_cotCliList.find(x=>String(x.id)===cliId)||{};cliNombre=c.nombre||'—';cliEmail=c.email||'';cliTel=c.telefono||'';cliEmpresa=c.empresa||'';}
-    else if(leadId){const l=_cotLeadList.find(x=>String(x.id)===leadId)||{};cliNombre=l.nombre||'—';cliEmail=l.email||'';cliTel=l.telefono||'';cliEmpresa=l.empresa||'';}
+    else if(leadId){const l=_cotLeadList.find(x=>String(x.id)===leadId)||{};cliNombre=[l.nombre,l.apellido].filter(Boolean).join(' ')||'—';cliEmail=l.email||'';cliTel=l.telefono||'';cliEmpresa=l.empresa||'';}
     const notas=document.getElementById('cot-notas').value||'';
     const fecha=new Date().toLocaleDateString('es-GT',{day:'numeric',month:'long',year:'numeric'});
     const telFmt=formatearTelefono(cliTel)||cliTel||'—';
@@ -4525,7 +4525,7 @@
     const leadId=document.getElementById('cot-lead-select').value;
     let nombre='',tel='',email='';
     if(cliId){ const c=_cotCliList.find(x=>String(x.id)===String(cliId))||{}; nombre=c.nombre||''; tel=c.telefono||''; email=c.email||''; }
-    else if(leadId){ const l=_cotLeadList.find(x=>String(x.id)===String(leadId))||{}; nombre=l.nombre||''; tel=l.telefono||''; email=l.email||''; }
+    else if(leadId){ const l=_cotLeadList.find(x=>String(x.id)===String(leadId))||{}; nombre=capitalizarNombre([l.nombre,l.apellido].filter(Boolean).join(' '))||''; tel=l.telefono||''; email=l.email||''; }
     tel=formatearTelefono(tel);
     _envioCanalesData={tel,email,nombre};
     const sub=document.getElementById('envio-cot-subtitulo');
