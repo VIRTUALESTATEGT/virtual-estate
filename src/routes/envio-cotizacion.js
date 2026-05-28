@@ -164,14 +164,27 @@ router.post('/email/enviar-cotizacion', async (req, res) => {
       </div>` : ''}
     `;
 
-    // Attach PDF
+    // Attach PDF — use stored documento_url first (already styled, avoids re-running puppeteer)
     let attachments = [];
     if (cot) {
       try {
-        const pdfBuf = await generarCotizacionPDF(cot);
-        attachments = [{ filename: `${codigo}.pdf`, content: pdfBuf, contentType: 'application/pdf' }];
-      } catch (pdfErr) {
-        console.error('[Email] PDF generation error:', pdfErr.message);
+        if (cot.documento_url) {
+          const res = await fetch(cot.documento_url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const pdfBuf = Buffer.from(await res.arrayBuffer());
+          attachments = [{ filename: `${codigo}.pdf`, content: pdfBuf, contentType: 'application/pdf' }];
+          console.log('[Email] PDF attached from storage:', cot.documento_url.slice(0, 80));
+        } else {
+          throw new Error('no documento_url — regenerating');
+        }
+      } catch (fetchErr) {
+        console.warn('[Email] PDF storage fetch failed, regenerating:', fetchErr.message);
+        try {
+          const pdfBuf = await generarCotizacionPDF(cot);
+          attachments = [{ filename: `${codigo}.pdf`, content: pdfBuf, contentType: 'application/pdf' }];
+        } catch (pdfErr) {
+          console.error('[Email] PDF regeneration error:', pdfErr.message);
+        }
       }
     }
 

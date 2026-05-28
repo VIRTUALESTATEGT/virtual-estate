@@ -3540,10 +3540,15 @@
       if(_editCotizacionId){
         const editId=_editCotizacionId;
         result=await apiFetch('/api/cotizaciones/'+editId,{method:'PUT',body:JSON.stringify(payload)});
-        // Regenerate PDF in background (non-blocking on update)
-        _buildMachotePDFHtml(editId).then(pdfHtml=>
-          apiFetch('/api/cotizaciones/'+editId+'/generar-pdf',{method:'POST',body:JSON.stringify({html:pdfHtml})})
-        ).catch(e=>{console.warn('[PDF] regeneración fallida:',e.message);showToast('⚠️ PDF no se pudo regenerar: '+e.message);});
+        // Regenerate PDF and wait — documento_url must be updated before resend modal opens
+        if(btn){btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Generando PDF...';}
+        try{
+          const pdfHtml=await _buildMachotePDFHtml(editId);
+          await apiFetch('/api/cotizaciones/'+editId+'/generar-pdf',{method:'POST',body:JSON.stringify({html:pdfHtml})});
+        }catch(pdfErr){
+          console.warn('[PDF] regeneración fallida:',pdfErr.message);
+          showToast('⚠️ PDF no se pudo regenerar: '+pdfErr.message);
+        }
         showToast('✅ Cotización actualizada');
         closeCotizacionModal();
         await loadCotizaciones();

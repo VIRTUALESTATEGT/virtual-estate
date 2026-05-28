@@ -48,7 +48,7 @@ router.get('/', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('cotizaciones')
-      .select('*, clientes(id, nombre)')
+      .select('*, clientes(id, nombre, apellido, telefono, email), leads(id, nombre, apellido, telefono, email)')
       .order('id', { ascending: false });
     if (error) throw error;
     res.json(data);
