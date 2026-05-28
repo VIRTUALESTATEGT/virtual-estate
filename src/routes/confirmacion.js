@@ -7,17 +7,23 @@ const nodemailer = require('nodemailer');
 function crearTransportador() {
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) return null;
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT) || 587,
-    secure: Number(process.env.SMTP_PORT) === 465,
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    host:             process.env.SMTP_HOST,
+    port:             Number(process.env.SMTP_PORT) || 587,
+    secure:           Number(process.env.SMTP_PORT) === 465,
+    auth:             { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    pool:             false,
+    connectionTimeout: 10000,
+    greetingTimeout:   8000,
+    socketTimeout:     15000,
+    tls:              { rejectUnauthorized: false },
   });
 }
 
 async function enviarEmailConfirmacion({ email, nombre, apellido, cotizacion_id, monto, anticipo, codigo_cliente, timestamp, detalles_json, moneda }) {
+  console.log('[CONFIRM-EMAIL] enviarEmailConfirmacion ▶ destinatario:', email, '| SMTP_HOST set:', !!process.env.SMTP_HOST, '| SMTP_USER set:', !!process.env.SMTP_USER, '| SMTP_PASS set:', !!process.env.SMTP_PASS);
   const transport = crearTransportador();
   if (!transport) {
-    console.log('[EMAIL] SMTP no configurado — email de confirmación omitido');
+    console.error('[CONFIRM-EMAIL] ✗ SMTP no configurado — agrega SMTP_HOST, SMTP_USER y SMTP_PASS en Vercel');
     return;
   }
   const year    = new Date().getFullYear().toString().slice(-2);
@@ -31,11 +37,15 @@ async function enviarEmailConfirmacion({ email, nombre, apellido, cotizacion_id,
   const det     = detalles_json || {};
   const servicios = det.servicios || [];
 
-  const ROW = 'display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:13px;';
-  const LBL = 'flex:1;text-align:left;';
-  const AMT = 'flex:0 0 110px;text-align:right;font-variant-numeric:tabular-nums;';
   const descMonto = Number(det.descuento_monto || 0);
   const descLabel = det.descuento_tipo === 'porcentaje' ? `Descuento (${det.descuento_valor}%)` : 'Descuento';
+  const D = '................................................................................';
+  const tRow = (lbl, val, clr, bold, sep) =>
+    '<tr>' +
+    `<td style="padding:${bold?'8':'4'}px 0;font-family:'Courier New',Courier,monospace;font-size:13px;color:${clr};font-weight:${bold?700:400};white-space:nowrap;${sep?'border-top:1px solid rgba(193,146,89,.18);padding-top:10px;':''}">${lbl}</td>` +
+    `<td style="padding:${bold?'8':'4'}px 2px;font-family:monospace;font-size:11px;color:rgba(193,146,89,.22);overflow:hidden;max-width:1px;width:100%;${sep?'border-top:1px solid rgba(193,146,89,.18);':''}">${D}</td>` +
+    `<td style="padding:${bold?'8':'4'}px 0 ${bold?'8':'4'}px 4px;font-family:'Courier New',Courier,monospace;font-size:13px;color:${clr};font-weight:${bold?700:400};white-space:nowrap;text-align:right;${sep?'border-top:1px solid rgba(193,146,89,.18);padding-top:10px;':''}">${val}</td>` +
+    '</tr>';
 
   const svcRows = servicios.map((s, i) => {
     const bg       = i % 2 === 0 ? '#0E1615' : '#131f18';
@@ -51,34 +61,35 @@ async function enviarEmailConfirmacion({ email, nombre, apellido, cotizacion_id,
 
   const totalsHTML = `
     <div style="background:rgba(193,146,89,.04);border:1px solid rgba(193,146,89,.18);border-radius:4px;padding:12px 16px;margin:16px 0;">
-      ${det.subtotal != null ? `<div style="${ROW}color:#8A9990;"><span style="${LBL}">Subtotal</span><span style="${AMT}">${fmt(det.subtotal)}</span></div>` : ''}
-      ${descMonto > 0 ? `<div style="${ROW}color:#E08080;"><span style="${LBL}">${descLabel}</span><span style="${AMT}">-${fmt(descMonto)}</span></div>` : ''}
-      <div style="${ROW}color:#8A9990;"><span style="${LBL}">IVA 12%</span><span style="${AMT}">${fmt(det.iva_monto || 0)}</span></div>
-      <div style="${ROW}font-weight:700;color:#B09A6C;border-top:1px solid rgba(193,146,89,.18);margin-top:6px;padding-top:8px;">
-        <span style="${LBL}">TOTAL</span><span style="${AMT}">${fmt(det.total || monto || 0)}</span>
-      </div>
+      <table style="width:100%;border-collapse:collapse;">
+        ${det.subtotal != null ? tRow('Subtotal', fmt(det.subtotal), '#8A9990', false, false) : ''}
+        ${descMonto > 0 ? tRow(descLabel, '-' + fmt(descMonto), '#E08080', false, false) : ''}
+        ${tRow('IVA 12%', fmt(det.iva_monto || 0), '#8A9990', false, false)}
+        ${tRow('TOTAL', fmt(det.total || monto || 0), '#B09A6C', true, true)}
+      </table>
     </div>
+    ${Number(anticipo) > 0 ? `
     <div style="background:rgba(193,146,89,.08);border:1px solid rgba(193,146,89,.22);border-radius:4px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
       <div>
         <div style="font-size:11px;color:#8A9990;text-transform:uppercase;letter-spacing:.5px;">Anticipo confirmado</div>
         <div style="font-size:22px;font-weight:700;color:#B09A6C;margin-top:3px;">${fmt(anticipo)}</div>
       </div>
       <div style="font-size:11px;color:#8A9990;text-align:right;line-height:1.6;">50% del total<br/>Restante: ${fmt(Math.max(0, (det.total || Number(monto) || 0) - Number(anticipo)))}</div>
-    </div>`;
+    </div>` : ''}`;
 
   const codesHTML = `
-    <div style="display:flex;gap:12px;justify-content:center;margin:20px 0;flex-wrap:wrap;">
-      <div style="text-align:center;">
-        <div style="font-size:10px;color:#8A9990;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">Código de cotización</div>
-        <div style="display:inline-block;background:rgba(193,146,89,.12);border:1px solid rgba(193,146,89,.3);border-radius:4px;padding:6px 14px;font-family:monospace;color:#B09A6C;font-size:13px;letter-spacing:.1em;">${nroCot}</div>
+    <div style="text-align:center;margin:20px 0;">
+      <div style="margin-bottom:10px;">
+        <div style="font-size:10px;color:#8A9990;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">Código de Cotización</div>
+        <div style="display:inline-block;background:rgba(193,146,89,.12);border:1px solid rgba(193,146,89,.3);border-radius:4px;padding:7px 20px;font-family:'Courier New',Courier,monospace;color:#B09A6C;font-size:14px;letter-spacing:.12em;">${nroCot}</div>
       </div>
-      <div style="text-align:center;">
-        <div style="font-size:10px;color:#8A9990;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">Código de cliente</div>
-        <div style="display:inline-block;background:rgba(193,146,89,.12);border:1px solid rgba(193,146,89,.3);border-radius:4px;padding:6px 14px;font-family:monospace;color:#B09A6C;font-size:13px;letter-spacing:.1em;">${codigo_cliente}</div>
+      <div>
+        <div style="font-size:10px;color:#8A9990;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">Código de Cliente</div>
+        <div style="display:inline-block;background:rgba(193,146,89,.12);border:1px solid rgba(193,146,89,.3);border-radius:4px;padding:7px 20px;font-family:'Courier New',Courier,monospace;color:#B09A6C;font-size:14px;letter-spacing:.12em;">${codigo_cliente}</div>
       </div>
     </div>`;
 
-  await transport.sendMail({
+  try { await transport.sendMail({
     from: `"Virtual Estate GT" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
     to: email,
     subject: `✅ Cotización Confirmada ${nroCot} — Virtual Estate GT`,
@@ -149,8 +160,8 @@ async function enviarEmailConfirmacion({ email, nombre, apellido, cotizacion_id,
   </div>
 
 </div>`,
-  });
-  console.log(`[EMAIL] Confirmación enviada a ${email}`);
+  }); } finally { transport.close(); }
+  console.log(`[CONFIRM-EMAIL] ✅ sendMail OK → ${email}`);
 }
 
 // ── Capitalizar texto (cada palabra con mayúscula inicial) ────────────────────
@@ -372,6 +383,7 @@ async function procesarConfirmacion({ cotizacion_id, lead_id, anticipo_confirmad
   }
 
   // 7. Send confirmation email (non-blocking)
+  console.log('[CONFIRM-EMAIL] cliente.email:', cliente.email || '(vacío)', '| cliente.id:', cliente.id, '| codigo_cliente:', codigo_cliente);
   if (cliente.email) {
     enviarEmailConfirmacion({
       email:         cliente.email,
@@ -384,7 +396,13 @@ async function procesarConfirmacion({ cotizacion_id, lead_id, anticipo_confirmad
       timestamp:     ahora,
       detalles_json: cot.detalles_json || null,
       moneda:        cot.moneda || 'USD',
-    }).catch(e => console.error('[EMAIL ERROR]', e.message));
+    }).then(() => {
+      console.log('[CONFIRM-EMAIL] ✅ Enviado a:', cliente.email);
+    }).catch(e => {
+      console.error('[CONFIRM-EMAIL] ✗ FALLÓ para:', cliente.email, '| error:', e.message);
+    });
+  } else {
+    console.warn('[CONFIRM-EMAIL] ✗ Sin email — cliente no tiene dirección registrada');
   }
 
   return {

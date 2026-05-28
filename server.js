@@ -138,6 +138,11 @@ app.get('/api/whatsapp/webhook',  _waWebhookVerify);
 app.post('/api/whatsapp/webhook', _waWebhookPost);
 
 // ── Envío de cotizaciones por canal ──────────────────────────────────────────
+// RAW INTERCEPTOR — fires before auth, confirms the request reaches this server
+app.use(['/api/whatsapp/enviar-cotizacion', '/api/email/enviar-cotizacion'], (req, res, next) => {
+  console.log('[ENVIO-INTERCEPT] ▶ method:', req.method, '| path:', req.path, '| body keys:', Object.keys(req.body || {}));
+  next();
+});
 const envioCotizacionRouter = require('./src/routes/envio-cotizacion');
 app.use('/api', authMiddleware, requireMinRole('asistente'), envioCotizacionRouter);
 

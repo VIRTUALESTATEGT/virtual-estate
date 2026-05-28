@@ -118,10 +118,15 @@ router.post('/email/enviar-cotizacion', async (req, res) => {
   try {
     const nodemailer  = require('nodemailer');
     const transporter = nodemailer.createTransport({
-      host:   SMTP_HOST,
-      port:   Number(process.env.SMTP_PORT || 587),
-      secure: Number(process.env.SMTP_PORT) === 465,
-      auth:   { user: SMTP_USER, pass: SMTP_PASS },
+      host:              SMTP_HOST,
+      port:              Number(process.env.SMTP_PORT || 587),
+      secure:            Number(process.env.SMTP_PORT) === 465,
+      auth:              { user: SMTP_USER, pass: SMTP_PASS },
+      pool:              false,
+      connectionTimeout: 10000,
+      greetingTimeout:   8000,
+      socketTimeout:     15000,
+      tls:               { rejectUnauthorized: false },
     });
 
     const codigo  = cotCode(cotizacion_id);
@@ -157,20 +162,22 @@ router.post('/email/enviar-cotizacion', async (req, res) => {
       </tr>`;
     }).join('');
 
-    // Totals mini — estructura idéntica al portal .totals-mini, tema oscuro
-    // LBL/AMT: flex explícito para que etiqueta quede a la izquierda y monto a la derecha
-    const ROW      = 'display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:13px;';
-    const LBL      = 'flex:1;text-align:left;';
-    const AMT      = 'flex:0 0 110px;text-align:right;font-variant-numeric:tabular-nums;';
     const descLabel = det.descuento_tipo === 'porcentaje' ? `Descuento (${det.descuento_valor}%)` : 'Descuento';
+    const DE = '................................................................................';
+    const eRow = (lbl, val, clr, bold, sep) =>
+      '<tr>' +
+      `<td style="padding:${bold?'8':'4'}px 0;font-family:'Courier New',Courier,monospace;font-size:13px;color:${clr};font-weight:${bold?700:400};white-space:nowrap;${sep?'border-top:1px solid rgba(193,146,89,.18);padding-top:10px;':''}">${lbl}</td>` +
+      `<td style="padding:${bold?'8':'4'}px 2px;font-family:monospace;font-size:11px;color:rgba(193,146,89,.22);overflow:hidden;max-width:1px;width:100%;${sep?'border-top:1px solid rgba(193,146,89,.18);':''}">${DE}</td>` +
+      `<td style="padding:${bold?'8':'4'}px 0 ${bold?'8':'4'}px 4px;font-family:'Courier New',Courier,monospace;font-size:13px;color:${clr};font-weight:${bold?700:400};white-space:nowrap;text-align:right;${sep?'border-top:1px solid rgba(193,146,89,.18);padding-top:10px;':''}">${val}</td>` +
+      '</tr>';
     const totalsMiniHTML = `
       <div style="background:rgba(193,146,89,.04);border:1px solid rgba(193,146,89,.18);border-radius:4px;padding:12px 16px;margin:16px 0;">
-        ${det.subtotal != null ? `<div style="${ROW}color:#8A9990;"><span style="${LBL}">Subtotal</span><span style="${AMT}">${fmtE(det.subtotal)}</span></div>` : ''}
-        ${descMonto > 0 ? `<div style="${ROW}color:#E08080;"><span style="${LBL}">${descLabel}</span><span style="${AMT}">-${fmtE(descMonto)}</span></div>` : ''}
-        <div style="${ROW}color:#8A9990;"><span style="${LBL}">IVA 12%</span><span style="${AMT}">${fmtE(det.iva_monto || 0)}</span></div>
-        <div style="${ROW}font-weight:700;color:#B09A6C;border-top:1px solid rgba(193,146,89,.18);margin-top:6px;padding-top:8px;">
-          <span style="${LBL}">TOTAL</span><span style="${AMT}">${fmtE(det.total || cot?.monto || 0)}</span>
-        </div>
+        <table style="width:100%;border-collapse:collapse;">
+          ${det.subtotal != null ? eRow('Subtotal', fmtE(det.subtotal), '#8A9990', false, false) : ''}
+          ${descMonto > 0 ? eRow(descLabel, '-' + fmtE(descMonto), '#E08080', false, false) : ''}
+          ${eRow('IVA 12%', fmtE(det.iva_monto || 0), '#8A9990', false, false)}
+          ${eRow('TOTAL', fmtE(det.total || cot?.monto || 0), '#B09A6C', true, true)}
+        </table>
       </div>
       ${anticipo > 0 ? `
       <div style="background:rgba(193,146,89,.08);border:1px solid rgba(193,146,89,.22);border-radius:4px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
@@ -275,6 +282,7 @@ router.post('/email/enviar-cotizacion', async (req, res) => {
 </div>
       `,
     });
+    transporter.close();
 
     await markEnviado(cotizacion_id, 'email');
     res.json({ ok: true, canal: 'email', pdf_attached: attachments.length > 0 });
