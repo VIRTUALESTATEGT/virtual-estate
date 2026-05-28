@@ -2491,19 +2491,20 @@
   function editLead(id) {
     const l = _leadsCache[id]; if (!l) return;
     _editLeadId = id;
-    document.getElementById('lead-nombre').value    = l.nombre || '';
-    document.getElementById('lead-apellido').value  = l.apellido || '';
-    document.getElementById('lead-email').value     = l.email || '';
-    document.getElementById('lead-telefono').value  = l.telefono || '';
-    document.getElementById('lead-empresa').value   = l.empresa || '';
-    document.getElementById('lead-estado').value    = l.estado || 'Nuevo';
-    document.getElementById('lead-servicio').value  = l.servicio || '';
-    document.getElementById('lead-fuente').value    = l.fuente || 'Formulario web';
+    document.getElementById('lead-nombre').value      = l.nombre || '';
+    document.getElementById('lead-apellido').value    = l.apellido || '';
+    document.getElementById('lead-email').value       = l.email || '';
+    document.getElementById('lead-telefono').value    = l.telefono || '';
+    document.getElementById('lead-empresa').value     = l.empresa || '';
+    document.getElementById('lead-estado').value      = l.estado || 'Nuevo';
+    document.getElementById('lead-servicio').value    = l.servicio || '';
+    document.getElementById('lead-fuente').value      = l.fuente || 'Formulario web';
     document.getElementById('lead-presupuesto').value = l.presupuesto || '';
     document.getElementById('lead-seguimiento').value = l.seguimiento || '';
     const titleEl = document.getElementById('modal-lead-title');
     if (titleEl) titleEl.textContent = 'Editar Lead #' + id;
-    openModal();
+    // Open overlay directly — do NOT call openModal() which resets _editLeadId to null
+    document.getElementById('modalOverlay').classList.add('open');
   }
 
   // Helper: muestra modal de confirmación de borrado y ejecuta acción si confirma
