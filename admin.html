@@ -2911,7 +2911,7 @@
       if(!items.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem;">No hay clientes. ¡Crea el primero!</td></tr>';return;}
       tbody.innerHTML=items.map(c=>`<tr>
         <td style="color:var(--gray);font-size:.72rem;">${c.id}</td>
-        <td class="td-bold">${c.nombre||'—'}</td>
+        <td class="td-bold">${capitalizarNombre([c.nombre,c.apellido].filter(Boolean).join(' '))||'—'}</td>
         <td>${c.empresa||'—'}</td>
         <td>${c.tipo||'—'}</td>
         <td style="color:var(--gray);">${c.email||'—'}</td>
