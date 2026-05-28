@@ -127,9 +127,18 @@
     <span class="state-icon">🎉</span>
     <div class="state-title">¡Confirmación exitosa!</div>
     <div class="state-sub">Tu cotización ha sido confirmada. Te hemos enviado un email con los detalles.</div>
-    <div class="state-code" id="success-codigo"></div>
+    <div style="display:flex;flex-direction:column;gap:.6rem;align-items:center;margin:.9rem 0;">
+      <div style="text-align:center;">
+        <div style="font-size:.63rem;color:var(--gray);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25rem;">Código de cotización</div>
+        <div class="state-code" id="success-cot" style="margin:0;"></div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:.63rem;color:var(--gray);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25rem;">Código de cliente</div>
+        <div class="state-code" id="success-codigo" style="margin:0;"></div>
+      </div>
+    </div>
     <div class="state-sub" style="margin-top:.5rem;">
-      Guarda este código. Nuestro equipo se comunicará contigo en <strong>24–48 horas</strong>
+      Guarda estos códigos. Nuestro equipo se comunicará contigo en <strong>24–48 horas</strong>
       para coordinar el pago del anticipo y los próximos pasos.
     </div>
   </div>
@@ -397,7 +406,9 @@ async function confirmar() {
     if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
 
     show('state-success');
-    document.getElementById('success-codigo').textContent = data.codigo_cliente || 'Confirmada';
+    document.getElementById('success-codigo').textContent = data.codigo_cliente || '—';
+    const _yr = String(new Date().getFullYear()).slice(-2);
+    document.getElementById('success-cot').textContent = `COT-${_yr}-${String(data.cotizacion_id).padStart(5,'0')}`;
   } catch (e) {
     spinner.style.display = 'none';
     txt.textContent = 'Confirmar Cotización';
