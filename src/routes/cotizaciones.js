@@ -138,11 +138,6 @@ router.put('/:id', async (req, res) => {
     if (error) throw error;
     const cot = data[0];
 
-    // Regenerate PDF only when content changed (detalles_json was part of request)
-    if (detalles_json !== undefined) {
-      generarYGuardarPDF(Number(req.params.id)).catch(() => {});
-    }
-
     res.json(cot);
 
     // Auto-send via originating channel when approved from CRM
