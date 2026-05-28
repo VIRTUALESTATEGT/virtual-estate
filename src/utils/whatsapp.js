@@ -24,7 +24,7 @@ async function sendWhatsAppMessage(to, text) {
     const msg = metaErr
       ? `Meta API error ${metaErr.code}: ${metaErr.message}`
       : e.message;
-    console.error('[WhatsApp] Send error:', msg);
+    console.error('[WhatsApp] sendMessage error — phone:', phone, '| status:', e.response?.status, '| detail:', JSON.stringify(e.response?.data || e.message));
     throw new Error(msg);
   }
 }
@@ -68,7 +68,7 @@ async function sendWhatsAppDocument(to, documentUrl, filename) {
     const msg = metaErr
       ? `Meta API error ${metaErr.code}: ${metaErr.message}`
       : e.message;
-    console.error('[WhatsApp] Document send error:', msg);
+    console.error('[WhatsApp] sendDocument error — phone:', phone, '| status:', e.response?.status, '| detail:', JSON.stringify(e.response?.data || e.message));
     throw new Error(msg);
   }
 }

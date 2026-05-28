@@ -32,33 +32,51 @@ async function fetchCot(cotizacionId) {
 // ── POST /api/whatsapp/enviar-cotizacion ──────────────────────────────────────
 router.post('/whatsapp/enviar-cotizacion', async (req, res) => {
   const { phone_number, cotizacion_id, link } = req.body;
-  console.log('[WA-COT] ▶ request:', { phone_number, cotizacion_id, link: link?.slice(0,60) });
-  console.log('[WA-COT] env check — PHONE_ID:', !!process.env.WHATSAPP_PHONE_NUMBER_ID, '| TOKEN:', !!process.env.WHATSAPP_ACCESS_TOKEN);
+
+  // ── Credentials check ──────────────────────────────────────────────────────
+  const PHONE_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const TOKEN    = process.env.WHATSAPP_ACCESS_TOKEN;
+  console.log('[WA-COT] ▶ cotizacion_id:', cotizacion_id, '| PHONE_ID set:', !!PHONE_ID, '| TOKEN set:', !!TOKEN);
+
+  if (!PHONE_ID || !TOKEN) {
+    console.error('[WA-COT] ✗ credentials missing');
+    return res.status(503).json({ error: 'WhatsApp no configurado. Agrega WHATSAPP_PHONE_NUMBER_ID y WHATSAPP_ACCESS_TOKEN en Vercel.' });
+  }
   if (!phone_number || !cotizacion_id) {
     return res.status(400).json({ error: 'phone_number y cotizacion_id son requeridos' });
   }
+
+  // ── Phone format check ─────────────────────────────────────────────────────
+  const phoneCleaned = String(phone_number).replace(/\D/g, '');
+  console.log('[WA-COT] phone raw:', phone_number, '→ cleaned:', phoneCleaned,
+    '| length:', phoneCleaned.length,
+    '| has country code (≥10 digits):', phoneCleaned.length >= 10);
+  if (phoneCleaned.length < 8) {
+    return res.status(400).json({ error: `Número inválido: "${phone_number}". Usa formato +502XXXXXXXX.` });
+  }
+
   try {
     const codigo = cotCode(cotizacion_id);
     const cot    = await fetchCot(cotizacion_id);
-    console.log('[WA-COT] cot found:', !!cot, '| documento_url:', cot?.documento_url?.slice(0,60) || 'none');
+    console.log('[WA-COT] cot found:', !!cot, '| documento_url:', cot?.documento_url?.slice(0,80) || 'none');
 
     let pdfSent = false;
     if (cot) {
       try {
         let pdfUrl = cot.documento_url;
         if (!pdfUrl) {
-          console.log('[WA-COT] generating PDF on-the-fly...');
+          console.log('[WA-COT] no documento_url — generating PDF on-the-fly...');
           const pdfBuf = await generarCotizacionPDF(cot);
           pdfUrl = await subirPDFSupabase(pdfBuf, `${codigo}.pdf`);
           await supabase.from('cotizaciones').update({ documento_url: pdfUrl }).eq('id', cotizacion_id);
           console.log('[WA-COT] PDF generated & uploaded:', pdfUrl?.slice(0,80));
         }
-        console.log('[WA-COT] sending document to:', phone_number, '| url:', pdfUrl?.slice(0,80));
-        const docResult = await sendWhatsAppDocument(phone_number, pdfUrl, `${codigo}.pdf`);
-        if (docResult) pdfSent = true;
-        console.log('[WA-COT] document sent:', pdfSent);
+        console.log('[WA-COT] sending document → phone:', phoneCleaned, '| url:', pdfUrl?.slice(0,80));
+        const docResult = await sendWhatsAppDocument(phoneCleaned, pdfUrl, `${codigo}.pdf`);
+        pdfSent = !!docResult;
+        console.log('[WA-COT] document result:', JSON.stringify(docResult)?.slice(0,120));
       } catch (pdfErr) {
-        console.error('[WA-COT] PDF send error:', pdfErr.message);
+        console.error('[WA-COT] document send failed:', pdfErr.message);
       }
     }
 
@@ -66,18 +84,18 @@ router.post('/whatsapp/enviar-cotizacion', async (req, res) => {
       ? `Aquí tu cotización formal *${codigo}*. 👆\n\n✅ Para confirmar y revisar detalles, accede aquí:\n${link}`
       : `Hola 👋 Te enviamos tu cotización *${codigo}* de Virtual Estate GT.\n\n📋 Revisa y confirma aquí:\n${link}\n\n¿Tienes alguna pregunta? Responde este mensaje.`;
 
-    console.log('[WA-COT] sending text message...');
-    const result = await sendWhatsAppMessage(phone_number, textMsg);
-    console.log('[WA-COT] text result:', !!result);
+    console.log('[WA-COT] sending text → phone:', phoneCleaned);
+    const result = await sendWhatsAppMessage(phoneCleaned, textMsg);
+    console.log('[WA-COT] text result:', JSON.stringify(result)?.slice(0,120));
     if (!result) throw new Error('WHATSAPP_NOT_CONFIGURED');
 
     await markEnviado(cotizacion_id, 'whatsapp');
     res.json({ ok: true, canal: 'whatsapp', pdf_sent: pdfSent });
   } catch (e) {
-    console.error('[WA-COT] ✗ error:', e.message);
+    console.error('[WA-COT] ✗ FINAL ERROR:', e.message);
     await markError(cotizacion_id, 'whatsapp').catch(() => {});
     if (e.message === 'WHATSAPP_NOT_CONFIGURED') {
-      return res.status(503).json({ error: 'WhatsApp no está configurado. Configura WHATSAPP_PHONE_NUMBER_ID y WHATSAPP_ACCESS_TOKEN en Vercel.' });
+      return res.status(503).json({ error: 'WhatsApp no configurado. Agrega WHATSAPP_PHONE_NUMBER_ID y WHATSAPP_ACCESS_TOKEN en Vercel.' });
     }
     res.status(500).json({ error: e.message });
   }
