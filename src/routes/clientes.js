@@ -26,72 +26,23 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /api/clientes/:id — single client record (admin)
-router.get('/:id', async (req, res) => {
-  try {
-    const { data, error } = await supabase
-      .from('clientes').select('*').eq('id', req.params.id).maybeSingle();
-    if (error) throw error;
-    if (!data) return res.status(404).json({ error: 'Cliente no encontrado' });
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.put('/:id', async (req, res) => {
-  try {
-    const { nombre, apellido, email, telefono, empresa, tipo, direccion, zona, ciudad } = req.body;
-    const update = { nombre, email, telefono, empresa, tipo };
-    if (apellido  !== undefined) update.apellido  = apellido;
-    if (direccion !== undefined) update.direccion = direccion;
-    if (zona      !== undefined) update.zona      = zona;
-    if (ciudad    !== undefined) update.ciudad    = ciudad;
-    const { data, error } = await supabase
-      .from('clientes')
-      .update(update)
-      .eq('id', req.params.id)
-      .select();
-    if (error) throw error;
-    res.json(data[0]);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// DELETE cliente por ID — cascada: borra cotizaciones y confirmaciones relacionadas
-router.delete('/:id', async (req, res) => {
-  const id = req.params.id;
-  try {
-    // 1. Cotizaciones del cliente
-    await supabase.from('cotizaciones').delete().eq('cliente_id', id);
-
-    // 2. Confirmaciones de registro (portal)
-    await supabase.from('confirmaciones_registro').delete().eq('cliente_id', id).then(() => {}).catch(() => {});
-
-    // 3. Borrar el cliente
-    const { error } = await supabase.from('clientes').delete().eq('id', id);
-    if (error) throw error;
-
-    res.json({ message: 'Cliente y datos relacionados eliminados' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ── PORTAL ENDPOINTS ────────────────────────────────────────────────────────
+// ── PORTAL ENDPOINTS — must be defined BEFORE /:id to avoid param shadowing ──
 
 // GET /api/clientes/me — find client record by JWT email
 router.get('/me', async (req, res) => {
+  console.log('[CLIENTES/ME] GET — usuario:', req.usuario?.email);
   try {
+    if (!req.usuario?.email) return res.status(401).json({ error: 'No autenticado' });
     const { data, error } = await supabase
       .from('clientes')
       .select('*')
       .eq('email', req.usuario.email)
       .maybeSingle();
     if (error) throw error;
+    console.log('[CLIENTES/ME] OK — found:', !!data);
     res.json(data || null);
   } catch (error) {
+    console.error('[CLIENTES/ME] Error:', error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -99,6 +50,7 @@ router.get('/me', async (req, res) => {
 // PUT /api/clientes/me — update client profile by JWT email
 router.put('/me', async (req, res) => {
   try {
+    if (!req.usuario?.email) return res.status(401).json({ error: 'No autenticado' });
     const { nombre, telefono, empresa, pronombre } = req.body;
     const updateObj = { nombre, telefono, empresa };
     if (pronombre !== undefined) updateObj.pronombre = pronombre;
@@ -118,6 +70,7 @@ router.put('/me', async (req, res) => {
 // GET /api/clientes/me/cotizaciones — cotizaciones linked to this client
 router.get('/me/cotizaciones', async (req, res) => {
   try {
+    if (!req.usuario?.email) return res.status(401).json({ error: 'No autenticado' });
     const { data: cliente, error: ce } = await supabase
       .from('clientes')
       .select('id')
@@ -138,11 +91,10 @@ router.get('/me/cotizaciones', async (req, res) => {
   }
 });
 
-// ── FAVORITOS EN BD ─────────────────────────────────────────────────────────
-
 // GET /api/clientes/me/favoritos
 router.get('/me/favoritos', async (req, res) => {
   try {
+    if (!req.usuario?.email) return res.status(401).json({ error: 'No autenticado' });
     const { data: cliente } = await supabase
       .from('clientes').select('id').eq('email', req.usuario.email).maybeSingle();
     if (!cliente) return res.json([]);
@@ -211,6 +163,61 @@ router.delete('/me/favoritos/:propiedad_id', async (req, res) => {
     if (error) throw error;
     res.json({ message: 'Favorito eliminado.' });
   } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── ADMIN ENDPOINTS — /:id must come AFTER all /me* routes ──────────────────
+
+// GET /api/clientes/:id — single client record (admin)
+router.get('/:id', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('clientes').select('*').eq('id', req.params.id).maybeSingle();
+    if (error) throw error;
+    if (!data) return res.status(404).json({ error: 'Cliente no encontrado' });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put('/:id', async (req, res) => {
+  try {
+    const { nombre, apellido, email, telefono, empresa, tipo, direccion, zona, ciudad } = req.body;
+    const update = { nombre, email, telefono, empresa, tipo };
+    if (apellido  !== undefined) update.apellido  = apellido;
+    if (direccion !== undefined) update.direccion = direccion;
+    if (zona      !== undefined) update.zona      = zona;
+    if (ciudad    !== undefined) update.ciudad    = ciudad;
+    const { data, error } = await supabase
+      .from('clientes')
+      .update(update)
+      .eq('id', req.params.id)
+      .select();
+    if (error) throw error;
+    res.json(data[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE cliente por ID — cascada: borra cotizaciones y confirmaciones relacionadas
+router.delete('/:id', async (req, res) => {
+  const id = req.params.id;
+  try {
+    // 1. Cotizaciones del cliente
+    await supabase.from('cotizaciones').delete().eq('cliente_id', id);
+
+    // 2. Confirmaciones de registro (portal)
+    await supabase.from('confirmaciones_registro').delete().eq('cliente_id', id).then(() => {}).catch(() => {});
+
+    // 3. Borrar el cliente
+    const { error } = await supabase.from('clientes').delete().eq('id', id);
+    if (error) throw error;
+
+    res.json({ message: 'Cliente y datos relacionados eliminados' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 module.exports = router;
