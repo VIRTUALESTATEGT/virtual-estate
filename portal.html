@@ -1780,6 +1780,13 @@ function salirDemo() {
 
 /* ── INIT ───────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', async () => {
+  // Public cotización confirmation — no login required
+  const _cotParam = new URLSearchParams(window.location.search).get('cot');
+  if (_cotParam) {
+    window.location.replace('/portal/cotizacion.html?cot=' + encodeURIComponent(_cotParam));
+    return;
+  }
+
   const token = getToken();
   if (token) {
     try {
