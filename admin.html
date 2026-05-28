@@ -630,9 +630,9 @@
           <button class="topbar-btn btn-primary" onclick="openClienteModal()"><i class="fas fa-plus"></i> Nuevo Cliente</button>
         </div>
         <table>
-          <thead><tr><th>ID</th><th>Nombre</th><th>Empresa</th><th>Tipo</th><th>Email</th><th>Teléfono</th><th>Alta</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>ID</th><th>Nombre</th><th>Empresa</th><th>Tipo</th><th>Email</th><th>Teléfono</th><th>Código Cliente</th><th>Núm. Agente</th><th>Alta</th><th>Acciones</th></tr></thead>
           <tbody id="clientes-tbody">
-            <tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
+            <tr><td colspan="10" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -2904,11 +2904,11 @@
   async function loadClientes(){
     const tbody=document.getElementById('clientes-tbody');
     if(!tbody)return;
-    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
+    tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
     try{
       const items=await apiFetch('/api/clientes');
       _clientesCache={}; items.forEach(c=>_clientesCache[c.id]=c);
-      if(!items.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem;">No hay clientes. ¡Crea el primero!</td></tr>';return;}
+      if(!items.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:2rem;">No hay clientes. ¡Crea el primero!</td></tr>';return;}
       tbody.innerHTML=items.map(c=>`<tr>
         <td style="color:var(--gray);font-size:.72rem;">${c.id}</td>
         <td class="td-bold">${capitalizarNombre([c.nombre,c.apellido].filter(Boolean).join(' '))||'—'}</td>
@@ -2916,13 +2916,15 @@
         <td>${c.tipo||'—'}</td>
         <td style="color:var(--gray);">${c.email||'—'}</td>
         <td style="color:var(--gray);">${c.telefono||'—'}</td>
+        <td style="font-family:monospace;color:var(--gold);font-size:.72rem;">${c.codigo_cliente||'—'}</td>
+        <td style="font-family:monospace;color:var(--gray);font-size:.72rem;">${c.numero_agente||'—'}</td>
         <td style="color:var(--gray);">${c.fechacreacion?new Date(c.fechacreacion).toLocaleDateString('es-GT'):'—'}</td>
         <td><div class="action-btns">
           <button class="act-btn" title="Editar" onclick="editCliente(${c.id})"><i class="fas fa-pencil-alt"></i></button>
           <button class="act-btn danger" onclick="deleteCliente(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
         </div></td>
       </tr>`).join('');
-    }catch(e){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
+    }catch(e){tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
   }
   function editCliente(id){
     const c=_clientesCache[id]; if(!c)return;
