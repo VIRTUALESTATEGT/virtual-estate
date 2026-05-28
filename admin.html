@@ -3538,13 +3538,16 @@
     try{
       let result;
       if(_editCotizacionId){
-        result=await apiFetch('/api/cotizaciones/'+_editCotizacionId,{method:'PUT',body:JSON.stringify(payload)});
+        const editId=_editCotizacionId;
+        result=await apiFetch('/api/cotizaciones/'+editId,{method:'PUT',body:JSON.stringify(payload)});
         // Regenerate PDF in background (non-blocking on update)
-        _buildMachotePDFHtml(_editCotizacionId).then(pdfHtml=>
-          apiFetch('/api/cotizaciones/'+_editCotizacionId+'/generar-pdf',{method:'POST',body:JSON.stringify({html:pdfHtml})})
+        _buildMachotePDFHtml(editId).then(pdfHtml=>
+          apiFetch('/api/cotizaciones/'+editId+'/generar-pdf',{method:'POST',body:JSON.stringify({html:pdfHtml})})
         ).catch(e=>{console.warn('[PDF] regeneración fallida:',e.message);showToast('⚠️ PDF no se pudo regenerar: '+e.message);});
         showToast('✅ Cotización actualizada');
-        closeCotizacionModal(); loadCotizaciones();
+        closeCotizacionModal();
+        await loadCotizaciones();
+        reenviarCotizacion(editId);
       }else{
         result=await apiFetch('/api/cotizaciones',{method:'POST',body:JSON.stringify(payload)});
         // Generate PDF before showing send modal so documento_url is ready
@@ -4587,8 +4590,6 @@
     _envioCanalesData={tel,email,nombre};
     const sub=document.getElementById('envio-cot-subtitulo');
     if(sub) sub.textContent=nombre?`Cliente: ${nombre}`:'';
-    const yr=String(new Date().getFullYear()).slice(-2);
-    const codigo=`COT-${yr}-${String(cotId).padStart(5,'0')}`;
     const canales=document.getElementById('envio-canales');
     const opt=(icon,label,val,disabled,hint,checked=false)=>`
       <label style="display:flex;align-items:center;gap:.7rem;padding:.65rem .9rem;border:1px solid var(--border);border-radius:var(--r);cursor:${disabled?'not-allowed':'pointer'};opacity:${disabled?'.45':'1'};">
@@ -4598,8 +4599,23 @@
         ${hint?`<span style="margin-left:auto;font-size:.68rem;color:var(--gray);">${hint}</span>`:''}
       </label>`;
     canales.innerHTML=
-      opt('fab fa-whatsapp','WhatsApp','whatsapp',!tel,tel||'Sin teléfono',!!tel)+
-      opt('fas fa-envelope','Email','email',!email,email||'Sin email',!!email)+
+      `<div style="display:flex;flex-direction:column;gap:.35rem;padding:.6rem .9rem;border:1px solid var(--border);border-radius:var(--r);margin-bottom:.4rem;">
+        <div style="font-size:.69rem;color:var(--gray);font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.1rem;">Datos de contacto</div>
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          <i class="fab fa-whatsapp" style="color:var(--gold);width:16px;text-align:center;font-size:.9rem;flex-shrink:0;"></i>
+          <input type="tel" id="envio-tel-input" placeholder="Teléfono (WhatsApp)" value="${tel}"
+            oninput="_envioCanalesData.tel=this.value.trim()"
+            style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:.3rem .5rem;color:var(--text);font-size:.8rem;outline:none;">
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem;">
+          <i class="fas fa-envelope" style="color:var(--gold);width:16px;text-align:center;font-size:.9rem;flex-shrink:0;"></i>
+          <input type="email" id="envio-email-input" placeholder="Email" value="${email}"
+            oninput="_envioCanalesData.email=this.value.trim()"
+            style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:.3rem .5rem;color:var(--text);font-size:.8rem;outline:none;">
+        </div>
+      </div>`+
+      opt('fab fa-whatsapp','WhatsApp','whatsapp',false,'',!!tel)+
+      opt('fas fa-envelope','Email','email',false,'',!!email)+
       opt('fab fa-facebook-messenger','Facebook Messenger','facebook',true,'(próximamente)')+
       opt('fab fa-instagram','Instagram DM','instagram',true,'(próximamente)');
     document.getElementById('envio-result').textContent='';
@@ -4614,10 +4630,14 @@
   async function confirmarEnvioCotizacion(){
     const checks=Array.from(document.querySelectorAll('.envio-canal-cb:checked'));
     if(!checks.length){showToast('Selecciona al menos un canal');return;}
+    const {tel,email}=_envioCanalesData;
+    const waNecesario=checks.some(c=>c.value==='whatsapp');
+    const emailNecesario=checks.some(c=>c.value==='email');
+    if(waNecesario&&!tel){showToast('Ingresa un teléfono para enviar por WhatsApp');document.getElementById('envio-tel-input')?.focus();return;}
+    if(emailNecesario&&!email){showToast('Ingresa un email para enviar por correo');document.getElementById('envio-email-input')?.focus();return;}
     const btn=document.getElementById('btn-confirmar-envio');
     btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Enviando...';
     const resultEl=document.getElementById('envio-result');
-    const {tel,email}=_envioCanalesData;
     const envios=checks.map(cb=>{
       const canal=cb.value;
       const body={cotizacion_id:_envioCotId,link:_envioLink};
