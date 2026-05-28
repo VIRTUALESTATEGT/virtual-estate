@@ -3094,7 +3094,7 @@
       };
       const yr = n => n ? String(new Date(n).getFullYear()).slice(-2) : String(new Date().getFullYear()).slice(-2);
       const cotCode = c => `COT-${yr(c.created_at)}-${String(c.id).padStart(5,'0')}`;
-      const cliName = c => capitalizarNombre(c.clientes?.nombre) || (c.cliente_id ? `#${c.cliente_id}` : c.lead_id ? `Lead #${c.lead_id}` : '—');
+      const cliName = c => capitalizarNombre([c.clientes?.nombre,c.clientes?.apellido].filter(Boolean).join(' ')) || (c.cliente_id ? `#${c.cliente_id}` : c.lead_id ? `Lead #${c.lead_id}` : '—');
       const fmtM = (c) => {
         const sym = c.moneda==='GTQ'?'Q':'$';
         return c.monto ? sym+Number(c.monto).toLocaleString() : '—';
@@ -3125,7 +3125,7 @@
     try{
       const items=await apiFetch('/api/clientes');
       _cotCliList=items||[];
-      sel.innerHTML='<option value="">— Sin cliente —</option>'+items.map(c=>`<option value="${c.id}">${capitalizarNombre(c.nombre)}${c.empresa?' ('+c.empresa+')':''}</option>`).join('');
+      sel.innerHTML='<option value="">— Sin cliente —</option>'+items.map(c=>`<option value="${c.id}">${capitalizarNombre([c.nombre,c.apellido].filter(Boolean).join(' '))}${c.empresa?' ('+c.empresa+')':''}</option>`).join('');
     }catch(e){sel.innerHTML='<option value="">Error cargando clientes</option>';}
   }
 
@@ -3200,7 +3200,7 @@
     let nombre='',email='',tel='',empresa='',direccion='',zona='',ciudad='';
     if(cliId){
       const c=_cotCliList.find(x=>String(x.id)===String(cliId))||{};
-      nombre=c.nombre||''; email=c.email||''; tel=c.telefono||''; empresa=c.empresa||'';
+      nombre=[c.nombre,c.apellido].filter(Boolean).join(' '); email=c.email||''; tel=c.telefono||''; empresa=c.empresa||'';
       direccion=c.direccion||''; zona=c.zona||''; ciudad=c.ciudad||'';
     } else {
       const l=_cotLeadList.find(x=>String(x.id)===String(leadId))||{};
@@ -3486,7 +3486,7 @@
     const c=_cotizacionesCache[id]; if(!c)return showToast('Cotización no encontrada en caché');
     const portalLink=`${window.location.origin}/portal.html?cot=${id}`;
     let nombre='',tel='',email='';
-    if(c.clientes){ nombre=capitalizarNombre(c.clientes.nombre)||''; tel=c.clientes.telefono||''; email=c.clientes.email||''; }
+    if(c.clientes){ nombre=capitalizarNombre([c.clientes.nombre,c.clientes.apellido].filter(Boolean).join(' '))||''; tel=c.clientes.telefono||''; email=c.clientes.email||''; }
     else if(c.leads){ nombre=capitalizarNombre([c.leads.nombre,c.leads.apellido].filter(Boolean).join(' '))||''; tel=c.leads.telefono||''; email=c.leads.email||''; }
     mostrarEnvioModal(id, portalLink, {nombre, tel, email, esReenvio:true});
   }
@@ -3623,7 +3623,7 @@
     const html=`<div style="font-size:.8rem;line-height:1.8;">
       <div style="font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:.6rem;">${cotCode}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;font-size:.75rem;margin-bottom:.5rem;">
-        <div><span style="color:var(--gray);font-size:.65rem;">Cliente/Lead</span><br/><b>${c.clientes?.nombre||'Lead #'+(c.lead_id||'—')}</b></div>
+        <div><span style="color:var(--gray);font-size:.65rem;">Cliente/Lead</span><br/><b>${capitalizarNombre([c.clientes?.nombre,c.clientes?.apellido].filter(Boolean).join(' '))||'Lead #'+(c.lead_id||'—')}</b></div>
         <div><span style="color:var(--gray);font-size:.65rem;">Canal</span><br/>${c.canal||'—'}</div>
         <div><span style="color:var(--gray);font-size:.65rem;">Moneda</span><br/>${c.moneda||'USD'}</div>
         <div><span style="color:var(--gray);font-size:.65rem;">Estado</span><br/>${c.estado||'—'}</div>
@@ -3658,7 +3658,7 @@
     const cliId=document.getElementById('cot-cli-select').value;
     const leadId=document.getElementById('cot-lead-select').value;
     let cliNombre='—',cliEmail='',cliTel='',cliEmpresa='';
-    if(cliId){const c=_cotCliList.find(x=>String(x.id)===cliId)||{};cliNombre=c.nombre||'—';cliEmail=c.email||'';cliTel=c.telefono||'';cliEmpresa=c.empresa||'';}
+    if(cliId){const c=_cotCliList.find(x=>String(x.id)===cliId)||{};cliNombre=[c.nombre,c.apellido].filter(Boolean).join(' ')||'—';cliEmail=c.email||'';cliTel=c.telefono||'';cliEmpresa=c.empresa||'';}
     else if(leadId){const l=_cotLeadList.find(x=>String(x.id)===leadId)||{};cliNombre=[l.nombre,l.apellido].filter(Boolean).join(' ')||'—';cliEmail=l.email||'';cliTel=l.telefono||'';cliEmpresa=l.empresa||'';}
     const notas=document.getElementById('cot-notas').value||'';
     const fecha=new Date().toLocaleDateString('es-GT',{day:'numeric',month:'long',year:'numeric'});
@@ -3731,7 +3731,7 @@
     const cliId=document.getElementById('cot-cli-select').value;
     const leadId=document.getElementById('cot-lead-select').value;
     let cliNombre='—',cliEmail='',cliTel='',cliEmpresa='';
-    if(cliId){const c=_cotCliList.find(x=>String(x.id)===cliId)||{};cliNombre=c.nombre||'—';cliEmail=c.email||'';cliTel=c.telefono||'';cliEmpresa=c.empresa||'';}
+    if(cliId){const c=_cotCliList.find(x=>String(x.id)===cliId)||{};cliNombre=[c.nombre,c.apellido].filter(Boolean).join(' ')||'—';cliEmail=c.email||'';cliTel=c.telefono||'';cliEmpresa=c.empresa||'';}
     else if(leadId){const l=_cotLeadList.find(x=>String(x.id)===leadId)||{};cliNombre=[l.nombre,l.apellido].filter(Boolean).join(' ')||'—';cliEmail=l.email||'';cliTel=l.telefono||'';cliEmpresa=l.empresa||'';}
     const notas=document.getElementById('cot-notas').value||'';
     const fecha=new Date().toLocaleDateString('es-GT',{day:'numeric',month:'long',year:'numeric'});
@@ -4588,7 +4588,7 @@
     else {
       const cliId=document.getElementById('cot-cli-select').value;
       const leadId=document.getElementById('cot-lead-select').value;
-      if(cliId){ const c=_cotCliList.find(x=>String(x.id)===String(cliId))||{}; nombre=c.nombre||''; tel=c.telefono||''; email=c.email||''; }
+      if(cliId){ const c=_cotCliList.find(x=>String(x.id)===String(cliId))||{}; nombre=capitalizarNombre([c.nombre,c.apellido].filter(Boolean).join(' '))||''; tel=c.telefono||''; email=c.email||''; }
       else if(leadId){ const l=_cotLeadList.find(x=>String(x.id)===String(leadId))||{}; nombre=capitalizarNombre([l.nombre,l.apellido].filter(Boolean).join(' '))||''; tel=l.telefono||''; email=l.email||''; }
     }
     tel=formatearTelefono(tel);
