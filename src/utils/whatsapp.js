@@ -11,20 +11,25 @@ async function sendWhatsAppMessage(to, text) {
     return null;
   }
 
-  const phone = String(to).replace(/\D/g, '');
+  const phoneRaw = String(to);
+  const phone = phoneRaw.replace(/\D/g, '');
+  console.log('[WA-MSG] sending — raw:', phoneRaw, '→ cleaned:', phone, '| text length:', text.length);
   try {
     const { data } = await axios.post(
       `${WA_BASE}/${PHONE_ID}/messages`,
       { messaging_product: 'whatsapp', to: phone, type: 'text', text: { body: text } },
       { headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' } }
     );
+    console.log('[WA-MSG] Meta response:', JSON.stringify(data));
+    // contacts[0].wa_id is the number Meta resolved — must match intended recipient
+    if (data?.contacts?.[0]) console.log('[WA-MSG] resolved wa_id:', data.contacts[0].wa_id, '| msg_id:', data.messages?.[0]?.id);
     return data;
   } catch (e) {
     const metaErr = e.response?.data?.error;
     const msg = metaErr
       ? `Meta API error ${metaErr.code}: ${metaErr.message}`
       : e.message;
-    console.error('[WhatsApp] sendMessage error — phone:', phone, '| status:', e.response?.status, '| detail:', JSON.stringify(e.response?.data || e.message));
+    console.error('[WA-MSG] error — phone:', phone, '| HTTP:', e.response?.status, '| body:', JSON.stringify(e.response?.data || e.message));
     throw new Error(msg);
   }
 }
@@ -50,7 +55,9 @@ async function sendWhatsAppDocument(to, documentUrl, filename) {
     return null;
   }
 
-  const phone = String(to).replace(/\D/g, '');
+  const phoneRaw = String(to);
+  const phone = phoneRaw.replace(/\D/g, '');
+  console.log('[WA-DOC] sending — raw:', phoneRaw, '→ cleaned:', phone, '| filename:', filename, '| url:', documentUrl?.slice(0, 80));
   try {
     const { data } = await axios.post(
       `${WA_BASE}/${PHONE_ID}/messages`,
@@ -62,13 +69,15 @@ async function sendWhatsAppDocument(to, documentUrl, filename) {
       },
       { headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' } }
     );
+    console.log('[WA-DOC] Meta response:', JSON.stringify(data));
+    if (data?.contacts?.[0]) console.log('[WA-DOC] resolved wa_id:', data.contacts[0].wa_id, '| msg_id:', data.messages?.[0]?.id);
     return data;
   } catch (e) {
     const metaErr = e.response?.data?.error;
     const msg = metaErr
       ? `Meta API error ${metaErr.code}: ${metaErr.message}`
       : e.message;
-    console.error('[WhatsApp] sendDocument error — phone:', phone, '| status:', e.response?.status, '| detail:', JSON.stringify(e.response?.data || e.message));
+    console.error('[WA-DOC] error — phone:', phone, '| HTTP:', e.response?.status, '| body:', JSON.stringify(e.response?.data || e.message));
     throw new Error(msg);
   }
 }
