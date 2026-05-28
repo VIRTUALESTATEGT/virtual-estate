@@ -14,45 +14,141 @@ function crearTransportador() {
   });
 }
 
-async function enviarEmailConfirmacion({ email, nombre, cotizacion_id, monto, anticipo, codigo_cliente, timestamp }) {
+async function enviarEmailConfirmacion({ email, nombre, apellido, cotizacion_id, monto, anticipo, codigo_cliente, timestamp, detalles_json, moneda }) {
   const transport = crearTransportador();
   if (!transport) {
     console.log('[EMAIL] SMTP no configurado — email de confirmación omitido');
     return;
   }
-  const year  = new Date().getFullYear().toString().slice(-2);
-  const nroCot = `COT-${year}-${String(cotizacion_id).padStart(5, '0')}`;
-  const fecha  = new Date(timestamp).toLocaleString('es-GT', { dateStyle: 'long', timeStyle: 'short' });
+  const year    = new Date().getFullYear().toString().slice(-2);
+  const nroCot  = `COT-${year}-${String(cotizacion_id).padStart(5, '0')}`;
+  const fecha   = new Date(timestamp).toLocaleString('es-GT', { dateStyle: 'long', timeStyle: 'short' });
+  const nombreCompleto = capitalizarNombre([nombre, apellido].filter(Boolean).join(' ')) || 'Cliente';
+  const mon     = moneda || 'USD';
+  const factor  = mon === 'GTQ' ? 7.90 : 1;
+  const sym     = mon === 'GTQ' ? 'Q' : '$';
+  const fmt     = n => sym + ((Number(n) || 0) * factor).toLocaleString('es-GT', { minimumFractionDigits: 2 });
+  const det     = detalles_json || {};
+  const servicios = det.servicios || [];
+
+  const ROW = 'display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:13px;';
+  const LBL = 'flex:1;text-align:left;';
+  const AMT = 'flex:0 0 110px;text-align:right;font-variant-numeric:tabular-nums;';
+  const descMonto = Number(det.descuento_monto || 0);
+  const descLabel = det.descuento_tipo === 'porcentaje' ? `Descuento (${det.descuento_valor}%)` : 'Descuento';
+
+  const svcRows = servicios.map((s, i) => {
+    const bg       = i % 2 === 0 ? '#0E1615' : '#131f18';
+    const cantidad = s.tipo_precio === 'por_m2' ? `${s.cantidad || 0} m²` : s.tipo_precio === 'cotizar' ? 'A cotizar' : '1 ud';
+    const unitPrice = s.tipo_precio === 'cotizar' ? '—' : fmt(s.precio_unitario || 0);
+    return `<tr style="background:${bg};">
+      <td style="padding:8px 10px;font-size:13px;color:#F5F0E8;border-bottom:1px solid rgba(193,146,89,.1);">${s.descripcion || '—'}</td>
+      <td style="padding:8px 10px;font-size:13px;color:#8A9990;text-align:center;border-bottom:1px solid rgba(193,146,89,.1);">${cantidad}</td>
+      <td style="padding:8px 10px;font-size:13px;color:#8A9990;text-align:right;border-bottom:1px solid rgba(193,146,89,.1);">${unitPrice}</td>
+      <td style="padding:8px 10px;font-size:13px;color:#B09A6C;font-weight:600;text-align:right;border-bottom:1px solid rgba(193,146,89,.1);">${fmt(s.subtotal || 0)}</td>
+    </tr>`;
+  }).join('');
+
+  const totalsHTML = `
+    <div style="background:rgba(193,146,89,.04);border:1px solid rgba(193,146,89,.18);border-radius:4px;padding:12px 16px;margin:16px 0;">
+      ${det.subtotal != null ? `<div style="${ROW}color:#8A9990;"><span style="${LBL}">Subtotal</span><span style="${AMT}">${fmt(det.subtotal)}</span></div>` : ''}
+      ${descMonto > 0 ? `<div style="${ROW}color:#E08080;"><span style="${LBL}">${descLabel}</span><span style="${AMT}">-${fmt(descMonto)}</span></div>` : ''}
+      <div style="${ROW}color:#8A9990;"><span style="${LBL}">IVA 12%</span><span style="${AMT}">${fmt(det.iva_monto || 0)}</span></div>
+      <div style="${ROW}font-weight:700;color:#B09A6C;border-top:1px solid rgba(193,146,89,.18);margin-top:6px;padding-top:8px;">
+        <span style="${LBL}">TOTAL</span><span style="${AMT}">${fmt(det.total || monto || 0)}</span>
+      </div>
+    </div>
+    <div style="background:rgba(193,146,89,.08);border:1px solid rgba(193,146,89,.22);border-radius:4px;padding:14px 18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:11px;color:#8A9990;text-transform:uppercase;letter-spacing:.5px;">Anticipo confirmado</div>
+        <div style="font-size:22px;font-weight:700;color:#B09A6C;margin-top:3px;">${fmt(anticipo)}</div>
+      </div>
+      <div style="font-size:11px;color:#8A9990;text-align:right;line-height:1.6;">50% del total<br/>Restante: ${fmt(Math.max(0, (det.total || Number(monto) || 0) - Number(anticipo)))}</div>
+    </div>`;
+
+  const codesHTML = `
+    <div style="display:flex;gap:12px;justify-content:center;margin:20px 0;flex-wrap:wrap;">
+      <div style="text-align:center;">
+        <div style="font-size:10px;color:#8A9990;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">Código de cotización</div>
+        <div style="display:inline-block;background:rgba(193,146,89,.12);border:1px solid rgba(193,146,89,.3);border-radius:4px;padding:6px 14px;font-family:monospace;color:#B09A6C;font-size:13px;letter-spacing:.1em;">${nroCot}</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:10px;color:#8A9990;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">Código de cliente</div>
+        <div style="display:inline-block;background:rgba(193,146,89,.12);border:1px solid rgba(193,146,89,.3);border-radius:4px;padding:6px 14px;font-family:monospace;color:#B09A6C;font-size:13px;letter-spacing:.1em;">${codigo_cliente}</div>
+      </div>
+    </div>`;
+
   await transport.sendMail({
-    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    from: `"Virtual Estate GT" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
     to: email,
-    subject: `Cotización Confirmada ${nroCot} — Virtual Estate GT`,
-    text: `
-Hola ${nombre},
+    subject: `✅ Cotización Confirmada ${nroCot} — Virtual Estate GT`,
+    html: `
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0D4137;padding:0;">
 
-Gracias por confirmar tu cotización.
+  <!-- Header -->
+  <div style="background:#0D4137;padding:28px 24px;text-align:center;border-bottom:3px solid #B09A6C;">
+    <h2 style="color:#B09A6C;margin:0;font-size:15px;letter-spacing:1px;text-transform:uppercase;">Confirmación de Cotización</h2>
+  </div>
 
-DETALLES DE CONFIRMACIÓN
-─────────────────────────
-Número de cotización : ${nroCot}
-Monto total          : Q${Number(monto).toLocaleString('es-GT', { minimumFractionDigits: 2 })}
-Anticipo confirmado  : Q${Number(anticipo).toLocaleString('es-GT', { minimumFractionDigits: 2 })}
-Código de cliente    : ${codigo_cliente}
-Fecha confirmación   : ${fecha}
+  <!-- Body -->
+  <div style="background:#0E1615;border-left:1px solid rgba(193,146,89,.18);border-right:1px solid rgba(193,146,89,.18);">
 
-Tu código de cliente es: ${codigo_cliente}
-Úsalo para futuras referencias y en tu portal.
+    <!-- Saludo -->
+    <div style="padding:24px 24px 0;">
+      <p style="font-size:18px;font-weight:700;color:#F5F0E8;margin:0 0 6px;">¡Hola ${nombreCompleto}! 🎉</p>
+      <p style="font-size:14px;line-height:1.6;color:#8A9990;margin:0 0 4px;">
+        Tu cotización <strong style="color:#B09A6C;">${nroCot}</strong> ha sido confirmada exitosamente.
+      </p>
+      <p style="font-size:12px;color:#8A9990;margin:0 0 20px;">Confirmada el ${fecha}</p>
+    </div>
 
-PRÓXIMOS PASOS
-─────────────────────────
-1. Realiza el anticipo a los medios de pago indicados por tu asesor.
-2. Nuestro equipo se contactará contigo en las próximas 24–48 horas.
-3. Accede a tu portal en: https://virtualestategt.com/portal.html
+    ${codesHTML}
 
-Saludos,
-Virtual Estate GT
-https://virtualestategt.com
-`.trim(),
+    ${servicios.length ? `
+    <!-- Servicios -->
+    <div style="padding:0 24px;">
+      <table style="width:100%;border-collapse:collapse;border:1px solid rgba(193,146,89,.18);">
+        <thead>
+          <tr style="background:#1E3028;">
+            <th style="padding:9px 10px;font-size:12px;text-align:left;color:#B09A6C;letter-spacing:.5px;text-transform:uppercase;">Descripción</th>
+            <th style="padding:9px 10px;font-size:12px;text-align:center;color:#B09A6C;letter-spacing:.5px;text-transform:uppercase;">Cant.</th>
+            <th style="padding:9px 10px;font-size:12px;text-align:right;color:#B09A6C;letter-spacing:.5px;text-transform:uppercase;">P. Unit.</th>
+            <th style="padding:9px 10px;font-size:12px;text-align:right;color:#B09A6C;letter-spacing:.5px;text-transform:uppercase;">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>${svcRows}</tbody>
+      </table>
+    </div>` : ''}
+
+    <!-- Totales -->
+    <div style="padding:0 24px;">${totalsHTML}</div>
+
+    <!-- Próximos pasos -->
+    <div style="padding:0 24px 24px;">
+      <div style="border-top:1px solid rgba(193,146,89,.15);padding-top:16px;">
+        <p style="font-size:12px;font-weight:700;color:#B09A6C;letter-spacing:.06em;text-transform:uppercase;margin:0 0 10px;">Próximos pasos</p>
+        <ol style="margin:0;padding-left:18px;color:#8A9990;font-size:13px;line-height:1.8;">
+          <li>Realiza el anticipo a los medios de pago indicados por tu asesor.</li>
+          <li>Nuestro equipo se contactará contigo en las próximas <strong style="color:#F5F0E8;">24–48 horas</strong>.</li>
+          <li>Guarda tus códigos — los necesitarás para futuras referencias.</li>
+        </ol>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div style="background:#0D4137;padding:20px 24px;text-align:center;border-top:1px solid rgba(193,146,89,.2);">
+    <p style="font-size:12px;color:rgba(255,255,255,.7);margin:0 0 6px;">¿Tienes preguntas? Escríbenos:</p>
+    <p style="font-size:12px;margin:0;">
+      <a href="mailto:info@virtualestategt.com" style="color:#B09A6C;text-decoration:none;">info@virtualestategt.com</a>
+      &nbsp;·&nbsp;
+      <a href="https://wa.me/50239902399" style="color:#B09A6C;text-decoration:none;">+502 3990 2399</a>
+    </p>
+    <p style="font-size:11px;color:rgba(255,255,255,.4);margin:12px 0 0;">Virtual Estate GT · Guatemala City · virtualestategt.com</p>
+  </div>
+
+</div>`,
   });
   console.log(`[EMAIL] Confirmación enviada a ${email}`);
 }
@@ -278,13 +374,16 @@ async function procesarConfirmacion({ cotizacion_id, lead_id, anticipo_confirmad
   // 7. Send confirmation email (non-blocking)
   if (cliente.email) {
     enviarEmailConfirmacion({
-      email:        cliente.email,
-      nombre:       cliente.nombre,
+      email:         cliente.email,
+      nombre:        cliente.nombre,
+      apellido:      cliente.apellido || null,
       cotizacion_id,
-      monto:        cot.monto,
-      anticipo:     montoAnticipo,
+      monto:         cot.monto,
+      anticipo:      montoAnticipo,
       codigo_cliente,
-      timestamp:    ahora,
+      timestamp:     ahora,
+      detalles_json: cot.detalles_json || null,
+      moneda:        cot.moneda || 'USD',
     }).catch(e => console.error('[EMAIL ERROR]', e.message));
   }
 

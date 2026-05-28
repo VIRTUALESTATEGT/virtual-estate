@@ -341,7 +341,7 @@
     </div>
     <div class="nav-item" onclick="showView('leads', this)">
       <i class="fas fa-funnel-dollar"></i> Leads
-      <span class="nav-badge">3</span>
+      <span class="nav-badge" id="badge-leads" style="display:none;"></span>
     </div>
     <div class="nav-item" onclick="showView('clientes', this)">
       <i class="fas fa-users"></i> Clientes
@@ -351,6 +351,7 @@
     </div>
     <div class="nav-item" onclick="showView('cotizaciones', this)">
       <i class="fas fa-file-invoice-dollar"></i> Cotizaciones
+      <span class="nav-badge" id="badge-cotizaciones" style="display:none;"></span>
     </div>
   </div>
 
@@ -358,7 +359,7 @@
     <div class="sidebar-label">Operaciones</div>
     <div class="nav-item" onclick="showView('proyectos', this)">
       <i class="fas fa-tasks"></i> Proyectos
-      <span class="nav-badge">2</span>
+      <span class="nav-badge" id="badge-proyectos" style="display:none;"></span>
     </div>
     <div class="nav-item" onclick="showView('propiedades', this)">
       <i class="fas fa-building"></i> Propiedades
@@ -2366,6 +2367,10 @@
     }
     applySuperadminUI(u);
     loadDashboard();
+    // Auto-refresh dashboard KPIs + badges every 30 s
+    if (!window._dashRefreshInterval) {
+      window._dashRefreshInterval = setInterval(loadDashboard, 30000);
+    }
   }
 
   /* ── DASHBOARD KPIs ──────────────────────────────────────── */
@@ -2388,9 +2393,11 @@
       document.getElementById('kpi-proyectos-sub').textContent = `${proyectos.length} total`;
       document.getElementById('kpi-propiedades').textContent = propiedades.length;
       document.getElementById('kpi-propiedades-sub').textContent = 'en portafolio';
-      const badge = document.querySelector('[onclick*="\'leads\'"] .nav-badge, [onclick*="leads,"] .nav-badge');
-      if (badge && nuevos > 0) { badge.textContent = nuevos; badge.style.display = ''; }
-      else if (badge) badge.style.display = 'none';
+      // Sidebar badges
+      const _setBadge = (id, n) => { const b = document.getElementById(id); if (!b) return; if (n > 0) { b.textContent = n; b.style.display = ''; } else b.style.display = 'none'; };
+      _setBadge('badge-leads', nuevos);
+      _setBadge('badge-cotizaciones', cotizaciones.filter(c => ['enviada','pendiente','borrador'].includes(c.estado)).length);
+      _setBadge('badge-proyectos', proyectos.filter(p => !['Entregado','Cancelado'].includes(p.estado)).length);
 
       // Facturado este mes (cotizaciones aprobadas/confirmadas)
       const ahora = new Date();
