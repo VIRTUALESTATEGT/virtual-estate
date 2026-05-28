@@ -458,8 +458,8 @@
         <div class="kpi-card">
           <div>
             <div class="kpi-label">Facturado (mes)</div>
-            <div class="kpi-value gold">$4,850</div>
-            <div class="kpi-sub up"><i class="fas fa-arrow-up"></i> vs mes anterior</div>
+            <div class="kpi-value gold" id="kpi-facturado">—</div>
+            <div class="kpi-sub up" id="kpi-facturado-sub"><i class="fas fa-arrow-up"></i> cotizaciones aprobadas</div>
           </div>
           <div class="kpi-icon" style="background:rgba(90,224,138,.1); color:#5AE08A;"><i class="fas fa-dollar-sign"></i></div>
         </div>
@@ -486,31 +486,8 @@
                 <th>Nombre</th><th>Servicio</th><th>Estado</th><th>Fecha</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td><span class="td-bold">Ana García</span><br/><span style="color:var(--gray);font-size:.68rem;">Inmobiliaria XYZ</span></td>
-                <td>Tour Virtual</td>
-                <td><span class="badge badge-new">Nuevo</span></td>
-                <td>Hoy</td>
-              </tr>
-              <tr>
-                <td><span class="td-bold">Carlos Méndez</span><br/><span style="color:var(--gray);font-size:.68rem;">Independiente</span></td>
-                <td>AS BUILT</td>
-                <td><span class="badge badge-quote">Cotizado</span></td>
-                <td>Ayer</td>
-              </tr>
-              <tr>
-                <td><span class="td-bold">Sofía Barrios</span><br/><span style="color:var(--gray);font-size:.68rem;">Desarrolladora Sur</span></td>
-                <td>Paquete Premium</td>
-                <td><span class="badge badge-contact">Contactado</span></td>
-                <td>20 Abr</td>
-              </tr>
-              <tr>
-                <td><span class="td-bold">Roberto Lima</span><br/><span style="color:var(--gray);font-size:.68rem;">Constructora Norte</span></td>
-                <td>Construcción</td>
-                <td><span class="badge badge-won">Ganado</span></td>
-                <td>18 Abr</td>
-              </tr>
+            <tbody id="dash-leads-tbody">
+              <tr><td colspan="4" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i></td></tr>
             </tbody>
           </table>
         </div>
@@ -606,13 +583,8 @@
 
     <!-- ── LEADS VIEW ──────────────────────── -->
     <div class="view" id="view-leads">
-      <div class="filter-tabs">
-        <div class="f-tab active">Todos (12)</div>
-        <div class="f-tab">Nuevos (3)</div>
-        <div class="f-tab">Contactados (4)</div>
-        <div class="f-tab">Cotizados (3)</div>
-        <div class="f-tab">Ganados (2)</div>
-        <div class="f-tab">Perdidos (0)</div>
+      <div class="filter-tabs" id="leads-filter-tabs">
+        <div class="f-tab active" onclick="filterLeads(null)">Todos</div>
       </div>
       <div class="table-wrap">
         <div class="table-head">
@@ -2399,10 +2371,11 @@
   /* ── DASHBOARD KPIs ──────────────────────────────────────── */
   async function loadDashboard() {
     try {
-      const [leads, proyectos, propiedades] = await Promise.all([
+      const [leads, proyectos, propiedades, cotizaciones] = await Promise.all([
         apiFetch('/api/leads'),
         apiFetch('/api/proyectos'),
         apiFetch('/api/propiedades'),
+        apiFetch('/api/cotizaciones'),
       ]);
       const activos = leads.filter(l => !['Ganado','Perdido'].includes(l.estado));
       const nuevos = leads.filter(l => l.estado === 'Nuevo').length;
@@ -2418,38 +2391,98 @@
       const badge = document.querySelector('[onclick*="\'leads\'"] .nav-badge, [onclick*="leads,"] .nav-badge');
       if (badge && nuevos > 0) { badge.textContent = nuevos; badge.style.display = ''; }
       else if (badge) badge.style.display = 'none';
+
+      // Facturado este mes (cotizaciones aprobadas/confirmadas)
+      const ahora = new Date();
+      const mesActual = cotizaciones.filter(c => {
+        if (!['aprobada','confirmada','Aprobada'].includes(c.estado)) return false;
+        const f = new Date(c.created_at);
+        return f.getFullYear()===ahora.getFullYear() && f.getMonth()===ahora.getMonth();
+      });
+      const totalMes = mesActual.reduce((s,c) => {
+        const factor = c.moneda==='GTQ' ? (1/7.9) : 1;
+        return s + (Number(c.monto)||0)*factor;
+      }, 0);
+      const facEl = document.getElementById('kpi-facturado');
+      if (facEl) facEl.textContent = totalMes>0 ? '$'+totalMes.toLocaleString('es-GT',{minimumFractionDigits:0,maximumFractionDigits:0}) : '$0';
+
+      // Leads recientes (top 5)
+      const dashTbody = document.getElementById('dash-leads-tbody');
+      if (dashTbody) {
+        const BADGE = { 'Nuevo':'badge-new','Contactado':'badge-contact','En seguimiento':'badge-contact','Cotizado':'badge-quote','Ganado':'badge-won','Perdido':'badge-lost' };
+        const recientes = [...leads].slice(0,5);
+        if (!recientes.length) {
+          dashTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--gray);padding:1.5rem;">Sin leads</td></tr>';
+        } else {
+          dashTbody.innerHTML = recientes.map(l => {
+            const nombre = capitalizarNombre([l.nombre,l.apellido].filter(Boolean).join(' '))||'—';
+            const fecha = l.created_at ? new Date(l.created_at).toLocaleDateString('es-GT',{day:'2-digit',month:'short'}) : '—';
+            return `<tr>
+              <td><span class="td-bold">${nombre}</span><br/><span style="color:var(--gray);font-size:.68rem;">${l.empresa||''}</span></td>
+              <td>${l.servicio||'—'}</td>
+              <td><span class="badge ${BADGE[l.estado]||'badge-new'}">${l.estado||'Nuevo'}</span></td>
+              <td style="color:var(--gray);font-size:.72rem;">${fecha}</td>
+            </tr>`;
+          }).join('');
+        }
+      }
     } catch (e) { console.warn('Dashboard KPIs:', e.message); }
   }
 
   /* ── LEADS TABLE ────────────────────────────────────────── */
-  let _leadsCache = {}, _editLeadId = null;
+  let _leadsCache = {}, _leadsAll = [], _leadsFiltro = null, _editLeadId = null;
+
+  function _renderLeadsFilterTabs(leads) {
+    const tabs = document.getElementById('leads-filter-tabs'); if (!tabs) return;
+    const ESTADOS = [null,'Nuevo','Contactado','En seguimiento','Cotizado','Ganado','Perdido'];
+    const LABELS  = ['Todos','Nuevos','Contactados','En seguimiento','Cotizados','Ganados','Perdidos'];
+    tabs.innerHTML = ESTADOS.map((e,i) => {
+      const count = e ? leads.filter(l=>l.estado===e).length : leads.length;
+      const active = _leadsFiltro===e ? 'active' : '';
+      return `<div class="f-tab ${active}" onclick="filterLeads(${e===null?'null':`'${e}'`})">${LABELS[i]} (${count})</div>`;
+    }).join('');
+  }
+
+  function filterLeads(estado) {
+    _leadsFiltro = estado===undefined ? null : estado;
+    _renderLeadsFilterTabs(_leadsAll);
+    const BADGE = { 'Nuevo':'badge-new','Contactado':'badge-contact','En seguimiento':'badge-contact','Cotizado':'badge-quote','Ganado':'badge-won','Perdido':'badge-lost' };
+    const tbody = document.getElementById('leads-tbody'); if (!tbody) return;
+    const filtrados = _leadsFiltro ? _leadsAll.filter(l=>l.estado===_leadsFiltro) : _leadsAll;
+    if (!filtrados.length) {
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay leads${_leadsFiltro?' con estado "'+_leadsFiltro+'"':''}.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = filtrados.map(l => `<tr>
+      <td style="color:var(--gray);font-size:.72rem;">${l.id || '—'}</td>
+      <td><span class="td-bold">${capitalizarNombre([l.nombre,l.apellido].filter(Boolean).join(' '))||'—'}</span><br/><span style="color:var(--gray);font-size:.68rem;">${l.email||''}${l.telefono?' · '+l.telefono:''}</span></td>
+      <td>${l.empresa||'—'}</td>
+      <td>${l.servicio||'—'}</td>
+      <td>${l.fuente||'—'}</td>
+      <td class="td-gold">${l.presupuesto||'—'}</td>
+      <td><span class="badge ${BADGE[l.estado]||'badge-new'}">${l.estado||'Nuevo'}</span></td>
+      <td style="color:var(--gray);">${l.seguimiento||'—'}</td>
+      <td><div class="action-btns">
+        <button class="act-btn" title="Editar" onclick="editLead(${l.id})"><i class="fas fa-pencil-alt"></i></button>
+        <button class="act-btn danger" title="Eliminar" onclick="deleteLead(${l.id})"><i class="fas fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('');
+  }
+
   async function loadLeads() {
     const tbody = document.getElementById('leads-tbody');
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
     try {
       const leads = await apiFetch('/api/leads');
-      _leadsCache = {};
+      _leadsCache = {}; _leadsAll = leads;
       leads.forEach(l => _leadsCache[l.id] = l);
+      _renderLeadsFilterTabs(leads);
       if (!leads.length) {
         tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay leads. ¡Crea el primero!</td></tr>';
         return;
       }
-      const BADGE = { 'Nuevo':'badge-new','Contactado':'badge-contact','En seguimiento':'badge-contact','Cotizado':'badge-quote','Ganado':'badge-won','Perdido':'badge-lost' };
-      tbody.innerHTML = leads.map(l => `<tr>
-        <td style="color:var(--gray);font-size:.72rem;">${l.id || '—'}</td>
-        <td><span class="td-bold">${capitalizarNombre([l.nombre,l.apellido].filter(Boolean).join(' '))||'—'}</span><br/><span style="color:var(--gray);font-size:.68rem;">${l.email||''}${l.telefono?' · '+l.telefono:''}</span></td>
-        <td>${l.empresa||'—'}</td>
-        <td>${l.servicio||'—'}</td>
-        <td>${l.fuente||'—'}</td>
-        <td class="td-gold">${l.presupuesto||'—'}</td>
-        <td><span class="badge ${BADGE[l.estado]||'badge-new'}">${l.estado||'Nuevo'}</span></td>
-        <td style="color:var(--gray);">${l.seguimiento||'—'}</td>
-        <td><div class="action-btns">
-          <button class="act-btn" title="Editar" onclick="editLead(${l.id})"><i class="fas fa-pencil-alt"></i></button>
-          <button class="act-btn danger" title="Eliminar" onclick="deleteLead(${l.id})"><i class="fas fa-trash"></i></button>
-        </div></td>
-      </tr>`).join('');
+      filterLeads(_leadsFiltro);
     } catch (e) {
       tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;
     }
@@ -3079,6 +3112,7 @@
           <button class="act-btn" title="Editar" onclick="editCotizacion(${c.id})"><i class="fas fa-pencil-alt"></i></button>
           ${c.estado!=='aprobada'&&c.estado!=='confirmada'?`<button class="act-btn" title="Aprobar" style="color:#3ECF8E;" onclick="aprobarCotizacion(${c.id})"><i class="fas fa-check"></i></button>`:''}
           ${c.estado!=='rechazada'?`<button class="act-btn" title="Rechazar" style="color:#E08080;" onclick="desaprobarCotizacion(${c.id})"><i class="fas fa-times"></i></button>`:''}
+          <button class="act-btn" title="Reenviar" onclick="reenviarCotizacion(${c.id})"><i class="fas fa-redo"></i></button>
           <button class="act-btn danger" onclick="deleteCotizacion(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
         </div></td>
       </tr>`).join('');
@@ -3437,9 +3471,23 @@
   }
 
   async function deleteCotizacion(id){
-    if(!confirm('¿Eliminar esta cotización?'))return;
-    try{await apiFetch('/api/cotizaciones/'+id,{method:'DELETE'});showToast('Cotización eliminada');loadCotizaciones();}
-    catch(e){showToast('Error: '+e.message);}
+    _confirmarEliminar({
+      titulo:'¿Eliminar cotización?',
+      cuerpo:'Se eliminará permanentemente esta cotización y su PDF asociado.',
+      accion:async()=>{
+        try{await apiFetch('/api/cotizaciones/'+id,{method:'DELETE'});showToast('Cotización eliminada');loadCotizaciones();}
+        catch(e){showToast('Error: '+e.message);}
+      }
+    });
+  }
+
+  function reenviarCotizacion(id){
+    const c=_cotizacionesCache[id]; if(!c)return showToast('Cotización no encontrada en caché');
+    const portalLink=`${window.location.origin}/portal.html?cot=${id}`;
+    let nombre='',tel='',email='';
+    if(c.clientes){ nombre=capitalizarNombre(c.clientes.nombre)||''; tel=c.clientes.telefono||''; email=c.clientes.email||''; }
+    else if(c.leads){ nombre=capitalizarNombre([c.leads.nombre,c.leads.apellido].filter(Boolean).join(' '))||''; tel=c.leads.telefono||''; email=c.leads.email||''; }
+    mostrarEnvioModal(id, portalLink, {nombre, tel, email, esReenvio:true});
   }
 
   async function saveCotizacion(){
@@ -3853,10 +3901,15 @@
     const t=document.getElementById('modal-agente-title'); if(t)t.textContent='Editar Agente #'+id;
     document.getElementById('agenteModal').classList.add('open');
   }
-  async function deleteAgente(id){
-    if(!confirm('¿Eliminar este agente?'))return;
-    try{await apiFetch('/api/agentes/'+id,{method:'DELETE'});showToast('Agente eliminado');loadAgentes();}
-    catch(e){showToast('Error: '+e.message);}
+  function deleteAgente(id){
+    _confirmarEliminar({
+      titulo:'¿Eliminar agente?',
+      cuerpo:'Se eliminará permanentemente este agente y su registro de comisiones.',
+      accion:async()=>{
+        try{await apiFetch('/api/agentes/'+id,{method:'DELETE'});showToast('Agente eliminado');loadAgentes();}
+        catch(e){showToast('Error: '+e.message);}
+      }
+    });
   }
   function openAgenteModal(){
     _editAgenteId=null;
@@ -4060,7 +4113,7 @@
       } else {
         tbody.innerHTML = staffUsers.map(u => {
           const cl = clienteMap[(u.email||'').toLowerCase()];
-          const cliCode = cl ? `CLI-${year}-${String(cl.id).padStart(5,'0')}` : '—';
+          const cliCode = cl?.codigo_cliente || '—';
           const agtCode = cl?.codigo_agente || '—';
           return `<tr>
             <td style="color:var(--gray);font-size:.72rem;">${u.id}</td>
@@ -4085,7 +4138,7 @@
         } else {
           tbodyPortal.innerHTML = portalUsers.map(u => {
             const cl = clienteMap[(u.email||'').toLowerCase()];
-            const cliCode = cl ? `CLI-${year}-${String(cl.id).padStart(5,'0')}` : '—';
+            const cliCode = cl?.codigo_cliente || '—';
             const agtCode = cl?.codigo_agente || '—';
             return `<tr>
               <td style="color:var(--gray);font-size:.72rem;">${u.id}</td>
@@ -4517,15 +4570,18 @@
   }
 
   /* ── ENVÍO DE COTIZACIONES POR CANAL ────────────────────── */
-  let _envioCotId=null, _envioLink='', _envioCanalesData={};
+  let _envioCotId=null, _envioLink='', _envioCanalesData={}, _envioEsReenvio=false;
 
-  function mostrarEnvioModal(cotId, link){
-    _envioCotId=cotId; _envioLink=link;
-    const cliId=document.getElementById('cot-cli-select').value;
-    const leadId=document.getElementById('cot-lead-select').value;
+  function mostrarEnvioModal(cotId, link, opts){
+    _envioCotId=cotId; _envioLink=link; _envioEsReenvio=!!(opts&&opts.esReenvio);
     let nombre='',tel='',email='';
-    if(cliId){ const c=_cotCliList.find(x=>String(x.id)===String(cliId))||{}; nombre=c.nombre||''; tel=c.telefono||''; email=c.email||''; }
-    else if(leadId){ const l=_cotLeadList.find(x=>String(x.id)===String(leadId))||{}; nombre=capitalizarNombre([l.nombre,l.apellido].filter(Boolean).join(' '))||''; tel=l.telefono||''; email=l.email||''; }
+    if(opts){ nombre=opts.nombre||''; tel=opts.tel||''; email=opts.email||''; }
+    else {
+      const cliId=document.getElementById('cot-cli-select').value;
+      const leadId=document.getElementById('cot-lead-select').value;
+      if(cliId){ const c=_cotCliList.find(x=>String(x.id)===String(cliId))||{}; nombre=c.nombre||''; tel=c.telefono||''; email=c.email||''; }
+      else if(leadId){ const l=_cotLeadList.find(x=>String(x.id)===String(leadId))||{}; nombre=capitalizarNombre([l.nombre,l.apellido].filter(Boolean).join(' '))||''; tel=l.telefono||''; email=l.email||''; }
+    }
     tel=formatearTelefono(tel);
     _envioCanalesData={tel,email,nombre};
     const sub=document.getElementById('envio-cot-subtitulo');
@@ -4551,7 +4607,7 @@
 
   function cerrarEnvioModal(){
     document.getElementById('envioCotizacionModal').classList.remove('open');
-    mostrarExitoCotizacion(_envioCotId, _envioLink);
+    if(!_envioEsReenvio) mostrarExitoCotizacion(_envioCotId, _envioLink);
   }
 
   async function confirmarEnvioCotizacion(){

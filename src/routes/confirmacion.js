@@ -57,6 +57,15 @@ https://virtualestategt.com
   console.log(`[EMAIL] Confirmación enviada a ${email}`);
 }
 
+// ── Capitalizar texto (cada palabra con mayúscula inicial) ────────────────────
+function capitalizarNombre(str) {
+  if (!str) return null;
+  return String(str).toLowerCase().trim()
+    .split(/\s+/)
+    .map(w => w ? w.charAt(0).toUpperCase() + w.slice(1) : '')
+    .join(' ') || null;
+}
+
 // ── Generar código de cliente (atómico vía Postgres function) ─────────────────
 async function generarCodigoCliente() {
   const { data: numero, error } = await supabase.rpc('incrementar_secuencia_cliente');
@@ -184,16 +193,17 @@ async function procesarConfirmacion({ cotizacion_id, lead_id, anticipo_confirmad
   const ahora = new Date().toISOString();
 
   if (!cliente) {
-    // Create new cliente from lead data
+    // Create new cliente copying all lead data (capitalized)
     codigo_cliente = await generarCodigoCliente();
     const { data: nuevoCliente, error: ceErr } = await supabase
       .from('clientes')
       .insert([{
-        nombre:                         lead?.nombre || 'Cliente',
+        nombre:                         capitalizarNombre(lead?.nombre) || 'Cliente',
+        apellido:                       capitalizarNombre(lead?.apellido) || null,
         email:                          lead?.email  || null,
-        telefono:                       lead?.telefono || '',
+        telefono:                       lead?.telefono || null,
+        empresa:                        capitalizarNombre(lead?.empresa) || null,
         tipo:                           'Cliente',
-        lead_id:                        resolvedLeadId,
         codigo_cliente,
         confirmacion_timestamp:         ahora,
         confirmacion_ip:                ip || null,
@@ -203,17 +213,20 @@ async function procesarConfirmacion({ cotizacion_id, lead_id, anticipo_confirmad
     if (ceErr) throw ceErr;
     cliente = nuevoCliente;
   } else {
-    // Update existing cliente with lead link and confirmation data
+    // Update existing cliente: sync lead data + assign code
     if (!cliente.codigo_cliente) codigo_cliente = await generarCodigoCliente();
     else codigo_cliente = cliente.codigo_cliente;
 
     const updateFields = {
+      nombre:                        capitalizarNombre(lead?.nombre) || cliente.nombre,
+      apellido:                      capitalizarNombre(lead?.apellido) ?? cliente.apellido ?? null,
+      empresa:                       capitalizarNombre(lead?.empresa) ?? cliente.empresa ?? null,
       confirmacion_timestamp:        ahora,
       confirmacion_ip:               ip || null,
       confirmacion_version_terminos: version_terminos,
       codigo_cliente,
     };
-    if (resolvedLeadId && !cliente.lead_id) updateFields.lead_id = resolvedLeadId;
+    if (lead?.telefono && !cliente.telefono) updateFields.telefono = lead.telefono;
 
     const { data: clienteActualizado } = await supabase
       .from('clientes').update(updateFields).eq('id', cliente.id).select().single();
@@ -233,12 +246,7 @@ async function procesarConfirmacion({ cotizacion_id, lead_id, anticipo_confirmad
     lead_id:              resolvedLeadId,
   }).eq('id', cotizacion_id);
 
-  // 5. Update lead to Ganado
-  if (resolvedLeadId) {
-    await supabase.from('leads').update({ estado: 'Ganado' }).eq('id', resolvedLeadId);
-  }
-
-  // 6. Audit record
+  // 5. Audit record (before lead deletion to avoid FK violation on lead_id)
   await supabase.from('confirmaciones_registro').insert([{
     cotizacion_id,
     lead_id:              resolvedLeadId,
@@ -253,6 +261,19 @@ async function procesarConfirmacion({ cotizacion_id, lead_id, anticipo_confirmad
     user_agent:           user_agent || null,
     fecha_confirmacion:   new Date().toISOString(),
   }]);
+
+  // 6. Delete lead — FK constraints (clientes.lead_id, cotizaciones.lead_id) are
+  //    ON DELETE SET NULL after migration 025, so Postgres handles nullification.
+  //    Fallback: null refs manually if migration not yet applied.
+  if (resolvedLeadId) {
+    const { error: delErr } = await supabase.from('leads').delete().eq('id', resolvedLeadId);
+    if (delErr) {
+      console.warn('[CONF] lead delete FK error, nulling refs first:', delErr.message);
+      await supabase.from('cotizaciones').update({ lead_id: null }).eq('lead_id', resolvedLeadId);
+      await supabase.from('clientes').update({ lead_id: null }).eq('lead_id', resolvedLeadId);
+      await supabase.from('leads').delete().eq('id', resolvedLeadId);
+    }
+  }
 
   // 7. Send confirmation email (non-blocking)
   if (cliente.email) {

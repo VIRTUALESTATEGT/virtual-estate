@@ -41,8 +41,9 @@ router.get('/:id', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const { nombre, email, telefono, empresa, tipo, direccion, zona, ciudad } = req.body;
+    const { nombre, apellido, email, telefono, empresa, tipo, direccion, zona, ciudad } = req.body;
     const update = { nombre, email, telefono, empresa, tipo };
+    if (apellido  !== undefined) update.apellido  = apellido;
     if (direccion !== undefined) update.direccion = direccion;
     if (zona      !== undefined) update.zona      = zona;
     if (ciudad    !== undefined) update.ciudad    = ciudad;
