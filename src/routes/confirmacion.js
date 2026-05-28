@@ -81,7 +81,7 @@ router.get('/cotizacion/:id', async (req, res) => {
     const { id } = req.params;
     const { data: cot, error } = await supabase
       .from('cotizaciones')
-      .select('*, clientes(id, nombre, email), leads(id, nombre, apellido, email, telefono)')
+      .select('*, clientes(id, nombre, apellido, email), leads(id, nombre, apellido, email, telefono)')
       .eq('id', id)
       .maybeSingle();
 
@@ -92,7 +92,7 @@ router.get('/cotizacion/:id', async (req, res) => {
     }
 
     const nombre   = cot.clientes?.nombre || cot.leads?.nombre || 'Cliente';
-    const apellido = cot.leads?.apellido || '';
+    const apellido = cot.clientes?.apellido || cot.leads?.apellido || '';
     const cliente_nombre = apellido ? `${nombre} ${apellido}` : nombre;
     const anticipo_monto = cot.anticipo || Math.round((Number(cot.monto) * 0.5) * 100) / 100;
 
