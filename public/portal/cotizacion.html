@@ -242,8 +242,13 @@ let _cotizacionId = null;
 let _leadId = null;
 
 function getIdFromUrl() {
-  const parts = window.location.pathname.split('/');
-  return parts[parts.length - 1] || new URLSearchParams(window.location.search).get('id');
+  // ?cot=35 format (canonical)
+  const cot = new URLSearchParams(window.location.search).get('cot');
+  if (cot) return cot;
+  // legacy /portal/cotizacion/35 path format
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  const last = parts[parts.length - 1];
+  return isNaN(Number(last)) ? null : last;
 }
 
 function show(id) {
