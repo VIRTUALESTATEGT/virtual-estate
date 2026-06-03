@@ -19,10 +19,27 @@ function crearTransportador() {
   });
 }
 
+async function smtpWithRetry(buildMailOpts, label, maxAttempts = 3) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const transport = crearTransportador();
+    if (!transport) throw new Error('SMTP_NOT_CONFIGURED');
+    try {
+      await transport.sendMail(buildMailOpts());
+      transport.close();
+      console.log(`[${label}] ✅ sendMail OK (attempt ${attempt})`);
+      return;
+    } catch (e) {
+      transport.close();
+      if (attempt === maxAttempts) throw e;
+      console.warn(`[${label}] attempt ${attempt} failed: ${e.message} — retry in 4s`);
+      await new Promise(r => setTimeout(r, 4000));
+    }
+  }
+}
+
 async function enviarEmailConfirmacion({ email, nombre, apellido, cotizacion_id, monto, anticipo, codigo_cliente, timestamp, detalles_json, moneda }) {
   console.log('[CONFIRM-EMAIL] enviarEmailConfirmacion ▶ destinatario:', email, '| SMTP_HOST set:', !!process.env.SMTP_HOST, '| SMTP_USER set:', !!process.env.SMTP_USER, '| SMTP_PASS set:', !!process.env.SMTP_PASS);
-  const transport = crearTransportador();
-  if (!transport) {
+  if (!crearTransportador()) {
     console.error('[CONFIRM-EMAIL] ✗ SMTP no configurado — agrega SMTP_HOST, SMTP_USER y SMTP_PASS en Vercel');
     return;
   }
@@ -89,7 +106,7 @@ async function enviarEmailConfirmacion({ email, nombre, apellido, cotizacion_id,
       </div>
     </div>`;
 
-  try { await transport.sendMail({
+  await smtpWithRetry(() => ({
     from: `"Virtual Estate GT" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
     to: email,
     subject: `✅ Cotización Confirmada ${nroCot} — Virtual Estate GT`,
@@ -160,8 +177,7 @@ async function enviarEmailConfirmacion({ email, nombre, apellido, cotizacion_id,
   </div>
 
 </div>`,
-  }); } finally { transport.close(); }
-  console.log(`[CONFIRM-EMAIL] ✅ sendMail OK → ${email}`);
+  }), 'CONFIRM-EMAIL');
 }
 
 // ── Capitalizar texto (cada palabra con mayúscula inicial) ────────────────────

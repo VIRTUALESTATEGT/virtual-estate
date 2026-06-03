@@ -4,6 +4,23 @@ const supabase = require('../config/supabase');
 const { sendWhatsAppMessage, sendWhatsAppDocument } = require('../utils/whatsapp');
 const { cotCode, generarCotizacionPDF, subirPDFSupabase } = require('../utils/pdf');
 
+async function smtpSendWithRetry(buildTransport, mailOpts, label = 'SMTP', maxAttempts = 3) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const t = buildTransport();
+    try {
+      await t.sendMail(mailOpts);
+      t.close();
+      console.log(`[${label}] ✅ sendMail OK (attempt ${attempt})`);
+      return;
+    } catch (e) {
+      t.close();
+      if (attempt === maxAttempts) throw e;
+      console.warn(`[${label}] attempt ${attempt} failed: ${e.message} — retry in 4s`);
+      await new Promise(r => setTimeout(r, 4000));
+    }
+  }
+}
+
 async function markEnviado(cotizacionId, metodo) {
   await supabase.from('cotizaciones').update({
     metodo_envio_manual: metodo,
@@ -116,18 +133,6 @@ router.post('/email/enviar-cotizacion', async (req, res) => {
   }
 
   try {
-    const nodemailer  = require('nodemailer');
-    const transporter = nodemailer.createTransport({
-      host:              SMTP_HOST,
-      port:              Number(process.env.SMTP_PORT || 587),
-      secure:            Number(process.env.SMTP_PORT) === 465,
-      auth:              { user: SMTP_USER, pass: SMTP_PASS },
-      pool:              false,
-      connectionTimeout: 10000,
-      greetingTimeout:   8000,
-      socketTimeout:     15000,
-      tls:               { rejectUnauthorized: false },
-    });
 
     const codigo  = cotCode(cotizacion_id);
     const baseUrl = `${req.protocol}://${req.get('host')}`;
@@ -213,7 +218,15 @@ router.post('/email/enviar-cotizacion', async (req, res) => {
       }
     }
 
-    await transporter.sendMail({
+    const buildTransport = () => require('nodemailer').createTransport({
+      host: SMTP_HOST, port: Number(process.env.SMTP_PORT || 587),
+      secure: Number(process.env.SMTP_PORT) === 465,
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+      pool: false, connectionTimeout: 10000, greetingTimeout: 8000, socketTimeout: 15000,
+      tls: { rejectUnauthorized: false },
+    });
+
+    await smtpSendWithRetry(buildTransport, {
       from:    `"Virtual Estate GT" <${SMTP_FROM}>`,
       to:      email,
       subject: `Tu Cotización Virtual Estate GT — ${codigo}`,
@@ -281,8 +294,7 @@ router.post('/email/enviar-cotizacion', async (req, res) => {
 
 </div>
       `,
-    });
-    transporter.close();
+    }, 'EMAIL-COT');
 
     await markEnviado(cotizacion_id, 'email');
     res.json({ ok: true, canal: 'email', pdf_attached: attachments.length > 0 });
