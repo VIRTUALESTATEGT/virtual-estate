@@ -7,32 +7,39 @@ const nodemailer = require('nodemailer');
 function crearTransportador() {
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) return null;
   return nodemailer.createTransport({
-    host:             process.env.SMTP_HOST,
-    port:             Number(process.env.SMTP_PORT) || 587,
-    secure:           Number(process.env.SMTP_PORT) === 465,
-    auth:             { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    pool:             false,
-    connectionTimeout: 10000,
-    greetingTimeout:   8000,
-    socketTimeout:     15000,
-    tls:              { rejectUnauthorized: false },
+    host:              process.env.SMTP_HOST,
+    port:              Number(process.env.SMTP_PORT) || 587,
+    secure:            Number(process.env.SMTP_PORT) === 465,
+    auth:              { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    pool:              false,
+    connectionTimeout: 20000,
+    greetingTimeout:   15000,
+    socketTimeout:     25000,
+    tls:               { rejectUnauthorized: false },
   });
 }
 
-async function smtpWithRetry(buildMailOpts, label, maxAttempts = 3) {
+// preDelay: ms to wait before first attempt (lets a prior SMTP session close on Zoho's side)
+async function smtpWithRetry(buildMailOpts, label, maxAttempts = 3, preDelay = 0) {
+  if (preDelay > 0) {
+    console.log(`[${label}] pre-delay ${preDelay}ms — waiting for prior SMTP session to close`);
+    await new Promise(r => setTimeout(r, preDelay));
+  }
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const transport = crearTransportador();
     if (!transport) throw new Error('SMTP_NOT_CONFIGURED');
     try {
-      await transport.sendMail(buildMailOpts());
+      const mailOpts = buildMailOpts();
+      console.log(`[${label}] attempt ${attempt} — sending to: ${mailOpts.to} | html size: ${(mailOpts.html || '').length} bytes`);
+      await transport.sendMail(mailOpts);
       transport.close();
       console.log(`[${label}] ✅ sendMail OK (attempt ${attempt})`);
       return;
     } catch (e) {
       transport.close();
       if (attempt === maxAttempts) throw e;
-      console.warn(`[${label}] attempt ${attempt} failed: ${e.message} — retry in 4s`);
-      await new Promise(r => setTimeout(r, 4000));
+      console.warn(`[${label}] attempt ${attempt} failed: ${e.message} — retry in 6s`);
+      await new Promise(r => setTimeout(r, 6000));
     }
   }
 }
@@ -177,7 +184,7 @@ async function enviarEmailConfirmacion({ email, nombre, apellido, cotizacion_id,
   </div>
 
 </div>`,
-  }), 'CONFIRM-EMAIL');
+  }), 'CONFIRM-EMAIL', 3, 7000);
 }
 
 // ── Capitalizar texto (cada palabra con mayúscula inicial) ────────────────────
