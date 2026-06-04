@@ -4659,7 +4659,7 @@
       const canal=cb.value;
       const body={cotizacion_id:_envioCotId,link:_envioLink};
       let endpoint='';
-      if(canal==='whatsapp'){endpoint='/api/whatsapp/enviar-cotizacion';body.phone_number=tel;}
+      if(canal==='whatsapp'){endpoint='/api/whatsapp/enviar-cotizacion';body.phone_number=tel;console.log('[ENVIO-WA-DEBUG] Enviando WhatsApp:',{cotId:body.cotizacion_id,phone:tel,link:body.link?.slice(0,60)});}
       else if(canal==='email'){endpoint='/api/email/enviar-cotizacion';body.email=email;}
       else if(canal==='facebook'){endpoint='/api/facebook/enviar-cotizacion';}
       else if(canal==='instagram'){endpoint='/api/instagram/enviar-cotizacion';}

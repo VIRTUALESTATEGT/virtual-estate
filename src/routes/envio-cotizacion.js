@@ -48,6 +48,7 @@ async function fetchCot(cotizacionId) {
 
 // ── POST /api/whatsapp/enviar-cotizacion ──────────────────────────────────────
 router.post('/whatsapp/enviar-cotizacion', async (req, res) => {
+  console.log('[WA-COT-DEBUG] Request recibido:', { cotizacion_id: req.body?.cotizacion_id, phone_number: req.body?.phone_number, link: req.body?.link?.slice(0,60) });
   const { phone_number, cotizacion_id, link } = req.body;
 
   // ── Credentials check ──────────────────────────────────────────────────────
