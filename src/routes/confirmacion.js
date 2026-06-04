@@ -12,9 +12,9 @@ function crearTransportador() {
     secure:            Number(process.env.SMTP_PORT) === 465,
     auth:              { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     pool:              false,
-    connectionTimeout: 20000,
-    greetingTimeout:   15000,
-    socketTimeout:     25000,
+    connectionTimeout: 40000,
+    greetingTimeout:   20000,
+    socketTimeout:     60000,
     tls:               { rejectUnauthorized: false },
   });
 }
@@ -184,7 +184,7 @@ async function enviarEmailConfirmacion({ email, nombre, apellido, cotizacion_id,
   </div>
 
 </div>`,
-  }), 'CONFIRM-EMAIL', 3, 7000);
+  }), 'CONFIRM-EMAIL', 3, 15000);
 }
 
 // ── Capitalizar texto (cada palabra con mayúscula inicial) ────────────────────
