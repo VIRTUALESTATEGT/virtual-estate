@@ -85,7 +85,7 @@ async function sendWhatsAppDocument(to, documentUrl, filename) {
 // Send a pre-approved template message.
 // params: array of string values for {{1}}, {{2}}, ... in the template body.
 // languageCode must match the language used when the template was submitted to Meta.
-async function sendWhatsAppTemplate(to, templateName, params, languageCode = 'es_MX') {
+async function sendWhatsAppTemplate(to, templateName, params, languageCode = 'es') {
   const PHONE_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
   const TOKEN    = process.env.WHATSAPP_ACCESS_TOKEN;
 
