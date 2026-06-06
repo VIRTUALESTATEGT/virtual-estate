@@ -1,7 +1,7 @@
 const express  = require('express');
 const router   = express.Router();
 const supabase = require('../config/supabase');
-const { sendWhatsAppMessage, sendWhatsAppDocument } = require('../utils/whatsapp');
+const { sendWhatsAppMessage, sendWhatsAppDocument, sendWhatsAppTemplate } = require('../utils/whatsapp');
 const { cotCode, generarCotizacionPDF, subirPDFSupabase } = require('../utils/pdf');
 
 async function smtpSendWithRetry(buildTransport, mailOpts, label = 'SMTP', maxAttempts = 3) {
@@ -98,13 +98,9 @@ router.post('/whatsapp/enviar-cotizacion', async (req, res) => {
       }
     }
 
-    const textMsg = pdfSent
-      ? `Aquí tu cotización formal *${codigo}*. 👆\n\n✅ Para confirmar y revisar detalles, accede aquí:\n${link}`
-      : `Hola 👋 Te enviamos tu cotización *${codigo}* de Virtual Estate GT.\n\n📋 Revisa y confirma aquí:\n${link}\n\n¿Tienes alguna pregunta? Responde este mensaje.`;
-
-    console.log('[WA-COT] sending text → phone:', phoneCleaned);
-    const result = await sendWhatsAppMessage(phoneCleaned, textMsg);
-    console.log('[WA-COT] text result:', JSON.stringify(result)?.slice(0,120));
+    console.log('[WA-COT] sending template → phone:', phoneCleaned, '| {{1}}:', codigo, '| {{2}}:', link?.slice(0,60));
+    const result = await sendWhatsAppTemplate(phoneCleaned, 'cotizacion_confirmacion', [codigo, link]);
+    console.log('[WA-COT] template result:', JSON.stringify(result)?.slice(0,120));
     if (!result) throw new Error('WHATSAPP_NOT_CONFIGURED');
 
     await markEnviado(cotizacion_id, 'whatsapp');

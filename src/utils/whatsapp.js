@@ -82,4 +82,45 @@ async function sendWhatsAppDocument(to, documentUrl, filename) {
   }
 }
 
-module.exports = { sendWhatsAppMessage, sendWhatsAppDocument, notifyAdmin, isAdminNumber };
+// Send a pre-approved template message.
+// params: array of string values for {{1}}, {{2}}, ... in the template body.
+// languageCode must match the language used when the template was submitted to Meta.
+async function sendWhatsAppTemplate(to, templateName, params, languageCode = 'es_MX') {
+  const PHONE_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const TOKEN    = process.env.WHATSAPP_ACCESS_TOKEN;
+
+  if (!PHONE_ID || !TOKEN) {
+    console.warn('[WhatsApp] Credentials not configured — skipping template send');
+    return null;
+  }
+
+  const phone = String(to).replace(/\D/g, '');
+  const components = params.length ? [{
+    type: 'body',
+    parameters: params.map(p => ({ type: 'text', text: String(p) })),
+  }] : [];
+
+  console.log('[WA-TPL] sending template:', templateName, '| phone:', phone, '| params:', params);
+  try {
+    const { data } = await axios.post(
+      `${WA_BASE}/${PHONE_ID}/messages`,
+      {
+        messaging_product: 'whatsapp',
+        to: phone,
+        type: 'template',
+        template: { name: templateName, language: { code: languageCode }, components },
+      },
+      { headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' } }
+    );
+    console.log('[WA-TPL] Meta response:', JSON.stringify(data));
+    if (data?.contacts?.[0]) console.log('[WA-TPL] resolved wa_id:', data.contacts[0].wa_id, '| msg_id:', data.messages?.[0]?.id);
+    return data;
+  } catch (e) {
+    const metaErr = e.response?.data?.error;
+    const msg = metaErr ? `Meta API error ${metaErr.code}: ${metaErr.message}` : e.message;
+    console.error('[WA-TPL] error — phone:', phone, '| HTTP:', e.response?.status, '| body:', JSON.stringify(e.response?.data || e.message));
+    throw new Error(msg);
+  }
+}
+
+module.exports = { sendWhatsAppMessage, sendWhatsAppDocument, sendWhatsAppTemplate, notifyAdmin, isAdminNumber };
