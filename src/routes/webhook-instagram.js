@@ -120,11 +120,18 @@ async function processClientMessage(psid, text) {
   console.log('[IG] conv lookup — found:', !!conv, '| error:', convErr?.message || 'none');
 
   if (!conv) {
+    const payload = { canal: 'instagram', estado: 'activa', creada_por_cliente: psid };
+    console.log('[IG] iniciando conversación — datos:', JSON.stringify(payload));
+    console.log('[IG] insertando en BD...');
     const { data: newConv, error: insertErr } = await supabase
       .from('conversaciones_multicanal')
-      .insert([{ canal: 'instagram', estado: 'activa', creada_por_cliente: psid }])
+      .insert([payload])
       .select().single();
-    console.log('[IG] conv insert — id:', newConv?.id, '| error:', insertErr?.message || 'none');
+    if (insertErr) {
+      console.error('[IG] BD insert error:', insertErr.message, '| code:', insertErr.code, '| details:', insertErr.details);
+    } else {
+      console.log('[IG] BD insert OK — id:', newConv?.id);
+    }
     conv = newConv;
   }
 
