@@ -75,7 +75,7 @@ async function processAdminCommand(psid, text) {
 
   if (upper === 'RESUMEN') {
     const { data: activas } = await supabase
-      .from('conversaciones').select('id', { count: 'exact' }).eq('estado', 'activa');
+      .from('conversaciones_multicanal').select('id', { count: 'exact' }).eq('estado', 'activa');
     await sendInstagramMessage(psid,
       `📊 RESUMEN VIRTUAL ESTATE\n• Conversaciones activas: ${activas?.length ?? 0}`
     );
@@ -86,12 +86,12 @@ async function processAdminCommand(psid, text) {
   if (responderMatch) {
     const [, convId, respuesta] = responderMatch;
     const { data: conv } = await supabase
-      .from('conversaciones').select('*').eq('id', convId).maybeSingle();
+      .from('conversaciones_multicanal').select('*').eq('id', convId).maybeSingle();
     if (!conv) { await sendInstagramMessage(psid, `❌ Conversación #${convId} no encontrada`); return; }
     await supabase.from('mensajes').insert([{
       conversacion_id: Number(convId), remitente_tipo: 'agente_humano', contenido: respuesta.trim()
     }]);
-    await supabase.from('conversaciones')
+    await supabase.from('conversaciones_multicanal')
       .update({ ultima_respuesta_tipo: 'agente_humano', timestamp: new Date().toISOString() })
       .eq('id', convId);
     if (conv.creada_por_cliente) await sendInstagramMessage(conv.creada_por_cliente, respuesta.trim());
@@ -112,7 +112,7 @@ async function processClientMessage(psid, text) {
     const timeout = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('INSERT timeout 10s')), 10000));
     const { data: newConv, error: insertErr } = await Promise.race([
-      supabase.from('conversaciones')
+      supabase.from('conversaciones_multicanal')
         .insert([{ canal: 'instagram', estado: 'activa', creada_por_cliente: psid }])
         .select('id').single(),
       timeout,
