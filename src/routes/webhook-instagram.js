@@ -110,33 +110,52 @@ async function processAdminCommand(psid, text) {
 
 // ── Client message processor ──────────────────────────────────────────────────
 async function processClientMessage(psid, text) {
+  console.log('[IG] processClientMessage ▶ psid:', psid, '| text:', text.slice(0, 60));
+
   // Find or create conversation keyed on PSID
-  let { data: conv } = await supabase
+  let { data: conv, error: convErr } = await supabase
     .from('conversaciones_multicanal')
     .select('*').eq('creada_por_cliente', psid).eq('estado', 'activa').maybeSingle();
 
+  console.log('[IG] conv lookup — found:', !!conv, '| error:', convErr?.message || 'none');
+
   if (!conv) {
-    const { data: newConv } = await supabase
+    const { data: newConv, error: insertErr } = await supabase
       .from('conversaciones_multicanal')
       .insert([{ canal: 'instagram', estado: 'activa', creada_por_cliente: psid }])
       .select().single();
+    console.log('[IG] conv insert — id:', newConv?.id, '| error:', insertErr?.message || 'none');
     conv = newConv;
-    console.log('[IG] New conversation created — id:', conv?.id, '| psid:', psid);
+  }
+
+  if (!conv) {
+    console.error('[IG] ✗ No se pudo crear/encontrar conversación — abortando');
+    return;
   }
 
   // Save client message
-  await supabase.from('mensajes').insert([{
+  const { error: msgErr } = await supabase.from('mensajes').insert([{
     conversacion_id: conv.id, remitente_tipo: 'cliente', contenido: text
   }]);
+  console.log('[IG] mensaje guardado — conv_id:', conv.id, '| error:', msgErr?.message || 'none');
 
   // Call AI agent
+  console.log('[IG] llamando responderIA — conv_id:', conv.id);
   try {
     const { responderIA } = require('./agente-ia');
     const respuesta = await responderIA(conv.id, text);
-    if (respuesta) await sendInstagramMessage(psid, respuesta);
+    console.log('[IG] responderIA result — length:', respuesta?.length ?? 'null', '| preview:', respuesta?.slice(0, 80) || '(vacío)');
+    if (respuesta) {
+      console.log('[IG] enviando respuesta → psid:', psid);
+      await sendInstagramMessage(psid, respuesta);
+    } else {
+      console.warn('[IG] responderIA devolvió vacío — no se envía nada');
+    }
   } catch (e) {
-    console.error('[IG] IA error:', e.message);
-    await sendInstagramMessage(psid, 'Hola 👋 Recibimos tu mensaje. Un asesor te contactará pronto.').catch(() => {});
+    console.error('[IG] IA error:', e.message, '| stack:', e.stack?.split('\n')[1]);
+    await sendInstagramMessage(psid, 'Hola 👋 Recibimos tu mensaje. Un asesor te contactará pronto.').catch(se => {
+      console.error('[IG] fallback send error:', se.message);
+    });
   }
 }
 
