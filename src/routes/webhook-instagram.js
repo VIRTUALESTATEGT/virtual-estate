@@ -110,6 +110,7 @@ async function processAdminCommand(psid, text) {
 
 // ── Client message processor ──────────────────────────────────────────────────
 async function processClientMessage(psid, text) {
+  console.log('[IG-NEWDEPLOY] timestamp:', new Date().toISOString());
   console.log('[IG] processClientMessage ▶ psid:', psid, '| text:', text.slice(0, 60));
   console.log('[IG-DEBUG] supabase client:', typeof supabase, supabase ? 'exists' : 'NULL');
   console.log('[IG-DEBUG] SUPABASE_URL:', process.env.SUPABASE_URL ? 'set' : 'UNDEFINED');
