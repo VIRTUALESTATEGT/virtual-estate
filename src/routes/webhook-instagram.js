@@ -111,13 +111,18 @@ async function processAdminCommand(psid, text) {
 // ── Client message processor ──────────────────────────────────────────────────
 async function processClientMessage(psid, text) {
   console.log('[IG] processClientMessage ▶ psid:', psid, '| text:', text.slice(0, 60));
+  console.log('[IG] paso 1 — antes de conv lookup');
 
-  // Find or create conversation keyed on PSID
-  let { data: conv, error: convErr } = await supabase
-    .from('conversaciones_multicanal')
-    .select('*').eq('creada_por_cliente', psid).eq('estado', 'activa').maybeSingle();
-
-  console.log('[IG] conv lookup — found:', !!conv, '| error:', convErr?.message || 'none');
+  let conv, convErr;
+  try {
+    ({ data: conv, error: convErr } = await supabase
+      .from('conversaciones_multicanal')
+      .select('*').eq('creada_por_cliente', psid).eq('estado', 'activa').maybeSingle());
+    console.log('[IG] paso 2 — conv lookup OK | found:', !!conv, '| error:', convErr?.message || 'none');
+  } catch (lookupEx) {
+    console.error('[IG] paso 2 — conv lookup THREW:', lookupEx.message);
+    return;
+  }
 
   if (!conv) {
     const payload = { canal: 'instagram', estado: 'activa', creada_por_cliente: psid };
