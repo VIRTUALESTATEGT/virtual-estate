@@ -81,6 +81,10 @@ app.post('/api/leads/public', async (req, res) => {
 const webhookWARouter = require('./src/routes/webhook-whatsapp');
 app.use('/api/webhook/whatsapp', webhookWARouter);
 
+// ── Public: Instagram DM webhook (no auth) ───────────────────────
+const webhookIGRouter = require('./src/routes/webhook-instagram');
+app.use('/api/instagram/webhook', webhookIGRouter);
+
 // ── Public: Cotización confirmation portal (no auth — leads access via email link) ──
 const confirmacionRouter = require('./src/routes/confirmacion');
 app.use('/api/confirmacion', confirmacionRouter);
