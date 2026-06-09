@@ -113,14 +113,19 @@ async function processClientMessage(psid, text) {
   console.log('[IG] processClientMessage ▶ psid:', psid, '| text:', text.slice(0, 60));
   console.log('[IG] paso 1 — antes de conv lookup');
 
+  console.log('[IG] paso 2 — ejecutando query conversaciones_multicanal...');
   let conv, convErr;
   try {
-    ({ data: conv, error: convErr } = await supabase
-      .from('conversaciones_multicanal')
-      .select('*').eq('creada_por_cliente', psid).eq('estado', 'activa').maybeSingle());
-    console.log('[IG] paso 2 — conv lookup OK | found:', !!conv, '| error:', convErr?.message || 'none');
-  } catch (lookupEx) {
-    console.error('[IG] paso 2 — conv lookup THREW:', lookupEx.message);
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Supabase timeout 5s')), 5000));
+    ({ data: conv, error: convErr } = await Promise.race([
+      supabase.from('conversaciones_multicanal')
+        .select('*').eq('creada_por_cliente', psid).eq('estado', 'activa').maybeSingle(),
+      timeout,
+    ]));
+    console.log('[IG] paso 2 — OK | found:', !!conv, '| error:', convErr?.message || 'none');
+  } catch (err) {
+    console.error('[IG] paso 2 — error/timeout:', err.message);
     return;
   }
 
