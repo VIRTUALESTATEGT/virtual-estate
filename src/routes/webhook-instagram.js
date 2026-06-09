@@ -48,14 +48,12 @@ router.post('/', async (req, res) => {
 
   try {
     const entry = req.body?.entry?.[0];
-    // Instagram DMs arrive under entry.messaging[]
     const messaging = entry?.messaging?.[0];
     if (!messaging) return;
 
     const senderId = messaging.sender?.id;
     const text     = messaging.message?.text?.trim() || '';
 
-    // Ignore echo messages (sent by the page itself)
     if (messaging.message?.is_echo) return;
     if (!senderId || !text) return;
 
@@ -79,13 +77,11 @@ async function processAdminCommand(psid, text) {
     const { data: activas } = await supabase
       .from('conversaciones_multicanal').select('id', { count: 'exact' }).eq('estado', 'activa');
     await sendInstagramMessage(psid,
-      `📊 RESUMEN VIRTUAL ESTATE\n` +
-      `• Conversaciones activas: ${activas?.length ?? 0}`
+      `📊 RESUMEN VIRTUAL ESTATE\n• Conversaciones activas: ${activas?.length ?? 0}`
     );
     return;
   }
 
-  // RESPONDER [ID]: [texto]
   const responderMatch = text.match(/^RESPONDER\s+(\d+):\s*(.+)/is);
   if (responderMatch) {
     const [, convId, respuesta] = responderMatch;
@@ -103,76 +99,57 @@ async function processAdminCommand(psid, text) {
     return;
   }
 
-  await sendInstagramMessage(psid,
-    `❓ Comandos disponibles:\nRESUMEN | RESPONDER [ID]: [texto]`
-  );
+  await sendInstagramMessage(psid, `❓ Comandos disponibles:\nRESUMEN | RESPONDER [ID]: [texto]`);
 }
 
 // ── Client message processor ──────────────────────────────────────────────────
 async function processClientMessage(psid, text) {
-  console.log('[IG-NEWDEPLOY] timestamp:', new Date().toISOString());
   console.log('[IG] processClientMessage ▶ psid:', psid, '| text:', text.slice(0, 60));
-  console.log('[IG-DEBUG] supabase client:', typeof supabase, supabase ? 'exists' : 'NULL');
-  console.log('[IG-DEBUG] SUPABASE_URL:', process.env.SUPABASE_URL ? 'set' : 'UNDEFINED');
-  console.log('[IG-DEBUG] SUPABASE_SECRET_KEY:', process.env.SUPABASE_SECRET_KEY ? 'set' : 'UNDEFINED');
-  console.log('[IG] paso 1 — antes de conv lookup');
 
-  console.log('[IG] paso 2 — ejecutando query conversaciones_multicanal...');
-  let conv, convErr;
+  // Direct INSERT — skip SELECT to avoid Supabase query hang
+  let convId = null;
   try {
     const timeout = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Supabase timeout 20s')), 20000));
-    ({ data: conv, error: convErr } = await Promise.race([
+      setTimeout(() => reject(new Error('INSERT timeout 10s')), 10000));
+    const { data: newConv, error: insertErr } = await Promise.race([
       supabase.from('conversaciones_multicanal')
-        .select('*').eq('creada_por_cliente', psid).eq('estado', 'activa').maybeSingle(),
+        .insert([{ canal: 'instagram', estado: 'activa', creada_por_cliente: psid }])
+        .select('id').single(),
       timeout,
-    ]));
-    console.log('[IG] paso 2 — OK | found:', !!conv, '| error:', convErr?.message || 'none');
-  } catch (err) {
-    console.error('[IG] paso 2 — error/timeout:', err.message);
-    return;
+    ]);
+    if (insertErr) {
+      console.error('[IG] conv insert error:', insertErr.message, '| code:', insertErr.code);
+    } else {
+      convId = newConv?.id;
+      console.log('[IG] conv created — id:', convId);
+    }
+  } catch (e) {
+    console.error('[IG] conv insert threw:', e.message);
   }
 
-  if (!conv) {
-    const payload = { canal: 'instagram', estado: 'activa', creada_por_cliente: psid };
-    console.log('[IG] iniciando conversación — datos:', JSON.stringify(payload));
-    console.log('[IG] insertando en BD...');
-    const { data: newConv, error: insertErr } = await supabase
-      .from('conversaciones_multicanal')
-      .insert([payload])
-      .select().single();
-    console.log('[IG] BD insert result — newConv:', JSON.stringify(newConv), '| insertErr:', JSON.stringify(insertErr));
-    conv = newConv;
+  // Save client message (best-effort)
+  if (convId) {
+    await supabase.from('mensajes')
+      .insert([{ conversacion_id: convId, remitente_tipo: 'cliente', contenido: text }])
+      .catch(e => console.error('[IG] mensajes insert error:', e.message));
   }
-
-  if (!conv) {
-    console.error('[IG] ✗ No se pudo crear/encontrar conversación — abortando');
-    return;
-  }
-
-  // Save client message
-  const { error: msgErr } = await supabase.from('mensajes').insert([{
-    conversacion_id: conv.id, remitente_tipo: 'cliente', contenido: text
-  }]);
-  console.log('[IG] mensaje guardado — conv_id:', conv.id, '| error:', msgErr?.message || 'none');
 
   // Call AI agent
-  console.log('[IG] llamando responderIA — conv_id:', conv.id);
+  console.log('[IG] llamando responderIA — conv_id:', convId);
   try {
     const { responderIA } = require('./agente-ia');
-    const respuesta = await responderIA(conv.id, text);
-    console.log('[IG] responderIA result — length:', respuesta?.length ?? 'null', '| preview:', respuesta?.slice(0, 80) || '(vacío)');
+    const respuesta = await responderIA(convId, text);
+    console.log('[IG] responderIA result — length:', respuesta?.length ?? 'null');
     if (respuesta) {
       console.log('[IG] enviando respuesta → psid:', psid);
       await sendInstagramMessage(psid, respuesta);
     } else {
-      console.warn('[IG] responderIA devolvió vacío — no se envía nada');
+      console.warn('[IG] responderIA devolvió vacío');
     }
   } catch (e) {
-    console.error('[IG] IA error:', e.message, '| stack:', e.stack?.split('\n')[1]);
-    await sendInstagramMessage(psid, 'Hola 👋 Recibimos tu mensaje. Un asesor te contactará pronto.').catch(se => {
-      console.error('[IG] fallback send error:', se.message);
-    });
+    console.error('[IG] IA error:', e.message);
+    await sendInstagramMessage(psid, 'Hola 👋 Recibimos tu mensaje. Un asesor te contactará pronto.')
+      .catch(se => console.error('[IG] fallback send error:', se.message));
   }
 }
 
