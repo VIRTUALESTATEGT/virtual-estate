@@ -121,7 +121,7 @@ async function processClientMessage(psid, text) {
   let conv, convErr;
   try {
     const timeout = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Supabase timeout 5s')), 5000));
+      setTimeout(() => reject(new Error('Supabase timeout 20s')), 20000));
     ({ data: conv, error: convErr } = await Promise.race([
       supabase.from('conversaciones_multicanal')
         .select('*').eq('creada_por_cliente', psid).eq('estado', 'activa').maybeSingle(),
