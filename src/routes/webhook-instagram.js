@@ -127,11 +127,7 @@ async function processClientMessage(psid, text) {
       .from('conversaciones_multicanal')
       .insert([payload])
       .select().single();
-    if (insertErr) {
-      console.error('[IG] BD insert error:', insertErr.message, '| code:', insertErr.code, '| details:', insertErr.details);
-    } else {
-      console.log('[IG] BD insert OK — id:', newConv?.id);
-    }
+    console.log('[IG] BD insert result — newConv:', JSON.stringify(newConv), '| insertErr:', JSON.stringify(insertErr));
     conv = newConv;
   }
 
