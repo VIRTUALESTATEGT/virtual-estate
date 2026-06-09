@@ -111,6 +111,9 @@ async function processAdminCommand(psid, text) {
 // ── Client message processor ──────────────────────────────────────────────────
 async function processClientMessage(psid, text) {
   console.log('[IG] processClientMessage ▶ psid:', psid, '| text:', text.slice(0, 60));
+  console.log('[IG-DEBUG] supabase client:', typeof supabase, supabase ? 'exists' : 'NULL');
+  console.log('[IG-DEBUG] SUPABASE_URL:', process.env.SUPABASE_URL ? 'set' : 'UNDEFINED');
+  console.log('[IG-DEBUG] SUPABASE_SECRET_KEY:', process.env.SUPABASE_SECRET_KEY ? 'set' : 'UNDEFINED');
   console.log('[IG] paso 1 — antes de conv lookup');
 
   console.log('[IG] paso 2 — ejecutando query conversaciones_multicanal...');
