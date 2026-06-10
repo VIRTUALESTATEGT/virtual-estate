@@ -82,8 +82,14 @@ async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp') {
   const instrucciones = await loadDynamicInstructions();
   const systemPrompt  = SYSTEM_PROMPT.replace('{instrucciones_dinamicas}', instrucciones);
 
-  console.log('[IA] cargando historial...');
-  const history = await getConversationHistory(conversacionId);
+  let history;
+  if (canal === 'instagram') {
+    console.log('[IA] saltando historial para instagram');
+    history = [];
+  } else {
+    console.log('[IA] cargando historial...');
+    history = await getConversationHistory(conversacionId);
+  }
 
   // Build messages array (history + new message)
   const messages = [...history];
