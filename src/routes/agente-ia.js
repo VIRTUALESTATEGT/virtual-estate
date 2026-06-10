@@ -74,10 +74,16 @@ async function getConversationHistory(conversacionId, limit = 20) {
 }
 
 // Core function — used by webhook and HTTP endpoint
-async function responderIA(conversacionId, mensajeCliente) {
+// canal: 'whatsapp' (default) | 'instagram' — controls which table gets updated
+async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp') {
+  console.log('[IA] responderIA iniciado — conv_id:', conversacionId, '| canal:', canal);
+
+  console.log('[IA] cargando instrucciones dinámicas...');
   const instrucciones = await loadDynamicInstructions();
   const systemPrompt  = SYSTEM_PROMPT.replace('{instrucciones_dinamicas}', instrucciones);
-  const history       = await getConversationHistory(conversacionId);
+
+  console.log('[IA] cargando historial...');
+  const history = await getConversationHistory(conversacionId);
 
   // Build messages array (history + new message)
   const messages = [...history];
@@ -85,12 +91,14 @@ async function responderIA(conversacionId, mensajeCliente) {
     messages.push({ role: 'user', content: mensajeCliente });
   }
 
+  console.log('[IA] llamando Claude Sonnet... | messages:', messages.length, '| t:', new Date().toISOString());
   const response = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 600,
     system: systemPrompt,
     messages,
   });
+  console.log('[IA] Claude respondió | t:', new Date().toISOString());
 
   const respuesta = response.content[0]?.text?.trim();
   if (!respuesta) return null;
@@ -106,19 +114,24 @@ async function responderIA(conversacionId, mensajeCliente) {
     );
   }
 
-  // Save AI response to messages
-  await supabase.from('mensajes').insert([{
-    conversacion_id: conversacionId,
-    remitente_tipo: 'ia',
-    contenido: respuesta,
-    metadata_json: { low_confidence: lowConfidence }
-  }]);
+  // Save AI response to messages (only when conversacionId exists in mensajes FK table)
+  if (conversacionId && canal === 'whatsapp') {
+    console.log('[IA] guardando en mensajes...');
+    await supabase.from('mensajes').insert([{
+      conversacion_id: conversacionId,
+      remitente_tipo: 'ia',
+      contenido: respuesta,
+      metadata_json: { low_confidence: lowConfidence }
+    }]);
 
-  // Update conversation timestamp and last response type
-  await supabase.from('conversaciones_multicanal')
-    .update({ ultima_respuesta_tipo: 'ia', timestamp: new Date().toISOString() })
-    .eq('id', conversacionId);
+    // Update conversation timestamp (only conversaciones_multicanal — whatsapp/web)
+    console.log('[IA] actualizando conversaciones_multicanal...');
+    await supabase.from('conversaciones_multicanal')
+      .update({ ultima_respuesta_tipo: 'ia', timestamp: new Date().toISOString() })
+      .eq('id', conversacionId);
+  }
 
+  console.log('[IA] completado — length:', respuesta.length);
   return respuesta;
 }
 

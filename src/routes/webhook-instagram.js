@@ -138,10 +138,10 @@ async function processClientMessage(psid, text) {
   }
 
   // Call AI agent
-  console.log('[IG] llamando responderIA — conv_id:', convId);
+  console.log('[IG-IA-START] iniciando responderIA | conv_id:', convId, '| CLAUDE_API_KEY present:', !!process.env.CLAUDE_API_KEY, '| t:', new Date().toISOString());
   try {
     const { responderIA } = require('./agente-ia');
-    const respuesta = await responderIA(convId, text);
+    const respuesta = await responderIA(convId, text, 'instagram');
     console.log('[IG] responderIA result — length:', respuesta?.length ?? 'null');
     if (respuesta) {
       console.log('[IG] enviando respuesta → psid:', psid);
