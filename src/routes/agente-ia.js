@@ -119,7 +119,7 @@ async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp') {
       }),
     });
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Claude API timeout 8s')), 8000));
+      setTimeout(() => reject(new Error('Claude API timeout 20s')), 20000));
 
     const fetchResponse = await Promise.race([fetchPromise, timeoutPromise]);
     console.log('[IA] fetch completó — status:', fetchResponse.status, '| t:', new Date().toISOString());
