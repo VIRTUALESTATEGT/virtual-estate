@@ -110,7 +110,7 @@ async function processClientMessage(psid, text) {
   let convId = null;
   try {
     const timeout = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('INSERT timeout 10s')), 10000));
+      setTimeout(() => reject(new Error('INSERT timeout 2s')), 2000));
     const { data: newConv, error: insertErr } = await Promise.race([
       supabase.from('conversaciones_instagram')
         .insert([{ canal: 'instagram', estado: 'activa', creada_por_cliente: psid }])
