@@ -85,6 +85,10 @@ app.use('/api/webhook/whatsapp', webhookWARouter);
 const webhookIGRouter = require('./src/routes/webhook-instagram');
 app.use('/api/instagram/webhook', webhookIGRouter);
 
+// ── Meta token management (cron-protected) ───────────────────────
+const metaTokensRouter = require('./src/routes/meta-tokens');
+app.use('/api/meta', metaTokensRouter);
+
 // ── Public: Cotización confirmation portal (no auth — leads access via email link) ──
 const confirmacionRouter = require('./src/routes/confirmacion');
 app.use('/api/confirmacion', confirmacionRouter);

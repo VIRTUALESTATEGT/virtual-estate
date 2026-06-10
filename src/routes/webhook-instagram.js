@@ -2,23 +2,24 @@ const express  = require('express');
 const router   = express.Router();
 const axios    = require('axios');
 const supabase = require('../config/supabase');
+const { getMetaToken } = require('./meta-tokens');
 
-const IG_BASE        = 'https://graph.facebook.com/v19.0';
-const VERIFY_TOKEN   = process.env.INSTAGRAM_VERIFY_TOKEN || process.env.WHATSAPP_VERIFY_TOKEN || 'virtual-estate-webhook';
-const ACCESS_TOKEN   = process.env.INSTAGRAM_ACCESS_TOKEN || '';
-const ADMIN_PSID     = process.env.INSTAGRAM_ADMIN_PSID   || '';
+const IG_BASE      = 'https://graph.facebook.com/v19.0';
+const VERIFY_TOKEN = process.env.INSTAGRAM_VERIFY_TOKEN || process.env.WHATSAPP_VERIFY_TOKEN || 'virtual-estate-webhook';
+const ADMIN_PSID   = process.env.INSTAGRAM_ADMIN_PSID || '';
 
 // ── Send a text reply to an Instagram DM sender (by PSID) ────────────────────
 async function sendInstagramMessage(recipientId, text) {
-  if (!ACCESS_TOKEN) {
-    console.warn('[IG] INSTAGRAM_ACCESS_TOKEN not set — skipping send');
+  const token = await getMetaToken('instagram');
+  if (!token) {
+    console.warn('[IG] No Instagram token available — skipping send');
     return null;
   }
   try {
     const { data } = await axios.post(
       `${IG_BASE}/me/messages`,
       { recipient: { id: recipientId }, message: { text } },
-      { headers: { Authorization: `Bearer ${ACCESS_TOKEN}`, 'Content-Type': 'application/json' } }
+      { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } }
     );
     console.log('[IG] sendMessage OK → recipientId:', recipientId, '| msg_id:', data?.message_id);
     return data;
