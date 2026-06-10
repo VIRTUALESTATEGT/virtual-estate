@@ -110,21 +110,17 @@ async function processAdminCommand(psid, text) {
 async function processClientMessage(psid, text) {
   console.log('[IG] processClientMessage ▶ psid:', psid, '| text:', text.slice(0, 60));
 
-  // Direct INSERT — skip SELECT to avoid Supabase query hang
+  // Direct INSERT
   let convId = null;
   try {
-    const timeout = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('INSERT timeout 2s')), 2000));
-    const { data: newConv, error: insertErr } = await Promise.race([
-      supabase.from('conversaciones_instagram')
-        .insert([{ psid, canal: 'instagram', estado: 'activa' }])
-        .select('id').single(),
-      timeout,
-    ]);
-    if (insertErr) {
-      console.error('[IG] conv insert error:', insertErr.message, '| code:', insertErr.code);
+    const { data, error } = await supabase
+      .from('conversaciones_instagram')
+      .insert([{ psid, canal: 'instagram', estado: 'activa' }])
+      .select('id');
+    if (error) {
+      console.error('[IG] conv insert error:', error.message, '| code:', error.code);
     } else {
-      convId = newConv?.id;
+      convId = data?.[0]?.id ?? null;
       console.log('[IG] conv created — id:', convId);
     }
   } catch (e) {
@@ -133,9 +129,12 @@ async function processClientMessage(psid, text) {
 
   // Save client message (best-effort)
   if (convId) {
-    await supabase.from('mensajes')
-      .insert([{ conversacion_id: convId, remitente_tipo: 'cliente', contenido: text }])
-      .catch(e => console.error('[IG] mensajes insert error:', e.message));
+    try {
+      await supabase.from('mensajes')
+        .insert([{ conversacion_id: convId, remitente_tipo: 'cliente', contenido: text }]);
+    } catch (e) {
+      console.error('[IG] mensajes insert error:', e.message);
+    }
   }
 
   // Call AI agent
