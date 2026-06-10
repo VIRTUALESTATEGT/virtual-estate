@@ -97,16 +97,48 @@ async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp') {
     messages.push({ role: 'user', content: mensajeCliente });
   }
 
-  console.log('[IA] llamando Claude Sonnet... | messages:', messages.length, '| t:', new Date().toISOString());
-  const response = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 600,
-    system: systemPrompt,
-    messages,
-  });
-  console.log('[IA] Claude respondió | t:', new Date().toISOString());
+  console.log('[IA] iniciando fetch a Claude...');
+  console.log('[IA] CLAUDE_API_KEY present:', !!process.env.CLAUDE_API_KEY, '| length:', process.env.CLAUDE_API_KEY?.length || 0);
+  console.log('[IA] mensajes a enviar:', messages.length, '| t:', new Date().toISOString());
 
-  const respuesta = response.content[0]?.text?.trim();
+  let respuesta;
+  try {
+    console.log('[IA] ejecutando Promise.race con timeout 8s...');
+    const fetchPromise = fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.CLAUDE_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 600,
+        system: systemPrompt,
+        messages,
+      }),
+    });
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Claude API timeout 8s')), 8000));
+
+    const fetchResponse = await Promise.race([fetchPromise, timeoutPromise]);
+    console.log('[IA] fetch completó — status:', fetchResponse.status, '| t:', new Date().toISOString());
+
+    if (!fetchResponse.ok) {
+      const errorBody = await fetchResponse.text();
+      console.error('[IA] Claude HTTP error:', fetchResponse.status, '| body:', errorBody.slice(0, 200));
+      throw new Error(`Claude HTTP ${fetchResponse.status}`);
+    }
+
+    console.log('[IA] leyendo JSON...');
+    const data = await fetchResponse.json();
+    console.log('[IA] Claude respondió — content length:', data.content?.[0]?.text?.length || 0, '| t:', new Date().toISOString());
+    respuesta = data.content?.[0]?.text?.trim();
+  } catch (err) {
+    console.error('[IA] Claude error:', { message: err.message, name: err.name, code: err.code, t: new Date().toISOString() });
+    return null;
+  }
+
   if (!respuesta) return null;
 
   // Confidence heuristic: if the reply hedges, flag to admin
