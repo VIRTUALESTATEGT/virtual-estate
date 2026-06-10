@@ -44,29 +44,33 @@ router.get('/', (req, res) => {
 
 // ── Incoming messages (POST) ──────────────────────────────────────────────────
 router.post('/', async (req, res) => {
-  res.sendStatus(200); // ACK immediately — Meta requires fast response
-
+  // Process BEFORE responding — Vercel may cut execution after res.send().
+  // Hard 4s ceiling so we always respond within Meta's 5s timeout.
   try {
     const entry = req.body?.entry?.[0];
     const messaging = entry?.messaging?.[0];
-    if (!messaging) return;
 
-    const senderId = messaging.sender?.id;
-    const text     = messaging.message?.text?.trim() || '';
+    if (messaging && !messaging.message?.is_echo) {
+      const senderId = messaging.sender?.id;
+      const text     = messaging.message?.text?.trim() || '';
 
-    if (messaging.message?.is_echo) return;
-    if (!senderId || !text) return;
+      if (senderId && text) {
+        console.log(`[IG] Message from PSID ${senderId}: ${text.slice(0, 80)}`);
+        const handler = ADMIN_PSID && senderId === ADMIN_PSID
+          ? processAdminCommand(senderId, text)
+          : processClientMessage(senderId, text);
 
-    console.log(`[IG] Message from PSID ${senderId}: ${text.slice(0, 80)}`);
-
-    if (ADMIN_PSID && senderId === ADMIN_PSID) {
-      await processAdminCommand(senderId, text);
-    } else {
-      await processClientMessage(senderId, text);
+        await Promise.race([
+          handler,
+          new Promise(r => setTimeout(r, 4000)), // yield after 4s max
+        ]);
+      }
     }
   } catch (e) {
     console.error('[IG] Processing error:', e.message);
   }
+
+  res.sendStatus(200); // ACK after processing (or after 4s ceiling)
 });
 
 // ── Admin command processor ───────────────────────────────────────────────────
