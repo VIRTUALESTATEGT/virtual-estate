@@ -4642,16 +4642,13 @@
   }
 
   async function confirmarEnvioCotizacion(){
-    console.log('[ENVIO] ▶ iniciando — cotId:', _envioCotId, '| link:', _envioLink?.slice(0,60));
     const checks=Array.from(document.querySelectorAll('.envio-canal-cb:checked'));
-    console.log('[ENVIO] canales seleccionados:', checks.map(c=>c.value));
-    if(!checks.length){showToast('Selecciona al menos un canal');console.log('[ENVIO] ✗ sin canales');return;}
+    if(!checks.length){showToast('Selecciona al menos un canal');return;}
     const {tel,email}=_envioCanalesData;
-    console.log('[ENVIO] _envioCanalesData — tel:', tel||'(vacío)', '| email:', email||'(vacío)');
     const waNecesario=checks.some(c=>c.value==='whatsapp');
     const emailNecesario=checks.some(c=>c.value==='email');
-    if(waNecesario&&!tel){showToast('Ingresa un teléfono para enviar por WhatsApp');console.log('[ENVIO] ✗ WhatsApp sin teléfono');document.getElementById('envio-tel-input')?.focus();return;}
-    if(emailNecesario&&!email){showToast('Ingresa un email para enviar por correo');console.log('[ENVIO] ✗ Email sin dirección');document.getElementById('envio-email-input')?.focus();return;}
+    if(waNecesario&&!tel){showToast('Ingresa un teléfono para enviar por WhatsApp');document.getElementById('envio-tel-input')?.focus();return;}
+    if(emailNecesario&&!email){showToast('Ingresa un email para enviar por correo');document.getElementById('envio-email-input')?.focus();return;}
     const btn=document.getElementById('btn-confirmar-envio');
     btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Enviando...';
     const resultEl=document.getElementById('envio-result');
@@ -4659,15 +4656,14 @@
       const canal=cb.value;
       const body={cotizacion_id:_envioCotId,link:_envioLink};
       let endpoint='';
-      if(canal==='whatsapp'){endpoint='/api/whatsapp/enviar-cotizacion';body.phone_number=tel;console.log('[ENVIO-WA-DEBUG] Enviando WhatsApp:',{cotId:body.cotizacion_id,phone:tel,link:body.link?.slice(0,60)});}
+      if(canal==='whatsapp'){endpoint='/api/whatsapp/enviar-cotizacion';body.phone_number=tel;}
       else if(canal==='email'){endpoint='/api/email/enviar-cotizacion';body.email=email;}
       else if(canal==='facebook'){endpoint='/api/facebook/enviar-cotizacion';}
       else if(canal==='instagram'){endpoint='/api/instagram/enviar-cotizacion';}
-      console.log('[ENVIO] canal:', canal, '| endpoint:', endpoint, '| body:', JSON.stringify(body));
       if(!endpoint) return Promise.resolve({canal,ok:false,skip:true});
       return apiFetch(endpoint,{method:'POST',body:JSON.stringify(body)})
-        .then(r=>{console.log('[ENVIO] ✅ '+canal+' OK', r);return {canal,ok:true};})
-        .catch(e=>{console.error('[ENVIO] ✗ '+canal+' error:', e.message);return {canal,ok:false,error:e.message};});
+        .then(r=>{return {canal,ok:true};})
+        .catch(e=>{return {canal,ok:false,error:e.message};});
     });
     try{
       const results=await Promise.all(envios);

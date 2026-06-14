@@ -7,9 +7,63 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'virtual-estate-secret-key';
 const JWT_EXPIRES = '8h';
 
-// LOGIN
-router.post('/login', async (req, res) => {
+// ── Rate limiting (Supabase-backed — works across serverless instances) ───────
+const RL_MAX_ATTEMPTS  = 5;
+const RL_WINDOW_MS     = 15 * 60 * 1000; // 15 minutes
+
+async function checkRateLimit(ip) {
   try {
+    const { data } = await supabase
+      .from('rate_limit_intentos')
+      .select('id, intentos, ventana_inicio')
+      .eq('ip', ip).eq('endpoint', 'login')
+      .maybeSingle();
+    if (!data) return { blocked: false };
+    const windowExpired = (Date.now() - new Date(data.ventana_inicio).getTime()) > RL_WINDOW_MS;
+    if (windowExpired) return { blocked: false };
+    return { blocked: data.intentos >= RL_MAX_ATTEMPTS, intentos: data.intentos };
+  } catch { return { blocked: false }; } // fail open — don't lock out on DB errors
+}
+
+async function recordFailedAttempt(ip) {
+  try {
+    const { data } = await supabase
+      .from('rate_limit_intentos')
+      .select('id, intentos, ventana_inicio')
+      .eq('ip', ip).eq('endpoint', 'login')
+      .maybeSingle();
+    const now = new Date().toISOString();
+    const windowExpired = !data || (Date.now() - new Date(data.ventana_inicio).getTime()) > RL_WINDOW_MS;
+    if (!data) {
+      await supabase.from('rate_limit_intentos')
+        .insert([{ ip, endpoint: 'login', intentos: 1, ventana_inicio: now, updated_at: now }]);
+    } else if (windowExpired) {
+      await supabase.from('rate_limit_intentos')
+        .update({ intentos: 1, ventana_inicio: now, updated_at: now }).eq('id', data.id);
+    } else {
+      await supabase.from('rate_limit_intentos')
+        .update({ intentos: data.intentos + 1, updated_at: now }).eq('id', data.id);
+    }
+  } catch (e) { console.error('[RateLimit] recordFailedAttempt error:', e.message); }
+}
+
+async function resetRateLimit(ip) {
+  try {
+    await supabase.from('rate_limit_intentos')
+      .update({ intentos: 0, updated_at: new Date().toISOString() })
+      .eq('ip', ip).eq('endpoint', 'login');
+  } catch { /* non-critical */ }
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────────────────────
+router.post('/login', async (req, res) => {
+  const ip = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+  try {
+    const rl = await checkRateLimit(ip);
+    if (rl.blocked) {
+      return res.status(429).json({ error: `Demasiados intentos fallidos. Espera 15 minutos antes de intentar de nuevo.` });
+    }
+
     const { email, password } = req.body;
     const { data, error } = await supabase
       .from('usuarios')
@@ -18,14 +72,17 @@ router.post('/login', async (req, res) => {
       .single();
 
     if (error || !data) {
+      await recordFailedAttempt(ip);
       return res.status(401).json({ error: 'Email o contraseña incorrectos' });
     }
 
     const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
     if (data.password !== hashedPassword) {
+      await recordFailedAttempt(ip);
       return res.status(401).json({ error: 'Email o contraseña incorrectos' });
     }
+    await resetRateLimit(ip);
 
     const payload = {
       id: data.id,

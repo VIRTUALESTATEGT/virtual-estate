@@ -379,7 +379,7 @@ router.post('/publish-post/:postId', async (req, res) => {
 
     const igCaption = instagram_caption || post.instagram_caption || post.content;
 
-    const igAccountId = process.env.INSTAGRAM_ACCOUNT_ID || '17841443547214652';
+    const igAccountId = process.env.INSTAGRAM_ACCOUNT_ID;
     const igToken     = process.env.INSTAGRAM_ACCESS_TOKEN;
     let   igPostId    = null;
 

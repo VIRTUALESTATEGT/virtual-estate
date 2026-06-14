@@ -1,12 +1,29 @@
 const express  = require('express');
 const router   = express.Router();
 const axios    = require('axios');
+const crypto   = require('crypto');
 const supabase = require('../config/supabase');
 const { getMetaToken } = require('./meta-tokens');
 
-const IG_BASE      = 'https://graph.facebook.com/v19.0';
-const VERIFY_TOKEN = process.env.INSTAGRAM_VERIFY_TOKEN || process.env.WHATSAPP_VERIFY_TOKEN || 'virtual-estate-webhook';
-const ADMIN_PSID   = process.env.INSTAGRAM_ADMIN_PSID || '';
+const IG_BASE        = 'https://graph.facebook.com/v19.0';
+const VERIFY_TOKEN   = process.env.INSTAGRAM_VERIFY_TOKEN || process.env.WHATSAPP_VERIFY_TOKEN || 'virtual-estate-webhook';
+const ADMIN_PSID     = process.env.INSTAGRAM_ADMIN_PSID || '';
+const IG_APP_SECRET  = process.env.INSTAGRAM_APP_SECRET || process.env.META_APP_SECRET || '';
+// IG_SIGNATURE_ENFORCE=true → reject 403 on mismatch; false (default) → log-only
+const IG_SIG_ENFORCE = process.env.IG_SIGNATURE_ENFORCE === 'true';
+
+// ── Signature validation (same algorithm as WhatsApp) ────────────────────────
+function validateIGSignature(req) {
+  if (!IG_APP_SECRET) return { valid: true, reason: 'no_secret_configured' };
+  const sig = req.headers['x-hub-signature-256'];
+  if (!sig) return { valid: false, reason: 'missing_header' };
+  const expected = 'sha256=' + crypto
+    .createHmac('sha256', IG_APP_SECRET)
+    .update(req.rawBody || '')
+    .digest('hex');
+  const valid = crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
+  return { valid, received: sig, expected };
+}
 
 // ── Send a text reply to an Instagram DM sender (by PSID) ────────────────────
 async function sendInstagramMessage(recipientId, text) {
@@ -45,6 +62,18 @@ router.get('/', (req, res) => {
 
 // ── Incoming messages (POST) ──────────────────────────────────────────────────
 router.post('/', async (req, res) => {
+  // Signature check — same HMAC-SHA256 pattern as WhatsApp
+  const sigResult = validateIGSignature(req);
+  if (!sigResult.valid) {
+    console.warn('[IG] Signature mismatch — enforce:', IG_SIG_ENFORCE,
+      '| reason:', sigResult.reason,
+      '| received:', sigResult.received,
+      '| expected:', sigResult.expected);
+    if (IG_SIG_ENFORCE) return res.sendStatus(403);
+  } else if (IG_APP_SECRET) {
+    console.log('[IG] Signature valid ✅');
+  }
+
   // Process BEFORE responding — Vercel may cut execution after res.send().
   // Hard 4s ceiling so we always respond within Meta's 5s timeout.
   try {
