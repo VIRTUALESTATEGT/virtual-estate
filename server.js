@@ -8,20 +8,13 @@ const authMiddleware = require('./src/middleware/auth');
 
 app.use(cors());
 
-// Capture raw body for webhook signature validation (WhatsApp + Instagram) BEFORE json parser
-app.use((req, res, next) => {
-  const needsRaw = req.path === '/api/webhook/whatsapp' || req.path === '/api/instagram/webhook';
-  if (needsRaw) {
-    let data = '';
-    req.on('data', chunk => { data += chunk; });
-    req.on('end', () => { req.rawBody = data; next(); });
-  } else {
-    next();
-  }
-});
-
-// 2mb limit to support PDF HTML payloads (~600KB machote) sent from the admin frontend
-app.use(express.json({ limit: '2mb' }));
+// Capture raw body via express.json verify — single stream read, available to all webhook
+// signature validators (WhatsApp uses req.rawBody as string; Instagram as Buffer — both work
+// with crypto.createHmac().update())
+app.use(express.json({
+  limit: '2mb',
+  verify: (req, _res, buf) => { req.rawBody = buf; },
+}));
 
 // Auth (pública — sin protección)
 const authRouter = require('./src/routes/auth');
