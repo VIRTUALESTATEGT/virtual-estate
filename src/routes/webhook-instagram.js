@@ -8,7 +8,7 @@ const { getMetaToken } = require('./meta-tokens');
 const IG_BASE        = 'https://graph.facebook.com/v19.0';
 const VERIFY_TOKEN   = process.env.INSTAGRAM_VERIFY_TOKEN || process.env.WHATSAPP_VERIFY_TOKEN || 'virtual-estate-webhook';
 const ADMIN_PSID     = process.env.INSTAGRAM_ADMIN_PSID || '';
-const IG_APP_SECRET  = process.env.INSTAGRAM_APP_SECRET || process.env.META_APP_SECRET || '';
+const IG_APP_SECRET  = process.env.INSTAGRAM_APP_SECRET || process.env.WHATSAPP_APP_SECRET || '';
 // IG_SIGNATURE_ENFORCE=true → reject 403 on mismatch; false (default) → log-only
 const IG_SIG_ENFORCE = process.env.IG_SIGNATURE_ENFORCE === 'true';
 
