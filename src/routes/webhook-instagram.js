@@ -177,11 +177,13 @@ async function processClientMessage(psid, text) {
       console.log('[IG] enviando respuesta → psid:', psid);
       await sendInstagramMessage(psid, respuesta);
     } else {
-      console.warn('[IG] responderIA devolvió vacío');
+      console.warn('[IG] responderIA devolvió vacío — enviando mensaje de respaldo');
+      await sendInstagramMessage(psid, 'Dame un momento, en breve te atiendo 🙏')
+        .catch(se => console.error('[IG] fallback send error:', se.message));
     }
   } catch (e) {
     console.error('[IG] IA error:', e.message);
-    await sendInstagramMessage(psid, 'Hola 👋 Recibimos tu mensaje. Un asesor te contactará pronto.')
+    await sendInstagramMessage(psid, 'Dame un momento, en breve te atiendo 🙏')
       .catch(se => console.error('[IG] fallback send error:', se.message));
   }
 }

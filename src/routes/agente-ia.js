@@ -101,9 +101,10 @@ async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp') {
   console.log('[IA] CLAUDE_API_KEY present:', !!process.env.CLAUDE_API_KEY, '| length:', process.env.CLAUDE_API_KEY?.length || 0);
   console.log('[IA] mensajes a enviar:', messages.length, '| t:', new Date().toISOString());
 
-  let respuesta;
-  try {
-    console.log('[IA] ejecutando Promise.race con timeout 8s...');
+  const CLAUDE_TIMEOUT_MS = 25000;
+
+  async function callClaude(attempt) {
+    console.log(`[IA] Claude fetch — attempt ${attempt} | timeout ${CLAUDE_TIMEOUT_MS}ms | t:`, new Date().toISOString());
     const fetchPromise = fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -119,24 +120,29 @@ async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp') {
       }),
     });
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Claude API timeout 20s')), 20000));
-
+      setTimeout(() => reject(new Error(`Claude API timeout ${CLAUDE_TIMEOUT_MS / 1000}s`)), CLAUDE_TIMEOUT_MS));
     const fetchResponse = await Promise.race([fetchPromise, timeoutPromise]);
-    console.log('[IA] fetch completó — status:', fetchResponse.status, '| t:', new Date().toISOString());
-
     if (!fetchResponse.ok) {
       const errorBody = await fetchResponse.text();
       console.error('[IA] Claude HTTP error:', fetchResponse.status, '| body:', errorBody.slice(0, 200));
       throw new Error(`Claude HTTP ${fetchResponse.status}`);
     }
-
-    console.log('[IA] leyendo JSON...');
     const data = await fetchResponse.json();
     console.log('[IA] Claude respondió — content length:', data.content?.[0]?.text?.length || 0, '| t:', new Date().toISOString());
-    respuesta = data.content?.[0]?.text?.trim();
+    return data.content?.[0]?.text?.trim() || null;
+  }
+
+  let respuesta;
+  try {
+    respuesta = await callClaude(1);
   } catch (err) {
-    console.error('[IA] Claude error:', { message: err.message, name: err.name, code: err.code, t: new Date().toISOString() });
-    return null;
+    console.error('[IA] Claude attempt 1 failed:', err.message, '— retrying...');
+    try {
+      respuesta = await callClaude(2);
+    } catch (err2) {
+      console.error('[IA] Claude attempt 2 failed:', err2.message, '— giving up');
+      return null;
+    }
   }
 
   if (!respuesta) return null;
