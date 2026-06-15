@@ -109,9 +109,9 @@ async function processAdminCommand(psid, text) {
 
   if (upper === 'RESUMEN') {
     const { data: activas } = await supabase
-      .from('conversaciones_instagram').select('id', { count: 'exact' }).eq('estado', 'activa');
+      .from('conversaciones_multicanal').select('id', { count: 'exact' }).eq('canal', 'instagram').eq('estado', 'activa');
     await sendInstagramMessage(psid,
-      `📊 RESUMEN VIRTUAL ESTATE\n• Conversaciones activas: ${activas?.length ?? 0}`
+      `📊 RESUMEN VIRTUAL ESTATE\n• Conversaciones Instagram activas: ${activas?.length ?? 0}`
     );
     return;
   }
@@ -120,12 +120,12 @@ async function processAdminCommand(psid, text) {
   if (responderMatch) {
     const [, convId, respuesta] = responderMatch;
     const { data: conv } = await supabase
-      .from('conversaciones_instagram').select('*').eq('id', convId).maybeSingle();
+      .from('conversaciones_multicanal').select('*').eq('id', convId).maybeSingle();
     if (!conv) { await sendInstagramMessage(psid, `❌ Conversación #${convId} no encontrada`); return; }
     await supabase.from('mensajes').insert([{
       conversacion_id: Number(convId), remitente_tipo: 'agente_humano', contenido: respuesta.trim()
     }]);
-    await supabase.from('conversaciones_instagram')
+    await supabase.from('conversaciones_multicanal')
       .update({ ultima_respuesta_tipo: 'agente_humano', timestamp: new Date().toISOString() })
       .eq('id', convId);
     if (conv.creada_por_cliente) await sendInstagramMessage(conv.creada_por_cliente, respuesta.trim());
@@ -136,32 +136,59 @@ async function processAdminCommand(psid, text) {
   await sendInstagramMessage(psid, `❓ Comandos disponibles:\nRESUMEN | RESPONDER [ID]: [texto]`);
 }
 
+// ── DB helper: race any Supabase promise against a 5s timeout ────────────────
+function dbWithTimeout(promise, label) {
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(`${label} timeout 5s`)), 5000));
+  return Promise.race([promise, timeout]);
+}
+
 // ── Client message processor ──────────────────────────────────────────────────
 async function processClientMessage(psid, text) {
   console.log('[IG] processClientMessage ▶ psid:', psid, '| text:', text.slice(0, 60));
 
-  // Direct INSERT
+  // Find or create conversation in conversaciones_multicanal (same table as WhatsApp)
+  // Uses service_role key — bypasses RLS. 5s timeout as safety net against hangs.
   let convId = null;
   try {
-    const { data, error } = await supabase
-      .from('conversaciones_instagram')
-      .insert([{ psid, canal: 'instagram', estado: 'activa' }])
-      .select('id');
-    if (error) {
-      console.error('[IG] conv insert error:', error.message, '| code:', error.code);
+    const { data: existing } = await dbWithTimeout(
+      supabase.from('conversaciones_multicanal')
+        .select('id')
+        .eq('creada_por_cliente', psid)
+        .eq('estado', 'activa')
+        .maybeSingle(),
+      'SELECT conv'
+    );
+    if (existing?.id) {
+      convId = existing.id;
+      console.log('[IG] existing conv — id:', convId);
     } else {
-      convId = data?.[0]?.id ?? null;
-      console.log('[IG] conv created — id:', convId);
+      const { data: newConv, error: insertErr } = await dbWithTimeout(
+        supabase.from('conversaciones_multicanal')
+          .insert([{ canal: 'instagram', estado: 'activa', creada_por_cliente: psid }])
+          .select('id')
+          .single(),
+        'INSERT conv'
+      );
+      if (insertErr) {
+        console.error('[IG] conv insert error:', insertErr.message, '| code:', insertErr.code);
+      } else {
+        convId = newConv?.id ?? null;
+        console.log('[IG] new conv — id:', convId);
+      }
     }
   } catch (e) {
-    console.error('[IG] conv insert threw:', e.message);
+    console.error('[IG] conv DB error (continuing without conv):', e.message);
   }
 
-  // Save client message (best-effort)
+  // Save client message (best-effort — FK now valid since conv is in conversaciones_multicanal)
   if (convId) {
     try {
-      await supabase.from('mensajes')
-        .insert([{ conversacion_id: convId, remitente_tipo: 'cliente', contenido: text }]);
+      await dbWithTimeout(
+        supabase.from('mensajes')
+          .insert([{ conversacion_id: convId, remitente_tipo: 'cliente', contenido: text }]),
+        'INSERT mensaje'
+      );
     } catch (e) {
       console.error('[IG] mensajes insert error:', e.message);
     }

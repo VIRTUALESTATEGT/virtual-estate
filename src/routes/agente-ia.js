@@ -82,13 +82,17 @@ async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp') {
   const instrucciones = await loadDynamicInstructions();
   const systemPrompt  = SYSTEM_PROMPT.replace('{instrucciones_dinamicas}', instrucciones);
 
-  let history;
-  if (canal === 'instagram') {
-    console.log('[IA] saltando historial para instagram');
-    history = [];
-  } else {
-    console.log('[IA] cargando historial...');
-    history = await getConversationHistory(conversacionId);
+  // Load history from mensajes — works for all canals once conv lives in conversaciones_multicanal
+  // 5s timeout safety net: if DB hangs, fall back to empty history rather than blocking
+  console.log('[IA] cargando historial — conv_id:', conversacionId);
+  let history = [];
+  try {
+    history = await Promise.race([
+      getConversationHistory(conversacionId),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('history timeout 5s')), 5000)),
+    ]);
+  } catch (e) {
+    console.warn('[IA] historial no disponible:', e.message, '— continuando sin contexto');
   }
 
   // Build messages array (history + new message)
@@ -158,8 +162,8 @@ async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp') {
     );
   }
 
-  // Save AI response to messages (only when conversacionId exists in mensajes FK table)
-  if (conversacionId && canal === 'whatsapp') {
+  // Save AI response — applies to all canals (conv now lives in conversaciones_multicanal)
+  if (conversacionId) {
     console.log('[IA] guardando en mensajes...');
     await supabase.from('mensajes').insert([{
       conversacion_id: conversacionId,
@@ -168,7 +172,6 @@ async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp') {
       metadata_json: { low_confidence: lowConfidence }
     }]);
 
-    // Update conversation timestamp (only conversaciones_multicanal — whatsapp/web)
     console.log('[IA] actualizando conversaciones_multicanal...');
     await supabase.from('conversaciones_multicanal')
       .update({ ultima_respuesta_tipo: 'ia', timestamp: new Date().toISOString() })
