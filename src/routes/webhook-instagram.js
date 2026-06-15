@@ -5,7 +5,7 @@ const crypto   = require('crypto');
 const supabase = require('../config/supabase');
 const { getMetaToken } = require('./meta-tokens');
 
-const IG_BASE        = 'https://graph.facebook.com/v19.0';
+const IG_BASE        = 'https://graph.instagram.com/v23.0';
 const VERIFY_TOKEN   = process.env.INSTAGRAM_VERIFY_TOKEN || process.env.WHATSAPP_VERIFY_TOKEN || 'virtual-estate-webhook';
 const ADMIN_PSID     = process.env.INSTAGRAM_ADMIN_PSID || '';
 const IG_APP_SECRET  = process.env.INSTAGRAM_APP_SECRET || process.env.WHATSAPP_APP_SECRET || '';
