@@ -72,35 +72,16 @@ async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp') {
   console.log('[IA] CLAUDE_API_KEY present:', !!process.env.CLAUDE_API_KEY, '| length:', process.env.CLAUDE_API_KEY?.length || 0);
   console.log('[IA] mensajes a enviar:', messages.length, '| t:', new Date().toISOString());
 
-  const CLAUDE_TIMEOUT_MS = 25000;
-
   async function callClaude(attempt) {
-    console.log(`[IA] Claude fetch — attempt ${attempt} | timeout ${CLAUDE_TIMEOUT_MS}ms | t:`, new Date().toISOString());
-    const fetchPromise = fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.CLAUDE_API_KEY,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages,
-      }),
+    console.log(`[IA] Claude SDK — attempt ${attempt} | t:`, new Date().toISOString());
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages,
     });
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error(`Claude API timeout ${CLAUDE_TIMEOUT_MS / 1000}s`)), CLAUDE_TIMEOUT_MS));
-    const fetchResponse = await Promise.race([fetchPromise, timeoutPromise]);
-    if (!fetchResponse.ok) {
-      const errorBody = await fetchResponse.text();
-      console.error('[IA] Claude HTTP error:', fetchResponse.status, '| body:', errorBody.slice(0, 200));
-      throw new Error(`Claude HTTP ${fetchResponse.status}`);
-    }
-    const data = await fetchResponse.json();
-    console.log('[IA] Claude respondió — content length:', data.content?.[0]?.text?.length || 0, '| t:', new Date().toISOString());
-    return data.content?.[0]?.text?.trim() || null;
+    console.log('[IA] Claude respondió — content length:', response.content?.[0]?.text?.length || 0, '| t:', new Date().toISOString());
+    return response.content?.[0]?.text?.trim() || null;
   }
 
   let respuesta;
