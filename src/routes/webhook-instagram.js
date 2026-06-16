@@ -151,6 +151,7 @@ async function processClientMessage(psid, text) {
   // Uses service_role key — bypasses RLS. 5s timeout as safety net against hangs.
   let convId = null;
   try {
+    let t0 = Date.now();
     const { data: existing } = await dbWithTimeout(
       supabase.from('conversaciones_multicanal')
         .select('id')
@@ -159,10 +160,12 @@ async function processClientMessage(psid, text) {
         .maybeSingle(),
       'SELECT conv'
     );
+    console.log('[IG-PERF] SELECT conv —', Date.now() - t0, 'ms');
     if (existing?.id) {
       convId = existing.id;
       console.log('[IG] existing conv — id:', convId);
     } else {
+      t0 = Date.now();
       const { data: newConv, error: insertErr } = await dbWithTimeout(
         supabase.from('conversaciones_multicanal')
           .insert([{ canal: 'instagram', estado: 'activa', creada_por_cliente: psid }])
@@ -170,6 +173,7 @@ async function processClientMessage(psid, text) {
           .single(),
         'INSERT conv'
       );
+      console.log('[IG-PERF] INSERT conv —', Date.now() - t0, 'ms');
       if (insertErr) {
         console.error('[IG] conv insert error:', insertErr.message, '| code:', insertErr.code);
       } else {
@@ -184,11 +188,13 @@ async function processClientMessage(psid, text) {
   // Save client message (best-effort — FK now valid since conv is in conversaciones_multicanal)
   if (convId) {
     try {
+      const t0 = Date.now();
       await dbWithTimeout(
         supabase.from('mensajes')
           .insert([{ conversacion_id: convId, remitente_tipo: 'cliente', contenido: text }]),
         'INSERT mensaje'
       );
+      console.log('[IG-PERF] INSERT mensaje cliente —', Date.now() - t0, 'ms');
     } catch (e) {
       console.error('[IG] mensajes insert error:', e.message);
     }

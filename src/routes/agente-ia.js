@@ -79,7 +79,9 @@ async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp') {
   console.log('[IA] responderIA iniciado — conv_id:', conversacionId, '| canal:', canal);
 
   console.log('[IA] cargando instrucciones dinámicas...');
+  let t0 = Date.now();
   const instrucciones = await loadDynamicInstructions();
+  console.log(`[IG-PERF] loadDynamicInstructions — ${Date.now() - t0}ms`);
   const systemPrompt  = SYSTEM_PROMPT.replace('{instrucciones_dinamicas}', instrucciones);
 
   // Load history from mensajes — works for all canals once conv lives in conversaciones_multicanal
@@ -87,10 +89,12 @@ async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp') {
   console.log('[IA] cargando historial — conv_id:', conversacionId);
   let history = [];
   try {
+    t0 = Date.now();
     history = await Promise.race([
       getConversationHistory(conversacionId),
       new Promise((_, reject) => setTimeout(() => reject(new Error('history timeout 5s')), 5000)),
     ]);
+    console.log(`[IG-PERF] getConversationHistory — ${Date.now() - t0}ms | msgs: ${history.length}`);
   } catch (e) {
     console.warn('[IA] historial no disponible:', e.message, '— continuando sin contexto');
   }
@@ -165,17 +169,21 @@ async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp') {
   // Save AI response — applies to all canals (conv now lives in conversaciones_multicanal)
   if (conversacionId) {
     console.log('[IA] guardando en mensajes...');
+    let t0 = Date.now();
     await supabase.from('mensajes').insert([{
       conversacion_id: conversacionId,
       remitente_tipo: 'ia',
       contenido: respuesta,
       metadata_json: { low_confidence: lowConfidence }
     }]);
+    console.log(`[IG-PERF] INSERT respuesta IA — ${Date.now() - t0}ms`);
 
     console.log('[IA] actualizando conversaciones_multicanal...');
+    t0 = Date.now();
     await supabase.from('conversaciones_multicanal')
       .update({ ultima_respuesta_tipo: 'ia', timestamp: new Date().toISOString() })
       .eq('id', conversacionId);
+    console.log(`[IG-PERF] UPDATE conversaciones_multicanal — ${Date.now() - t0}ms`);
   }
 
   console.log('[IA] completado — length:', respuesta.length);
