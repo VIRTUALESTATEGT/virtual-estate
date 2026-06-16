@@ -154,7 +154,7 @@ async function processClientMessage(psid, text) {
     let t0 = Date.now();
     const { data: existing } = await dbWithTimeout(
       supabase.from('conversaciones_multicanal')
-        .select('id')
+        .select('id, timestamp')
         .eq('creada_por_cliente', psid)
         .eq('estado', 'activa')
         .maybeSingle(),
@@ -162,8 +162,18 @@ async function processClientMessage(psid, text) {
     );
     console.log('[IG-PERF] SELECT conv —', Date.now() - t0, 'ms');
     if (existing?.id) {
-      convId = existing.id;
-      console.log('[IG] existing conv — id:', convId);
+      // 3h inactivity check — same rule as WhatsApp prompt logic, enforced in code for IG
+      const lastActivity = new Date(existing.timestamp || 0).getTime();
+      const threeHoursAgo = Date.now() - 3 * 60 * 60 * 1000;
+      if (lastActivity < threeHoursAgo) {
+        console.log('[IG] 3h inactividad — cerrando conv', existing.id, 'y creando nueva');
+        await supabase.from('conversaciones_multicanal')
+          .update({ estado: 'cerrada' }).eq('id', existing.id);
+        // convId stays null → falls through to INSERT below → empty history → welcome message
+      } else {
+        convId = existing.id;
+        console.log('[IG] existing conv — id:', convId);
+      }
     } else {
       t0 = Date.now();
       const { data: newConv, error: insertErr } = await dbWithTimeout(
