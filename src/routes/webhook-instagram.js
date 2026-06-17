@@ -133,57 +133,47 @@ async function processAdminCommand(psid, text) {
   await sendInstagramMessage(psid, `❓ Comandos disponibles:\nRESUMEN | RESPONDER [ID]: [texto]`);
 }
 
-// ── DB helper: race any Supabase promise against a 5s timeout ────────────────
-function dbWithTimeout(promise, label) {
-  const timeout = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error(`${label} timeout 5s`)), 5000));
-  return Promise.race([promise, timeout]);
-}
-
 // ── Client message processor ──────────────────────────────────────────────────
 async function processClientMessage(psid, text) {
   console.log('[IG] processClientMessage ▶ psid:', psid, '| text:', text.slice(0, 60));
 
-  // Find or create conversation in conversaciones_multicanal (same table as WhatsApp)
-  // Uses service_role key — bypasses RLS. 5s timeout as safety net against hangs.
+  // No timeout on conv queries — same pattern as WhatsApp.
+  // Cold-start HTTPS connections to Supabase can take >5s; a hard 5s cutoff was
+  // causing the SELECT to abort early, leaving convId=null and then the rest of
+  // the flow (loadDynamicInstructions, getHistory, Claude) accumulated enough
+  // time to exceed Vercel's function budget before sending anything.
   let convId = null;
   let esPrimerContacto = false;
   try {
     let t0 = Date.now();
-    const { data: existing } = await dbWithTimeout(
-      supabase.from('conversaciones_multicanal')
-        .select('id, timestamp')
-        .eq('creada_por_cliente', psid)
-        .eq('estado', 'activa')
-        .maybeSingle(),
-      'SELECT conv'
-    );
+    const { data: existing } = await supabase
+      .from('conversaciones_multicanal')
+      .select('id, timestamp')
+      .eq('creada_por_cliente', psid)
+      .eq('estado', 'activa')
+      .maybeSingle();
     console.log('[IG-PERF] SELECT conv —', Date.now() - t0, 'ms');
+
     if (existing?.id) {
-      // 3h inactivity check — same rule as WhatsApp prompt logic, enforced in code for IG
       const lastActivity = new Date(existing.timestamp || 0).getTime();
       const threeHoursAgo = Date.now() - 3 * 60 * 60 * 1000;
       if (lastActivity < threeHoursAgo) {
         console.log('[IG] 3h inactividad — cerrando conv', existing.id, 'y creando nueva');
         await supabase.from('conversaciones_multicanal')
           .update({ estado: 'cerrada' }).eq('id', existing.id);
-        // convId stays null → INSERT block below creates a fresh conv
       } else {
         convId = existing.id;
         console.log('[IG] existing conv — id:', convId);
       }
     }
 
-    // Create new conv when: no existing, OR 3h inactivity closed the old one
     if (!convId) {
       t0 = Date.now();
-      const { data: newConv, error: insertErr } = await dbWithTimeout(
-        supabase.from('conversaciones_multicanal')
-          .insert([{ canal: 'instagram', estado: 'activa', creada_por_cliente: psid }])
-          .select('id')
-          .single(),
-        'INSERT conv'
-      );
+      const { data: newConv, error: insertErr } = await supabase
+        .from('conversaciones_multicanal')
+        .insert([{ canal: 'instagram', estado: 'activa', creada_por_cliente: psid }])
+        .select('id')
+        .single();
       console.log('[IG-PERF] INSERT conv —', Date.now() - t0, 'ms');
       if (insertErr) {
         console.error('[IG] conv insert error:', insertErr.message, '| code:', insertErr.code);
@@ -197,39 +187,36 @@ async function processClientMessage(psid, text) {
     console.error('[IG] conv DB error (continuing without conv):', e.message);
   }
 
-  // Save client message (best-effort — FK now valid since conv is in conversaciones_multicanal)
-  if (convId) {
-    try {
-      const t0 = Date.now();
-      await dbWithTimeout(
-        supabase.from('mensajes')
-          .insert([{ conversacion_id: convId, remitente_tipo: 'cliente', contenido: text }]),
-        'INSERT mensaje'
-      );
-      console.log('[IG-PERF] INSERT mensaje cliente —', Date.now() - t0, 'ms');
-    } catch (e) {
-      console.error('[IG] mensajes insert error:', e.message);
-    }
-  }
-
-  // Call AI agent
+  // Call AI agent — always runs regardless of convId
   console.log('[IG-IA-START] iniciando responderIA | conv_id:', convId, '| CLAUDE_API_KEY present:', !!process.env.CLAUDE_API_KEY, '| t:', new Date().toISOString());
+  let respuesta = null;
   try {
     const { responderIA } = require('./agente-ia');
-    const respuesta = await responderIA(convId, text, 'instagram', esPrimerContacto);
+    respuesta = await responderIA(convId, text, 'instagram', esPrimerContacto);
     console.log('[IG] responderIA result — length:', respuesta?.length ?? 'null');
+  } catch (e) {
+    console.error('[IG] IA error:', e.message);
+  }
+
+  // Send to user FIRST — guaranteed before any DB saves
+  try {
     if (respuesta) {
       console.log('[IG] enviando respuesta → psid:', psid);
       await sendInstagramMessage(psid, respuesta);
     } else {
       console.warn('[IG] responderIA devolvió vacío — enviando mensaje de respaldo');
-      await sendInstagramMessage(psid, 'Dame un momento, en breve te atiendo 🙏')
-        .catch(se => console.error('[IG] fallback send error:', se.message));
+      await sendInstagramMessage(psid, 'Dame un momento, en breve te atiendo 🙏');
     }
   } catch (e) {
-    console.error('[IG] IA error:', e.message);
-    await sendInstagramMessage(psid, 'Dame un momento, en breve te atiendo 🙏')
-      .catch(se => console.error('[IG] fallback send error:', se.message));
+    console.error('[IG] sendMessage error:', e.message);
+  }
+
+  // Save client message AFTER sending — fire-and-forget, never blocks the send
+  if (convId) {
+    supabase.from('mensajes')
+      .insert([{ conversacion_id: convId, remitente_tipo: 'cliente', contenido: text }])
+      .then(() => {})
+      .catch(e => console.error('[IG] mensajes insert error:', e.message));
   }
 }
 

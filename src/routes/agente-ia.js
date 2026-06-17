@@ -9,12 +9,14 @@ const { buildSystemPrompt } = require('../config/system-prompt');
 
 async function loadDynamicInstructions() {
   try {
-    const { data } = await supabase
-      .from('instrucciones_ia_dinamicas')
-      .select('tipo, trigger, contenido')
-      .eq('activa', true)
-      .order('fecha_creacion', { ascending: false })
-      .limit(20);
+    const { data } = await Promise.race([
+      supabase.from('instrucciones_ia_dinamicas')
+        .select('tipo, trigger, contenido')
+        .eq('activa', true)
+        .order('fecha_creacion', { ascending: false })
+        .limit(20),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('loadDynamic timeout 15s')), 15000)),
+    ]);
     if (!data?.length) return 'Sin instrucciones adicionales.';
     return data.map(i => `[${i.tipo.toUpperCase()}] ${i.trigger}: ${i.contenido}`).join('\n');
   } catch { return 'Sin instrucciones adicionales.'; }
@@ -49,14 +51,14 @@ async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp', e
   const systemPrompt = buildSystemPrompt(canal, instrucciones, esPrimerContacto);
 
   // Load history from mensajes — works for all canals once conv lives in conversaciones_multicanal
-  // 5s timeout safety net: if DB hangs, fall back to empty history rather than blocking
+  // 15s timeout: generous enough for cold-start connections, still ensures eventual fallback
   console.log('[IA] cargando historial — conv_id:', conversacionId);
   let history = [];
   try {
     t0 = Date.now();
     history = await Promise.race([
       getConversationHistory(conversacionId),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('history timeout 5s')), 5000)),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('history timeout 15s')), 15000)),
     ]);
     console.log(`[IG-PERF] getConversationHistory — ${Date.now() - t0}ms | msgs: ${history.length}`);
   } catch (e) {
@@ -111,24 +113,29 @@ async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp', e
     );
   }
 
-  // Save AI response — applies to all canals (conv now lives in conversaciones_multicanal)
+  // Save AI response — wrapped in try/catch so a DB failure never prevents
+  // the caller from receiving `respuesta` and sending it to the user.
   if (conversacionId) {
-    console.log('[IA] guardando en mensajes...');
-    let t0 = Date.now();
-    await supabase.from('mensajes').insert([{
-      conversacion_id: conversacionId,
-      remitente_tipo: 'ia',
-      contenido: respuesta,
-      metadata_json: { low_confidence: lowConfidence }
-    }]);
-    console.log(`[IG-PERF] INSERT respuesta IA — ${Date.now() - t0}ms`);
+    try {
+      console.log('[IA] guardando en mensajes...');
+      let t0 = Date.now();
+      await supabase.from('mensajes').insert([{
+        conversacion_id: conversacionId,
+        remitente_tipo: 'ia',
+        contenido: respuesta,
+        metadata_json: { low_confidence: lowConfidence }
+      }]);
+      console.log(`[IG-PERF] INSERT respuesta IA — ${Date.now() - t0}ms`);
 
-    console.log('[IA] actualizando conversaciones_multicanal...');
-    t0 = Date.now();
-    await supabase.from('conversaciones_multicanal')
-      .update({ ultima_respuesta_tipo: 'ia', timestamp: new Date().toISOString() })
-      .eq('id', conversacionId);
-    console.log(`[IG-PERF] UPDATE conversaciones_multicanal — ${Date.now() - t0}ms`);
+      console.log('[IA] actualizando conversaciones_multicanal...');
+      t0 = Date.now();
+      await supabase.from('conversaciones_multicanal')
+        .update({ ultima_respuesta_tipo: 'ia', timestamp: new Date().toISOString() })
+        .eq('id', conversacionId);
+      console.log(`[IG-PERF] UPDATE conversaciones_multicanal — ${Date.now() - t0}ms`);
+    } catch (e) {
+      console.error('[IA] save error (respuesta lista, se envía igual):', e.message);
+    }
   }
 
   console.log('[IA] completado — length:', respuesta.length);
