@@ -174,11 +174,6 @@ INSTRUCCIONES DINÁMICAS DEL EQUIPO:
 const HANDOFF_BLOCK = `
 ESTRATEGIA DE CANAL — ATENCIÓN POR INSTAGRAM/MESSENGER:
 
-PRIMER MENSAJE (historial vacío o conversación nueva):
-→ Responde la consulta normalmente.
-→ Al final añade: "Para atención más rápida y envío de cotizaciones, también puedes escribirnos por WhatsApp: wa.me/50239902399 😊"
-→ Solo menciona esto UNA vez. Si el cliente no responde a la sugerencia, NO la repitas.
-
 SI EL CLIENTE CONTINÚA POR ESTE CANAL:
 → Responde con normalidad todas sus consultas.
 → NO insistas en el cambio de canal.
@@ -190,16 +185,32 @@ CUANDO EL CLIENTE SOLICITE O MUESTRE INTENCIÓN DE COTIZAR:
 ZONAS SIN COBERTURA:
 → En vez de rechazar, responde: "Por el momento no cubrimos esa área regularmente, pero déjame validarlo con el equipo — es posible que podamos hacer una excepción. ¿Me das más detalles?"`;
 
+// Appended only when the code confirms this is the very first message of a new conversation
+const PRIMER_CONTACTO_BLOCK = `
+
+[INSTRUCCIÓN SISTEMA — PRIMER CONTACTO CONFIRMADO]
+Esta es la primera vez que este cliente escribe (conversación recién creada por el sistema).
+DEBES hacer exactamente lo siguiente en esta respuesta:
+1. Envía el MENSAJE DE BIENVENIDA completo (con lista de servicios numerada y "¿Qué necesitas hoy?").
+2. Responde también la consulta del cliente si ya viene con una pregunta concreta.
+3. Al final añade: "Para atención más rápida y envío de cotizaciones, también puedes escribirnos por WhatsApp: wa.me/50239902399 😊"
+NO omitas ninguno de estos tres puntos en esta respuesta.`;
+
 /**
  * Build the final system prompt for a given channel.
  * @param {string} canal - 'whatsapp' | 'instagram' | 'messenger'
  * @param {string} instruccionesDinamicas - content from instrucciones_ia_dinamicas table
+ * @param {boolean} esPrimerContacto - true when the conv was just created this request
  */
-function buildSystemPrompt(canal, instruccionesDinamicas = '') {
+function buildSystemPrompt(canal, instruccionesDinamicas = '', esPrimerContacto = false) {
   const handoff = (canal === 'instagram' || canal === 'messenger') ? HANDOFF_BLOCK : '';
-  return MASTER_PROMPT
+  let prompt = MASTER_PROMPT
     .replace('{instrucciones_dinamicas}', instruccionesDinamicas || 'Sin instrucciones adicionales.')
     .replace('{bloque_handoff}', handoff);
+  if (esPrimerContacto && (canal === 'instagram' || canal === 'messenger')) {
+    prompt += PRIMER_CONTACTO_BLOCK;
+  }
+  return prompt;
 }
 
 module.exports = { buildSystemPrompt };

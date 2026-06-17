@@ -38,14 +38,15 @@ async function getConversationHistory(conversacionId, limit = 20) {
 
 // Core function — used by webhook and HTTP endpoint
 // canal: 'whatsapp' (default) | 'instagram' — controls which table gets updated
-async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp') {
-  console.log('[IA] responderIA iniciado — conv_id:', conversacionId, '| canal:', canal);
+// esPrimerContacto: true when the conv was just created this request (deterministic handoff trigger)
+async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp', esPrimerContacto = false) {
+  console.log('[IA] responderIA iniciado — conv_id:', conversacionId, '| canal:', canal, '| primer_contacto:', esPrimerContacto);
 
   console.log('[IA] cargando instrucciones dinámicas...');
   let t0 = Date.now();
   const instrucciones = await loadDynamicInstructions();
   console.log(`[IG-PERF] loadDynamicInstructions — ${Date.now() - t0}ms`);
-  const systemPrompt = buildSystemPrompt(canal, instrucciones);
+  const systemPrompt = buildSystemPrompt(canal, instrucciones, esPrimerContacto);
 
   // Load history from mensajes — works for all canals once conv lives in conversaciones_multicanal
   // 5s timeout safety net: if DB hangs, fall back to empty history rather than blocking

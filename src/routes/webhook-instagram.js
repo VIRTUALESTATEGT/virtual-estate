@@ -62,7 +62,7 @@ router.get('/', (req, res) => {
 
 // ── Incoming messages (POST) ──────────────────────────────────────────────────
 router.post('/', async (req, res) => {
-  // Signature check — same HMAC-SHA256 pattern as WhatsApp
+  // 1. Signature check — BEFORE ACK (same as WhatsApp)
   const sigResult = validateIGSignature(req);
   if (!sigResult.valid) {
     console.warn('[IG] Signature mismatch — enforce:', IG_SIG_ENFORCE,
@@ -74,8 +74,10 @@ router.post('/', async (req, res) => {
     console.log('[IG] Signature valid ✅');
   }
 
-  // Process BEFORE responding — Vercel may cut execution after res.send().
-  // Hard 4s ceiling so we always respond within Meta's 5s timeout.
+  // 2. ACK immediately — prevents cold-start from losing the first message
+  res.sendStatus(200);
+
+  // 3. Process in background — handler stays async so Vercel keeps function alive
   try {
     const entry = req.body?.entry?.[0];
     const messaging = entry?.messaging?.[0];
@@ -86,21 +88,16 @@ router.post('/', async (req, res) => {
 
       if (senderId && text) {
         console.log(`[IG] Message from PSID ${senderId}: ${text.slice(0, 80)}`);
-        const handler = ADMIN_PSID && senderId === ADMIN_PSID
-          ? processAdminCommand(senderId, text)
-          : processClientMessage(senderId, text);
-
-        await Promise.race([
-          handler,
-          new Promise(r => setTimeout(r, 4000)), // yield after 4s max
-        ]);
+        if (ADMIN_PSID && senderId === ADMIN_PSID) {
+          await processAdminCommand(senderId, text);
+        } else {
+          await processClientMessage(senderId, text);
+        }
       }
     }
   } catch (e) {
-    console.error('[IG] Processing error:', e.message);
+    console.error('[IG] Processing error:', e.message, '| stack:', e.stack?.split('\n')[1]);
   }
-
-  res.sendStatus(200); // ACK after processing (or after 4s ceiling)
 });
 
 // ── Admin command processor ───────────────────────────────────────────────────
@@ -150,6 +147,7 @@ async function processClientMessage(psid, text) {
   // Find or create conversation in conversaciones_multicanal (same table as WhatsApp)
   // Uses service_role key — bypasses RLS. 5s timeout as safety net against hangs.
   let convId = null;
+  let esPrimerContacto = false;
   try {
     let t0 = Date.now();
     const { data: existing } = await dbWithTimeout(
@@ -169,12 +167,15 @@ async function processClientMessage(psid, text) {
         console.log('[IG] 3h inactividad — cerrando conv', existing.id, 'y creando nueva');
         await supabase.from('conversaciones_multicanal')
           .update({ estado: 'cerrada' }).eq('id', existing.id);
-        // convId stays null → falls through to INSERT below → empty history → welcome message
+        // convId stays null → INSERT block below creates a fresh conv
       } else {
         convId = existing.id;
         console.log('[IG] existing conv — id:', convId);
       }
-    } else {
+    }
+
+    // Create new conv when: no existing, OR 3h inactivity closed the old one
+    if (!convId) {
       t0 = Date.now();
       const { data: newConv, error: insertErr } = await dbWithTimeout(
         supabase.from('conversaciones_multicanal')
@@ -188,7 +189,8 @@ async function processClientMessage(psid, text) {
         console.error('[IG] conv insert error:', insertErr.message, '| code:', insertErr.code);
       } else {
         convId = newConv?.id ?? null;
-        console.log('[IG] new conv — id:', convId);
+        esPrimerContacto = true;
+        console.log('[IG] new conv — id:', convId, '| es_primer_contacto: true');
       }
     }
   } catch (e) {
@@ -214,7 +216,7 @@ async function processClientMessage(psid, text) {
   console.log('[IG-IA-START] iniciando responderIA | conv_id:', convId, '| CLAUDE_API_KEY present:', !!process.env.CLAUDE_API_KEY, '| t:', new Date().toISOString());
   try {
     const { responderIA } = require('./agente-ia');
-    const respuesta = await responderIA(convId, text, 'instagram');
+    const respuesta = await responderIA(convId, text, 'instagram', esPrimerContacto);
     console.log('[IG] responderIA result — length:', respuesta?.length ?? 'null');
     if (respuesta) {
       console.log('[IG] enviando respuesta → psid:', psid);
