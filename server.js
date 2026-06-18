@@ -17,12 +17,13 @@ app.use(express.json({
 }));
 
 // ── Public: warmup / health check — registered FIRST, before any auth ─────────
-// Response is synchronous (never hangs). The Supabase warmup query runs
-// fire-and-forget so it keeps the DB connection alive without blocking the reply.
+// Registered on both /health and /api/health: Vercel may or may not strip the
+// /api prefix before Express sees req.url — both forms are covered.
+// url field in response reveals which path Express actually received.
 const supabasePublic = require('./src/config/supabase');
-app.get('/api/health', (req, res) => {
-  res.json({ ok: true, t: new Date().toISOString() });
-  // Keep Supabase HTTPS connection alive — fire and forget, never blocks
+app.get(['/health', '/api/health'], (req, res) => {
+  res.json({ ok: true, url: req.url, t: new Date().toISOString() });
+  // Supabase warmup — fire-and-forget, never blocks the response
   supabasePublic.from('conversaciones_multicanal').select('id').limit(1)
     .then(() => {}).catch(() => {});
 });
