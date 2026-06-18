@@ -4,11 +4,17 @@ const supabase = require('../src/config/supabase');
 // Vercel serverless handler
 module.exports = (req, res) => {
   // Health / warmup — intercepted before Express so no auth middleware can touch it.
-  // Handles both /api/health (Vercel keeps full path) and /health (Vercel strips /api prefix).
-  const url = req.url || '';
-  if (req.method === 'GET' && (url === '/api/health' || url === '/health')) {
+  // Uses startsWith + strip-query-params to handle any URL variant Vercel might pass.
+  const rawUrl  = req.url || '';
+  const pathname = rawUrl.replace(/[?#].*$/, ''); // strip query string and hash
+  const isHealth = req.method === 'GET' &&
+    (pathname === '/api/health' || pathname === '/health' ||
+     pathname.startsWith('/api/health/') || pathname.startsWith('/health/'));
+
+  if (isHealth) {
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ ok: true, t: new Date().toISOString() }));
+    // Include rawUrl so the caller can see exactly what Vercel is passing
+    res.end(JSON.stringify({ ok: true, url: rawUrl, t: new Date().toISOString() }));
     // Keep the Supabase HTTPS connection alive for subsequent Instagram/WhatsApp requests
     supabase.from('conversaciones_multicanal').select('id').limit(1)
       .then(() => {}).catch(() => {});
