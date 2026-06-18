@@ -139,6 +139,18 @@ app.use('/api/agente', authMiddleware, (req, res, next) => {
 app.get('/api/whatsapp/webhook',  _waWebhookVerify);
 app.post('/api/whatsapp/webhook', _waWebhookPost);
 
+// ── Public: warmup / health check — called by Vercel cron every 4 min ────────
+// No auth required. Keeps the function AND the Supabase HTTPS connection alive.
+// Only exposes ok/db status — no sensitive data.
+app.get('/api/health', async (req, res) => {
+  try {
+    await supabasePublic.from('conversaciones_multicanal').select('id').limit(1);
+    res.json({ ok: true, db: 'ok', t: new Date().toISOString() });
+  } catch (e) {
+    res.json({ ok: true, db: 'error', error: e.message, t: new Date().toISOString() });
+  }
+});
+
 // ── Envío de cotizaciones por canal ──────────────────────────────────────────
 const envioCotizacionRouter = require('./src/routes/envio-cotizacion');
 app.use('/api', authMiddleware, requireMinRole('asistente'), envioCotizacionRouter);
@@ -154,20 +166,6 @@ app.get('/api/notificaciones', authMiddleware, requireMinRole('asistente'), asyn
     if (error) throw error;
     res.json(data);
   } catch(e) { res.status(500).json({ error: e.message }); }
-});
-
-// ── Warmup / health check — called by Vercel cron every 4 min ────────────────
-// Does a minimal Supabase query to keep BOTH the function AND the DB connection
-// alive. Without the DB query, a warm function still cold-starts the Supabase
-// HTTPS connection on the next real request.
-app.get('/api/health', async (req, res) => {
-  try {
-    await supabasePublic.from('conversaciones_multicanal').select('id').limit(1);
-    res.json({ ok: true, db: 'ok', t: new Date().toISOString() });
-  } catch (e) {
-    // Return 200 anyway — we don't want the cron to alert on Supabase blips
-    res.json({ ok: true, db: 'error', error: e.message, t: new Date().toISOString() });
-  }
 });
 
 // Debug: filesystem info
