@@ -16,12 +16,20 @@ app.use(express.json({
   verify: (req, _res, buf) => { req.rawBody = buf; },
 }));
 
+// ── Public: warmup / health check — registered FIRST, before any auth ─────────
+// Response is synchronous (never hangs). The Supabase warmup query runs
+// fire-and-forget so it keeps the DB connection alive without blocking the reply.
+const supabasePublic = require('./src/config/supabase');
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true, t: new Date().toISOString() });
+  // Keep Supabase HTTPS connection alive — fire and forget, never blocks
+  supabasePublic.from('conversaciones_multicanal').select('id').limit(1)
+    .then(() => {}).catch(() => {});
+});
+
 // Auth (pública — sin protección)
 const authRouter = require('./src/routes/auth');
 app.use('/api/auth', authRouter);
-
-// Public endpoints — no auth
-const supabasePublic = require('./src/config/supabase');
 
 app.get('/api/propiedades/public', async (req, res) => {
   try {
@@ -138,18 +146,6 @@ app.use('/api/agente', authMiddleware, (req, res, next) => {
 // ── Public: WhatsApp webhook (must be before the /api auth catch-all below) ──
 app.get('/api/whatsapp/webhook',  _waWebhookVerify);
 app.post('/api/whatsapp/webhook', _waWebhookPost);
-
-// ── Public: warmup / health check — called by Vercel cron every 4 min ────────
-// No auth required. Keeps the function AND the Supabase HTTPS connection alive.
-// Only exposes ok/db status — no sensitive data.
-app.get('/api/health', async (req, res) => {
-  try {
-    await supabasePublic.from('conversaciones_multicanal').select('id').limit(1);
-    res.json({ ok: true, db: 'ok', t: new Date().toISOString() });
-  } catch (e) {
-    res.json({ ok: true, db: 'error', error: e.message, t: new Date().toISOString() });
-  }
-});
 
 // ── Envío de cotizaciones por canal ──────────────────────────────────────────
 const envioCotizacionRouter = require('./src/routes/envio-cotizacion');
