@@ -133,25 +133,34 @@ async function processAdminCommand(psid, text) {
   await sendInstagramMessage(psid, `❓ Comandos disponibles:\nRESUMEN | RESPONDER [ID]: [texto]`);
 }
 
+// ── Rescue timeout for conv queries ─────────────────────────────────────────
+// Primary fix: idx_conv_creada_por_cliente index (migration 032) makes these
+// queries instant. This 20s parachute handles cold-start HTTPS establishment
+// or transient Supabase degradation — should almost never fire in practice.
+function dbWithTimeout(promise, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timeout 20s`)), 20000)),
+  ]);
+}
+
 // ── Client message processor ──────────────────────────────────────────────────
 async function processClientMessage(psid, text) {
   console.log('[IG] processClientMessage ▶ psid:', psid, '| text:', text.slice(0, 60));
 
-  // No timeout on conv queries — same pattern as WhatsApp.
-  // Cold-start HTTPS connections to Supabase can take >5s; a hard 5s cutoff was
-  // causing the SELECT to abort early, leaving convId=null and then the rest of
-  // the flow (loadDynamicInstructions, getHistory, Claude) accumulated enough
-  // time to exceed Vercel's function budget before sending anything.
   let convId = null;
   let esPrimerContacto = false;
   try {
     let t0 = Date.now();
-    const { data: existing } = await supabase
-      .from('conversaciones_multicanal')
-      .select('id, timestamp')
-      .eq('creada_por_cliente', psid)
-      .eq('estado', 'activa')
-      .maybeSingle();
+    const { data: existing } = await dbWithTimeout(
+      supabase.from('conversaciones_multicanal')
+        .select('id, timestamp')
+        .eq('creada_por_cliente', psid)
+        .eq('estado', 'activa')
+        .maybeSingle(),
+      'SELECT conv'
+    );
     console.log('[IG-PERF] SELECT conv —', Date.now() - t0, 'ms');
 
     if (existing?.id) {
@@ -169,11 +178,13 @@ async function processClientMessage(psid, text) {
 
     if (!convId) {
       t0 = Date.now();
-      const { data: newConv, error: insertErr } = await supabase
-        .from('conversaciones_multicanal')
-        .insert([{ canal: 'instagram', estado: 'activa', creada_por_cliente: psid }])
-        .select('id')
-        .single();
+      const { data: newConv, error: insertErr } = await dbWithTimeout(
+        supabase.from('conversaciones_multicanal')
+          .insert([{ canal: 'instagram', estado: 'activa', creada_por_cliente: psid }])
+          .select('id')
+          .single(),
+        'INSERT conv'
+      );
       console.log('[IG-PERF] INSERT conv —', Date.now() - t0, 'ms');
       if (insertErr) {
         console.error('[IG] conv insert error:', insertErr.message, '| code:', insertErr.code);
