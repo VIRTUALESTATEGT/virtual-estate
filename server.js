@@ -156,6 +156,20 @@ app.get('/api/notificaciones', authMiddleware, requireMinRole('asistente'), asyn
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── Warmup / health check — called by Vercel cron every 4 min ────────────────
+// Does a minimal Supabase query to keep BOTH the function AND the DB connection
+// alive. Without the DB query, a warm function still cold-starts the Supabase
+// HTTPS connection on the next real request.
+app.get('/api/health', async (req, res) => {
+  try {
+    await supabasePublic.from('conversaciones_multicanal').select('id').limit(1);
+    res.json({ ok: true, db: 'ok', t: new Date().toISOString() });
+  } catch (e) {
+    // Return 200 anyway — we don't want the cron to alert on Supabase blips
+    res.json({ ok: true, db: 'error', error: e.message, t: new Date().toISOString() });
+  }
+});
+
 // Debug: filesystem info
 app.get('/api/debug', (req, res) => {
   const fs = require('fs');

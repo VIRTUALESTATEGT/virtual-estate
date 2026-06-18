@@ -44,26 +44,34 @@ async function getConversationHistory(conversacionId, limit = 20) {
 async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp', esPrimerContacto = false) {
   console.log('[IA] responderIA iniciado — conv_id:', conversacionId, '| canal:', canal, '| primer_contacto:', esPrimerContacto);
 
-  console.log('[IA] cargando instrucciones dinámicas...');
-  let t0 = Date.now();
-  const instrucciones = await loadDynamicInstructions();
-  console.log(`[IG-PERF] loadDynamicInstructions — ${Date.now() - t0}ms`);
-  const systemPrompt = buildSystemPrompt(canal, instrucciones, esPrimerContacto);
-
-  // Load history from mensajes — works for all canals once conv lives in conversaciones_multicanal
-  // 15s timeout: generous enough for cold-start connections, still ensures eventual fallback
-  console.log('[IA] cargando historial — conv_id:', conversacionId);
-  let history = [];
-  try {
-    t0 = Date.now();
-    history = await Promise.race([
+  // Run loadDynamicInstructions and getConversationHistory in PARALLEL — saves 15s in worst case.
+  // Both have internal timeouts (15s) and continue with defaults on failure.
+  console.log('[IA] cargando instrucciones+historial en paralelo — conv_id:', conversacionId);
+  const t0 = Date.now();
+  const [instrResult, histResult] = await Promise.allSettled([
+    loadDynamicInstructions(),
+    Promise.race([
       getConversationHistory(conversacionId),
       new Promise((_, reject) => setTimeout(() => reject(new Error('history timeout 15s')), 15000)),
-    ]);
-    console.log(`[IG-PERF] getConversationHistory — ${Date.now() - t0}ms | msgs: ${history.length}`);
-  } catch (e) {
-    console.warn('[IA] historial no disponible:', e.message, '— continuando sin contexto');
+    ]),
+  ]);
+  console.log(`[IG-PERF] instrucciones+historial paralelo — ${Date.now() - t0}ms`);
+
+  const instrucciones = instrResult.status === 'fulfilled'
+    ? instrResult.value
+    : 'Sin instrucciones adicionales.';
+  if (instrResult.status === 'rejected')
+    console.warn('[IA] instrucciones no disponibles:', instrResult.reason?.message);
+
+  let history = [];
+  if (histResult.status === 'fulfilled') {
+    history = histResult.value;
+    console.log(`[IG-PERF] historial — msgs: ${history.length}`);
+  } else {
+    console.warn('[IA] historial no disponible:', histResult.reason?.message, '— continuando sin contexto');
   }
+
+  const systemPrompt = buildSystemPrompt(canal, instrucciones, esPrimerContacto);
 
   // Build messages array (history + new message)
   const messages = [...history];

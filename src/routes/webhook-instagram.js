@@ -134,14 +134,15 @@ async function processAdminCommand(psid, text) {
 }
 
 // ── Rescue timeout for conv queries ─────────────────────────────────────────
-// Primary fix: idx_conv_creada_por_cliente index (migration 032) makes these
-// queries instant. This 20s parachute handles cold-start HTTPS establishment
-// or transient Supabase degradation — should almost never fire in practice.
+// With warmup cron keeping the connection alive, queries complete in <100ms.
+// 8s is generous enough for any transient hiccup while keeping cold-start
+// budget low: 8s (SELECT) + 15s (parallel loadDynamic+getHistory) + ~10s (Claude)
+// = 33s worst case, well within Vercel's 60s maxDuration.
 function dbWithTimeout(promise, label) {
   return Promise.race([
     promise,
     new Promise((_, reject) =>
-      setTimeout(() => reject(new Error(`${label} timeout 20s`)), 20000)),
+      setTimeout(() => reject(new Error(`${label} timeout 8s`)), 8000)),
   ]);
 }
 
