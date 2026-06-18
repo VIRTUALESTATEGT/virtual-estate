@@ -62,7 +62,7 @@ router.get('/', (req, res) => {
 
 // ── Incoming messages (POST) ──────────────────────────────────────────────────
 router.post('/', async (req, res) => {
-  // 1. Signature check — BEFORE ACK (same as WhatsApp)
+  // Signature check — BEFORE processing
   const sigResult = validateIGSignature(req);
   if (!sigResult.valid) {
     console.warn('[IG] Signature mismatch — enforce:', IG_SIG_ENFORCE,
@@ -74,10 +74,11 @@ router.post('/', async (req, res) => {
     console.log('[IG] Signature valid ✅');
   }
 
-  // 2. ACK immediately — prevents cold-start from losing the first message
-  res.sendStatus(200);
-
-  // 3. Process in background — handler stays async so Vercel keeps function alive
+  // Process FIRST, ACK at the end — same pattern as WhatsApp Handler B.
+  // Reason: ACK-first lets Vercel freeze the Lambda event loop after res.send(),
+  // which stops setTimeout timers (including AbortController) from firing during
+  // background work. Synchronous processing keeps the handler awaiting, so the
+  // event loop stays live and all timeouts/AbortControllers work reliably.
   try {
     const entry = req.body?.entry?.[0];
     const messaging = entry?.messaging?.[0];
@@ -98,6 +99,8 @@ router.post('/', async (req, res) => {
   } catch (e) {
     console.error('[IG] Processing error:', e.message, '| stack:', e.stack?.split('\n')[1]);
   }
+
+  res.sendStatus(200); // ACK after processing — Meta allows up to 20s
 });
 
 // ── Admin command processor ───────────────────────────────────────────────────
@@ -134,15 +137,14 @@ async function processAdminCommand(psid, text) {
 }
 
 // ── Rescue timeout for conv queries ─────────────────────────────────────────
-// With warmup cron keeping the connection alive, queries complete in <100ms.
-// 8s is generous enough for any transient hiccup while keeping cold-start
-// budget low: 8s (SELECT) + 15s (parallel loadDynamic+getHistory) + ~10s (Claude)
-// = 33s worst case, well within Vercel's 60s maxDuration.
+// customFetch in supabase.js already aborts the HTTP request via AbortSignal
+// at 5s. This Promise.race is a secondary safety net in case the AbortSignal
+// rejection doesn't propagate cleanly through the Supabase client wrapper.
 function dbWithTimeout(promise, label) {
   return Promise.race([
     promise,
     new Promise((_, reject) =>
-      setTimeout(() => reject(new Error(`${label} timeout 8s`)), 8000)),
+      setTimeout(() => reject(new Error(`${label} timeout 5s`)), 5000)),
   ]);
 }
 

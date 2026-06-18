@@ -21,11 +21,16 @@ app.use(express.json({
 // /api prefix before Express sees req.url — both forms are covered.
 // url field in response reveals which path Express actually received.
 const supabasePublic = require('./src/config/supabase');
-app.get(['/health', '/api/health'], (req, res) => {
-  res.json({ ok: true, url: req.url, t: new Date().toISOString() });
-  // Supabase warmup — fire-and-forget, never blocks the response
-  supabasePublic.from('conversaciones_multicanal').select('id').limit(1)
-    .then(() => {}).catch(() => {});
+app.get(['/health', '/api/health'], async (req, res) => {
+  // MUST await the Supabase query — fire-and-forget doesn't keep the socket alive.
+  // The point of this endpoint is to warm BOTH the Lambda AND the Supabase connection.
+  try {
+    await supabasePublic.from('conversaciones_multicanal').select('id').limit(1);
+    res.json({ ok: true, db: 'ok', url: req.url, t: new Date().toISOString() });
+  } catch (e) {
+    // Still return 200 so warmup pings don't alert on transient Supabase issues
+    res.json({ ok: true, db: 'error', error: e.message, url: req.url, t: new Date().toISOString() });
+  }
 });
 
 // Auth (pública — sin protección)

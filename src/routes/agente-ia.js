@@ -15,7 +15,7 @@ async function loadDynamicInstructions() {
         .eq('activa', true)
         .order('fecha_creacion', { ascending: false })
         .limit(20),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('loadDynamic timeout 15s')), 15000)),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('loadDynamic timeout 5s')), 5000)),
     ]);
     if (!data?.length) return 'Sin instrucciones adicionales.';
     return data.map(i => `[${i.tipo.toUpperCase()}] ${i.trigger}: ${i.contenido}`).join('\n');
@@ -52,7 +52,7 @@ async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp', e
     loadDynamicInstructions(),
     Promise.race([
       getConversationHistory(conversacionId),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('history timeout 15s')), 15000)),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('history timeout 5s')), 5000)),
     ]),
   ]);
   console.log(`[IG-PERF] instrucciones+historial paralelo — ${Date.now() - t0}ms`);
@@ -90,7 +90,7 @@ async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp', e
       max_tokens: 1000,
       system: systemPrompt,
       messages,
-    });
+    }, { timeout: 10000 }); // 10s hard cap — keeps total ≤ 5+5+10=20s within Meta's limit
     console.log('[IA] Claude respondió — content length:', response.content?.[0]?.text?.length || 0, '| t:', new Date().toISOString());
     return response.content?.[0]?.text?.trim() || null;
   }
