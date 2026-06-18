@@ -17,10 +17,6 @@
     {
       "path": "/api/meta/refresh-token?platform=instagram",
       "schedule": "0 2 * * 0"
-    },
-    {
-      "path": "/api/health",
-      "schedule": "*/4 * * * *"
     }
   ]
 }
