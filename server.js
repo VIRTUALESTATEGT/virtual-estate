@@ -299,6 +299,15 @@ function _waWebhookVerify(req, res) {
 // POST — recibir mensajes entrantes
 const WA_OWNER_NUMBERS = ['50239902399', '50250175832'];
 
+// Normaliza un número de teléfono al formato canónico usado en whatsapp_contacts.
+// Meta envía sin '+' ni guiones ('50239902399'), pero el owner puede escribir
+// comandos con cualquier formato — esta función los unifica.
+function normalizarNumero(raw) {
+  const digits = String(raw || '').replace(/\D/g, ''); // quita todo excepto dígitos
+  if (digits.length === 8) return '502' + digits;       // número local GT → prefijo 502
+  return digits;                                         // 11 dígitos (502xxxxxxxx) u otros → sin cambio
+}
+
 async function _waHandleOwnerCommand(phone, text) {
   const parts = text.trim().split(/\s+/);
   const cmd   = parts[0]?.toLowerCase();
@@ -420,11 +429,12 @@ async function _waWebhookPost(req, res) {
     }
 
     // ── PASO 4: Verificar contact_type ───────────────────────────────────
-    console.log('[WA] Consultando contact_type para:', phone, '...');
+    const phoneNorm = normalizarNumero(phone);
+    console.log('[WA] Consultando contact_type para:', phoneNorm, '...');
     const { data: contact, error: contactErr } = await _waSupabase
       .from('whatsapp_contacts')
       .select('contact_type, respond, name')
-      .eq('phone_number', phone)
+      .eq('phone_number', phoneNorm)
       .single();
 
     if (contactErr && contactErr.code !== 'PGRST116') {
