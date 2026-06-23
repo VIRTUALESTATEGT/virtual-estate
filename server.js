@@ -660,22 +660,25 @@ async function _waWebhookPost(req, res) {
 
         if (clasificacion === 'personal') {
           contactType = 'personal';
-          _waSupabase.from('whatsapp_contacts')
-            .insert({ phone_number: phoneNorm, contact_type: 'personal', respond: false })
-            .catch(e => console.error('[WA] Error insertando personal:', e.message));
+          try {
+            await _waSupabase.from('whatsapp_contacts')
+              .insert({ phone_number: phoneNorm, contact_type: 'personal', respond: false });
+          } catch (e) { console.error('[WA] Error insertando personal:', e.message); }
         } else if (clasificacion === 'client') {
           contactType = 'client';
-          _waSupabase.from('whatsapp_contacts')
-            .insert({ phone_number: phoneNorm, contact_type: 'client', respond: true })
-            .catch(e => console.error('[WA] Error insertando client:', e.message));
+          try {
+            await _waSupabase.from('whatsapp_contacts')
+              .insert({ phone_number: phoneNorm, contact_type: 'client', respond: true });
+          } catch (e) { console.error('[WA] Error insertando client:', e.message); }
         } else {
           // ambiguo
           if (prevCount >= 2) {
             // 3er mensaje o más y sigue ambiguo → client definitivo
             contactType = 'client';
-            _waSupabase.from('whatsapp_contacts')
-              .insert({ phone_number: phoneNorm, contact_type: 'client', respond: true })
-              .catch(e => console.error('[WA] Error insertando ambiguo→client:', e.message));
+            try {
+              await _waSupabase.from('whatsapp_contacts')
+                .insert({ phone_number: phoneNorm, contact_type: 'client', respond: true });
+            } catch (e) { console.error('[WA] Error insertando ambiguo→client:', e.message); }
             console.log('[WA] Ventana agotada (prevCount:', prevCount, ') — client definitivo');
           } else {
             // 1er o 2º mensaje ambiguo → responder sin clasificar aún
