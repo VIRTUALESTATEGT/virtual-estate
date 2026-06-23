@@ -417,7 +417,7 @@ async function _waWebhookPost(req, res) {
       console.log('[WA] prospect_tracking new lead:', phone);
     }
 
-    // ── Comandos owner ────────────────────────────────────────────────────
+    // ── Comandos owner ! (existentes) ────────────────────────────────────
     if (isOwner && isCommand) {
       const cmd = text.trim().split(/\s+/)[0]?.toLowerCase();
       console.log('[WA] from:', phone, '— OWNER detected — command:', cmd);
@@ -426,6 +426,42 @@ async function _waWebhookPost(req, res) {
       console.log('[WA] Owner command response sent:', reply);
       res.sendStatus(200);
       return;
+    }
+
+    // ── Comandos owner zx/zc (clasificación de contactos) ────────────────
+    // zx [numero] → personal (no responder) | zc [numero] → cliente (responder)
+    if (isOwner) {
+      const trimmed  = text.trim();
+      const zxMatch  = trimmed.match(/^zx\s+(.*)/i);
+      const zcMatch  = trimmed.match(/^zc\s+(.*)/i);
+      const isZCmd   = zxMatch || zcMatch;
+
+      if (isZCmd) {
+        const rawNum    = (zxMatch || zcMatch)[1].trim();
+        const targetNum = rawNum ? normalizarNumero(rawNum) : '';
+
+        let reply;
+        if (!targetNum) {
+          reply = 'Uso: zx [numero] = personal | zc [numero] = cliente. Acepta cualquier formato de número.';
+        } else if (zxMatch) {
+          await _waSupabase.from('whatsapp_contacts').upsert(
+            { phone_number: targetNum, contact_type: 'personal', respond: false, updated_at: new Date() },
+            { onConflict: 'phone_number' }
+          );
+          reply = `✓ ${targetNum} marcado como PERSONAL (no se le responderá)`;
+        } else {
+          await _waSupabase.from('whatsapp_contacts').upsert(
+            { phone_number: targetNum, contact_type: 'client', respond: true, updated_at: new Date() },
+            { onConflict: 'phone_number' }
+          );
+          reply = `✓ ${targetNum} marcado como CLIENTE (se le responderá)`;
+        }
+
+        console.log('[WA] zCmd:', reply);
+        await _waSendMessage(phone, reply);
+        res.sendStatus(200);
+        return;
+      }
     }
 
     // ── PASO 4: Verificar contact_type ───────────────────────────────────
