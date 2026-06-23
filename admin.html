@@ -399,6 +399,9 @@
       <i class="fas fa-bell"></i> Notificaciones
       <span class="nav-badge" id="notif-badge">0</span>
     </div>
+    <div class="nav-item" onclick="showView('wa-contacts', this)">
+      <i class="fab fa-whatsapp"></i> Contactos WA
+    </div>
     <div class="nav-item" onclick="showView('config', this)">
       <i class="fas fa-cog"></i> Configuración
     </div>
@@ -1436,6 +1439,77 @@
         <div id="notif-empty" style="text-align:center;padding:3rem;color:var(--gray);font-size:.8rem;display:none;"><i class="fas fa-bell" style="font-size:2rem;margin-bottom:.8rem;display:block;opacity:.3;"></i>Sin notificaciones</div>
       </div>
     </div><!-- /view-notificaciones -->
+
+    <!-- ── CONTACTOS WHATSAPP VIEW ────────────────────────────── -->
+    <div class="view" id="view-wa-contacts">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="table-head-title"><i class="fab fa-whatsapp" style="color:#25D366;margin-right:.4rem;"></i>Contactos WhatsApp</span>
+          <div style="display:flex;gap:.5rem;align-items:center;">
+            <input id="wac-buscar" type="text" placeholder="Buscar número..."
+              oninput="loadWaContacts()"
+              style="padding:.38rem .7rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-size:.7rem;font-family:'Montserrat',sans-serif;width:150px;outline:none;"/>
+            <select id="wac-tipo" onchange="loadWaContacts()"
+              style="padding:.38rem .7rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-size:.7rem;font-family:'Montserrat',sans-serif;">
+              <option value="">Todos</option>
+              <option value="personal">Personal</option>
+              <option value="client">Cliente</option>
+              <option value="owner">Owner</option>
+            </select>
+            <button class="topbar-btn btn-sec" onclick="loadWaContacts()"><i class="fas fa-sync"></i></button>
+          </div>
+        </div>
+        <div id="wac-list-wrap">
+          <div id="wac-empty" style="text-align:center;padding:3rem;color:var(--gray);font-size:.8rem;display:none;">
+            <i class="fab fa-whatsapp" style="font-size:2rem;margin-bottom:.8rem;display:block;opacity:.3;"></i>
+            Sin contactos registrados
+          </div>
+          <table class="data-table" id="wac-table" style="display:none;">
+            <thead><tr>
+              <th>Número</th><th>Tipo</th><th>Nombre</th><th>Actualizado</th><th>Acciones</th>
+            </tr></thead>
+            <tbody id="wac-tbody"></tbody>
+          </table>
+        </div>
+        <div style="margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--border);">
+          <button class="topbar-btn btn-primary" id="wac-add-btn" onclick="showWacForm()">
+            <i class="fas fa-plus"></i> Agregar contacto
+          </button>
+        </div>
+      </div>
+
+      <!-- Formulario agregar/actualizar -->
+      <div class="panel" id="wac-form-panel" style="display:none;margin-top:1rem;">
+        <div class="panel-head">
+          <span class="table-head-title">Agregar / Actualizar Contacto</span>
+          <button class="topbar-btn btn-sec" onclick="hideWacForm()">Cancelar</button>
+        </div>
+        <div style="display:flex;gap:.8rem;flex-wrap:wrap;align-items:flex-end;">
+          <div>
+            <div style="font-size:.72rem;color:var(--gray);margin-bottom:.3rem;">Número (cualquier formato)</div>
+            <input id="wac-input-phone" type="text" placeholder="+502 5017-5832"
+              style="padding:.5rem .7rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-size:.78rem;font-family:'Montserrat',sans-serif;width:200px;outline:none;"/>
+          </div>
+          <div>
+            <div style="font-size:.72rem;color:var(--gray);margin-bottom:.3rem;">Tipo</div>
+            <select id="wac-input-tipo"
+              style="padding:.5rem .7rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-size:.78rem;font-family:'Montserrat',sans-serif;">
+              <option value="client">Cliente</option>
+              <option value="personal">Personal</option>
+              <option value="owner">Owner</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:.72rem;color:var(--gray);margin-bottom:.3rem;">Nombre (opcional)</div>
+            <input id="wac-input-name" type="text" placeholder="Juan Pérez"
+              style="padding:.5rem .7rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-size:.78rem;font-family:'Montserrat',sans-serif;width:180px;outline:none;"/>
+          </div>
+          <button class="topbar-btn btn-primary" onclick="saveWacContact()">
+            <i class="fas fa-save"></i> Guardar
+          </button>
+        </div>
+      </div>
+    </div><!-- /view-wa-contacts -->
 
   </div><!-- /content -->
 </div><!-- /main -->
@@ -2569,7 +2643,8 @@
       calendario:'Calendario', precios:'Precios', promos:'Códigos Promo',
       agentes:'Agentes / Referidos', permisos:'Usuarios & Permisos', config:'Configuración',
       conversaciones:'Conversaciones Multicanal', verificaciones:'Verificaciones de Identidad',
-      zonas:'Zonas de Riesgo', notificaciones:'Notificaciones'
+      zonas:'Zonas de Riesgo', notificaciones:'Notificaciones',
+      'wa-contacts':'Contactos WhatsApp'
     };
     document.getElementById('topbar-title').textContent = titles[name] || name;
     if (name === 'leads') loadLeads();
@@ -2585,6 +2660,7 @@
     else if (name === 'zonas') loadZonas();
     else if (name === 'precios') loadPrecios();
     else if (name === 'notificaciones') loadNotificaciones();
+    else if (name === 'wa-contacts') loadWaContacts();
   }
 
   function openModal() {
@@ -4677,6 +4753,89 @@
       resultEl.textContent='Error: '+e.message; resultEl.style.color='#E08080';
       btn.disabled=false; btn.innerHTML='<i class="fas fa-paper-plane"></i> Reintentar';
     }
+  }
+
+  // ── Contactos WhatsApp ──────────────────────────────────────────────────────
+  const WAC_LABEL = { client:'Cliente', personal:'Personal', owner:'Owner' };
+  const WAC_COLOR = { client:'#5AE08A', personal:'#E08080', owner:'#B09A6C' };
+
+  async function loadWaContacts() {
+    const buscar = (document.getElementById('wac-buscar')?.value || '').trim();
+    const tipo   = document.getElementById('wac-tipo')?.value || '';
+    const params = [];
+    if (buscar) params.push('buscar=' + encodeURIComponent(buscar));
+    if (tipo)   params.push('tipo='   + encodeURIComponent(tipo));
+    const url = '/api/wa-contacts' + (params.length ? '?' + params.join('&') : '');
+    try {
+      const data   = await apiFetch(url);
+      const tbody  = document.getElementById('wac-tbody');
+      const table  = document.getElementById('wac-table');
+      const empty  = document.getElementById('wac-empty');
+      if (!data.length) { table.style.display='none'; empty.style.display='block'; return; }
+      table.style.display=''; empty.style.display='none';
+      tbody.innerHTML = data.map(c => {
+        const col   = WAC_COLOR[c.contact_type] || 'var(--gray)';
+        const label = WAC_LABEL[c.contact_type] || c.contact_type;
+        const upd   = c.updated_at ? new Date(c.updated_at).toLocaleDateString('es-GT') : '—';
+        const toggle = c.contact_type === 'personal'
+          ? `<button class="topbar-btn btn-sec" onclick="toggleWacTipo('${c.phone_number}','client')" title="Marcar cliente"><i class="fas fa-user-check"></i> → Cliente</button>`
+          : c.contact_type === 'client'
+          ? `<button class="topbar-btn btn-sec" onclick="toggleWacTipo('${c.phone_number}','personal')" title="Marcar personal"><i class="fas fa-user-slash"></i> → Personal</button>`
+          : '';
+        const del = c.contact_type !== 'owner'
+          ? `<button class="topbar-btn" style="background:rgba(192,57,43,.15);color:#c0392b;border:1px solid rgba(192,57,43,.3);" onclick="deleteWacContact('${c.phone_number}')"><i class="fas fa-trash-alt"></i></button>`
+          : '';
+        return `<tr>
+          <td style="font-family:monospace;font-size:.8rem;">${c.phone_number}</td>
+          <td><span style="background:${col}22;color:${col};padding:.2rem .5rem;border-radius:3px;font-size:.7rem;font-weight:600;">${label}</span></td>
+          <td style="font-size:.78rem;color:var(--gray);">${c.name || '—'}</td>
+          <td style="font-size:.72rem;color:var(--gray);">${upd}</td>
+          <td><div style="display:flex;gap:.4rem;">${toggle}${del}</div></td>
+        </tr>`;
+      }).join('');
+    } catch(e) { showToast('Error cargando contactos: ' + e.message); }
+  }
+
+  async function toggleWacTipo(phone, newTipo) {
+    try {
+      await apiFetch('/api/wa-contacts', { method:'POST', body: JSON.stringify({ phone_number: phone, contact_type: newTipo }) });
+      showToast('✅ Tipo actualizado');
+      loadWaContacts();
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+
+  async function deleteWacContact(phone) {
+    if (!confirm('¿Eliminar contacto ' + phone + '?')) return;
+    try {
+      await apiFetch('/api/wa-contacts/' + encodeURIComponent(phone), { method:'DELETE' });
+      showToast('✅ Contacto eliminado');
+      loadWaContacts();
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+
+  function showWacForm() {
+    document.getElementById('wac-form-panel').style.display = '';
+    document.getElementById('wac-add-btn').style.display   = 'none';
+  }
+
+  function hideWacForm() {
+    document.getElementById('wac-form-panel').style.display = 'none';
+    document.getElementById('wac-add-btn').style.display    = '';
+    ['wac-input-phone','wac-input-name'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    const sel = document.getElementById('wac-input-tipo'); if(sel) sel.selectedIndex=0;
+  }
+
+  async function saveWacContact() {
+    const phone = (document.getElementById('wac-input-phone')?.value || '').trim();
+    const tipo  = document.getElementById('wac-input-tipo')?.value || 'client';
+    const name  = (document.getElementById('wac-input-name')?.value || '').trim();
+    if (!phone) { showToast('Ingresa un número'); return; }
+    try {
+      await apiFetch('/api/wa-contacts', { method:'POST', body: JSON.stringify({ phone_number: phone, contact_type: tipo, name: name || null }) });
+      showToast('✅ Contacto guardado');
+      hideWacForm();
+      loadWaContacts();
+    } catch(e) { showToast('Error: ' + e.message); }
   }
 </script>
 <!-- Modal: detalle cotización -->

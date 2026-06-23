@@ -153,6 +153,46 @@ app.use('/api/agente', authMiddleware, (req, res, next) => {
 app.get('/api/whatsapp/webhook',  _waWebhookVerify);
 app.post('/api/whatsapp/webhook', _waWebhookPost);
 
+// ── WA Contacts CRUD ─────────────────────────────────────────────────────────
+app.get('/api/wa-contacts', authMiddleware, requireMinRole('asistente'), async (req, res) => {
+  try {
+    const { buscar, tipo } = req.query;
+    let q = supabasePublic.from('whatsapp_contacts')
+      .select('phone_number, contact_type, name, respond, created_at, updated_at')
+      .order('updated_at', { ascending: false });
+    if (buscar) q = q.ilike('phone_number', `%${buscar}%`);
+    if (tipo)   q = q.eq('contact_type', tipo);
+    const { data, error } = await q;
+    if (error) throw error;
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/wa-contacts', authMiddleware, requireMinRole('asistente'), async (req, res) => {
+  try {
+    const { phone_number, contact_type, name } = req.body;
+    if (!phone_number || !contact_type) return res.status(400).json({ error: 'phone_number y contact_type son requeridos' });
+    if (!['client', 'personal', 'owner'].includes(contact_type)) return res.status(400).json({ error: 'contact_type inválido' });
+    const phoneNorm = normalizarNumero(phone_number);
+    const respond   = contact_type !== 'personal';
+    const { data, error } = await supabasePublic.from('whatsapp_contacts')
+      .upsert({ phone_number: phoneNorm, contact_type, name: name || null, respond, updated_at: new Date() },
+               { onConflict: 'phone_number' })
+      .select().single();
+    if (error) throw error;
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete('/api/wa-contacts/:phone', authMiddleware, requireMinRole('asistente'), async (req, res) => {
+  try {
+    const phoneNorm = normalizarNumero(req.params.phone);
+    const { error } = await supabasePublic.from('whatsapp_contacts').delete().eq('phone_number', phoneNorm);
+    if (error) throw error;
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── Envío de cotizaciones por canal ──────────────────────────────────────────
 const envioCotizacionRouter = require('./src/routes/envio-cotizacion');
 app.use('/api', authMiddleware, requireMinRole('asistente'), envioCotizacionRouter);
