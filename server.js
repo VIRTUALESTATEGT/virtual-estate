@@ -317,6 +317,7 @@ async function _waGenerateResponse(phone, userMessage) {
   try {
     const Anthropic = require('@anthropic-ai/sdk');
     const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
+    const { TOOL_CREAR_COTIZACION } = require('./src/config/tools-cotizacion');
 
     const { data: history } = await _waSupabase
       .from('whatsapp_messages')
@@ -338,10 +339,31 @@ async function _waGenerateResponse(phone, userMessage) {
       model: 'claude-sonnet-4-6',
       max_tokens: 1000,
       system: buildSystemPrompt('whatsapp', ''),
-      messages: historyMessages
+      messages: historyMessages,
+      tools: [TOOL_CREAR_COTIZACION],
     });
 
-    return response.content[0].text;
+    // ── MODO SOMBRA: detectar tool_use sin ejecutar ───────────────────────────
+    const toolUseBlock = response.content.find(b => b.type === 'tool_use');
+    if (toolUseBlock) {
+      console.log('[COTIZACION-SOMBRA] El agente HABRÍA llamado la tool:', toolUseBlock.name);
+      console.log('[COTIZACION-SOMBRA] Con estos datos:', JSON.stringify(toolUseBlock.input));
+      console.log('[COTIZACION-SOMBRA] stop_reason:', response.stop_reason);
+      // Fase 3: aquí se reemplazará por ejecutarCrearCotizacion(toolUseBlock.input, phone)
+    }
+
+    // Extracción robusta: busca el primer bloque text (seguro si content[0] es tool_use)
+    const textBlock = response.content.find(b => b.type === 'text');
+    const textOut   = textBlock?.text ?? null;
+
+    if (textOut) return textOut;
+
+    // Claude devolvió SOLO tool_use sin texto — tool no ejecutada aún en modo sombra
+    if (toolUseBlock) {
+      return 'Permíteme un momento para preparar tu información.';
+    }
+
+    return 'En este momento no puedo responder. Por favor intenta de nuevo en unos instantes.';
   } catch (e) {
     console.error('[WA] _waGenerateResponse ERROR:', e.message);
     throw e;
