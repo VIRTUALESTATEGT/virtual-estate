@@ -471,6 +471,29 @@ async function _waHandleOwnerCommand(phone, text) {
   return `Comandos disponibles:\n!ver — lista contactos\n!personal [número] — marcar como personal\n!cliente [número] — marcar como cliente`;
 }
 
+async function clasificarMensajeIA(texto, mensajesPrevios = []) {
+  const Anthropic = require('@anthropic-ai/sdk');
+  const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
+  const ctx = mensajesPrevios.length ? mensajesPrevios.concat(texto).join('\n') : texto;
+
+  const respuesta = await Promise.race([
+    client.messages.create({
+      model: 'claude-haiku-4-5',
+      max_tokens: 10,
+      messages: [{
+        role: 'user',
+        content: `Eres un clasificador. Un número nuevo escribió a un negocio de Guatemala (real estate y escaneo 3D). Responde SOLO con una palabra: 'personal' si el contexto es claramente construcción/obra/albañilería/maestro de obra/arquitecto solicitando trabajo; 'client' si es real estate, escaneo 3D, tour virtual, cotización, propiedades; 'ambiguo' si es saludo simple o no se puede determinar. Mensaje(s): ${ctx}`
+      }],
+    }),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+  ]);
+
+  const raw = respuesta.content[0].text.trim().toLowerCase();
+  if (raw.includes('personal')) return 'personal';
+  if (raw.includes('client'))   return 'client';
+  return 'ambiguo';
+}
+
 async function _waWebhookPost(req, res) {
   console.log('[WA] 1. Webhook recibido:', JSON.stringify(req.body, null, 2));
 
@@ -605,7 +628,69 @@ async function _waWebhookPost(req, res) {
       console.error('[WA] Error consultando contacto:', contactErr.message, contactErr.code);
     }
 
-    const contactType = contact?.contact_type || 'null';
+    let contactType;
+
+    if (!contact && contactErr?.code === 'PGRST116') {
+      // Número nuevo — clasificar por intención con IA
+      contactType = 'client'; // FALLO SEGURO: si algo falla, responde
+      try {
+        // Solo incoming: el actual ya fue insertado en Paso 2, así que prevCount = count - 1
+        const { count: msgCount } = await _waSupabase
+          .from('whatsapp_messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('phone_number', phone)
+          .eq('direction', 'incoming');
+
+        const prevCount = Math.max(0, (msgCount || 1) - 1);
+
+        // Mensajes previos para contexto (excluye el actual por message_id)
+        const { data: contextMsgs } = await _waSupabase
+          .from('whatsapp_messages')
+          .select('message')
+          .eq('phone_number', phone)
+          .eq('direction', 'incoming')
+          .neq('message_id', message_id)
+          .order('timestamp', { ascending: true })
+          .limit(3);
+        const contextTexts = (contextMsgs || []).map(m => m.message);
+
+        console.log('[WA] Número nuevo — prevCount:', prevCount, '— clasificando con IA...');
+        const clasificacion = await clasificarMensajeIA(text, contextTexts);
+        console.log('[WA] Clasificación IA:', clasificacion, '— prevCount:', prevCount);
+
+        if (clasificacion === 'personal') {
+          contactType = 'personal';
+          _waSupabase.from('whatsapp_contacts')
+            .insert({ phone_number: phoneNorm, contact_type: 'personal', respond: false })
+            .catch(e => console.error('[WA] Error insertando personal:', e.message));
+        } else if (clasificacion === 'client') {
+          contactType = 'client';
+          _waSupabase.from('whatsapp_contacts')
+            .insert({ phone_number: phoneNorm, contact_type: 'client', respond: true })
+            .catch(e => console.error('[WA] Error insertando client:', e.message));
+        } else {
+          // ambiguo
+          if (prevCount >= 2) {
+            // 3er mensaje o más y sigue ambiguo → client definitivo
+            contactType = 'client';
+            _waSupabase.from('whatsapp_contacts')
+              .insert({ phone_number: phoneNorm, contact_type: 'client', respond: true })
+              .catch(e => console.error('[WA] Error insertando ambiguo→client:', e.message));
+            console.log('[WA] Ventana agotada (prevCount:', prevCount, ') — client definitivo');
+          } else {
+            // 1er o 2º mensaje ambiguo → responder sin clasificar aún
+            contactType = 'client';
+            console.log('[WA] Ambiguo (prevCount:', prevCount, ') — responde, re-evalúa próximo mensaje');
+          }
+        }
+      } catch (e) {
+        console.error('[WA] Clasificación IA fallida:', e.message, '— fallo seguro: client');
+        // contactType ya es 'client'
+      }
+    } else {
+      contactType = contact?.contact_type || 'null';
+    }
+
     const esPersonal  = contactType === 'personal' || contact?.respond === false;
     console.log('[WA] contact_type:', contactType, '— Decisión:', esPersonal ? 'NO responder' : 'responder SI');
 
