@@ -133,6 +133,106 @@ router.delete('/precios/:id', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Core business logic — shared by the HTTP endpoint and the WA agent tool.
+// Returns { _zonaRoja: true } when the zone is blocked (caller maps to HTTP 202).
+// Returns the result object on success, or throws on DB error.
+async function crearCotizacionBorradorCore({
+  tipo_servicio, m2, zona, nombre, email, telefono,
+  plazo, canal, detalles_adicionales, conversacion_id,
+}) {
+  const { data: zonaData } = await supabase
+    .from('zonas_seguridad')
+    .select('*')
+    .ilike('zona', `%${zona || ''}%`)
+    .maybeSingle();
+
+  const nivelRiesgo = zonaData?.nivel_riesgo || 'verde';
+
+  if (nivelRiesgo === 'rojo' && !zonaData?.aceptar_trabajos) {
+    await notifyAdmin(
+      `⚠️ *ZONA ROJA DETECTADA*\n` +
+      `Cliente: ${nombre} (${email})\n` +
+      `Zona: ${zona}\n` +
+      `Servicio: ${tipo_servicio}\n` +
+      `Responde: OK para proceder o ignora para rechazar`
+    );
+    await supabase.from('notificaciones_admin').insert([{
+      tipo: 'zona_roja',
+      contenido: `Zona roja detectada: ${nombre} en ${zona} solicita ${tipo_servicio}`,
+    }]);
+    return { _zonaRoja: true };
+  }
+
+  if (nivelRiesgo === 'rojo' || zonaData?.requiere_verificacion_extra) {
+    await notifyAdmin(
+      `🔶 *ZONA REQUIERE VERIFICACIÓN*\n` +
+      `Cliente: ${nombre} (${email})\n` +
+      `Zona: ${zona} [${nivelRiesgo.toUpperCase()}]\n` +
+      `Servicio: ${tipo_servicio}`
+    );
+  }
+
+  const monto = (await calcularMonto(tipo_servicio, m2)) || 0;
+
+  let { data: cliente } = await supabase
+    .from('clientes').select('id').eq('email', email).maybeSingle();
+  if (!cliente) {
+    const { data: newCliente } = await supabase
+      .from('clientes')
+      .insert([{ nombre, email, telefono: telefono || '', tipo: 'Lead' }])
+      .select().single();
+    cliente = newCliente;
+  }
+
+  const detalles = {
+    m2: m2 || 0, zona, plazo, detalles_adicionales,
+    nivel_riesgo: nivelRiesgo, requiere_verificacion: zonaData?.requiere_verificacion_extra || false
+  };
+
+  const { data: cot, error } = await supabase
+    .from('cotizaciones')
+    .insert([{
+      cliente_id: cliente.id,
+      conversacion_id: conversacion_id || null,
+      canal,
+      tipo_servicio,
+      monto,
+      moneda: 'USD',
+      estado: 'borrador',
+      detalles_json: detalles,
+      anticipo: Math.round(monto * 0.5),
+    }])
+    .select().single();
+  if (error) throw error;
+
+  const emoji = nivelRiesgo === 'rojo' ? '🔴' : nivelRiesgo === 'amarillo' ? '🟡' : '🟢';
+  await notifyAdmin(
+    `${emoji} *NUEVA COTIZACIÓN #${cot.id}*\n` +
+    `Cliente: ${nombre}\n` +
+    `Servicio: ${tipo_servicio.replace('_', ' ').toUpperCase()}\n` +
+    `Metraje: ${m2 || '?'} m²\n` +
+    `Zona: ${zona || '—'} [${nivelRiesgo}]\n` +
+    `Monto: $${monto.toLocaleString()} USD\n` +
+    `Canal: ${canal}\n\n` +
+    `Responde: OK ${cot.id} para aprobar`
+  );
+
+  await supabase.from('notificaciones_admin').insert([{
+    tipo: 'cotizacion_revision',
+    referencia_id: cot.id,
+    contenido: `Cotización #${cot.id} — ${nombre} — $${monto} — ${tipo_servicio}`,
+  }]);
+
+  return {
+    cotizacion_id: cot.id,
+    monto,
+    moneda: 'USD',
+    tipo_servicio,
+    requiere_verificacion: zonaData?.requiere_verificacion_extra || false,
+    mensaje: `Cotización generada. Monto estimado: $${monto} USD. Te contactaremos para confirmar detalles.`,
+  };
+}
+
 // POST /api/cotizacion/generar
 router.post('/generar', async (req, res) => {
   try {
@@ -144,105 +244,19 @@ router.post('/generar', async (req, res) => {
     if (!tipo_servicio || !nombre || !email)
       return res.status(400).json({ error: 'tipo_servicio, nombre y email son requeridos' });
 
-    // Zone risk check
-    const { data: zonaData } = await supabase
-      .from('zonas_seguridad')
-      .select('*')
-      .ilike('zona', `%${zona || ''}%`)
-      .maybeSingle();
+    const result = await crearCotizacionBorradorCore({
+      tipo_servicio, m2, zona, nombre, email, telefono,
+      plazo, canal, detalles_adicionales, conversacion_id,
+    });
 
-    const nivelRiesgo = zonaData?.nivel_riesgo || 'verde';
-
-    if (nivelRiesgo === 'rojo' && !zonaData?.aceptar_trabajos) {
-      await notifyAdmin(
-        `⚠️ *ZONA ROJA DETECTADA*\n` +
-        `Cliente: ${nombre} (${email})\n` +
-        `Zona: ${zona}\n` +
-        `Servicio: ${tipo_servicio}\n` +
-        `Responde: OK para proceder o ignora para rechazar`
-      );
-      await supabase.from('notificaciones_admin').insert([{
-        tipo: 'zona_roja',
-        contenido: `Zona roja detectada: ${nombre} en ${zona} solicita ${tipo_servicio}`,
-      }]);
+    if (result._zonaRoja) {
       return res.status(202).json({
         message: 'Tu solicitud está siendo revisada. Te contactaremos en breve.',
-        requiere_revision: true
+        requiere_revision: true,
       });
     }
 
-    if (nivelRiesgo === 'rojo' || zonaData?.requiere_verificacion_extra) {
-      await notifyAdmin(
-        `🔶 *ZONA REQUIERE VERIFICACIÓN*\n` +
-        `Cliente: ${nombre} (${email})\n` +
-        `Zona: ${zona} [${nivelRiesgo.toUpperCase()}]\n` +
-        `Servicio: ${tipo_servicio}`
-      );
-    }
-
-    // Calculate amount
-    const monto = (await calcularMonto(tipo_servicio, m2)) || 0;
-
-    // Find or create client
-    let { data: cliente } = await supabase
-      .from('clientes').select('id').eq('email', email).maybeSingle();
-    if (!cliente) {
-      const { data: newCliente } = await supabase
-        .from('clientes')
-        .insert([{ nombre, email, telefono: telefono || '', tipo: 'Lead' }])
-        .select().single();
-      cliente = newCliente;
-    }
-
-    // Save cotizacion
-    const detalles = {
-      m2: m2 || 0, zona, plazo, detalles_adicionales,
-      nivel_riesgo: nivelRiesgo, requiere_verificacion: zonaData?.requiere_verificacion_extra || false
-    };
-
-    const { data: cot, error } = await supabase
-      .from('cotizaciones')
-      .insert([{
-        cliente_id: cliente.id,
-        conversacion_id: conversacion_id || null,
-        canal,
-        tipo_servicio,
-        monto,
-        moneda: 'USD',
-        estado: 'borrador',
-        detalles_json: detalles,
-        anticipo: Math.round(monto * 0.5),
-      }])
-      .select().single();
-    if (error) throw error;
-
-    // Notify admin
-    const emoji = nivelRiesgo === 'rojo' ? '🔴' : nivelRiesgo === 'amarillo' ? '🟡' : '🟢';
-    await notifyAdmin(
-      `${emoji} *NUEVA COTIZACIÓN #${cot.id}*\n` +
-      `Cliente: ${nombre}\n` +
-      `Servicio: ${tipo_servicio.replace('_', ' ').toUpperCase()}\n` +
-      `Metraje: ${m2 || '?'} m²\n` +
-      `Zona: ${zona || '—'} [${nivelRiesgo}]\n` +
-      `Monto: $${monto.toLocaleString()} USD\n` +
-      `Canal: ${canal}\n\n` +
-      `Responde: OK ${cot.id} para aprobar`
-    );
-
-    await supabase.from('notificaciones_admin').insert([{
-      tipo: 'cotizacion_revision',
-      referencia_id: cot.id,
-      contenido: `Cotización #${cot.id} — ${nombre} — $${monto} — ${tipo_servicio}`,
-    }]);
-
-    res.status(201).json({
-      cotizacion_id: cot.id,
-      monto,
-      moneda: 'USD',
-      tipo_servicio,
-      requiere_verificacion: zonaData?.requiere_verificacion_extra || false,
-      mensaje: `Cotización generada. Monto estimado: $${monto} USD. Te contactaremos para confirmar detalles.`
-    });
+    res.status(201).json(result);
   } catch (e) {
     console.error('[CotizacionGen]', e.message);
     res.status(500).json({ error: e.message });
@@ -288,3 +302,4 @@ router.get('/zonas', async (req, res) => {
 });
 
 module.exports = router;
+module.exports.crearCotizacionBorradorCore = crearCotizacionBorradorCore;
