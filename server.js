@@ -193,6 +193,55 @@ app.delete('/api/wa-contacts/:phone', authMiddleware, requireMinRole('asistente'
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+app.post('/api/wa-contacts/import-vcard', authMiddleware, requireMinRole('asistente'), async (req, res) => {
+  try {
+    const vcf = req.body?.vcf;
+    if (!vcf || typeof vcf !== 'string') return res.status(400).json({ error: 'Body debe tener { vcf: "contenido .vcf" }' });
+
+    // Parse all contacts and collect valid normalized phone numbers (deduplicated)
+    const parsed  = parseVCards(vcf);
+    const seen    = new Set();
+    const entries = [];
+    for (const { name, phones } of parsed) {
+      for (const raw of phones) {
+        const norm = normalizarNumero(raw);
+        if (norm.length < 7 || seen.has(norm)) continue; // too short or duplicate
+        seen.add(norm);
+        entries.push({ phone: norm, name: name || null });
+      }
+    }
+
+    if (!entries.length) return res.json({ agregados: 0, omitidos_cliente: 0, ya_existian: 0, total_procesados: 0 });
+
+    // Fetch existing contacts in chunks of 200 to stay within URL limits
+    const existingMap = new Map();
+    const allPhones   = entries.map(e => e.phone);
+    for (let i = 0; i < allPhones.length; i += 200) {
+      const { data } = await supabasePublic.from('whatsapp_contacts')
+        .select('phone_number, contact_type')
+        .in('phone_number', allPhones.slice(i, i + 200));
+      if (data) data.forEach(r => existingMap.set(r.phone_number, r.contact_type));
+    }
+
+    let agregados = 0, omitidos_cliente = 0, ya_existian = 0;
+    const toInsert = [];
+    for (const { phone, name } of entries) {
+      const existing = existingMap.get(phone);
+      if (existing === 'client')  { omitidos_cliente++; }      // never overwrite a real client
+      else if (existing)          { ya_existian++; }            // personal/owner — leave as-is
+      else { toInsert.push({ phone_number: phone, contact_type: 'personal', respond: false, name }); agregados++; }
+    }
+
+    // Batch insert in groups of 50
+    for (let i = 0; i < toInsert.length; i += 50) {
+      const { error } = await supabasePublic.from('whatsapp_contacts').insert(toInsert.slice(i, i + 50));
+      if (error) throw error;
+    }
+
+    res.json({ agregados, omitidos_cliente, ya_existian, total_procesados: entries.length });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── Envío de cotizaciones por canal ──────────────────────────────────────────
 const envioCotizacionRouter = require('./src/routes/envio-cotizacion');
 app.use('/api', authMiddleware, requireMinRole('asistente'), envioCotizacionRouter);
@@ -346,6 +395,45 @@ function normalizarNumero(raw) {
   const digits = String(raw || '').replace(/\D/g, ''); // quita todo excepto dígitos
   if (digits.length === 8) return '502' + digits;       // número local GT → prefijo 502
   return digits;                                         // 11 dígitos (502xxxxxxxx) u otros → sin cambio
+}
+
+// Parsea contenido vCard (RFC 6350) — soporta múltiples contactos por archivo,
+// líneas plegadas (folded), y el formato item1.TEL de exportaciones de iCloud/iOS.
+function parseVCards(vcfText) {
+  const contacts = [];
+  const unfolded = String(vcfText).replace(/\r?\n[ \t]/g, ''); // unfold folded lines
+  const blocks   = unfolded.split(/BEGIN:VCARD/i).slice(1);
+
+  for (const block of blocks) {
+    const lines = block.split(/\r?\n/);
+    let name = null;
+    const phones = [];
+
+    for (const line of lines) {
+      if (/^END:VCARD/i.test(line.trim())) break;
+
+      // FN:Display Name (may have params: FN;CHARSET=UTF-8:...)
+      const fnMatch = line.match(/^FN(?:[^:]*):(.+)/i);
+      if (fnMatch && !name) name = fnMatch[1].trim() || null;
+
+      // N:Last;First;Middle;Prefix;Suffix (fallback if no FN)
+      if (!name) {
+        const nMatch = line.match(/^N(?:[^:]*):(.+)/i);
+        if (nMatch) {
+          const parts = nMatch[1].split(';');
+          const n = [parts[1], parts[0]].map(s => (s || '').trim()).filter(Boolean).join(' ');
+          if (n) name = n;
+        }
+      }
+
+      // TEL — includes item1.TEL format used by iCloud exports
+      const telMatch = line.match(/^(?:item\d+\.)?TEL(?:[^:]*):(.+)/i);
+      if (telMatch) { const raw = telMatch[1].trim(); if (raw) phones.push(raw); }
+    }
+
+    if (phones.length) contacts.push({ name: name || null, phones });
+  }
+  return contacts;
 }
 
 async function _waHandleOwnerCommand(phone, text) {
