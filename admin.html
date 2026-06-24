@@ -3201,7 +3201,7 @@
         <td><span class="td-bold">${cliName(c)}</span></td>
         <td style="color:var(--gray);font-size:.72rem;">${c.canal||'—'}</td>
         <td class="td-gold">${fmtM(c)}</td>
-        <td style="color:var(--gray);">${c.anticipo?((c.moneda==='GTQ'?'Q':'$')+Number(c.anticipo).toLocaleString()):'—'}</td>
+        <td style="color:var(--gray);">${c.anticipo?((c.moneda==='GTQ'?'Q':'$')+convertirMoneda(Number(c.anticipo)||0,'USD',c.moneda||'USD').toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2})):'—'}</td>
         <td style="color:var(--gray);font-size:.72rem;">${c.moneda||'USD'}</td>
         <td><span class="badge ${BADGE[c.estado]||'badge-contact'}">${c.estado||'—'}</span></td>
         <td style="color:var(--gray);font-size:.7rem;">${c.created_at?new Date(c.created_at).toLocaleDateString('es-GT'):'—'}</td>
@@ -3693,7 +3693,8 @@
     const cotCode=`COT-${yr(c.created_at)}-${String(c.id).padStart(5,'0')}`;
     const det=c.detalles_json||{};
     const sym=c.moneda==='GTQ'?'Q':'$';
-    const fmt=n=>sym+(Number(n)||0).toLocaleString('es-GT',{minimumFractionDigits:2});
+    // monto en DB siempre en USD — convierte a la moneda de display antes de mostrar
+    const fmt=n=>sym+convertirMoneda(Number(n)||0,'USD',c.moneda||'USD').toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
     let serviciosHtml='';
     if(det.servicios&&det.servicios.length){
       serviciosHtml=`<table style="width:100%;border-collapse:collapse;font-size:.75rem;margin-top:.5rem;">
@@ -3707,7 +3708,7 @@
           <td style="padding:.3rem .5rem;">${s.descripcion||'—'}</td>
           <td style="text-align:right;padding:.3rem .5rem;">${s.cantidad||1}</td>
           <td style="text-align:right;padding:.3rem .5rem;">${fmt(s.precio_unitario)}</td>
-          <td style="text-align:right;padding:.3rem .5rem;color:var(--gold);">${fmt((s.cantidad||1)*(s.precio_unitario||0))}</td>
+          <td style="text-align:right;padding:.3rem .5rem;color:var(--gold);">${fmt(s.subtotal!=null?s.subtotal:(s.cantidad||1)*(s.precio_unitario||0))}</td>
         </tr>`).join('')}</tbody>
       </table>`;
     }
