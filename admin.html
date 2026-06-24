@@ -2489,8 +2489,8 @@
         return f.getFullYear()===ahora.getFullYear() && f.getMonth()===ahora.getMonth();
       });
       const totalMes = mesActual.reduce((s,c) => {
-        const factor = c.moneda==='GTQ' ? (1/7.9) : 1;
-        return s + (Number(c.monto)||0)*factor;
+        // c.monto siempre está en USD independientemente de la etiqueta moneda
+        return s + (Number(c.monto)||0);
       }, 0);
       const facEl = document.getElementById('kpi-facturado');
       if (facEl) facEl.textContent = totalMes>0 ? '$'+totalMes.toLocaleString('es-GT',{minimumFractionDigits:0,maximumFractionDigits:0}) : '$0';
@@ -3191,8 +3191,10 @@
       const cotCode = c => `COT-${yr(c.created_at)}-${String(c.id).padStart(5,'0')}`;
       const cliName = c => capitalizarNombre([c.clientes?.nombre,c.clientes?.apellido].filter(Boolean).join(' ')) || (c.cliente_id ? `#${c.cliente_id}` : c.lead_id ? `Lead #${c.lead_id}` : '—');
       const fmtM = (c) => {
-        const sym = c.moneda==='GTQ'?'Q':'$';
-        return c.monto ? sym+Number(c.monto).toLocaleString() : '—';
+        const sym   = c.moneda==='GTQ'?'Q':'$';
+        // monto en DB siempre en USD — convierte a la moneda de display antes de mostrar
+        const monto = convertirMoneda(Number(c.monto)||0,'USD',c.moneda||'USD');
+        return c.monto ? sym+monto.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
       };
       tbody.innerHTML=items.map(c=>`<tr>
         <td style="font-family:monospace;color:var(--gold);font-size:.72rem;">${cotCode(c)}</td>
@@ -3549,7 +3551,10 @@
     document.getElementById('cot-canal').value=c.canal||'crm';
     const det=c.detalles_json||{};
     if(det.servicios&&det.servicios.length){
-      _cotizacionesServiciosLineas=det.servicios.map(s=>({descripcion:s.descripcion||'',cantidad:s.cantidad||1,precio_unitario:s.precio_unitario||0,subtotal:(s.cantidad||1)*(s.precio_unitario||0)}));
+      // Usa el subtotal almacenado (en USD, exacto del backend) para no introducir
+      // rounding artifacts por precio_unitario redondeado. Si el admin edita un valor
+      // después, onRowInputChange recalculará s.subtotal en tiempo real.
+      _cotizacionesServiciosLineas=det.servicios.map(s=>({descripcion:s.descripcion||'',cantidad:s.cantidad||1,precio_unitario:s.precio_unitario||0,subtotal:s.subtotal!=null?Number(s.subtotal):(s.cantidad||1)*(s.precio_unitario||0)}));
     }
     if(det.descuento_tipo) document.getElementById('cot-desc-tipo').value=det.descuento_tipo;
     if(det.descuento_valor!=null) document.getElementById('cot-desc-valor').value=det.descuento_valor;
