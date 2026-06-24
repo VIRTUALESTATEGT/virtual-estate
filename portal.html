@@ -1540,7 +1540,7 @@ function renderCotizaciones(cots) {
   const tbody = document.getElementById('mis-cotizaciones-tbody');
   if (!tbody) return;
   if (!cots.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--gray);padding:2rem;">No tienes cotizaciones registradas aún.</td></tr>'; return; }
-  const badgeMap = { pendiente: 'badge-pending', aprobada: 'badge-approved', enviada: 'badge-sent', activa: 'badge-approved' };
+  const badgeMap = { pendiente: 'badge-pending', aprobada: 'badge-sent', enviada: 'badge-sent', confirmada: 'badge-approved', activa: 'badge-approved' };
   tbody.innerHTML = cots.map(c => {
     const badge = badgeMap[(c.estado||'').toLowerCase()] || 'badge-pending';
     const monto = c.monto ? '$' + Number(c.monto).toLocaleString() : '—';

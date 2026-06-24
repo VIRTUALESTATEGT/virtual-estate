@@ -186,6 +186,10 @@
     .badge-process::before { background:var(--gold); }
     .badge-done      { background:rgba(130,200,255,.15); color:#80CCFF; }
     .badge-done::before { background:#80CCFF; }
+    .badge-cot-gris   { background:rgba(150,150,160,.15); color:#A8A8B8; }
+    .badge-cot-gris::before { background:#A8A8B8; }
+    .badge-cot-purple { background:rgba(140,100,220,.15); color:#B08CE0; }
+    .badge-cot-purple::before { background:#B08CE0; }
     .badge-venta     { background:rgba(60,130,220,.12);  color:#6EAAFF; }
     .badge-venta::before { background:#6EAAFF; }
     .badge-renta     { background:rgba(193,146,89,.15);  color:var(--gold); }
@@ -3176,9 +3180,11 @@
       _cotizacionesCache={}; items.forEach(c=>_cotizacionesCache[c.id]=c);
       if(!items.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay cotizaciones.</td></tr>';return;}
       const BADGE={
-        'borrador':'badge-contact','pendiente':'badge-contact','Pendiente':'badge-contact',
-        'enviada':'badge-won','Enviada':'badge-won',
-        'aprobada':'badge-won','Aprobada':'badge-won','confirmada':'badge-won',
+        'borrador':'badge-cot-gris',
+        'pendiente':'badge-cot-purple','Pendiente':'badge-cot-purple',
+        'enviada':'badge-new','Enviada':'badge-new',
+        'aprobada':'badge-new','Aprobada':'badge-new',
+        'confirmada':'badge-won',
         'rechazada':'badge-lost','Rechazada':'badge-lost'
       };
       const yr = n => n ? String(new Date(n).getFullYear()).slice(-2) : String(new Date().getFullYear()).slice(-2);
