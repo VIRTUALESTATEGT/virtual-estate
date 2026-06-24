@@ -139,18 +139,6 @@ router.put('/:id', async (req, res) => {
     const cot = data[0];
 
     res.json(cot);
-
-    // Auto-send via originating channel when approved from CRM
-    const APPROVED = ['aprobada', 'confirmada'];
-    if (estado && APPROVED.includes(estado) && cot.canal === 'whatsapp') {
-      const tel = cot.clientes?.telefono;
-      if (tel) {
-        const codigo = cotCode(cot.id);
-        const link   = `${process.env.APP_URL || 'https://www.virtualestategt.com'}/portal/cotizacion/${cot.id}`;
-        sendWhatsAppMessage(tel, `Hola 👋 Tu cotización *${codigo}* fue aprobada.\n\nRevisa y confirma aquí:\n${link}`).catch(() => {});
-        supabase.from('cotizaciones').update({ estado_envio: 'enviado', metodo_envio_manual: cot.canal, fecha_envio_manual: new Date().toISOString() }).eq('id', cot.id).then(() => {}).catch(() => {});
-      }
-    }
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

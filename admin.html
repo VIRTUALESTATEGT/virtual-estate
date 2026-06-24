@@ -2202,7 +2202,6 @@
             <option value="borrador">Borrador</option>
             <option value="pendiente">Pendiente</option>
             <option value="enviada">Enviada</option>
-            <option value="aprobada">Aprobada</option>
             <option value="rechazada">Rechazada</option>
           </select>
         </div>
@@ -2478,10 +2477,10 @@
       _setBadge('badge-cotizaciones', cotizaciones.filter(c => ['enviada','pendiente','borrador'].includes(c.estado)).length);
       _setBadge('badge-proyectos', proyectos.filter(p => !['Entregado','Cancelado'].includes(p.estado)).length);
 
-      // Facturado este mes (cotizaciones aprobadas/confirmadas)
+      // Facturado este mes (cotizaciones enviadas/confirmadas; 'aprobada' por compatibilidad histórica)
       const ahora = new Date();
       const mesActual = cotizaciones.filter(c => {
-        if (!['aprobada','confirmada','Aprobada'].includes(c.estado)) return false;
+        if (!['enviada','confirmada','aprobada'].includes(c.estado)) return false;
         const f = new Date(c.created_at);
         return f.getFullYear()===ahora.getFullYear() && f.getMonth()===ahora.getMonth();
       });
@@ -3143,8 +3142,8 @@
 
   async function aprobarCotizacion(id){
     try{
-      await apiFetch('/api/cotizaciones/'+id,{method:'PUT',body:JSON.stringify({estado:'aprobada'})});
-      showToast('✅ Cotización aprobada');
+      await apiFetch('/api/cotizaciones/'+id,{method:'PUT',body:JSON.stringify({estado:'enviada'})});
+      showToast('✅ Cotización enviada al cliente');
       await loadCotizaciones();
       // Open send modal for this cotizacion
       const c=_cotizacionesCache[id];
@@ -3178,7 +3177,7 @@
       if(!items.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay cotizaciones.</td></tr>';return;}
       const BADGE={
         'borrador':'badge-contact','pendiente':'badge-contact','Pendiente':'badge-contact',
-        'enviada':'badge-quote','Enviada':'badge-quote',
+        'enviada':'badge-won','Enviada':'badge-won',
         'aprobada':'badge-won','Aprobada':'badge-won','confirmada':'badge-won',
         'rechazada':'badge-lost','Rechazada':'badge-lost'
       };
@@ -3201,7 +3200,7 @@
         <td><div class="action-btns">
           <button class="act-btn" title="Detalle" onclick="verDetalleCotizacion(${c.id})"><i class="fas fa-eye"></i></button>
           <button class="act-btn" title="Editar" onclick="editCotizacion(${c.id})"><i class="fas fa-pencil-alt"></i></button>
-          ${c.estado!=='aprobada'&&c.estado!=='confirmada'?`<button class="act-btn" title="Aprobar" style="color:#3ECF8E;" onclick="aprobarCotizacion(${c.id})"><i class="fas fa-check"></i></button>`:''}
+          ${c.estado!=='enviada'&&c.estado!=='confirmada'?`<button class="act-btn" title="Enviar al cliente" style="color:#3ECF8E;" onclick="aprobarCotizacion(${c.id})"><i class="fas fa-check"></i></button>`:''}
           ${c.estado!=='rechazada'?`<button class="act-btn" title="Rechazar" style="color:#E08080;" onclick="desaprobarCotizacion(${c.id})"><i class="fas fa-times"></i></button>`:''}
           <button class="act-btn" title="Reenviar" onclick="reenviarCotizacion(${c.id})"><i class="fas fa-redo"></i></button>
           <button class="act-btn danger" onclick="deleteCotizacion(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button>

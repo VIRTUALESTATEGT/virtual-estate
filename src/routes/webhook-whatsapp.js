@@ -185,7 +185,7 @@ async function processAdminCommand(from, text) {
   if (okMatch) {
     await supabase.from('cotizaciones')
       .update({ estado: 'enviada' }).eq('id', okMatch[1]);
-    await sendWhatsAppMessage(from, `✅ Cotización #${okMatch[1]} aprobada`);
+    await sendWhatsAppMessage(from, `✅ Cotización #${okMatch[1]} enviada al cliente`);
     return;
   }
 
