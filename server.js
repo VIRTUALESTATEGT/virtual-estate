@@ -317,7 +317,7 @@ async function _waGenerateResponse(phone, userMessage) {
   try {
     const Anthropic = require('@anthropic-ai/sdk');
     const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
-    const { TOOL_CREAR_COTIZACION } = require('./src/config/tools-cotizacion');
+    const { TOOL_CREAR_COTIZACION, ejecutarCrearCotizacion } = require('./src/config/tools-cotizacion');
 
     const { data: history } = await _waSupabase
       .from('whatsapp_messages')
@@ -343,25 +343,34 @@ async function _waGenerateResponse(phone, userMessage) {
       tools: [TOOL_CREAR_COTIZACION],
     });
 
-    // ── MODO SOMBRA: detectar tool_use sin ejecutar ───────────────────────────
+    const textBlock    = response.content.find(b => b.type === 'text');
     const toolUseBlock = response.content.find(b => b.type === 'tool_use');
+
+    // ── FASE 3: ejecutar tool real cuando Claude la llama ─────────────────────
     if (toolUseBlock) {
-      console.log('[COTIZACION-SOMBRA] El agente HABRÍA llamado la tool:', toolUseBlock.name);
-      console.log('[COTIZACION-SOMBRA] Con estos datos:', JSON.stringify(toolUseBlock.input));
-      console.log('[COTIZACION-SOMBRA] stop_reason:', response.stop_reason);
-      // Fase 3: aquí se reemplazará por ejecutarCrearCotizacion(toolUseBlock.input, phone)
+      const nombreCliente = toolUseBlock.input?.nombre || 'cliente';
+      console.log('[COTIZACION] El agente llamó la tool:', toolUseBlock.name);
+      console.log('[COTIZACION] Con estos datos:', JSON.stringify(toolUseBlock.input));
+      console.log('[COTIZACION] stop_reason:', response.stop_reason);
+      try {
+        const resultado = await ejecutarCrearCotizacion(toolUseBlock.input, null);
+        console.log('[COTIZACION] resultado:', resultado.exito ? 'exito' : 'error',
+          '| cotizacion_id:', resultado.cotizacion_id,
+          '| monto:', resultado.monto,
+          resultado.error ? '| error: ' + resultado.error : '');
+        if (resultado.exito) {
+          return `¡Perfecto, ${nombreCliente}! 🙌 Tu solicitud de cotización quedó registrada. Nuestro equipo la revisará y te la hará llegar muy pronto por este medio. 😊 Si tienes alguna duda mientras tanto, con gusto te ayudo.`;
+        }
+      } catch (e) {
+        console.error('[COTIZACION] ejecutarCrearCotizacion excepción:', e.message);
+      }
+      // Tool falló o resultado.exito === false → respaldo amable (sin exponer error técnico)
+      return `¡Gracias, ${nombreCliente}! Hemos recibido tus datos. Nuestro equipo se pondrá en contacto contigo muy pronto para darte tu cotización. 😊`;
     }
 
-    // Extracción robusta: busca el primer bloque text (seguro si content[0] es tool_use)
-    const textBlock = response.content.find(b => b.type === 'text');
-    const textOut   = textBlock?.text ?? null;
-
+    // Conversación normal — devuelve el texto de Claude
+    const textOut = textBlock?.text ?? null;
     if (textOut) return textOut;
-
-    // Claude devolvió SOLO tool_use sin texto — tool no ejecutada aún en modo sombra
-    if (toolUseBlock) {
-      return 'Permíteme un momento para preparar tu información.';
-    }
 
     return 'En este momento no puedo responder. Por favor intenta de nuevo en unos instantes.';
   } catch (e) {
