@@ -346,8 +346,9 @@ async function _waGenerateResponse(phone, userMessage) {
     const textBlock    = response.content.find(b => b.type === 'text');
     const toolUseBlock = response.content.find(b => b.type === 'tool_use');
 
-    // ── FASE 3: ejecutar tool real cuando Claude la llama ─────────────────────
-    if (toolUseBlock) {
+    // ── Dispatcher de tools — despacha por nombre (preparado para múltiples tools) ──
+
+    if (toolUseBlock?.name === 'crear_cotizacion_borrador') {
       const nombreCliente = toolUseBlock.input?.nombre || 'cliente';
       console.log('[COTIZACION] El agente llamó la tool:', toolUseBlock.name);
       console.log('[COTIZACION] Con estos datos:', JSON.stringify(toolUseBlock.input));
@@ -364,8 +365,13 @@ async function _waGenerateResponse(phone, userMessage) {
       } catch (e) {
         console.error('[COTIZACION] ejecutarCrearCotizacion excepción:', e.message);
       }
-      // Tool falló o resultado.exito === false → respaldo amable (sin exponer error técnico)
       return `¡Gracias, ${nombreCliente}! Hemos recibido tus datos. Nuestro equipo se pondrá en contacto contigo muy pronto para darte tu cotización. 😊`;
+    }
+
+    if (toolUseBlock) {
+      // Nombre de tool no reconocido — defensivo: no ejecutar nada
+      console.warn('[WA] tool_use no reconocida:', toolUseBlock.name, '— devolviendo texto de Claude');
+      return textBlock?.text ?? 'En este momento no puedo responder. Por favor intenta de nuevo en unos instantes.';
     }
 
     // Conversación normal — devuelve el texto de Claude
