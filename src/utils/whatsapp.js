@@ -36,8 +36,14 @@ async function sendWhatsAppMessage(to, text) {
 
 async function notifyAdmin(text) {
   const ADMIN_NUM = process.env.WHATSAPP_ADMIN_NUMBER;
-  if (!ADMIN_NUM) return null;
-  return sendWhatsAppMessage(ADMIN_NUM, text).catch(() => null);
+  if (!ADMIN_NUM) {
+    console.warn('[notifyAdmin] WHATSAPP_ADMIN_NUMBER no configurado — omitiendo notificación');
+    return null;
+  }
+  return sendWhatsAppMessage(ADMIN_NUM, text).catch(e => {
+    console.error('[notifyAdmin] WA send failed | phone:', ADMIN_NUM, '| error:', e.message);
+    return null;
+  });
 }
 
 function isAdminNumber(from) {

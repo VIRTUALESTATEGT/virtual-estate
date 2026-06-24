@@ -172,7 +172,23 @@ async function crearCotizacionBorradorCore({
     );
   }
 
-  const monto = (await calcularMonto(tipo_servicio, m2)) || 0;
+  // montoBase: pre-IVA service fee from pricing table / fallback.
+  // Matches how the CRM admin stores servicios[i].subtotal (pre-IVA),
+  // then adds IVA 12% on top — same as saveCotizacion() in admin.html.
+  const montoBase = (await calcularMonto(tipo_servicio, m2)) || 0;
+  const m2Num     = Number(m2) || 0;
+  const ivaMonto  = Math.round(montoBase * 0.12 * 100) / 100;
+  const total     = Math.round((montoBase + ivaMonto) * 100) / 100;
+
+  const NOMBRES_SERVICIO = {
+    'escaneo_3d':   'Escaneo 3D',
+    'as_built':     'Levantamiento As-Built',
+    'real_estate':  'Fotografía Inmobiliaria',
+    'construccion': 'Servicios de Construcción',
+  };
+  const descServicio  = NOMBRES_SERVICIO[tipo_servicio] || tipo_servicio;
+  const tipoPrecio    = m2Num > 0 ? 'por_m2' : 'fijo';
+  const precioUnit    = m2Num > 0 ? Math.round(montoBase / m2Num * 100) / 100 : montoBase;
 
   let { data: cliente } = await supabase
     .from('clientes').select('id').eq('email', email).maybeSingle();
@@ -184,23 +200,41 @@ async function crearCotizacionBorradorCore({
     cliente = newCliente;
   }
 
+  // Formato rico — idéntico al que produce saveCotizacion() del CRM manual:
+  // servicios[i].subtotal = pre-IVA; iva_monto y total calculados encima.
+  // monto en cotizaciones = total con IVA (igual que en cotizaciones manuales).
   const detalles = {
-    m2: m2 || 0, zona, plazo, detalles_adicionales,
-    nivel_riesgo: nivelRiesgo, requiere_verificacion: zonaData?.requiere_verificacion_extra || false
+    servicios: [{
+      descripcion:     `${descServicio}${m2Num > 0 ? ` — ${m2Num} m²` : ''}`,
+      tipo_precio:     tipoPrecio,
+      cantidad:        m2Num > 0 ? m2Num : 1,
+      precio_unitario: precioUnit,
+      subtotal:        montoBase,
+    }],
+    subtotal:        montoBase,
+    descuento_tipo:  'porcentaje',
+    descuento_valor: 0,
+    descuento_monto: 0,
+    iva_porcentaje:  12,
+    iva_monto:       ivaMonto,
+    total,
+    m2: m2Num, zona, plazo, detalles_adicionales,
+    nivel_riesgo: nivelRiesgo,
+    requiere_verificacion: zonaData?.requiere_verificacion_extra || false,
   };
 
   const { data: cot, error } = await supabase
     .from('cotizaciones')
     .insert([{
-      cliente_id: cliente.id,
+      cliente_id:      cliente.id,
       conversacion_id: conversacion_id || null,
       canal,
       tipo_servicio,
-      monto,
-      moneda: 'USD',
-      estado: 'borrador',
+      monto:   total,                    // total con IVA — igual que cotizaciones manuales
+      moneda:  'USD',
+      estado:  'borrador',
       detalles_json: detalles,
-      anticipo: Math.round(monto * 0.5),
+      anticipo: Math.round(total * 0.5), // 50% del total con IVA
     }])
     .select().single();
   if (error) throw error;
@@ -210,9 +244,9 @@ async function crearCotizacionBorradorCore({
     `${emoji} *NUEVA COTIZACIÓN #${cot.id}*\n` +
     `Cliente: ${nombre}\n` +
     `Servicio: ${tipo_servicio.replace('_', ' ').toUpperCase()}\n` +
-    `Metraje: ${m2 || '?'} m²\n` +
+    `Metraje: ${m2Num || '?'} m²\n` +
     `Zona: ${zona || '—'} [${nivelRiesgo}]\n` +
-    `Monto: $${monto.toLocaleString()} USD\n` +
+    `Subtotal: $${montoBase} | IVA 12%: $${ivaMonto} | Total: $${total} USD\n` +
     `Canal: ${canal}\n\n` +
     `Responde: OK ${cot.id} para aprobar`
   );
@@ -220,16 +254,16 @@ async function crearCotizacionBorradorCore({
   await supabase.from('notificaciones_admin').insert([{
     tipo: 'cotizacion_revision',
     referencia_id: cot.id,
-    contenido: `Cotización #${cot.id} — ${nombre} — $${monto} — ${tipo_servicio}`,
+    contenido: `Cotización #${cot.id} — ${nombre} — $${total} (total c/IVA) — ${tipo_servicio}`,
   }]);
 
   return {
     cotizacion_id: cot.id,
-    monto,
+    monto: total,
     moneda: 'USD',
     tipo_servicio,
     requiere_verificacion: zonaData?.requiere_verificacion_extra || false,
-    mensaje: `Cotización generada. Monto estimado: $${monto} USD. Te contactaremos para confirmar detalles.`,
+    mensaje: `Cotización generada. Monto estimado: $${total} USD. Te contactaremos para confirmar detalles.`,
   };
 }
 
