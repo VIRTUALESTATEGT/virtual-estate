@@ -10,7 +10,9 @@ const TOOL_CREAR_COTIZACION = {
     'Crea un borrador de cotización en el CRM para que el owner lo revise y apruebe ' +
     'antes de enviarlo al cliente. Llama esta tool SOLO cuando tengas confirmados el ' +
     'nombre, tipo de servicio y teléfono del cliente. No la llames más de una vez por ' +
-    'conversación ni antes de tener la intención de cotizar claramente expresada.',
+    'conversación ni antes de tener la intención de cotizar claramente expresada. ' +
+    'Antes de llamarla, pregunta en qué moneda prefiere la cotización (quetzales Q o dólares $); ' +
+    'si el cliente no responde o no especifica, usa GTQ por defecto.',
   input_schema: {
     type: 'object',
     properties: {
@@ -26,6 +28,14 @@ const TOOL_CREAR_COTIZACION = {
       telefono: {
         type: 'string',
         description: 'Número de WhatsApp del cliente, confirmado en la conversación.',
+      },
+      moneda: {
+        type: 'string',
+        enum: ['GTQ', 'USD'],
+        description:
+          'Moneda preferida por el cliente para la cotización. ' +
+          'Pregunta al cliente: "¿prefiere la cotización en quetzales (Q) o dólares ($)?" ' +
+          'Si no responde o no especifica, usa GTQ.',
       },
       m2: {
         type: 'number',
@@ -70,6 +80,7 @@ async function ejecutarCrearCotizacion(input, conversacion_id = null) {
     let email               = input.email               || '';
     let email_declinado     = input.email_declinado     || false;
     let detalles_adicionales = input.detalles_adicionales || '';
+    const moneda            = (input.moneda === 'USD') ? 'USD' : 'GTQ'; // default GTQ
 
     // Email placeholder: the endpoint requires email to be non-empty.
     // When the client didn't provide one, use a traceable placeholder and log a note.
@@ -89,6 +100,7 @@ async function ejecutarCrearCotizacion(input, conversacion_id = null) {
       email,
       telefono,
       plazo,
+      moneda,
       canal: 'whatsapp',
       detalles_adicionales,
       conversacion_id,

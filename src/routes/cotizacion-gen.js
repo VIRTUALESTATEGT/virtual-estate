@@ -139,6 +139,7 @@ router.delete('/precios/:id', async (req, res) => {
 async function crearCotizacionBorradorCore({
   tipo_servicio, m2, zona, nombre, email, telefono,
   plazo, canal, detalles_adicionales, conversacion_id,
+  moneda = 'GTQ',
 }) {
   const { data: zonaData } = await supabase
     .from('zonas_seguridad')
@@ -231,13 +232,20 @@ async function crearCotizacionBorradorCore({
       canal,
       tipo_servicio,
       monto:   total,                    // total con IVA — igual que cotizaciones manuales
-      moneda:  'USD',
+      moneda,                            // GTQ por defecto desde el agente WA
       estado:  'borrador',
       detalles_json: detalles,
       anticipo: Math.round(total * 0.5), // 50% del total con IVA
     }])
     .select().single();
   if (error) throw error;
+
+  // Formateo de moneda para notificaciones — los montos en DB son siempre USD;
+  // si moneda='GTQ' se multiplica por 7.90 para mostrar el valor que verá el cliente.
+  const TASA_CAMBIO = 7.90;
+  const sym    = moneda === 'GTQ' ? 'Q' : '$';
+  const factor = moneda === 'GTQ' ? TASA_CAMBIO : 1;
+  const fmtN   = n => sym + Math.round(n * factor).toLocaleString('es-GT');
 
   const emoji = nivelRiesgo === 'rojo' ? '🔴' : nivelRiesgo === 'amarillo' ? '🟡' : '🟢';
   await notifyAdmin(
@@ -246,7 +254,8 @@ async function crearCotizacionBorradorCore({
     `Servicio: ${tipo_servicio.replace('_', ' ').toUpperCase()}\n` +
     `Metraje: ${m2Num || '?'} m²\n` +
     `Zona: ${zona || '—'} [${nivelRiesgo}]\n` +
-    `Subtotal: $${montoBase} | IVA 12%: $${ivaMonto} | Total: $${total} USD\n` +
+    `Moneda: ${moneda}\n` +
+    `Subtotal: ${fmtN(montoBase)} | IVA 12%: ${fmtN(ivaMonto)} | Total: ${fmtN(total)}\n` +
     `Canal: ${canal}\n\n` +
     `Responde: OK ${cot.id} para aprobar`
   );
@@ -254,16 +263,16 @@ async function crearCotizacionBorradorCore({
   await supabase.from('notificaciones_admin').insert([{
     tipo: 'cotizacion_revision',
     referencia_id: cot.id,
-    contenido: `Cotización #${cot.id} — ${nombre} — $${total} (total c/IVA) — ${tipo_servicio}`,
+    contenido: `Cotización #${cot.id} — ${nombre} — ${fmtN(total)} (total c/IVA) — ${tipo_servicio}`,
   }]);
 
   return {
     cotizacion_id: cot.id,
     monto: total,
-    moneda: 'USD',
+    moneda,
     tipo_servicio,
     requiere_verificacion: zonaData?.requiere_verificacion_extra || false,
-    mensaje: `Cotización generada. Monto estimado: $${total} USD. Te contactaremos para confirmar detalles.`,
+    mensaje: `Cotización generada. Monto estimado: ${fmtN(total)} ${moneda}. Te contactaremos para confirmar detalles.`,
   };
 }
 
@@ -272,7 +281,8 @@ router.post('/generar', async (req, res) => {
   try {
     const {
       tipo_servicio, m2, zona, nombre, email, telefono,
-      plazo, canal = 'web', detalles_adicionales, conversacion_id
+      plazo, canal = 'web', detalles_adicionales, conversacion_id,
+      moneda,
     } = req.body;
 
     if (!tipo_servicio || !nombre || !email)
@@ -281,6 +291,7 @@ router.post('/generar', async (req, res) => {
     const result = await crearCotizacionBorradorCore({
       tipo_servicio, m2, zona, nombre, email, telefono,
       plazo, canal, detalles_adicionales, conversacion_id,
+      moneda,   // undefined → function default ('GTQ')
     });
 
     if (result._zonaRoja) {

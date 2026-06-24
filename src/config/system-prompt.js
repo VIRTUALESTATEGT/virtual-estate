@@ -70,6 +70,7 @@ Solicita TODOS estos datos:
 - Nombre completo
 - Correo electrónico
 - Teléfono
+- Moneda: pregunta "¿Prefiere la cotización en quetzales (Q) o dólares ($)?" — si no responde o no especifica, usa quetzales (GTQ) por defecto
 - Ubicación exacta de la propiedad
 - Descripción del proyecto / qué necesita
 - Tipo de servicio (escaneo, construcción, otro)
