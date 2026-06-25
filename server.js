@@ -317,7 +317,8 @@ async function _waGenerateResponse(phone, userMessage) {
   try {
     const Anthropic = require('@anthropic-ai/sdk');
     const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
-    const { TOOL_CREAR_COTIZACION, ejecutarCrearCotizacion } = require('./src/config/tools-cotizacion');
+    const { TOOL_CREAR_COTIZACION, ejecutarCrearCotizacion,
+            TOOL_ESCALAR_HUMANO,  ejecutarEscalarHumano   } = require('./src/config/tools-cotizacion');
 
     const { data: history } = await _waSupabase
       .from('whatsapp_messages')
@@ -340,7 +341,7 @@ async function _waGenerateResponse(phone, userMessage) {
       max_tokens: 1000,
       system: buildSystemPrompt('whatsapp', ''),
       messages: historyMessages,
-      tools: [TOOL_CREAR_COTIZACION],
+      tools: [TOOL_CREAR_COTIZACION, TOOL_ESCALAR_HUMANO],
     });
 
     const textBlock    = response.content.find(b => b.type === 'text');
@@ -366,6 +367,17 @@ async function _waGenerateResponse(phone, userMessage) {
         console.error('[COTIZACION] ejecutarCrearCotizacion excepción:', e.message);
       }
       return `¡Gracias, ${nombreCliente}! Hemos recibido tus datos. Nuestro equipo se pondrá en contacto contigo muy pronto para darte tu cotización. 😊`;
+    }
+
+    if (toolUseBlock?.name === 'escalar_a_humano') {
+      console.log('[HANDOFF] El agente escaló a humano:', JSON.stringify(toolUseBlock.input));
+      // Fire-and-forget — no bloqueamos la respuesta al cliente
+      ejecutarEscalarHumano(toolUseBlock.input, phone).catch(e =>
+        console.error('[HANDOFF] ejecutarEscalarHumano error:', e.message)
+      );
+      // Devuelve el texto conversacional de Claude (sigue atendiendo al cliente)
+      return textBlock?.text
+        ?? 'Con gusto traslado tu consulta a uno de nuestros encargados, quien te atenderá personalmente en cuanto le sea posible. Mientras tanto, sigo aquí para cualquier otra duda que tengas. 😊';
     }
 
     if (toolUseBlock) {

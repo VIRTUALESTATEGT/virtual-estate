@@ -125,4 +125,62 @@ async function ejecutarCrearCotizacion(input, conversacion_id = null) {
   }
 }
 
-module.exports = { TOOL_CREAR_COTIZACION, ejecutarCrearCotizacion };
+// ── Tool: escalar_a_humano ────────────────────────────────────────────────────
+
+const TOOL_ESCALAR_HUMANO = {
+  name: 'escalar_a_humano',
+  description:
+    'Notifica al equipo humano para que atienda al cliente personalmente. ' +
+    'Llama esta tool cuando: (a) el cliente pide explícitamente hablar con un humano, ' +
+    'encargado, asesor o persona real; o (b) la consulta requiere una decisión o ' +
+    'información que el agente no puede proporcionar con certeza. ' +
+    'IMPORTANTE: tras llamarla, el agente debe seguir respondiendo al cliente con ' +
+    'normalidad — no interrumpe la conversación.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      motivo: {
+        type: 'string',
+        enum: ['cliente_pide_humano', 'agente_no_puede_resolver'],
+        description:
+          '"cliente_pide_humano" si el cliente lo pidió explícitamente. ' +
+          '"agente_no_puede_resolver" si la consulta requiere atención especializada.',
+      },
+      resumen: {
+        type: 'string',
+        description: 'Una frase que resume el tema que requiere atención humana.',
+      },
+    },
+    required: ['motivo', 'resumen'],
+  },
+};
+
+// Executor — never throws; any failure is logged and the conversation continues.
+async function ejecutarEscalarHumano(input, phone) {
+  try {
+    const { notifyAdmin } = require('../utils/whatsapp');
+    const supabase = require('./supabase');
+    const { motivo, resumen } = input;
+
+    await notifyAdmin(
+      `🔵 *SOLICITUD DE ATENCIÓN HUMANA*\n` +
+      `Cliente: ${phone}\n` +
+      `Motivo: ${resumen || motivo}`
+    );
+
+    // Fire-and-forget — don't block the response if the DB insert is slow
+    supabase.from('notificaciones_admin').insert([{
+      tipo:     'handoff_humano',
+      contenido: `Handoff ${phone} — ${resumen || motivo}`,
+    }]).then(() => {}).catch(e =>
+      console.error('[HANDOFF] notificaciones_admin insert error:', e.message)
+    );
+
+    return { exito: true };
+  } catch (e) {
+    console.error('[tool escalar_a_humano]', e.message);
+    return { exito: false, error: e.message };
+  }
+}
+
+module.exports = { TOOL_CREAR_COTIZACION, ejecutarCrearCotizacion, TOOL_ESCALAR_HUMANO, ejecutarEscalarHumano };
