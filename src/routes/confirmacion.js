@@ -445,20 +445,52 @@ router.post('/cron/limpiar', async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   try {
+    // ── Tarea 1: eliminar borradores sin confirmar de más de 3 meses ─────────
     const hace3meses = new Date();
     hace3meses.setMonth(hace3meses.getMonth() - 3);
 
-    const { data, error } = await supabase
+    const { data: eliminadasData, error: errElim } = await supabase
       .from('cotizaciones')
       .delete()
       .eq('estado_confirmacion', 'pendiente')
       .lt('created_at', hace3meses.toISOString())
       .select('id');
 
-    if (error) throw error;
-    const eliminadas = data?.length || 0;
+    if (errElim) throw errElim;
+    const eliminadas = eliminadasData?.length || 0;
     console.log(`[CRON] Cotizaciones vencidas eliminadas: ${eliminadas}`);
-    res.json({ success: true, eliminadas });
+
+    // ── Tarea 2: pasar a 'pendiente' las 'enviadas' sin confirmar en 14 días ─
+    // Ancla de tiempo: fecha_envio_manual si fue enviada vía el modal;
+    // created_at como fallback si el admin solo cambió estado sin usar el modal.
+    const hace14dias = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+
+    // Rama A: tiene fecha_envio_manual y ya pasaron 14 días
+    const { data: vencA, error: errA } = await supabase
+      .from('cotizaciones')
+      .update({ estado: 'pendiente' })
+      .eq('estado', 'enviada')
+      .neq('estado_confirmacion', 'confirmado')
+      .not('fecha_envio_manual', 'is', null)
+      .lt('fecha_envio_manual', hace14dias)
+      .select('id');
+    if (errA) console.error('[CRON] vencA error:', errA.message);
+
+    // Rama B: sin fecha_envio_manual y created_at > 14 días (enviadas sin modal)
+    const { data: vencB, error: errB } = await supabase
+      .from('cotizaciones')
+      .update({ estado: 'pendiente' })
+      .eq('estado', 'enviada')
+      .neq('estado_confirmacion', 'confirmado')
+      .is('fecha_envio_manual', null)
+      .lt('created_at', hace14dias)
+      .select('id');
+    if (errB) console.error('[CRON] vencB error:', errB.message);
+
+    const pendientes = (vencA?.length || 0) + (vencB?.length || 0);
+    console.log(`[CRON] Cotizaciones enviadas → pendiente: ${pendientes}`);
+
+    res.json({ success: true, eliminadas, pendientes });
   } catch (e) {
     console.error('[CRON]', e.message);
     res.status(500).json({ error: e.message });
