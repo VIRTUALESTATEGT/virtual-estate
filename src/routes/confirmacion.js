@@ -437,9 +437,10 @@ async function procesarConfirmacion({ cotizacion_id, lead_id, anticipo_confirmad
   };
 }
 
-// ── POST /api/cron/limpiar-cotizaciones ───────────────────────────────────────
-// Called by Vercel cron — protected by CRON_SECRET header
-router.post('/cron/limpiar', async (req, res) => {
+// ── POST /api/cron/limpiar — called by Vercel cron at 0 6 * * * ──────────────
+// Vercel calls /api/cron/limpiar → app.use('/api/cron', router) strips prefix
+// → router receives /limpiar → matches this handler. Protected by CRON_SECRET.
+router.post('/limpiar', async (req, res) => {
   const secret = req.headers['x-cron-secret'] || req.query.secret;
   if (secret !== process.env.CRON_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' });
