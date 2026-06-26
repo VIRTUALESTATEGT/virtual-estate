@@ -215,22 +215,23 @@ router.post('/generate', async (req, res) => {
     const userPrompt = `
 Genera ${numPosts} posts para redes sociales en formato simple.
 
-IMPORTANTE: Devuelve EXACTAMENTE en este formato:
+IMPORTANTE: Devuelve EXACTAMENTE en este formato (una línea por campo):
 
 ---POST---
 content: Texto del post aquí
 hashtags: #hashtag1 #hashtag2
 theme: Tema del post
-image_prompt: [DESCRIPCIÓN DETALLADA PARA DALL-E/MIDJOURNEY] Profesional real estate image featuring [main subject], [specific details], high-quality photography style, [color palette: primarily dark green #2D5016 and gold #B8860B accents], [lighting description], [composition], modern minimalist aesthetic, sharp focus, architectural details visible, [additional specific elements related to real estate/Guatemala market]
+image_prompt: [escribe aquí el prompt completo — ver reglas abajo]
 ---POST---
 
-IMPORTANTE en image_prompt:
-- Sé EXTREMADAMENTE DETALLADO y ESPECÍFICO
-- Incluye: qué va en la imagen, detalles arquitectónicos, colores exactos (#2D5016 verde oscuro, #B8860B oro)
-- Especifica: estilo fotográfico, iluminación, composición, ángulo de cámara
-- Añade: materiales, texturas, elementos decorativos
-- Menciona: estado de ánimo, profesionalismo, calidad de producción
-- NO uses "imagen profesional y atractiva" — sé específico con cada elemento
+REGLAS ESTRICTAS para image_prompt:
+- Escríbelo en INGLÉS, completamente terminado, sin dejar NADA entre corchetes ni placeholders
+- Describe una escena REAL y ESPECÍFICA que ilustre el content y theme de este post concreto
+- NO copies el formato de ejemplo — escribe tus propias palabras describiendo una escena real
+- Entre 30 y 80 palabras, una sola oración o dos cortas
+- SIEMPRE incluye: tipo de espacio o propiedad guatemalteca específica, iluminación, colores de marca (#2D5016 verde oscuro y #B8860B dorado), ángulo fotográfico, calidad
+- Empieza con el estilo fotográfico: "Professional real estate photography of...", "Architectural detail shot of...", etc.
+- Ejemplo correcto: "Professional real estate photography of a modern penthouse terrace in Zona 10 Guatemala City, evening golden hour light casting warm shadows, dark green tropical plants framing the shot, gold-tinted glass railings, wide-angle composition showing city skyline, no people, 8K sharp focus"
 
 Repite ${numPosts} veces.
 ${orders?.length ? '\nÓRDENES ACTIVAS:\n' + orders.map(o => `- [Prioridad ${o.priority}] ${o.instruction}`).join('\n') : ''}
@@ -252,7 +253,8 @@ ${orders?.length ? '\nÓRDENES ACTIVAS:\n' + orders.map(o => `- [Prioridad ${o.p
       const content      = lines.find(l => l.startsWith('content:'))?.replace('content:', '').trim() || '';
       const hashtags     = lines.find(l => l.startsWith('hashtags:'))?.replace('hashtags:', '').trim() || '';
       const theme        = lines.find(l => l.startsWith('theme:'))?.replace('theme:', '').trim() || 'General';
-      const image_prompt = lines.find(l => l.startsWith('image_prompt:'))?.replace('image_prompt:', '').trim() || 'Imagen profesional relacionada al tema';
+      const image_prompt = lines.find(l => l.startsWith('image_prompt:'))?.replace('image_prompt:', '').trim() ||
+        `Professional real estate photography for ${theme || 'real estate'} in Guatemala, dark green #2D5016 and gold #B8860B brand colors, modern minimalist aesthetic, natural lighting, sharp focus, 8K quality`;
       return {
         content,
         hashtags: hashtags.split(' ').filter(h => h.startsWith('#')),
@@ -279,7 +281,7 @@ ${orders?.length ? '\nÓRDENES ACTIVAS:\n' + orders.map(o => `- [Prioridad ${o.p
           facebook_caption:  post.facebook_caption,
           hashtags:          post.hashtags,
           theme:             post.theme,
-          image_description: null,
+          image_description: post.image_prompt || null,  // prompt para DALL-E/Midjourney
           source:            'auto',
           status:            'pending',
           scheduled_time:    post.scheduled_time
@@ -396,7 +398,10 @@ router.post('/publish-post/:postId', async (req, res) => {
       igPostId = igPub.data?.id || null;
       console.log('[publish-post] Instagram publicado:', igPostId);
     } else {
-      console.log('[publish-post] Sin token o imagen — marcando publicado sin enviar a Instagram');
+      const motivo = !igToken
+        ? 'INSTAGRAM_ACCESS_TOKEN no configurado en el servidor'
+        : 'Se requiere seleccionar una imagen para publicar';
+      return res.status(400).json({ error: `No se publicó en Instagram: ${motivo}` });
     }
 
     const { data: updated, error: updateError } = await supabase
