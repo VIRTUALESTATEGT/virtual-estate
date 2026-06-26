@@ -225,13 +225,21 @@ image_prompt: [escribe aquí el prompt completo — ver reglas abajo]
 ---POST---
 
 REGLAS ESTRICTAS para image_prompt:
-- Escríbelo en INGLÉS, completamente terminado, sin dejar NADA entre corchetes ni placeholders
-- Describe una escena REAL y ESPECÍFICA que ilustre el content y theme de este post concreto
-- NO copies el formato de ejemplo — escribe tus propias palabras describiendo una escena real
-- Entre 30 y 80 palabras, una sola oración o dos cortas
-- SIEMPRE incluye: tipo de espacio o propiedad guatemalteca específica, iluminación, colores de marca (#2D5016 verde oscuro y #B8860B dorado), ángulo fotográfico, calidad
-- Empieza con el estilo fotográfico: "Professional real estate photography of...", "Architectural detail shot of...", etc.
-- Ejemplo correcto: "Professional real estate photography of a modern penthouse terrace in Zona 10 Guatemala City, evening golden hour light casting warm shadows, dark green tropical plants framing the shot, gold-tinted glass railings, wide-angle composition showing city skyline, no people, 8K sharp focus"
+- Escríbelo en INGLÉS, completamente terminado, sin NADA entre corchetes ni placeholders
+- NO copies el ejemplo — escribe tu propia escena concreta basada en el content y theme del post
+- Entre 80 y 150 palabras — detallado, rico, completo
+- SIEMPRE incluye TODOS estos elementos:
+  * Sujeto principal con detalles: qué hay en la imagen, materiales, texturas, acabados específicos
+  * Escenario guatemalteco concreto cuando aplique (Zona 10, Antigua, Ciudad de Guatemala, etc.)
+  * Iluminación detallada: tipo (golden hour, natural diffused, dusk twilight), dirección, calidad de luz
+  * Composición y encuadre: ángulo de cámara (wide-angle 24mm, eye-level, aerial), profundidad de campo
+  * Colores de marca integrados en la escena: verde oscuro #2D5016 y dorado #B8860B en elementos reales
+  * Calidad técnica: "photorealistic, hyper-realistic, true-to-life, professional photography, 8K, sharp focus"
+- NUNCA menciones marcas registradas: usa "immersive 3D virtual tour" (NO Matterport), "AI generation" (NO DALL-E). NEVER include brand names like Matterport, DALL-E, Midjourney, Stable Diffusion
+- SIEMPRE fotorrealismo — nunca estilo ilustración, cartoon ni render artificial
+- Empieza con: "Photorealistic professional real estate photography of...", "Hyper-realistic architectural shot of...", etc.
+- Al final añade UNA línea de movimiento para video (separada con " | For video:"): describe el movimiento de cámara sugerido para una versión en video de la misma escena
+- Ejemplo correcto: "Photorealistic professional real estate photography of a sleek open-plan living room in a high-rise apartment in Zona 10 Guatemala City, floor-to-ceiling windows revealing a lush green hillside at golden hour dusk, focal dark green #2D5016 velvet sofa anchoring the composition, brass and gold #B8860B accent lighting on minimalist floating shelves, warm directional sunlight casting long soft shadows on polished concrete floors, shallow depth of field with razor-sharp foreground textures, wide-angle 24mm lens, no people, true-to-life materials (oak wood, tempered glass, brushed concrete), hyper-realistic, 8K resolution, professional interior photography | For video: ultra-slow cinematic dolly push-in from terrace threshold, subtle curtain drift in ambient breeze, golden hour light shifting from warm amber to cool dusk over 8 seconds"
 
 Repite ${numPosts} veces.
 ${orders?.length ? '\nÓRDENES ACTIVAS:\n' + orders.map(o => `- [Prioridad ${o.priority}] ${o.instruction}`).join('\n') : ''}
@@ -239,7 +247,7 @@ ${orders?.length ? '\nÓRDENES ACTIVAS:\n' + orders.map(o => `- [Prioridad ${o.p
 
     const message = await getAnthropicClient(req).messages.create({
       model: 'claude-opus-4-6',
-      max_tokens: 2000,
+      max_tokens: 3000,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }]
     });
