@@ -110,9 +110,11 @@ async function yaSeEnvio({ destinatario, tipo_email, referencia_id = null }) {
 
 /**
  * Wrap arbitrary HTML content in the Virtual Estate GT brand shell.
- * @param {{ titulo, subtitulo?, cuerpoHtml, ctaTexto?, ctaLink? }} opts
+ * @param {{ titulo, subtitulo?, cuerpoHtml, ctaTexto?, ctaLink?, unsubscribeToken? }} opts
+ * unsubscribeToken: when provided, adds an unsubscribe link in the footer.
+ *   Only pass for follow-up/marketing emails — NOT for transactional ones.
  */
-function buildEmailBase({ titulo, subtitulo, cuerpoHtml, ctaTexto, ctaLink }) {
+function buildEmailBase({ titulo, subtitulo, cuerpoHtml, ctaTexto, ctaLink, unsubscribeToken }) {
   const ctaBlock = ctaTexto && ctaLink ? `
   <div style="padding:0 24px 24px;">
     <a href="${ctaLink}"
@@ -125,6 +127,14 @@ function buildEmailBase({ titulo, subtitulo, cuerpoHtml, ctaTexto, ctaLink }) {
 
   const subtituloBlock = subtitulo ? `
   <p style="font-size:13px;color:#8A9990;margin:4px 0 20px;line-height:1.6;">${subtitulo}</p>` : '';
+
+  const unsubscribeBlock = unsubscribeToken ? `
+    <p style="font-size:10px;color:rgba(255,255,255,.3);margin:6px 0 0;">
+      <a href="${buildUnsubscribeLink(unsubscribeToken)}"
+         style="color:rgba(193,146,89,.5);text-decoration:underline;">
+        Cancelar suscripción a correos de seguimiento
+      </a>
+    </p>` : '';
 
   return `
 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0D4137;padding:0;">
@@ -161,9 +171,43 @@ function buildEmailBase({ titulo, subtitulo, cuerpoHtml, ctaTexto, ctaLink }) {
       <a href="mailto:info@virtualestategt.com"
          style="color:rgba(193,146,89,.7);text-decoration:none;">info@virtualestategt.com</a>
     </p>
+    ${unsubscribeBlock}
   </div>
 
 </div>`;
 }
 
-module.exports = { enviarEmail, registrarEmail, yaSeEnvio, buildEmailBase };
+// ── Opt-out helpers ───────────────────────────────────────────────────────────
+
+/**
+ * Build the public unsubscribe URL from a client token.
+ * Only the opaque token appears in the URL — no email or id exposed.
+ */
+function buildUnsubscribeLink(token) {
+  const base = process.env.APP_URL || 'https://www.virtualestategt.com';
+  return `${base}/api/unsubscribe?token=${encodeURIComponent(token)}`;
+}
+
+/**
+ * Check if a client has opted out of follow-up emails.
+ * Accept either { id } or { email } — at least one required.
+ * Returns true → do NOT send; false → safe to send.
+ * Fail-open: if DB fails, returns false (allow send rather than block forever).
+ */
+async function clienteOptOut({ id, email }) {
+  try {
+    let query = supabase.from('clientes').select('email_opt_out');
+    if (id)    query = query.eq('id', id);
+    else if (email) query = query.eq('email', email);
+    else return false;
+
+    const { data, error } = await query.maybeSingle();
+    if (error) { console.error('[email] clienteOptOut error:', error.message); return false; }
+    return data?.email_opt_out === true;
+  } catch (e) {
+    console.error('[email] clienteOptOut exception:', e.message);
+    return false;
+  }
+}
+
+module.exports = { enviarEmail, registrarEmail, yaSeEnvio, buildEmailBase, buildUnsubscribeLink, clienteOptOut };

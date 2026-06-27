@@ -102,6 +102,10 @@ const confirmacionRouter = require('./src/routes/confirmacion');
 app.use('/api/confirmacion', confirmacionRouter);
 app.use('/api/cron', confirmacionRouter);
 
+// ── Public: Email unsubscribe (no auth — client clicks from email link) ──────
+const unsubscribeRouter = require('./src/routes/unsubscribe');
+app.use('/api/unsubscribe', unsubscribeRouter);
+
 // ── Public: zone list, quote generation, and price list ──────────
 const cotizacionGenRouter = require('./src/routes/cotizacion-gen');
 // GET /api/cotizacion/* public; PUT/POST/DELETE /api/cotizacion/precios* admin-only
