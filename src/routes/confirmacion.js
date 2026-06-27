@@ -170,6 +170,23 @@ async function enviarEmailConfirmacion({ email, nombre, apellido, cotizacion_id,
       </div>
     </div>
 
+    <!-- Portal CTA -->
+    <div style="margin:0 24px 28px;background:rgba(193,146,89,.07);border:1px solid rgba(193,146,89,.25);border-radius:6px;padding:20px 22px;">
+      <p style="font-size:12px;font-weight:700;color:#B09A6C;letter-spacing:.06em;text-transform:uppercase;margin:0 0 8px;">Tu portal de cliente</p>
+      <p style="font-size:13px;color:#8A9990;line-height:1.65;margin:0 0 16px;">
+        Crea tu perfil en nuestro portal para dar seguimiento a tus cotizaciones,
+        ver el avance de tus proyectos y acceder a tus tours 3D en cualquier momento.
+        Al registrarte con <strong style="color:#F5F0E8;">${email}</strong>,
+        esta cotización quedará vinculada automáticamente a tu cuenta.
+      </p>
+      <a href="https://www.virtualestategt.com/portal.html"
+         style="display:inline-block;background:#B09A6C;color:#0D1A14;padding:11px 22px;
+                border-radius:4px;text-decoration:none;font-weight:700;font-size:13px;
+                letter-spacing:.4px;">
+        Crear mi perfil →
+      </a>
+    </div>
+
   </div>
 
   <!-- Footer -->
