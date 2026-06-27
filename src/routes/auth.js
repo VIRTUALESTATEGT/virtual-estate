@@ -133,6 +133,105 @@ router.post('/signup', async (req, res) => {
   }
 });
 
+// ── Welcome email — fire-and-forget, never throws ────────────────────────────
+async function _enviarBienvenida(nombre, email, usuarioId) {
+  const { enviarEmail, registrarEmail, yaSeEnvio, buildEmailBase } = require('../utils/email');
+  const fs   = require('fs');
+  const path = require('path');
+
+  // Deduplication: skip if already sent
+  if (await yaSeEnvio({ destinatario: email, tipo_email: 'bienvenida', referencia_id: usuarioId })) {
+    console.log('[bienvenida] ya enviado a', email, '— omitiendo');
+    return;
+  }
+
+  // Unsubscribe token (needed for footer — relational email, not transactional)
+  const { data: clienteRow } = await supabase
+    .from('clientes').select('unsubscribe_token').eq('email', email).maybeSingle();
+  const unsubscribeToken = clienteRow?.unsubscribe_token || null;
+
+  // Optional PDF attachment — if file doesn't exist, email sends without it
+  const attachments = [];
+  const guiaPath = path.join(process.cwd(), 'public', 'assets', 'guia-cliente.pdf');
+  try {
+    if (fs.existsSync(guiaPath)) {
+      attachments.push({ filename: 'Guia-Portal-Virtual-Estate.pdf',
+                         content:  fs.readFileSync(guiaPath),
+                         contentType: 'application/pdf' });
+    } else {
+      console.log('[bienvenida] guia-cliente.pdf no encontrada — enviando sin adjunto');
+    }
+  } catch (e) {
+    console.warn('[bienvenida] error leyendo guía PDF:', e.message, '— enviando sin adjunto');
+  }
+
+  const _row = (icon, titulo, desc) =>
+    `<tr>
+      <td style="padding:10px 12px;vertical-align:top;font-size:18px;width:32px;">${icon}</td>
+      <td style="padding:10px 12px 10px 0;vertical-align:top;border-bottom:1px solid rgba(193,146,89,.08);">
+        <div style="font-size:13px;font-weight:700;color:#F5F0E8;margin-bottom:2px;">${titulo}</div>
+        <div style="font-size:12px;color:#8A9990;line-height:1.55;">${desc}</div>
+      </td>
+    </tr>`;
+
+  const cuerpoHtml = `
+    <p style="font-size:16px;font-weight:700;color:#F5F0E8;margin:0 0 6px;">¡Hola ${nombre}! 👋</p>
+    <p style="font-size:13px;color:#8A9990;line-height:1.65;margin:0 0 18px;">
+      Tu perfil en Virtual Estate GT está listo. Esto es todo lo que puedes hacer desde tu portal:
+    </p>
+
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+      <tbody>
+        ${_row('📋', 'Mis cotizaciones',
+          'Ve el estado de todas tus cotizaciones de servicios, descárgalas en PDF y confirma tu anticipo.')}
+        ${_row('📐', 'Tours 3D y escaneos',
+          'Accede a tus tours virtuales e inmersivos en cualquier momento desde cualquier dispositivo.')}
+        ${_row('🏠', 'Propiedades guardadas',
+          'Explora nuestro portafolio, guarda las propiedades que te interesan y compáralas en tu carrito.')}
+        ${_row('💳', 'Historial de pagos',
+          'Registra tus anticipos, revisa el historial de pagos y el resumen de cada transacción.')}
+        ${_row('🤝', 'Programa de agentes referidos',
+          'Solicita tu código de agente, recomienda nuestros servicios y gana comisiones por cada proyecto cerrado que refieras. Tu comisión sale de la comisión interna de VE — el cliente siempre paga el mismo precio.')}
+        ${_row('🔗', 'Vinculaciones y comisiones',
+          'Ve qué proyectos han usado tu código de referido, el historial de vinculaciones y el estado de tus comisiones pendientes o pagadas.')}
+        ${_row('👤', 'Tu perfil',
+          'Actualiza tus datos, pronombre, teléfono y cuenta bancaria para recibir comisiones.')}
+        ${_row('🛡️', 'Verificación de identidad',
+          'Completa tu verificación para activar tu código de agente y acceder a funciones avanzadas.')}
+      </tbody>
+    </table>
+
+    <p style="font-size:12px;color:#8A9990;line-height:1.6;margin:0;border-top:1px solid rgba(193,146,89,.12);padding-top:14px;">
+      Si confirmaste una cotización anteriormente con este correo, ya puedes verla en tu portal al iniciar sesión.
+    </p>`;
+
+  const html = buildEmailBase({
+    titulo:          '¡Bienvenido a Virtual Estate GT!',
+    subtitulo:       `Tu cuenta está lista, ${nombre}.`,
+    cuerpoHtml,
+    ctaTexto:        'Ir a mi portal',
+    ctaLink:         'https://www.virtualestategt.com/portal.html',
+    unsubscribeToken,
+  });
+
+  let estado = 'enviado', errorDetalle = null;
+  try {
+    await enviarEmail({
+      to:          email,
+      subject:     '¡Bienvenido a Virtual Estate GT! Tu portal está listo 🏠',
+      html,
+      attachments: attachments.length ? attachments : undefined,
+      label:       'bienvenida',
+    });
+  } catch (e) {
+    console.error('[bienvenida] enviarEmail error:', e.message);
+    estado = 'error'; errorDetalle = e.message;
+  }
+
+  await registrarEmail({ destinatario: email, tipo_email: 'bienvenida',
+    referencia_id: usuarioId, estado, error_detalle: errorDetalle });
+}
+
 // REGISTRO CLIENTE — creates usuarios (role:cliente) + clientes record, returns JWT
 router.post('/registro-cliente', async (req, res) => {
   try {
@@ -181,6 +280,11 @@ router.post('/registro-cliente', async (req, res) => {
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES });
 
     res.status(201).json({ token, usuario: payload });
+
+    // Fire-and-forget welcome email — response already sent, never blocks registration
+    _enviarBienvenida(usuario.nombre, usuario.email, usuario.id).catch(e =>
+      console.error('[bienvenida] uncaught:', e.message)
+    );
   } catch (e) {
     console.error('[RegistroCliente]', e.message);
     if (e.code === '23505')
