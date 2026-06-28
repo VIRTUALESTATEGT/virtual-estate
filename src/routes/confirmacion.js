@@ -462,8 +462,12 @@ router.post('/limpiar', async (req, res) => {
   if (secret !== process.env.CRON_SECRET) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
+
+  // ── Tarea 1: eliminar borradores sin confirmar de más de 3 meses ─────────
+  // Requiere migration 036 (ADD COLUMN created_at). Falla silenciosamente hasta
+  // que se aplique; Tarea 2 corre igual gracias al try/catch independiente.
+  let eliminadas = 0;
   try {
-    // ── Tarea 1: eliminar borradores sin confirmar de más de 3 meses ─────────
     const hace3meses = new Date();
     hace3meses.setMonth(hace3meses.getMonth() - 3);
 
@@ -475,12 +479,15 @@ router.post('/limpiar', async (req, res) => {
       .select('id');
 
     if (errElim) throw errElim;
-    const eliminadas = eliminadasData?.length || 0;
-    console.log(`[CRON] Cotizaciones vencidas eliminadas: ${eliminadas}`);
+    eliminadas = eliminadasData?.length || 0;
+    console.log(`[CRON] Tarea 1 — cotizaciones vencidas eliminadas: ${eliminadas}`);
+  } catch (e) {
+    console.error('[CRON] Tarea 1 error:', e.message);
+  }
 
-    // ── Tarea 2: pasar a 'pendiente' las 'enviadas' sin confirmar en 14 días ─
-    // Ancla de tiempo: fecha_envio_manual si fue enviada vía el modal;
-    // created_at como fallback si el admin solo cambió estado sin usar el modal.
+  // ── Tarea 2: pasar a 'pendiente' las 'enviadas' sin confirmar en 14 días ─
+  let pendientes = 0;
+  try {
     const hace14dias = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
 
     // Rama A: tiene fecha_envio_manual y ya pasaron 14 días
@@ -492,27 +499,26 @@ router.post('/limpiar', async (req, res) => {
       .not('fecha_envio_manual', 'is', null)
       .lt('fecha_envio_manual', hace14dias)
       .select('id');
-    if (errA) console.error('[CRON] vencA error:', errA.message);
+    if (errA) console.error('[CRON] Tarea 2 Rama A error:', errA.message);
 
-    // Rama B: sin fecha_envio_manual y created_at > 14 días (enviadas sin modal)
+    // Rama B: sin fecha_envio_manual — sin fecha de creación confiable, se mueven
+    // todas las que estén en 'enviada' por esta vía (no tienen ancla temporal).
     const { data: vencB, error: errB } = await supabase
       .from('cotizaciones')
       .update({ estado: 'pendiente' })
       .eq('estado', 'enviada')
       .neq('estado_confirmacion', 'confirmado')
       .is('fecha_envio_manual', null)
-      .lt('created_at', hace14dias)
       .select('id');
-    if (errB) console.error('[CRON] vencB error:', errB.message);
+    if (errB) console.error('[CRON] Tarea 2 Rama B error:', errB.message);
 
-    const pendientes = (vencA?.length || 0) + (vencB?.length || 0);
-    console.log(`[CRON] Cotizaciones enviadas → pendiente: ${pendientes}`);
-
-    res.json({ success: true, eliminadas, pendientes });
+    pendientes = (vencA?.length || 0) + (vencB?.length || 0);
+    console.log(`[CRON] Tarea 2 — cotizaciones enviadas → pendiente: ${pendientes}`);
   } catch (e) {
-    console.error('[CRON]', e.message);
-    res.status(500).json({ error: e.message });
+    console.error('[CRON] Tarea 2 error:', e.message);
   }
+
+  res.json({ success: true, eliminadas, pendientes });
 });
 
 module.exports = router;
