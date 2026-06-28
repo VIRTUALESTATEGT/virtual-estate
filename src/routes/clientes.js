@@ -4,7 +4,9 @@ const supabase = require('../config/supabase');
 
 router.get('/', async (req, res) => {
   try {
-    const { data, error } = await supabase.from('clientes').select('*').order('id', { ascending: false });
+    let query = supabase.from('clientes').select('*').order('id', { ascending: false });
+    if (req.query.tipo) query = query.eq('tipo', req.query.tipo);
+    const { data, error } = await query;
     if (error) throw error;
     res.json(data);
   } catch (error) {

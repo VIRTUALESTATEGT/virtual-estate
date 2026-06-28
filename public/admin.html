@@ -186,10 +186,6 @@
     .badge-process::before { background:var(--gold); }
     .badge-done      { background:rgba(130,200,255,.15); color:#80CCFF; }
     .badge-done::before { background:#80CCFF; }
-    .badge-cot-gris   { background:rgba(150,150,160,.15); color:#A8A8B8; }
-    .badge-cot-gris::before { background:#A8A8B8; }
-    .badge-cot-purple { background:rgba(140,100,220,.15); color:#B08CE0; }
-    .badge-cot-purple::before { background:#B08CE0; }
     .badge-venta     { background:rgba(60,130,220,.12);  color:#6EAAFF; }
     .badge-venta::before { background:#6EAAFF; }
     .badge-renta     { background:rgba(193,146,89,.15);  color:var(--gold); }
@@ -345,7 +341,7 @@
     </div>
     <div class="nav-item" onclick="showView('leads', this)">
       <i class="fas fa-funnel-dollar"></i> Leads
-      <span class="nav-badge" id="badge-leads" style="display:none;"></span>
+      <span class="nav-badge">3</span>
     </div>
     <div class="nav-item" onclick="showView('clientes', this)">
       <i class="fas fa-users"></i> Clientes
@@ -355,7 +351,6 @@
     </div>
     <div class="nav-item" onclick="showView('cotizaciones', this)">
       <i class="fas fa-file-invoice-dollar"></i> Cotizaciones
-      <span class="nav-badge" id="badge-cotizaciones" style="display:none;"></span>
     </div>
   </div>
 
@@ -363,7 +358,7 @@
     <div class="sidebar-label">Operaciones</div>
     <div class="nav-item" onclick="showView('proyectos', this)">
       <i class="fas fa-tasks"></i> Proyectos
-      <span class="nav-badge" id="badge-proyectos" style="display:none;"></span>
+      <span class="nav-badge">2</span>
     </div>
     <div class="nav-item" onclick="showView('propiedades', this)">
       <i class="fas fa-building"></i> Propiedades
@@ -402,9 +397,6 @@
     <div class="nav-item superadmin-only" id="nav-notificaciones" style="display:none;" onclick="showView('notificaciones', this)">
       <i class="fas fa-bell"></i> Notificaciones
       <span class="nav-badge" id="notif-badge">0</span>
-    </div>
-    <div class="nav-item" onclick="showView('wa-contacts', this)">
-      <i class="fab fa-whatsapp"></i> Contactos WA
     </div>
     <div class="nav-item" onclick="showView('config', this)">
       <i class="fas fa-cog"></i> Configuración
@@ -466,8 +458,8 @@
         <div class="kpi-card">
           <div>
             <div class="kpi-label">Facturado (mes)</div>
-            <div class="kpi-value gold" id="kpi-facturado">—</div>
-            <div class="kpi-sub up" id="kpi-facturado-sub"><i class="fas fa-arrow-up"></i> cotizaciones aprobadas</div>
+            <div class="kpi-value gold">$4,850</div>
+            <div class="kpi-sub up"><i class="fas fa-arrow-up"></i> vs mes anterior</div>
           </div>
           <div class="kpi-icon" style="background:rgba(90,224,138,.1); color:#5AE08A;"><i class="fas fa-dollar-sign"></i></div>
         </div>
@@ -494,8 +486,31 @@
                 <th>Nombre</th><th>Servicio</th><th>Estado</th><th>Fecha</th>
               </tr>
             </thead>
-            <tbody id="dash-leads-tbody">
-              <tr><td colspan="4" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i></td></tr>
+            <tbody>
+              <tr>
+                <td><span class="td-bold">Ana García</span><br/><span style="color:var(--gray);font-size:.68rem;">Inmobiliaria XYZ</span></td>
+                <td>Tour Virtual</td>
+                <td><span class="badge badge-new">Nuevo</span></td>
+                <td>Hoy</td>
+              </tr>
+              <tr>
+                <td><span class="td-bold">Carlos Méndez</span><br/><span style="color:var(--gray);font-size:.68rem;">Independiente</span></td>
+                <td>AS BUILT</td>
+                <td><span class="badge badge-quote">Cotizado</span></td>
+                <td>Ayer</td>
+              </tr>
+              <tr>
+                <td><span class="td-bold">Sofía Barrios</span><br/><span style="color:var(--gray);font-size:.68rem;">Desarrolladora Sur</span></td>
+                <td>Paquete Premium</td>
+                <td><span class="badge badge-contact">Contactado</span></td>
+                <td>20 Abr</td>
+              </tr>
+              <tr>
+                <td><span class="td-bold">Roberto Lima</span><br/><span style="color:var(--gray);font-size:.68rem;">Constructora Norte</span></td>
+                <td>Construcción</td>
+                <td><span class="badge badge-won">Ganado</span></td>
+                <td>18 Abr</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -591,8 +606,13 @@
 
     <!-- ── LEADS VIEW ──────────────────────── -->
     <div class="view" id="view-leads">
-      <div class="filter-tabs" id="leads-filter-tabs">
-        <div class="f-tab active" onclick="filterLeads(null)">Todos</div>
+      <div class="filter-tabs">
+        <div class="f-tab active">Todos (12)</div>
+        <div class="f-tab">Nuevos (3)</div>
+        <div class="f-tab">Contactados (4)</div>
+        <div class="f-tab">Cotizados (3)</div>
+        <div class="f-tab">Ganados (2)</div>
+        <div class="f-tab">Perdidos (0)</div>
       </div>
       <div class="table-wrap">
         <div class="table-head">
@@ -601,7 +621,7 @@
         </div>
         <table>
           <thead>
-            <tr><th>ID</th><th>Nombre Completo</th><th>Empresa</th><th>Servicio</th><th>Fuente</th><th>Presupuesto</th><th>Estado</th><th>Seguimiento</th><th>Acciones</th></tr>
+            <tr><th>ID</th><th>Nombre</th><th>Empresa</th><th>Servicio</th><th>Fuente</th><th>Presupuesto</th><th>Estado</th><th>Seguimiento</th><th>Acciones</th></tr>
           </thead>
           <tbody id="leads-tbody">
             <tr>
@@ -638,9 +658,9 @@
           <button class="topbar-btn btn-primary" onclick="openClienteModal()"><i class="fas fa-plus"></i> Nuevo Cliente</button>
         </div>
         <table>
-          <thead><tr><th>ID</th><th>Nombre</th><th>Empresa</th><th>Tipo</th><th>Email</th><th>Teléfono</th><th>Código Cliente</th><th>Núm. Agente</th><th>Alta</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>ID</th><th>Nombre</th><th>Empresa</th><th>Tipo</th><th>Email</th><th>Teléfono</th><th>Alta</th><th>Acciones</th></tr></thead>
           <tbody id="clientes-tbody">
-            <tr><td colspan="10" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
+            <tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -1444,82 +1464,6 @@
       </div>
     </div><!-- /view-notificaciones -->
 
-    <!-- ── CONTACTOS WHATSAPP VIEW ────────────────────────────── -->
-    <div class="view" id="view-wa-contacts">
-      <div class="panel">
-        <div class="panel-head">
-          <span class="table-head-title"><i class="fab fa-whatsapp" style="color:#25D366;margin-right:.4rem;"></i>Contactos WhatsApp</span>
-          <div style="display:flex;gap:.5rem;align-items:center;">
-            <input id="wac-buscar" type="text" placeholder="Buscar número..."
-              oninput="loadWaContacts()"
-              style="padding:.38rem .7rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-size:.7rem;font-family:'Montserrat',sans-serif;width:150px;outline:none;"/>
-            <select id="wac-tipo" onchange="loadWaContacts()"
-              style="padding:.38rem .7rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-size:.7rem;font-family:'Montserrat',sans-serif;">
-              <option value="">Todos</option>
-              <option value="personal">Personal</option>
-              <option value="client">Cliente</option>
-              <option value="owner">Owner</option>
-            </select>
-            <button class="topbar-btn btn-sec" onclick="loadWaContacts()"><i class="fas fa-sync"></i></button>
-          </div>
-        </div>
-        <div id="wac-list-wrap">
-          <div id="wac-empty" style="text-align:center;padding:3rem;color:var(--gray);font-size:.8rem;display:none;">
-            <i class="fab fa-whatsapp" style="font-size:2rem;margin-bottom:.8rem;display:block;opacity:.3;"></i>
-            Sin contactos registrados
-          </div>
-          <table class="data-table" id="wac-table" style="display:none;">
-            <thead><tr>
-              <th>Número</th><th>Tipo</th><th>Nombre</th><th>Actualizado</th><th>Acciones</th>
-            </tr></thead>
-            <tbody id="wac-tbody"></tbody>
-          </table>
-        </div>
-        <div style="margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--border);display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;">
-          <button class="topbar-btn btn-primary" id="wac-add-btn" onclick="showWacForm()">
-            <i class="fas fa-plus"></i> Agregar contacto
-          </button>
-          <button class="topbar-btn btn-sec" onclick="document.getElementById('wac-vcf-input').click()" title="Importa un archivo .vcf de iCloud — agrega contactos como Personal">
-            <i class="fas fa-file-import"></i> Importar vCard
-          </button>
-          <input type="file" id="wac-vcf-input" accept=".vcf" style="display:none;" onchange="importarVCard(this)"/>
-          <span id="wac-import-result" style="font-size:.73rem;color:var(--gray);display:none;"></span>
-        </div>
-      </div>
-
-      <!-- Formulario agregar/actualizar -->
-      <div class="panel" id="wac-form-panel" style="display:none;margin-top:1rem;">
-        <div class="panel-head">
-          <span class="table-head-title">Agregar / Actualizar Contacto</span>
-          <button class="topbar-btn btn-sec" onclick="hideWacForm()">Cancelar</button>
-        </div>
-        <div style="display:flex;gap:.8rem;flex-wrap:wrap;align-items:flex-end;">
-          <div>
-            <div style="font-size:.72rem;color:var(--gray);margin-bottom:.3rem;">Número (cualquier formato)</div>
-            <input id="wac-input-phone" type="text" placeholder="+502 5017-5832"
-              style="padding:.5rem .7rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-size:.78rem;font-family:'Montserrat',sans-serif;width:200px;outline:none;"/>
-          </div>
-          <div>
-            <div style="font-size:.72rem;color:var(--gray);margin-bottom:.3rem;">Tipo</div>
-            <select id="wac-input-tipo"
-              style="padding:.5rem .7rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-size:.78rem;font-family:'Montserrat',sans-serif;">
-              <option value="client">Cliente</option>
-              <option value="personal">Personal</option>
-              <option value="owner">Owner</option>
-            </select>
-          </div>
-          <div>
-            <div style="font-size:.72rem;color:var(--gray);margin-bottom:.3rem;">Nombre (opcional)</div>
-            <input id="wac-input-name" type="text" placeholder="Juan Pérez"
-              style="padding:.5rem .7rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);color:var(--white);font-size:.78rem;font-family:'Montserrat',sans-serif;width:180px;outline:none;"/>
-          </div>
-          <button class="topbar-btn btn-primary" onclick="saveWacContact()">
-            <i class="fas fa-save"></i> Guardar
-          </button>
-        </div>
-      </div>
-    </div><!-- /view-wa-contacts -->
-
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -1534,7 +1478,7 @@
       </div>
       <div class="form-group">
         <label class="form-label">Apellido</label>
-        <input type="text" id="lead-apellido" class="form-control" placeholder="Apellido"/>
+        <input type="text" class="form-control" placeholder="Apellido"/>
       </div>
     </div>
     <div class="form-row">
@@ -2206,6 +2150,7 @@
             <option value="borrador">Borrador</option>
             <option value="pendiente">Pendiente</option>
             <option value="enviada">Enviada</option>
+            <option value="aprobada">Aprobada</option>
             <option value="rechazada">Rechazada</option>
           </select>
         </div>
@@ -2449,20 +2394,15 @@
     }
     applySuperadminUI(u);
     loadDashboard();
-    // Auto-refresh dashboard KPIs + badges every 30 s
-    if (!window._dashRefreshInterval) {
-      window._dashRefreshInterval = setInterval(loadDashboard, 30000);
-    }
   }
 
   /* ── DASHBOARD KPIs ──────────────────────────────────────── */
   async function loadDashboard() {
     try {
-      const [leads, proyectos, propiedades, cotizaciones] = await Promise.all([
+      const [leads, proyectos, propiedades] = await Promise.all([
         apiFetch('/api/leads'),
         apiFetch('/api/proyectos'),
         apiFetch('/api/propiedades'),
-        apiFetch('/api/cotizaciones'),
       ]);
       const activos = leads.filter(l => !['Ganado','Perdido'].includes(l.estado));
       const nuevos = leads.filter(l => l.estado === 'Nuevo').length;
@@ -2475,103 +2415,41 @@
       document.getElementById('kpi-proyectos-sub').textContent = `${proyectos.length} total`;
       document.getElementById('kpi-propiedades').textContent = propiedades.length;
       document.getElementById('kpi-propiedades-sub').textContent = 'en portafolio';
-      // Sidebar badges
-      const _setBadge = (id, n) => { const b = document.getElementById(id); if (!b) return; if (n > 0) { b.textContent = n; b.style.display = ''; } else b.style.display = 'none'; };
-      _setBadge('badge-leads', nuevos);
-      _setBadge('badge-cotizaciones', cotizaciones.filter(c => ['enviada','pendiente','borrador'].includes(c.estado)).length);
-      _setBadge('badge-proyectos', proyectos.filter(p => !['Entregado','Cancelado'].includes(p.estado)).length);
-
-      // Facturado este mes (cotizaciones enviadas/confirmadas; 'aprobada' por compatibilidad histórica)
-      const ahora = new Date();
-      const mesActual = cotizaciones.filter(c => {
-        if (!['enviada','confirmada','aprobada'].includes(c.estado)) return false;
-        const f = new Date(c.created_at);
-        return f.getFullYear()===ahora.getFullYear() && f.getMonth()===ahora.getMonth();
-      });
-      const totalMes = mesActual.reduce((s,c) => {
-        // c.monto siempre está en USD independientemente de la etiqueta moneda
-        return s + (Number(c.monto)||0);
-      }, 0);
-      const facEl = document.getElementById('kpi-facturado');
-      if (facEl) facEl.textContent = totalMes>0 ? '$'+totalMes.toLocaleString('es-GT',{minimumFractionDigits:0,maximumFractionDigits:0}) : '$0';
-
-      // Leads recientes (top 5)
-      const dashTbody = document.getElementById('dash-leads-tbody');
-      if (dashTbody) {
-        const BADGE = { 'Nuevo':'badge-new','Contactado':'badge-contact','En seguimiento':'badge-contact','Cotizado':'badge-quote','Ganado':'badge-won','Perdido':'badge-lost' };
-        const recientes = [...leads].slice(0,5);
-        if (!recientes.length) {
-          dashTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--gray);padding:1.5rem;">Sin leads</td></tr>';
-        } else {
-          dashTbody.innerHTML = recientes.map(l => {
-            const nombre = capitalizarNombre([l.nombre,l.apellido].filter(Boolean).join(' '))||'—';
-            const fecha = l.created_at ? new Date(l.created_at).toLocaleDateString('es-GT',{day:'2-digit',month:'short'}) : '—';
-            return `<tr>
-              <td><span class="td-bold">${nombre}</span><br/><span style="color:var(--gray);font-size:.68rem;">${l.empresa||''}</span></td>
-              <td>${l.servicio||'—'}</td>
-              <td><span class="badge ${BADGE[l.estado]||'badge-new'}">${l.estado||'Nuevo'}</span></td>
-              <td style="color:var(--gray);font-size:.72rem;">${fecha}</td>
-            </tr>`;
-          }).join('');
-        }
-      }
+      const badge = document.querySelector('[onclick*="\'leads\'"] .nav-badge, [onclick*="leads,"] .nav-badge');
+      if (badge && nuevos > 0) { badge.textContent = nuevos; badge.style.display = ''; }
+      else if (badge) badge.style.display = 'none';
     } catch (e) { console.warn('Dashboard KPIs:', e.message); }
   }
 
   /* ── LEADS TABLE ────────────────────────────────────────── */
-  let _leadsCache = {}, _leadsAll = [], _leadsFiltro = null, _editLeadId = null;
-
-  function _renderLeadsFilterTabs(leads) {
-    const tabs = document.getElementById('leads-filter-tabs'); if (!tabs) return;
-    const ESTADOS = [null,'Nuevo','Contactado','En seguimiento','Cotizado','Ganado','Perdido'];
-    const LABELS  = ['Todos','Nuevos','Contactados','En seguimiento','Cotizados','Ganados','Perdidos'];
-    tabs.innerHTML = ESTADOS.map((e,i) => {
-      const count = e ? leads.filter(l=>l.estado===e).length : leads.length;
-      const active = _leadsFiltro===e ? 'active' : '';
-      return `<div class="f-tab ${active}" onclick="filterLeads(${e===null?'null':`'${e}'`})">${LABELS[i]} (${count})</div>`;
-    }).join('');
-  }
-
-  function filterLeads(estado) {
-    _leadsFiltro = estado===undefined ? null : estado;
-    _renderLeadsFilterTabs(_leadsAll);
-    const BADGE = { 'Nuevo':'badge-new','Contactado':'badge-contact','En seguimiento':'badge-contact','Cotizado':'badge-quote','Ganado':'badge-won','Perdido':'badge-lost' };
-    const tbody = document.getElementById('leads-tbody'); if (!tbody) return;
-    const filtrados = _leadsFiltro ? _leadsAll.filter(l=>l.estado===_leadsFiltro) : _leadsAll;
-    if (!filtrados.length) {
-      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay leads${_leadsFiltro?' con estado "'+_leadsFiltro+'"':''}.</td></tr>`;
-      return;
-    }
-    tbody.innerHTML = filtrados.map(l => `<tr>
-      <td style="color:var(--gray);font-size:.72rem;">${l.id || '—'}</td>
-      <td><span class="td-bold">${capitalizarNombre([l.nombre,l.apellido].filter(Boolean).join(' '))||'—'}</span><br/><span style="color:var(--gray);font-size:.68rem;">${l.email||''}${l.telefono?' · '+l.telefono:''}</span></td>
-      <td>${l.empresa||'—'}</td>
-      <td>${l.servicio||'—'}</td>
-      <td>${l.fuente||'—'}</td>
-      <td class="td-gold">${l.presupuesto||'—'}</td>
-      <td><span class="badge ${BADGE[l.estado]||'badge-new'}">${l.estado||'Nuevo'}</span></td>
-      <td style="color:var(--gray);">${l.seguimiento||'—'}</td>
-      <td><div class="action-btns">
-        <button class="act-btn" title="Editar" onclick="editLead(${l.id})"><i class="fas fa-pencil-alt"></i></button>
-        <button class="act-btn danger" title="Eliminar" onclick="deleteLead(${l.id})"><i class="fas fa-trash"></i></button>
-      </div></td>
-    </tr>`).join('');
-  }
-
+  let _leadsCache = {}, _editLeadId = null;
   async function loadLeads() {
     const tbody = document.getElementById('leads-tbody');
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
     try {
       const leads = await apiFetch('/api/leads');
-      _leadsCache = {}; _leadsAll = leads;
+      _leadsCache = {};
       leads.forEach(l => _leadsCache[l.id] = l);
-      _renderLeadsFilterTabs(leads);
       if (!leads.length) {
         tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay leads. ¡Crea el primero!</td></tr>';
         return;
       }
-      filterLeads(_leadsFiltro);
+      const BADGE = { 'Nuevo':'badge-new','Contactado':'badge-contact','En seguimiento':'badge-contact','Cotizado':'badge-quote','Ganado':'badge-won','Perdido':'badge-lost' };
+      tbody.innerHTML = leads.map(l => `<tr>
+        <td style="color:var(--gray);font-size:.72rem;">${l.id || '—'}</td>
+        <td><span class="td-bold">${l.nombre||'—'}</span><br/><span style="color:var(--gray);font-size:.68rem;">${l.email||''}${l.telefono?' · '+l.telefono:''}</span></td>
+        <td>${l.empresa||'—'}</td>
+        <td>${l.servicio||'—'}</td>
+        <td>${l.fuente||'—'}</td>
+        <td class="td-gold">${l.presupuesto||'—'}</td>
+        <td><span class="badge ${BADGE[l.estado]||'badge-new'}">${l.estado||'Nuevo'}</span></td>
+        <td style="color:var(--gray);">${l.seguimiento||'—'}</td>
+        <td><div class="action-btns">
+          <button class="act-btn" title="Editar" onclick="editLead(${l.id})"><i class="fas fa-pencil-alt"></i></button>
+          <button class="act-btn danger" title="Eliminar" onclick="deleteLead(${l.id})"><i class="fas fa-trash"></i></button>
+        </div></td>
+      </tr>`).join('');
     } catch (e) {
       tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;
     }
@@ -2580,48 +2458,28 @@
   function editLead(id) {
     const l = _leadsCache[id]; if (!l) return;
     _editLeadId = id;
-    document.getElementById('lead-nombre').value      = l.nombre || '';
-    document.getElementById('lead-apellido').value    = l.apellido || '';
-    document.getElementById('lead-email').value       = l.email || '';
-    document.getElementById('lead-telefono').value    = l.telefono || '';
-    document.getElementById('lead-empresa').value     = l.empresa || '';
-    document.getElementById('lead-estado').value      = l.estado || 'Nuevo';
-    document.getElementById('lead-servicio').value    = l.servicio || '';
-    document.getElementById('lead-fuente').value      = l.fuente || 'Formulario web';
+    document.getElementById('lead-nombre').value    = l.nombre || '';
+    document.getElementById('lead-email').value     = l.email || '';
+    document.getElementById('lead-telefono').value  = l.telefono || '';
+    document.getElementById('lead-empresa').value   = l.empresa || '';
+    document.getElementById('lead-estado').value    = l.estado || 'Nuevo';
+    document.getElementById('lead-servicio').value  = l.servicio || '';
+    document.getElementById('lead-fuente').value    = l.fuente || 'Formulario web';
     document.getElementById('lead-presupuesto').value = l.presupuesto || '';
     document.getElementById('lead-seguimiento').value = l.seguimiento || '';
     const titleEl = document.getElementById('modal-lead-title');
     if (titleEl) titleEl.textContent = 'Editar Lead #' + id;
-    // Open overlay directly — do NOT call openModal() which resets _editLeadId to null
-    document.getElementById('modalOverlay').classList.add('open');
-  }
-
-  // Helper: muestra modal de confirmación de borrado y ejecuta acción si confirma
-  function _confirmarEliminar({ titulo, cuerpo, accion }) {
-    document.getElementById('delete-confirm-title').textContent = titulo;
-    document.getElementById('delete-confirm-body').textContent  = cuerpo;
-    const btn = document.getElementById('delete-confirm-btn');
-    btn.onclick = async () => {
-      document.getElementById('deleteConfirmModal').classList.remove('open');
-      await accion();
-    };
-    document.getElementById('deleteConfirmModal').classList.add('open');
+    openModal();
   }
 
   async function deleteLead(id) {
-    const l = _leadsCache[id];
-    const nombre = l ? (l.nombre + (l.apellido ? ' ' + l.apellido : '')) : 'este lead';
-    _confirmarEliminar({
-      titulo: 'Eliminar lead',
-      cuerpo: `¿Eliminar a "${nombre}"? Se borrarán también TODAS sus cotizaciones y datos de WhatsApp relacionados. Esta acción NO se puede deshacer.`,
-      accion: async () => {
-        try {
-          await apiFetch('/api/leads/' + id, { method: 'DELETE' });
-          showToast('Lead y sus datos eliminados');
-          loadLeads(); loadDashboard();
-        } catch (e) { showToast('Error al eliminar: ' + e.message); }
-      }
-    });
+    if (!confirm('¿Eliminar este lead? Esta acción no se puede deshacer.')) return;
+    try {
+      await apiFetch('/api/leads/' + id, { method: 'DELETE' });
+      showToast('Lead eliminado');
+      loadLeads();
+      loadDashboard();
+    } catch (e) { showToast('Error al eliminar: ' + e.message); }
   }
 
   /* ── TOAST ──────────────────────────────────────────────── */
@@ -2651,8 +2509,7 @@
       calendario:'Calendario', precios:'Precios', promos:'Códigos Promo',
       agentes:'Agentes / Referidos', permisos:'Usuarios & Permisos', config:'Configuración',
       conversaciones:'Conversaciones Multicanal', verificaciones:'Verificaciones de Identidad',
-      zonas:'Zonas de Riesgo', notificaciones:'Notificaciones',
-      'wa-contacts':'Contactos WhatsApp'
+      zonas:'Zonas de Riesgo', notificaciones:'Notificaciones'
     };
     document.getElementById('topbar-title').textContent = titles[name] || name;
     if (name === 'leads') loadLeads();
@@ -2668,7 +2525,6 @@
     else if (name === 'zonas') loadZonas();
     else if (name === 'precios') loadPrecios();
     else if (name === 'notificaciones') loadNotificaciones();
-    else if (name === 'wa-contacts') loadWaContacts();
   }
 
   function openModal() {
@@ -2680,7 +2536,7 @@
   function closeModal() {
     _editLeadId = null;
     document.getElementById('modalOverlay').classList.remove('open');
-    ['lead-nombre','lead-apellido','lead-email','lead-telefono','lead-empresa','lead-presupuesto','lead-seguimiento'].forEach(id => {
+    ['lead-nombre','lead-email','lead-telefono','lead-empresa','lead-presupuesto','lead-seguimiento'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
@@ -2692,7 +2548,6 @@
     if (!nombre || !email) { showToast('Nombre y email son requeridos'); return; }
     const payload = {
       nombre, email,
-      apellido: document.getElementById('lead-apellido').value.trim() || null,
       telefono: document.getElementById('lead-telefono').value.trim(),
       empresa: document.getElementById('lead-empresa').value.trim(),
       estado: document.getElementById('lead-estado').value,
@@ -2995,27 +2850,25 @@
   async function loadClientes(){
     const tbody=document.getElementById('clientes-tbody');
     if(!tbody)return;
-    tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
     try{
       const items=await apiFetch('/api/clientes?tipo=Cliente');
       _clientesCache={}; items.forEach(c=>_clientesCache[c.id]=c);
-      if(!items.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:2rem;">No hay clientes. ¡Crea el primero!</td></tr>';return;}
+      if(!items.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem;">No hay clientes. ¡Crea el primero!</td></tr>';return;}
       tbody.innerHTML=items.map(c=>`<tr>
         <td style="color:var(--gray);font-size:.72rem;">${c.id}</td>
-        <td class="td-bold">${capitalizarNombre([c.nombre,c.apellido].filter(Boolean).join(' '))||'—'}</td>
+        <td class="td-bold">${c.nombre||'—'}</td>
         <td>${c.empresa||'—'}</td>
         <td>${c.tipo||'—'}</td>
         <td style="color:var(--gray);">${c.email||'—'}</td>
         <td style="color:var(--gray);">${c.telefono||'—'}</td>
-        <td style="font-family:monospace;color:var(--gold);font-size:.72rem;">${c.codigo_cliente||'—'}</td>
-        <td style="font-family:monospace;color:var(--gray);font-size:.72rem;">${c.numero_agente||'—'}</td>
         <td style="color:var(--gray);">${c.fechacreacion?new Date(c.fechacreacion).toLocaleDateString('es-GT'):'—'}</td>
         <td><div class="action-btns">
           <button class="act-btn" title="Editar" onclick="editCliente(${c.id})"><i class="fas fa-pencil-alt"></i></button>
           <button class="act-btn danger" onclick="deleteCliente(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
         </div></td>
       </tr>`).join('');
-    }catch(e){tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
+    }catch(e){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
   }
   function editCliente(id){
     const c=_clientesCache[id]; if(!c)return;
@@ -3029,16 +2882,9 @@
     document.getElementById('clienteModal').classList.add('open');
   }
   async function deleteCliente(id){
-    const c = _clientesCache[id];
-    const nombre = c?.nombre || 'este cliente';
-    _confirmarEliminar({
-      titulo: 'Eliminar cliente',
-      cuerpo: `¿Eliminar a "${nombre}"? Se borrarán también TODAS sus cotizaciones y confirmaciones de portal. Esta acción NO se puede deshacer.`,
-      accion: async () => {
-        try{await apiFetch('/api/clientes/'+id,{method:'DELETE'});showToast('Cliente y sus datos eliminados');loadClientes();}
-        catch(e){showToast('Error: '+e.message);}
-      }
-    });
+    if(!confirm('¿Eliminar este cliente?'))return;
+    try{await apiFetch('/api/clientes/'+id,{method:'DELETE'});showToast('Cliente eliminado');loadClientes();}
+    catch(e){showToast('Error: '+e.message);}
   }
   function openClienteModal(){
     _editClienteId=null;
@@ -3146,13 +2992,13 @@
 
   async function aprobarCotizacion(id){
     try{
-      await apiFetch('/api/cotizaciones/'+id,{method:'PUT',body:JSON.stringify({estado:'enviada'})});
-      showToast('✅ Cotización enviada al cliente');
+      await apiFetch('/api/cotizaciones/'+id,{method:'PUT',body:JSON.stringify({estado:'aprobada'})});
+      showToast('✅ Cotización aprobada');
       await loadCotizaciones();
       // Open send modal for this cotizacion
       const c=_cotizacionesCache[id];
       if(c){
-        const portalLink=`${window.location.origin}/portal/cotizacion.html?cot=${id}`;
+        const portalLink=`${window.location.origin}/portal/cotizacion/${id}`;
         await editCotizacion(id);
         mostrarEnvioModal(id, portalLink);
       }
@@ -3180,37 +3026,32 @@
       _cotizacionesCache={}; items.forEach(c=>_cotizacionesCache[c.id]=c);
       if(!items.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay cotizaciones.</td></tr>';return;}
       const BADGE={
-        'borrador':'badge-cot-gris',
-        'pendiente':'badge-cot-purple','Pendiente':'badge-cot-purple',
-        'enviada':'badge-new','Enviada':'badge-new',
-        'aprobada':'badge-new','Aprobada':'badge-new',
-        'confirmada':'badge-won',
+        'borrador':'badge-contact','pendiente':'badge-contact','Pendiente':'badge-contact',
+        'enviada':'badge-quote','Enviada':'badge-quote',
+        'aprobada':'badge-won','Aprobada':'badge-won','confirmada':'badge-won',
         'rechazada':'badge-lost','Rechazada':'badge-lost'
       };
       const yr = n => n ? String(new Date(n).getFullYear()).slice(-2) : String(new Date().getFullYear()).slice(-2);
       const cotCode = c => `COT-${yr(c.created_at)}-${String(c.id).padStart(5,'0')}`;
-      const cliName = c => capitalizarNombre([c.clientes?.nombre,c.clientes?.apellido].filter(Boolean).join(' ')) || (c.cliente_id ? `#${c.cliente_id}` : c.lead_id ? `Lead #${c.lead_id}` : '—');
+      const cliName = c => capitalizarNombre(c.clientes?.nombre) || (c.cliente_id ? `#${c.cliente_id}` : c.lead_id ? `Lead #${c.lead_id}` : '—');
       const fmtM = (c) => {
-        const sym   = c.moneda==='GTQ'?'Q':'$';
-        // monto en DB siempre en USD — convierte a la moneda de display antes de mostrar
-        const monto = convertirMoneda(Number(c.monto)||0,'USD',c.moneda||'USD');
-        return c.monto ? sym+monto.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
+        const sym = c.moneda==='GTQ'?'Q':'$';
+        return c.monto ? sym+Number(c.monto).toLocaleString() : '—';
       };
       tbody.innerHTML=items.map(c=>`<tr>
         <td style="font-family:monospace;color:var(--gold);font-size:.72rem;">${cotCode(c)}</td>
         <td><span class="td-bold">${cliName(c)}</span></td>
         <td style="color:var(--gray);font-size:.72rem;">${c.canal||'—'}</td>
         <td class="td-gold">${fmtM(c)}</td>
-        <td style="color:var(--gray);">${c.anticipo?((c.moneda==='GTQ'?'Q':'$')+convertirMoneda(Number(c.anticipo)||0,'USD',c.moneda||'USD').toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2})):'—'}</td>
+        <td style="color:var(--gray);">${c.anticipo?((c.moneda==='GTQ'?'Q':'$')+Number(c.anticipo).toLocaleString()):'—'}</td>
         <td style="color:var(--gray);font-size:.72rem;">${c.moneda||'USD'}</td>
         <td><span class="badge ${BADGE[c.estado]||'badge-contact'}">${c.estado||'—'}</span></td>
         <td style="color:var(--gray);font-size:.7rem;">${c.created_at?new Date(c.created_at).toLocaleDateString('es-GT'):'—'}</td>
         <td><div class="action-btns">
           <button class="act-btn" title="Detalle" onclick="verDetalleCotizacion(${c.id})"><i class="fas fa-eye"></i></button>
           <button class="act-btn" title="Editar" onclick="editCotizacion(${c.id})"><i class="fas fa-pencil-alt"></i></button>
-          ${c.estado!=='enviada'&&c.estado!=='confirmada'?`<button class="act-btn" title="Enviar al cliente" style="color:#3ECF8E;" onclick="aprobarCotizacion(${c.id})"><i class="fas fa-check"></i></button>`:''}
+          ${c.estado!=='aprobada'&&c.estado!=='confirmada'?`<button class="act-btn" title="Aprobar" style="color:#3ECF8E;" onclick="aprobarCotizacion(${c.id})"><i class="fas fa-check"></i></button>`:''}
           ${c.estado!=='rechazada'?`<button class="act-btn" title="Rechazar" style="color:#E08080;" onclick="desaprobarCotizacion(${c.id})"><i class="fas fa-times"></i></button>`:''}
-          <button class="act-btn" title="Reenviar" onclick="reenviarCotizacion(${c.id})"><i class="fas fa-redo"></i></button>
           <button class="act-btn danger" onclick="deleteCotizacion(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
         </div></td>
       </tr>`).join('');
@@ -3222,7 +3063,7 @@
     try{
       const items=await apiFetch('/api/clientes');
       _cotCliList=items||[];
-      sel.innerHTML='<option value="">— Sin cliente —</option>'+items.map(c=>`<option value="${c.id}">${capitalizarNombre([c.nombre,c.apellido].filter(Boolean).join(' '))}${c.empresa?' ('+c.empresa+')':''}</option>`).join('');
+      sel.innerHTML='<option value="">— Sin cliente —</option>'+items.map(c=>`<option value="${c.id}">${capitalizarNombre(c.nombre)}${c.empresa?' ('+c.empresa+')':''}</option>`).join('');
     }catch(e){sel.innerHTML='<option value="">Error cargando clientes</option>';}
   }
 
@@ -3297,7 +3138,7 @@
     let nombre='',email='',tel='',empresa='',direccion='',zona='',ciudad='';
     if(cliId){
       const c=_cotCliList.find(x=>String(x.id)===String(cliId))||{};
-      nombre=[c.nombre,c.apellido].filter(Boolean).join(' '); email=c.email||''; tel=c.telefono||''; empresa=c.empresa||'';
+      nombre=c.nombre||''; email=c.email||''; tel=c.telefono||''; empresa=c.empresa||'';
       direccion=c.direccion||''; zona=c.zona||''; ciudad=c.ciudad||'';
     } else {
       const l=_cotLeadList.find(x=>String(x.id)===String(leadId))||{};
@@ -3551,10 +3392,7 @@
     document.getElementById('cot-canal').value=c.canal||'crm';
     const det=c.detalles_json||{};
     if(det.servicios&&det.servicios.length){
-      // Usa el subtotal almacenado (en USD, exacto del backend) para no introducir
-      // rounding artifacts por precio_unitario redondeado. Si el admin edita un valor
-      // después, onRowInputChange recalculará s.subtotal en tiempo real.
-      _cotizacionesServiciosLineas=det.servicios.map(s=>({descripcion:s.descripcion||'',cantidad:s.cantidad||1,precio_unitario:s.precio_unitario||0,subtotal:s.subtotal!=null?Number(s.subtotal):(s.cantidad||1)*(s.precio_unitario||0)}));
+      _cotizacionesServiciosLineas=det.servicios.map(s=>({descripcion:s.descripcion||'',cantidad:s.cantidad||1,precio_unitario:s.precio_unitario||0,subtotal:(s.cantidad||1)*(s.precio_unitario||0)}));
     }
     if(det.descuento_tipo) document.getElementById('cot-desc-tipo').value=det.descuento_tipo;
     if(det.descuento_valor!=null) document.getElementById('cot-desc-valor').value=det.descuento_valor;
@@ -3572,23 +3410,9 @@
   }
 
   async function deleteCotizacion(id){
-    _confirmarEliminar({
-      titulo:'¿Eliminar cotización?',
-      cuerpo:'Se eliminará permanentemente esta cotización y su PDF asociado.',
-      accion:async()=>{
-        try{await apiFetch('/api/cotizaciones/'+id,{method:'DELETE'});showToast('Cotización eliminada');loadCotizaciones();}
-        catch(e){showToast('Error: '+e.message);}
-      }
-    });
-  }
-
-  function reenviarCotizacion(id){
-    const c=_cotizacionesCache[id]; if(!c)return showToast('Cotización no encontrada en caché');
-    const portalLink=`${window.location.origin}/portal/cotizacion.html?cot=${id}`;
-    let nombre='',tel='',email='';
-    if(c.clientes){ nombre=capitalizarNombre([c.clientes.nombre,c.clientes.apellido].filter(Boolean).join(' '))||''; tel=c.clientes.telefono||''; email=c.clientes.email||''; }
-    else if(c.leads){ nombre=capitalizarNombre([c.leads.nombre,c.leads.apellido].filter(Boolean).join(' '))||''; tel=c.leads.telefono||''; email=c.leads.email||''; }
-    mostrarEnvioModal(id, portalLink, {nombre, tel, email, esReenvio:true});
+    if(!confirm('¿Eliminar esta cotización?'))return;
+    try{await apiFetch('/api/cotizaciones/'+id,{method:'DELETE'});showToast('Cotización eliminada');loadCotizaciones();}
+    catch(e){showToast('Error: '+e.message);}
   }
 
   async function saveCotizacion(){
@@ -3638,35 +3462,14 @@
     try{
       let result;
       if(_editCotizacionId){
-        const editId=_editCotizacionId;
-        result=await apiFetch('/api/cotizaciones/'+editId,{method:'PUT',body:JSON.stringify(payload)});
-        // Regenerate PDF and wait — documento_url must be updated before resend modal opens
-        if(btn){btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Generando PDF...';}
-        try{
-          const pdfHtml=await _buildMachotePDFHtml(editId);
-          await apiFetch('/api/cotizaciones/'+editId+'/generar-pdf',{method:'POST',body:JSON.stringify({html:pdfHtml})});
-        }catch(pdfErr){
-          console.warn('[PDF] regeneración fallida:',pdfErr.message);
-          showToast('⚠️ PDF no se pudo regenerar: '+pdfErr.message);
-        }
+        result=await apiFetch('/api/cotizaciones/'+_editCotizacionId,{method:'PUT',body:JSON.stringify(payload)});
         showToast('✅ Cotización actualizada');
-        closeCotizacionModal();
-        await loadCotizaciones();
-        reenviarCotizacion(editId);
+        closeCotizacionModal(); loadCotizaciones();
       }else{
         result=await apiFetch('/api/cotizaciones',{method:'POST',body:JSON.stringify(payload)});
-        // Generate PDF before showing send modal so documento_url is ready
-        if(btn){btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Generando PDF...';}
-        try{
-          const pdfHtml=await _buildMachotePDFHtml(result.id);
-          await apiFetch('/api/cotizaciones/'+result.id+'/generar-pdf',{method:'POST',body:JSON.stringify({html:pdfHtml})});
-        }catch(pdfErr){
-          console.warn('[PDF] No se pudo generar PDF:',pdfErr.message);
-          showToast('⚠️ PDF no se pudo generar: '+pdfErr.message);
-        }
         showToast('✅ Cotización creada');
         loadCotizaciones();
-        const portalLink=`${window.location.origin}/portal/cotizacion.html?cot=${result.id}`;
+        const portalLink=`${window.location.origin}/portal/cotizacion/${result.id}`;
         mostrarEnvioModal(result.id, portalLink);
       }
     }catch(e){
@@ -3693,8 +3496,7 @@
     const cotCode=`COT-${yr(c.created_at)}-${String(c.id).padStart(5,'0')}`;
     const det=c.detalles_json||{};
     const sym=c.moneda==='GTQ'?'Q':'$';
-    // monto en DB siempre en USD — convierte a la moneda de display antes de mostrar
-    const fmt=n=>sym+convertirMoneda(Number(n)||0,'USD',c.moneda||'USD').toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+    const fmt=n=>sym+(Number(n)||0).toLocaleString('es-GT',{minimumFractionDigits:2});
     let serviciosHtml='';
     if(det.servicios&&det.servicios.length){
       serviciosHtml=`<table style="width:100%;border-collapse:collapse;font-size:.75rem;margin-top:.5rem;">
@@ -3708,15 +3510,12 @@
           <td style="padding:.3rem .5rem;">${s.descripcion||'—'}</td>
           <td style="text-align:right;padding:.3rem .5rem;">${s.cantidad||1}</td>
           <td style="text-align:right;padding:.3rem .5rem;">${fmt(s.precio_unitario)}</td>
-          <td style="text-align:right;padding:.3rem .5rem;color:var(--gold);">${fmt(s.subtotal!=null?s.subtotal:(s.cantidad||1)*(s.precio_unitario||0))}</td>
+          <td style="text-align:right;padding:.3rem .5rem;color:var(--gold);">${fmt((s.cantidad||1)*(s.precio_unitario||0))}</td>
         </tr>`).join('')}</tbody>
       </table>`;
     }
-    const descMontoDet=Number(det.descuento_monto)||0;
-    const descLabel=det.descuento_tipo==='porcentaje'?`Descuento (${det.descuento_valor||0}%)`:det.descuento_tipo==='cantidad_fija'?'Descuento (fijo)':'';
-    const descRowDet=descMontoDet>0&&descLabel?`<div><span style="color:var(--gray);">${descLabel}</span></div><div style="text-align:right;color:#E08080;">-${fmt(descMontoDet)}</div>`:'';
     const resumen=det.total?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;margin-top:.6rem;font-size:.75rem;border-top:1px solid var(--border);padding-top:.5rem;">
-      ${descRowDet}
+      <div><span style="color:var(--gray);">Descuento</span></div><div style="text-align:right;">${det.descuento_porcentaje||0}%</div>
       <div><span style="color:var(--gray);">IVA 12%</span></div><div style="text-align:right;">${fmt(det.iva_monto)}</div>
       <div><b>TOTAL</b></div><div style="text-align:right;color:var(--gold);font-weight:700;">${fmt(det.total)}</div>
       <div><span style="color:var(--gray);">Anticipo</span></div><div style="text-align:right;">${c.anticipo?fmt(c.anticipo):'—'}</div>
@@ -3724,7 +3523,7 @@
     const html=`<div style="font-size:.8rem;line-height:1.8;">
       <div style="font-size:.58rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:.6rem;">${cotCode}</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .8rem;font-size:.75rem;margin-bottom:.5rem;">
-        <div><span style="color:var(--gray);font-size:.65rem;">Cliente/Lead</span><br/><b>${capitalizarNombre([c.clientes?.nombre,c.clientes?.apellido].filter(Boolean).join(' '))||'Lead #'+(c.lead_id||'—')}</b></div>
+        <div><span style="color:var(--gray);font-size:.65rem;">Cliente/Lead</span><br/><b>${c.clientes?.nombre||'Lead #'+(c.lead_id||'—')}</b></div>
         <div><span style="color:var(--gray);font-size:.65rem;">Canal</span><br/>${c.canal||'—'}</div>
         <div><span style="color:var(--gray);font-size:.65rem;">Moneda</span><br/>${c.moneda||'USD'}</div>
         <div><span style="color:var(--gray);font-size:.65rem;">Estado</span><br/>${c.estado||'—'}</div>
@@ -3737,93 +3536,14 @@
     overlay.style.display='flex';
   }
 
-  // Shared HTML builder — fetches the machote and injects all cotización data.
-  // Used both by verPreviaCotizacionPDF() (opens new window) and saveCotizacion()
-  // (sends to backend for PDF generation), ensuring the PDF is identical to the preview.
-  async function _buildMachotePDFHtml(cotId){
-    const lineas=_cotizacionesServiciosLineas.filter(l=>l.descripcion||l.precio_unitario);
-    const mon=document.getElementById('cot-moneda')?.value||'USD';
-    const factor=mon==='GTQ'?7.90:1;
-    const sym=mon==='GTQ'?'Q':'$';
-    const fmt=n=>sym+((Number(n)||0)*factor).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
-    const subtotal=lineas.reduce((s,l)=>s+(l.subtotal||0),0);
-    const descTipo=document.getElementById('cot-desc-tipo')?.value||'porcentaje';
-    const descValorInput=Number(document.getElementById('cot-desc-valor')?.value)||0;
-    const descValorUSD=descTipo==='porcentaje'?0:convertirMoneda(descValorInput,mon,'USD');
-    const descMonto=descTipo==='porcentaje'?subtotal*(descValorInput/100):Math.min(descValorUSD,subtotal);
-    const subtotal2=Math.max(0,subtotal-descMonto);
-    const ivaMonto=subtotal2*0.12;
-    const total=subtotal2+ivaMonto;
-    const yr2=String(new Date().getFullYear()).slice(-2);
-    const codigo=`COT-${yr2}-${String(cotId).padStart(5,'0')}`;
-    const cliId=document.getElementById('cot-cli-select').value;
-    const leadId=document.getElementById('cot-lead-select').value;
-    let cliNombre='—',cliEmail='',cliTel='',cliEmpresa='';
-    if(cliId){const c=_cotCliList.find(x=>String(x.id)===cliId)||{};cliNombre=[c.nombre,c.apellido].filter(Boolean).join(' ')||'—';cliEmail=c.email||'';cliTel=c.telefono||'';cliEmpresa=c.empresa||'';}
-    else if(leadId){const l=_cotLeadList.find(x=>String(x.id)===leadId)||{};cliNombre=[l.nombre,l.apellido].filter(Boolean).join(' ')||'—';cliEmail=l.email||'';cliTel=l.telefono||'';cliEmpresa=l.empresa||'';}
-    const notas=document.getElementById('cot-notas').value||'';
-    const fecha=new Date().toLocaleDateString('es-GT',{day:'numeric',month:'long',year:'numeric'});
-    const telFmt=formatearTelefono(cliTel)||cliTel||'—';
-    const ubCalle=document.getElementById('cot-ubic-calle')?.value||'';
-    const ubZona=document.getElementById('cot-ubic-zona')?.value||'';
-    const ubCiudad=document.getElementById('cot-ubic-ciudad')?.value||'Guatemala';
-    const cliDir=[ubCalle,ubZona,ubCiudad].filter(Boolean).join(', ')||'Guatemala';
-    cliNombre=capitalizarNombre(cliNombre);
-    const svcRows=lineas.map(s=>{
-      const unit=s.tipo_precio==='por_m2'?(s.cantidad||0)+' m²':s.tipo_precio==='cotizar'?'A cotizar':'1 unidad';
-      return '<tr><td>'+(s.descripcion||'—')+'</td><td style="text-align:center">'+unit+'</td><td class="r">'+fmt(s.subtotal||0)+'</td></tr>';
-    }).join('');
-    const discRow=descMonto>0?('<tr class="sub"><td colspan="2">'+(descTipo==='porcentaje'?'Descuento ('+descValorInput+'%)':'Descuento')+'</td><td class="r">-'+fmt(descMonto)+'</td></tr>'):'';
-    const sub2Row=descMonto>0?('<tr class="sub"><td colspan="2">Subtotal neto</td><td class="r">'+fmt(subtotal2)+'</td></tr>'):'';
-    const tbodyHtml=svcRows
-      +'<tr><td></td><td></td><td></td></tr>'
-      +'<tr class="sub"><td colspan="2">Subtotal</td><td class="r">'+fmt(subtotal)+'</td></tr>'
-      +discRow+sub2Row
-      +'<tr class="sub"><td colspan="2">IVA 12 %</td><td class="r">'+fmt(ivaMonto)+'</td></tr>'
-      +'<tr class="tot"><td colspan="2">TOTAL</td><td class="r">'+fmt(total)+'</td></tr>';
-    const resp=await fetch('/assets/machote-cotizacion.html');
-    if(!resp.ok) throw new Error('HTTP '+resp.status+' al cargar plantilla');
-    let html=await resp.text();
-    html=html.replace(/<script[\s\S]*?<\/script>/gi,'');
-    const dataScript='<script>(function(){'
-      +'var codEl=document.querySelector(".doc-codigo-valor");if(codEl)codEl.textContent='+JSON.stringify(codigo)+';'
-      +'var cv=document.querySelectorAll(".campo-val");'
-      +'if(cv[0])cv[0].textContent='+JSON.stringify(cliNombre)+';'
-      +'if(cv[1])cv[1].textContent='+JSON.stringify(cliEmpresa||'—')+';'
-      +'if(cv[2])cv[2].textContent='+JSON.stringify(telFmt)+';'
-      +'if(cv[3])cv[3].textContent='+JSON.stringify(cliEmail||'—')+';'
-      +'if(cv[4])cv[4].textContent='+JSON.stringify(cliDir)+';'
-      +'var fechaEl=document.getElementById("fecha-doc");if(fechaEl)fechaEl.textContent='+JSON.stringify(fecha)+';'
-      +'var tbody=document.querySelector(".tabla tbody");if(tbody)tbody.innerHTML='+JSON.stringify(tbodyHtml)+';'
-      +'var firmas=document.querySelectorAll(".firma-nom");if(firmas[1])firmas[1].textContent='+JSON.stringify(cliNombre)+';'
-      +(notas?'var ul=document.querySelector(".notas ul");if(ul){var li=document.createElement("li");li.textContent='+JSON.stringify(notas)+';ul.appendChild(li);}':'')
-      +'})();<\/script>';
-    const finalHtml = html.replace('</body>',dataScript+'</body>');
-    // ── DEBUG ─────────────────────────────────────────────────────────────────
-    console.log('%c[DEBUG PASO 2] HTML PARA PDF (enviado al backend)','color:#05a;font-weight:bold');
-    console.log('  Tamaño total:', finalHtml.length, 'chars');
-    console.log('  ¿Incluye <style>?', finalHtml.includes('<style>'));
-    console.log('  ¿Incluye .pagina?', finalHtml.includes('.pagina'));
-    console.log('  ¿Incluye @media print?', finalHtml.includes('@media print'));
-    console.log('  Primeras 2000 chars:\n', finalHtml.substring(0, 2000));
-    // ──────────────────────────────────────────────────────────────────────────
-    return finalHtml;
-  }
-
   async function verPreviaCotizacionPDF(){
     const lineas=_cotizacionesServiciosLineas.filter(l=>l.descripcion||l.precio_unitario);
-    const mon=document.getElementById('cot-moneda')?.value||'USD';
-    const factor=mon==='GTQ'?7.90:1;
-    const sym=mon==='GTQ'?'Q':'$';
-    // fmt() converts USD→display currency via factor
-    const fmt=n=>sym+((Number(n)||0)*factor).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
-    // All intermediate calculations stay in USD
+    const sym=document.getElementById('cot-moneda').value==='GTQ'?'Q':'$';
+    const fmt=n=>sym+(Number(n)||0).toLocaleString('es-GT',{minimumFractionDigits:2});
     const subtotal=lineas.reduce((s,l)=>s+(l.subtotal||0),0);
     const descTipo=document.getElementById('cot-desc-tipo')?.value||'porcentaje';
-    const descValorInput=Number(document.getElementById('cot-desc-valor')?.value)||0;
-    // descValorInput is in display currency; convert to USD for internal calc when monto type
-    const descValorUSD=descTipo==='porcentaje'?0:convertirMoneda(descValorInput,mon,'USD');
-    const descMonto=descTipo==='porcentaje'?subtotal*(descValorInput/100):Math.min(descValorUSD,subtotal);
+    const descValor=Number(document.getElementById('cot-desc-valor')?.value)||0;
+    const descMonto=descTipo==='porcentaje'?subtotal*(descValor/100):Math.min(descValor,subtotal);
     const subtotal2=Math.max(0,subtotal-descMonto);
     const ivaMonto=subtotal2*0.12;
     const total=subtotal2+ivaMonto;
@@ -3832,8 +3552,8 @@
     const cliId=document.getElementById('cot-cli-select').value;
     const leadId=document.getElementById('cot-lead-select').value;
     let cliNombre='—',cliEmail='',cliTel='',cliEmpresa='';
-    if(cliId){const c=_cotCliList.find(x=>String(x.id)===cliId)||{};cliNombre=[c.nombre,c.apellido].filter(Boolean).join(' ')||'—';cliEmail=c.email||'';cliTel=c.telefono||'';cliEmpresa=c.empresa||'';}
-    else if(leadId){const l=_cotLeadList.find(x=>String(x.id)===leadId)||{};cliNombre=[l.nombre,l.apellido].filter(Boolean).join(' ')||'—';cliEmail=l.email||'';cliTel=l.telefono||'';cliEmpresa=l.empresa||'';}
+    if(cliId){const c=_cotCliList.find(x=>String(x.id)===cliId)||{};cliNombre=c.nombre||'—';cliEmail=c.email||'';cliTel=c.telefono||'';cliEmpresa=c.empresa||'';}
+    else if(leadId){const l=_cotLeadList.find(x=>String(x.id)===leadId)||{};cliNombre=l.nombre||'—';cliEmail=l.email||'';cliTel=l.telefono||'';cliEmpresa=l.empresa||'';}
     const notas=document.getElementById('cot-notas').value||'';
     const fecha=new Date().toLocaleDateString('es-GT',{day:'numeric',month:'long',year:'numeric'});
     const telFmt=formatearTelefono(cliTel)||cliTel||'—';
@@ -3848,7 +3568,7 @@
       const unit=s.tipo_precio==='por_m2'?(s.cantidad||0)+' m²':s.tipo_precio==='cotizar'?'A cotizar':'1 unidad';
       return '<tr><td>'+( s.descripcion||'—')+'</td><td style="text-align:center">'+unit+'</td><td class="r">'+fmt(s.subtotal||0)+'</td></tr>';
     }).join('');
-    const discRow=descMonto>0?('<tr class="sub"><td colspan="2">'+(descTipo==='porcentaje'?'Descuento ('+descValorInput+'%)':'Descuento')+'</td><td class="r">-'+fmt(descMonto)+'</td></tr>'):'';
+    const discRow=descMonto>0?('<tr class="sub"><td colspan="2">'+(descTipo==='porcentaje'?'Descuento ('+descValor+'%)':'Descuento')+'</td><td class="r">-'+fmt(descMonto)+'</td></tr>'):'';
     const sub2Row=descMonto>0?('<tr class="sub"><td colspan="2">Subtotal neto</td><td class="r">'+fmt(subtotal2)+'</td></tr>'):'';
     const tbodyHtml=svcRows+
       '<tr><td></td><td></td><td></td></tr>'+
@@ -3876,14 +3596,6 @@
         +(notas?'var ul=document.querySelector(".notas ul");if(ul){var li=document.createElement("li");li.textContent='+JSON.stringify(notas)+';ul.appendChild(li);}':'')
         +'})();<\/script>';
       html=html.replace('</body>',dataScript+'</body>');
-      // ── DEBUG ───────────────────────────────────────────────────────────────
-      console.log('%c[DEBUG PASO 1] HTML VISTA PREVIA','color:#0a0;font-weight:bold');
-      console.log('  Tamaño total:', html.length, 'chars');
-      console.log('  ¿Incluye <style>?', html.includes('<style>'));
-      console.log('  ¿Incluye .pagina?', html.includes('.pagina'));
-      console.log('  ¿Incluye @media print?', html.includes('@media print'));
-      console.log('  Primeras 2000 chars:\n', html.substring(0, 2000));
-      // ────────────────────────────────────────────────────────────────────────
       const win=window.open('','_blank');
       if(!win){showToast('Permite ventanas emergentes para ver la vista previa');return;}
       win.document.write(html);
@@ -4011,15 +3723,10 @@
     const t=document.getElementById('modal-agente-title'); if(t)t.textContent='Editar Agente #'+id;
     document.getElementById('agenteModal').classList.add('open');
   }
-  function deleteAgente(id){
-    _confirmarEliminar({
-      titulo:'¿Eliminar agente?',
-      cuerpo:'Se eliminará permanentemente este agente y su registro de comisiones.',
-      accion:async()=>{
-        try{await apiFetch('/api/agentes/'+id,{method:'DELETE'});showToast('Agente eliminado');loadAgentes();}
-        catch(e){showToast('Error: '+e.message);}
-      }
-    });
+  async function deleteAgente(id){
+    if(!confirm('¿Eliminar este agente?'))return;
+    try{await apiFetch('/api/agentes/'+id,{method:'DELETE'});showToast('Agente eliminado');loadAgentes();}
+    catch(e){showToast('Error: '+e.message);}
   }
   function openAgenteModal(){
     _editAgenteId=null;
@@ -4223,7 +3930,7 @@
       } else {
         tbody.innerHTML = staffUsers.map(u => {
           const cl = clienteMap[(u.email||'').toLowerCase()];
-          const cliCode = cl?.codigo_cliente || '—';
+          const cliCode = cl ? `CLI-${year}-${String(cl.id).padStart(5,'0')}` : '—';
           const agtCode = cl?.codigo_agente || '—';
           return `<tr>
             <td style="color:var(--gray);font-size:.72rem;">${u.id}</td>
@@ -4248,7 +3955,7 @@
         } else {
           tbodyPortal.innerHTML = portalUsers.map(u => {
             const cl = clienteMap[(u.email||'').toLowerCase()];
-            const cliCode = cl?.codigo_cliente || '—';
+            const cliCode = cl ? `CLI-${year}-${String(cl.id).padStart(5,'0')}` : '—';
             const agtCode = cl?.codigo_agente || '—';
             return `<tr>
               <td style="color:var(--gray);font-size:.72rem;">${u.id}</td>
@@ -4680,22 +4387,21 @@
   }
 
   /* ── ENVÍO DE COTIZACIONES POR CANAL ────────────────────── */
-  let _envioCotId=null, _envioLink='', _envioCanalesData={}, _envioEsReenvio=false;
+  let _envioCotId=null, _envioLink='', _envioCanalesData={};
 
-  function mostrarEnvioModal(cotId, link, opts){
-    _envioCotId=cotId; _envioLink=link; _envioEsReenvio=!!(opts&&opts.esReenvio);
+  function mostrarEnvioModal(cotId, link){
+    _envioCotId=cotId; _envioLink=link;
+    const cliId=document.getElementById('cot-cli-select').value;
+    const leadId=document.getElementById('cot-lead-select').value;
     let nombre='',tel='',email='';
-    if(opts){ nombre=opts.nombre||''; tel=opts.tel||''; email=opts.email||''; }
-    else {
-      const cliId=document.getElementById('cot-cli-select').value;
-      const leadId=document.getElementById('cot-lead-select').value;
-      if(cliId){ const c=_cotCliList.find(x=>String(x.id)===String(cliId))||{}; nombre=capitalizarNombre([c.nombre,c.apellido].filter(Boolean).join(' '))||''; tel=c.telefono||''; email=c.email||''; }
-      else if(leadId){ const l=_cotLeadList.find(x=>String(x.id)===String(leadId))||{}; nombre=capitalizarNombre([l.nombre,l.apellido].filter(Boolean).join(' '))||''; tel=l.telefono||''; email=l.email||''; }
-    }
+    if(cliId){ const c=_cotCliList.find(x=>String(x.id)===String(cliId))||{}; nombre=c.nombre||''; tel=c.telefono||''; email=c.email||''; }
+    else if(leadId){ const l=_cotLeadList.find(x=>String(x.id)===String(leadId))||{}; nombre=l.nombre||''; tel=l.telefono||''; email=l.email||''; }
     tel=formatearTelefono(tel);
     _envioCanalesData={tel,email,nombre};
     const sub=document.getElementById('envio-cot-subtitulo');
     if(sub) sub.textContent=nombre?`Cliente: ${nombre}`:'';
+    const yr=String(new Date().getFullYear()).slice(-2);
+    const codigo=`COT-${yr}-${String(cotId).padStart(5,'0')}`;
     const canales=document.getElementById('envio-canales');
     const opt=(icon,label,val,disabled,hint,checked=false)=>`
       <label style="display:flex;align-items:center;gap:.7rem;padding:.65rem .9rem;border:1px solid var(--border);border-radius:var(--r);cursor:${disabled?'not-allowed':'pointer'};opacity:${disabled?'.45':'1'};">
@@ -4705,23 +4411,8 @@
         ${hint?`<span style="margin-left:auto;font-size:.68rem;color:var(--gray);">${hint}</span>`:''}
       </label>`;
     canales.innerHTML=
-      `<div style="display:flex;flex-direction:column;gap:.35rem;padding:.6rem .9rem;border:1px solid var(--border);border-radius:var(--r);margin-bottom:.4rem;">
-        <div style="font-size:.69rem;color:var(--gray);font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.1rem;">Datos de contacto</div>
-        <div style="display:flex;align-items:center;gap:.5rem;">
-          <i class="fab fa-whatsapp" style="color:var(--gold);width:16px;text-align:center;font-size:.9rem;flex-shrink:0;"></i>
-          <input type="tel" id="envio-tel-input" placeholder="Teléfono (WhatsApp)" value="${tel}"
-            oninput="_envioCanalesData.tel=this.value.trim()"
-            style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:.3rem .5rem;color:var(--text);font-size:.8rem;outline:none;">
-        </div>
-        <div style="display:flex;align-items:center;gap:.5rem;">
-          <i class="fas fa-envelope" style="color:var(--gold);width:16px;text-align:center;font-size:.9rem;flex-shrink:0;"></i>
-          <input type="email" id="envio-email-input" placeholder="Email" value="${email}"
-            oninput="_envioCanalesData.email=this.value.trim()"
-            style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:.3rem .5rem;color:var(--text);font-size:.8rem;outline:none;">
-        </div>
-      </div>`+
-      opt('fab fa-whatsapp','WhatsApp','whatsapp',false,'',!!tel)+
-      opt('fas fa-envelope','Email','email',false,'',!!email)+
+      opt('fab fa-whatsapp','WhatsApp','whatsapp',!tel,tel||'Sin teléfono',!!tel)+
+      opt('fas fa-envelope','Email','email',!email,email||'Sin email',!!email)+
       opt('fab fa-facebook-messenger','Facebook Messenger','facebook',true,'(próximamente)')+
       opt('fab fa-instagram','Instagram DM','instagram',true,'(próximamente)');
     document.getElementById('envio-result').textContent='';
@@ -4730,20 +4421,16 @@
 
   function cerrarEnvioModal(){
     document.getElementById('envioCotizacionModal').classList.remove('open');
-    if(!_envioEsReenvio) mostrarExitoCotizacion(_envioCotId, _envioLink);
+    mostrarExitoCotizacion(_envioCotId, _envioLink);
   }
 
   async function confirmarEnvioCotizacion(){
     const checks=Array.from(document.querySelectorAll('.envio-canal-cb:checked'));
     if(!checks.length){showToast('Selecciona al menos un canal');return;}
-    const {tel,email}=_envioCanalesData;
-    const waNecesario=checks.some(c=>c.value==='whatsapp');
-    const emailNecesario=checks.some(c=>c.value==='email');
-    if(waNecesario&&!tel){showToast('Ingresa un teléfono para enviar por WhatsApp');document.getElementById('envio-tel-input')?.focus();return;}
-    if(emailNecesario&&!email){showToast('Ingresa un email para enviar por correo');document.getElementById('envio-email-input')?.focus();return;}
     const btn=document.getElementById('btn-confirmar-envio');
     btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Enviando...';
     const resultEl=document.getElementById('envio-result');
+    const {tel,email}=_envioCanalesData;
     const envios=checks.map(cb=>{
       const canal=cb.value;
       const body={cotizacion_id:_envioCotId,link:_envioLink};
@@ -4754,8 +4441,8 @@
       else if(canal==='instagram'){endpoint='/api/instagram/enviar-cotizacion';}
       if(!endpoint) return Promise.resolve({canal,ok:false,skip:true});
       return apiFetch(endpoint,{method:'POST',body:JSON.stringify(body)})
-        .then(r=>{return {canal,ok:true};})
-        .catch(e=>{return {canal,ok:false,error:e.message};});
+        .then(()=>({canal,ok:true}))
+        .catch(e=>({canal,ok:false,error:e.message}));
     });
     try{
       const results=await Promise.all(envios);
@@ -4769,116 +4456,6 @@
       resultEl.textContent='Error: '+e.message; resultEl.style.color='#E08080';
       btn.disabled=false; btn.innerHTML='<i class="fas fa-paper-plane"></i> Reintentar';
     }
-  }
-
-  // ── Contactos WhatsApp ──────────────────────────────────────────────────────
-  const WAC_LABEL = { client:'Cliente', personal:'Personal', owner:'Owner' };
-  const WAC_COLOR = { client:'#5AE08A', personal:'#E08080', owner:'#B09A6C' };
-
-  async function loadWaContacts() {
-    const buscar = (document.getElementById('wac-buscar')?.value || '').trim();
-    const tipo   = document.getElementById('wac-tipo')?.value || '';
-    const params = [];
-    if (buscar) params.push('buscar=' + encodeURIComponent(buscar));
-    if (tipo)   params.push('tipo='   + encodeURIComponent(tipo));
-    const url = '/api/wa-contacts' + (params.length ? '?' + params.join('&') : '');
-    try {
-      const data   = await apiFetch(url);
-      const tbody  = document.getElementById('wac-tbody');
-      const table  = document.getElementById('wac-table');
-      const empty  = document.getElementById('wac-empty');
-      if (!data.length) { table.style.display='none'; empty.style.display='block'; return; }
-      table.style.display=''; empty.style.display='none';
-      tbody.innerHTML = data.map(c => {
-        const col   = WAC_COLOR[c.contact_type] || 'var(--gray)';
-        const label = WAC_LABEL[c.contact_type] || c.contact_type;
-        const upd   = c.updated_at ? new Date(c.updated_at).toLocaleDateString('es-GT') : '—';
-        const toggle = c.contact_type === 'personal'
-          ? `<button class="topbar-btn btn-sec" onclick="toggleWacTipo('${c.phone_number}','client')" title="Marcar cliente"><i class="fas fa-user-check"></i> → Cliente</button>`
-          : c.contact_type === 'client'
-          ? `<button class="topbar-btn btn-sec" onclick="toggleWacTipo('${c.phone_number}','personal')" title="Marcar personal"><i class="fas fa-user-slash"></i> → Personal</button>`
-          : '';
-        const del = c.contact_type !== 'owner'
-          ? `<button class="topbar-btn" style="background:rgba(192,57,43,.15);color:#c0392b;border:1px solid rgba(192,57,43,.3);" onclick="deleteWacContact('${c.phone_number}')"><i class="fas fa-trash-alt"></i></button>`
-          : '';
-        return `<tr>
-          <td style="font-family:monospace;font-size:.8rem;">${c.phone_number}</td>
-          <td><span style="background:${col}22;color:${col};padding:.2rem .5rem;border-radius:3px;font-size:.7rem;font-weight:600;">${label}</span></td>
-          <td style="font-size:.78rem;color:var(--gray);">${c.name || '—'}</td>
-          <td style="font-size:.72rem;color:var(--gray);">${upd}</td>
-          <td><div style="display:flex;gap:.4rem;">${toggle}${del}</div></td>
-        </tr>`;
-      }).join('');
-    } catch(e) { showToast('Error cargando contactos: ' + e.message); }
-  }
-
-  async function toggleWacTipo(phone, newTipo) {
-    try {
-      await apiFetch('/api/wa-contacts', { method:'POST', body: JSON.stringify({ phone_number: phone, contact_type: newTipo }) });
-      showToast('✅ Tipo actualizado');
-      loadWaContacts();
-    } catch(e) { showToast('Error: ' + e.message); }
-  }
-
-  async function deleteWacContact(phone) {
-    if (!confirm('¿Eliminar contacto ' + phone + '?')) return;
-    try {
-      await apiFetch('/api/wa-contacts/' + encodeURIComponent(phone), { method:'DELETE' });
-      showToast('✅ Contacto eliminado');
-      loadWaContacts();
-    } catch(e) { showToast('Error: ' + e.message); }
-  }
-
-  function showWacForm() {
-    document.getElementById('wac-form-panel').style.display = '';
-    document.getElementById('wac-add-btn').style.display   = 'none';
-  }
-
-  function hideWacForm() {
-    document.getElementById('wac-form-panel').style.display = 'none';
-    document.getElementById('wac-add-btn').style.display    = '';
-    ['wac-input-phone','wac-input-name'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-    const sel = document.getElementById('wac-input-tipo'); if(sel) sel.selectedIndex=0;
-  }
-
-  async function saveWacContact() {
-    const phone = (document.getElementById('wac-input-phone')?.value || '').trim();
-    const tipo  = document.getElementById('wac-input-tipo')?.value || 'client';
-    const name  = (document.getElementById('wac-input-name')?.value || '').trim();
-    if (!phone) { showToast('Ingresa un número'); return; }
-    try {
-      await apiFetch('/api/wa-contacts', { method:'POST', body: JSON.stringify({ phone_number: phone, contact_type: tipo, name: name || null }) });
-      showToast('✅ Contacto guardado');
-      hideWacForm();
-      loadWaContacts();
-    } catch(e) { showToast('Error: ' + e.message); }
-  }
-
-  async function importarVCard(input) {
-    const file = input.files[0];
-    if (!file) return;
-    const resultEl = document.getElementById('wac-import-result');
-    resultEl.textContent = '⏳ Procesando...';
-    resultEl.style.color = 'var(--gray)';
-    resultEl.style.display = 'inline';
-    try {
-      const vcf  = await file.text();
-      const data = await apiFetch('/api/wa-contacts/import-vcard', {
-        method: 'POST',
-        body:   JSON.stringify({ vcf })
-      });
-      resultEl.textContent =
-        `✅ ${data.agregados} agregados · ` +
-        `${data.omitidos_cliente} clientes (sin cambio) · ` +
-        `${data.ya_existian} ya clasificados · ` +
-        `${data.total_procesados} procesados`;
-      resultEl.style.color = '#5AE08A';
-      loadWaContacts();
-    } catch(e) {
-      resultEl.textContent = '❌ Error: ' + e.message;
-      resultEl.style.color = '#E08080';
-    }
-    input.value = ''; // reset para poder importar el mismo archivo de nuevo
   }
 </script>
 <!-- Modal: detalle cotización -->
@@ -4926,27 +4503,6 @@
     <div style="display:flex;gap:.6rem;margin-top:1.2rem;">
       <button class="topbar-btn btn-primary" onclick="guardarPrecioModal()" style="flex:2;justify-content:center;"><i class="fas fa-save"></i> Guardar</button>
       <button class="topbar-btn btn-sec" onclick="document.getElementById('editarPrecioModal').classList.remove('open')" style="flex:1;justify-content:center;">Cancelar</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: confirmación de eliminación en cascada -->
-<div class="modal-overlay" id="deleteConfirmModal" style="z-index:10010;">
-  <div class="modal" style="max-width:420px;">
-    <div class="modal-title" style="color:#E08080;font-size:.95rem;margin-bottom:.5rem;">
-      <i class="fas fa-exclamation-triangle" style="margin-right:.4rem;"></i>
-      <span id="delete-confirm-title">¿Eliminar registro?</span>
-    </div>
-    <p id="delete-confirm-body" style="font-size:.8rem;line-height:1.6;color:var(--gray);margin-bottom:1.4rem;"></p>
-    <div style="display:flex;gap:.6rem;">
-      <button class="topbar-btn" onclick="document.getElementById('deleteConfirmModal').classList.remove('open')"
-        style="flex:1;justify-content:center;background:transparent;border:1px solid var(--border);font-size:.78rem;">
-        Cancelar
-      </button>
-      <button class="topbar-btn" id="delete-confirm-btn"
-        style="flex:2;justify-content:center;background:#E08080;border-color:#E08080;color:#fff;font-size:.78rem;">
-        <i class="fas fa-trash"></i> Sí, eliminar todo
-      </button>
     </div>
   </div>
 </div>
