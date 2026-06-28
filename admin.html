@@ -601,11 +601,11 @@
         </div>
         <table>
           <thead>
-            <tr><th>ID</th><th>Nombre Completo</th><th>Empresa</th><th>Servicio</th><th>Fuente</th><th>Origen</th><th>Presupuesto</th><th>Estado</th><th>Seguimiento</th><th>Acciones</th></tr>
+            <tr><th>ID</th><th>Nombre Completo</th><th>Empresa</th><th>Servicio</th><th>Origen</th><th>Presupuesto</th><th>Estado</th><th>Seguimiento</th><th>Acciones</th></tr>
           </thead>
           <tbody id="leads-tbody">
             <tr>
-              <td colspan="10" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando leads...</td>
+              <td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando leads...</td>
             </tr>
           </tbody>
         </table>
@@ -2539,7 +2539,7 @@
     const tbody = document.getElementById('leads-tbody'); if (!tbody) return;
     const filtrados = _leadsFiltro ? _leadsAll.filter(l=>l.estado===_leadsFiltro) : _leadsAll;
     if (!filtrados.length) {
-      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:2rem;">No hay leads${_leadsFiltro?' con estado "'+_leadsFiltro+'"':''}.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay leads${_leadsFiltro?' con estado "'+_leadsFiltro+'"':''}.</td></tr>`;
       return;
     }
     tbody.innerHTML = filtrados.map(l => {
@@ -2555,7 +2555,6 @@
         <td><span class="td-bold">${capitalizarNombre([l.nombre,l.apellido].filter(Boolean).join(' '))||'—'}</span><br/><span style="color:var(--gray);font-size:.68rem;">${l.email||''}${l.telefono?' · '+l.telefono:''}</span></td>
         <td>${l.empresa||'—'}</td>
         <td>${l.servicio||'—'}</td>
-        <td>${l.fuente||'—'}</td>
         <td>${ORIG}</td>
         <td class="td-gold">${l.presupuesto||'—'}</td>
         <td><span class="badge ${BADGE[l.estado]||'badge-new'}">${l.estado||'Nuevo'}</span></td>
@@ -2568,19 +2567,19 @@
   async function loadLeads() {
     const tbody = document.getElementById('leads-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
     try {
       const leads = await apiFetch('/api/leads/pipeline');
       _leadsCache = {}; _leadsAll = leads;
       leads.forEach(l => _leadsCache[l._id] = l);
       _renderLeadsFilterTabs(leads);
       if (!leads.length) {
-        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:2rem;">No hay leads. ¡Crea el primero!</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay leads. ¡Crea el primero!</td></tr>';
         return;
       }
       filterLeads(_leadsFiltro);
     } catch (e) {
-      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;
     }
   }
 
