@@ -621,11 +621,11 @@
         </div>
         <table>
           <thead>
-            <tr><th>ID</th><th>Nombre</th><th>Empresa</th><th>Servicio</th><th>Fuente</th><th>Presupuesto</th><th>Estado</th><th>Seguimiento</th><th>Acciones</th></tr>
+            <tr><th>ID</th><th>Nombre</th><th>Empresa</th><th>Servicio</th><th>Fuente</th><th>Origen</th><th>Presupuesto</th><th>Estado</th><th>Seguimiento</th><th>Acciones</th></tr>
           </thead>
           <tbody id="leads-tbody">
             <tr>
-              <td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando leads...</td>
+              <td colspan="10" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando leads...</td>
             </tr>
           </tbody>
         </table>
@@ -2426,38 +2426,46 @@
   async function loadLeads() {
     const tbody = document.getElementById('leads-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
     try {
-      const leads = await apiFetch('/api/leads');
+      const leads = await apiFetch('/api/leads/pipeline');
       _leadsCache = {};
-      leads.forEach(l => _leadsCache[l.id] = l);
+      leads.forEach(l => _leadsCache[l._id] = l);
       if (!leads.length) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay leads. ¡Crea el primero!</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:2rem;">No hay leads. ¡Crea el primero!</td></tr>';
         return;
       }
       const BADGE = { 'Nuevo':'badge-new','Contactado':'badge-contact','En seguimiento':'badge-contact','Cotizado':'badge-quote','Ganado':'badge-won','Perdido':'badge-lost' };
-      tbody.innerHTML = leads.map(l => `<tr>
-        <td style="color:var(--gray);font-size:.72rem;">${l.id || '—'}</td>
-        <td><span class="td-bold">${l.nombre||'—'}</span><br/><span style="color:var(--gray);font-size:.68rem;">${l.email||''}${l.telefono?' · '+l.telefono:''}</span></td>
-        <td>${l.empresa||'—'}</td>
-        <td>${l.servicio||'—'}</td>
-        <td>${l.fuente||'—'}</td>
-        <td class="td-gold">${l.presupuesto||'—'}</td>
-        <td><span class="badge ${BADGE[l.estado]||'badge-new'}">${l.estado||'Nuevo'}</span></td>
-        <td style="color:var(--gray);">${l.seguimiento||'—'}</td>
-        <td><div class="action-btns">
-          <button class="act-btn" title="Editar" onclick="editLead(${l.id})"><i class="fas fa-pencil-alt"></i></button>
-          <button class="act-btn danger" title="Eliminar" onclick="deleteLead(${l.id})"><i class="fas fa-trash"></i></button>
-        </div></td>
-      </tr>`).join('');
+      tbody.innerHTML = leads.map(l => {
+        const ORIG = l._origen === 'web'
+          ? '<span style="background:rgba(88,139,204,.18);color:#7BB3F0;font-size:.65rem;padding:2px 7px;border-radius:3px;font-weight:600;">Web</span>'
+          : '<span style="background:rgba(37,211,102,.12);color:#25D366;font-size:.65rem;padding:2px 7px;border-radius:3px;font-weight:600;">WhatsApp</span>';
+        const ACCIONES = l._origen === 'web'
+          ? `<button class="act-btn" title="Editar" onclick="editLead('${l._id}')"><i class="fas fa-pencil-alt"></i></button>
+             <button class="act-btn danger" title="Eliminar" onclick="deleteLead('${l._id}')"><i class="fas fa-trash"></i></button>`
+          : `<button class="act-btn" title="Ver cotización" onclick="verCotizacion('${l._id}')"><i class="fas fa-file-invoice"></i></button>`;
+        return `<tr>
+          <td style="color:var(--gray);font-size:.72rem;">${l._id||'—'}</td>
+          <td><span class="td-bold">${l.nombre||'—'}</span><br/><span style="color:var(--gray);font-size:.68rem;">${l.email||''}${l.telefono?' · '+l.telefono:''}</span></td>
+          <td>${l.empresa||'—'}</td>
+          <td>${l.servicio||'—'}</td>
+          <td>${l.fuente||'—'}</td>
+          <td>${ORIG}</td>
+          <td class="td-gold">${l.presupuesto||'—'}</td>
+          <td><span class="badge ${BADGE[l.estado]||'badge-new'}">${l.estado||'Nuevo'}</span></td>
+          <td style="color:var(--gray);">${l.seguimiento||'—'}</td>
+          <td><div class="action-btns">${ACCIONES}</div></td>
+        </tr>`;
+      }).join('');
     } catch (e) {
-      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;
     }
   }
 
-  function editLead(id) {
-    const l = _leadsCache[id]; if (!l) return;
-    _editLeadId = id;
+  function editLead(_id) {
+    const l = _leadsCache[_id]; if (!l) return;
+    const numId = parseInt(_id.replace('L-', ''));
+    _editLeadId = numId;
     document.getElementById('lead-nombre').value    = l.nombre || '';
     document.getElementById('lead-email').value     = l.email || '';
     document.getElementById('lead-telefono').value  = l.telefono || '';
@@ -2468,18 +2476,24 @@
     document.getElementById('lead-presupuesto').value = l.presupuesto || '';
     document.getElementById('lead-seguimiento').value = l.seguimiento || '';
     const titleEl = document.getElementById('modal-lead-title');
-    if (titleEl) titleEl.textContent = 'Editar Lead #' + id;
+    if (titleEl) titleEl.textContent = 'Editar Lead #' + numId;
     openModal();
   }
 
-  async function deleteLead(id) {
+  async function deleteLead(_id) {
+    const numId = parseInt(_id.replace('L-', ''));
     if (!confirm('¿Eliminar este lead? Esta acción no se puede deshacer.')) return;
     try {
-      await apiFetch('/api/leads/' + id, { method: 'DELETE' });
+      await apiFetch('/api/leads/' + numId, { method: 'DELETE' });
       showToast('Lead eliminado');
       loadLeads();
       loadDashboard();
     } catch (e) { showToast('Error al eliminar: ' + e.message); }
+  }
+
+  function verCotizacion(_id) {
+    const l = _leadsCache[_id]; if (!l) return;
+    showView('cotizaciones');
   }
 
   /* ── TOAST ──────────────────────────────────────────────── */
