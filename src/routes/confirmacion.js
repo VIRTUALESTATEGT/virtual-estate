@@ -501,14 +501,15 @@ router.post('/limpiar', async (req, res) => {
       .select('id');
     if (errA) console.error('[CRON] Tarea 2 Rama A error:', errA.message);
 
-    // Rama B: sin fecha_envio_manual — sin fecha de creación confiable, se mueven
-    // todas las que estén en 'enviada' por esta vía (no tienen ancla temporal).
+    // Rama B: sin fecha_envio_manual — usa created_at (disponible tras migration 036)
+    // como ancla temporal; respeta igualmente los 14 días.
     const { data: vencB, error: errB } = await supabase
       .from('cotizaciones')
       .update({ estado: 'pendiente' })
       .eq('estado', 'enviada')
       .neq('estado_confirmacion', 'confirmado')
       .is('fecha_envio_manual', null)
+      .lt('created_at', hace14dias)
       .select('id');
     if (errB) console.error('[CRON] Tarea 2 Rama B error:', errB.message);
 
