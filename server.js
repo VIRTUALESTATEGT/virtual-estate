@@ -85,10 +85,6 @@ app.post('/api/leads/public', async (req, res) => {
   }
 });
 
-// ── Public: WhatsApp webhook (no auth — validated via signature) ──
-const webhookWARouter = require('./src/routes/webhook-whatsapp');
-app.use('/api/webhook/whatsapp', webhookWARouter);
-
 // ── Public: Instagram DM webhook (no auth) ───────────────────────
 const webhookIGRouter = require('./src/routes/webhook-instagram');
 app.use('/api/instagram/webhook', webhookIGRouter);
