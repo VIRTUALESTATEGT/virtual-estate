@@ -1,4 +1,5 @@
 const supabase = require('../config/supabase');
+const { TASA_GTQ } = require('../config/constants');
 
 const yr2     = () => String(new Date().getFullYear()).slice(-2);
 const cotCode = id => `COT-${yr2()}-${String(id).padStart(5, '0')}`;
@@ -11,7 +12,7 @@ function buildCotizacionHTML(cot) {
   const codigo = cotCode(cot.id);
   const det    = cot.detalles_json || {};
   const mon    = cot.moneda || 'USD';
-  const factor = mon === 'GTQ' ? 7.90 : 1;
+  const factor = mon === 'GTQ' ? TASA_GTQ : 1;
   const sym    = mon === 'GTQ' ? 'Q' : '$';
   const fmt    = n => sym + ((Number(n) || 0) * factor).toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -177,7 +178,7 @@ async function generarCotizacionPDFFallback(cot) {
     const codigo   = cotCode(cot.id);
     const det      = cot.detalles_json || {};
     const mon      = cot.moneda || 'USD';
-    const factor   = mon === 'GTQ' ? 7.90 : 1;
+    const factor   = mon === 'GTQ' ? TASA_GTQ : 1;
     const sym      = mon === 'GTQ' ? 'Q' : '$';
     const fmt      = n => sym + ((Number(n) || 0) * factor).toLocaleString('es-GT', { minimumFractionDigits: 2 });
     const nombre   = cot.clientes?.nombre || cot.leads?.nombre || 'Cliente';

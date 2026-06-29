@@ -3,6 +3,7 @@ const router   = express.Router();
 const supabase = require('../config/supabase');
 const { sendWhatsAppMessage, sendWhatsAppDocument, sendWhatsAppTemplate } = require('../utils/whatsapp');
 const { cotCode, generarCotizacionPDF, subirPDFSupabase } = require('../utils/pdf');
+const { TASA_GTQ } = require('../config/constants');
 
 async function smtpSendWithRetry(buildTransport, mailOpts, label = 'SMTP', maxAttempts = 3) {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -142,7 +143,7 @@ router.post('/email/enviar-cotizacion', async (req, res) => {
 
     const det      = cot?.detalles_json || {};
     const mon      = cot?.moneda || 'USD';
-    const factor   = mon === 'GTQ' ? 7.90 : 1;
+    const factor   = mon === 'GTQ' ? TASA_GTQ : 1;
     const sym      = mon === 'GTQ' ? 'Q' : '$';
     const fmtE     = n => sym + ((Number(n) || 0) * factor).toLocaleString('es-GT', { minimumFractionDigits: 2 });
     const servicios  = det.servicios || [];

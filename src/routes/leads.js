@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
+const { TASA_GTQ } = require('../config/constants');
 
 // GET todos los leads
 router.get('/', async (req, res) => {
@@ -34,7 +35,7 @@ router.get('/pipeline', async (req, res) => {
     const fmtMonto = (monto, moneda) => {
       const m = Number(monto) || 0;
       return moneda === 'GTQ'
-        ? 'Q ' + (m * 7.90).toLocaleString('es-GT', { minimumFractionDigits: 2 })
+        ? 'Q ' + (m * TASA_GTQ).toLocaleString('es-GT', { minimumFractionDigits: 2 })
         : '$ ' + m.toLocaleString('es-GT', { minimumFractionDigits: 2 });
     };
 

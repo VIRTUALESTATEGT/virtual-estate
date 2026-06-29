@@ -2,6 +2,7 @@ const express  = require('express');
 const router   = express.Router();
 const supabase = require('../config/supabase');
 const { notifyAdmin, sendWhatsAppMessage } = require('../utils/whatsapp');
+const { TASA_GTQ } = require('../config/constants');
 
 // Fallback pricing (used if DB table doesn't exist yet)
 const PRICING_FALLBACK = {
@@ -241,10 +242,9 @@ async function crearCotizacionBorradorCore({
   if (error) throw error;
 
   // Formateo de moneda para notificaciones — los montos en DB son siempre USD;
-  // si moneda='GTQ' se multiplica por 7.90 para mostrar el valor que verá el cliente.
-  const TASA_CAMBIO = 7.90;
+  // si moneda='GTQ' se multiplica por TASA_GTQ para mostrar el valor que verá el cliente.
   const sym    = moneda === 'GTQ' ? 'Q' : '$';
-  const factor = moneda === 'GTQ' ? TASA_CAMBIO : 1;
+  const factor = moneda === 'GTQ' ? TASA_GTQ : 1;
   const fmtN   = n => sym + Math.round(n * factor).toLocaleString('es-GT');
 
   const emoji = nivelRiesgo === 'rojo' ? '🔴' : nivelRiesgo === 'amarillo' ? '🟡' : '🟢';

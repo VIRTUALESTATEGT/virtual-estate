@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
 const nodemailer = require('nodemailer');
+const { TASA_GTQ } = require('../config/constants');
 
 // ── Email helper ──────────────────────────────────────────────────────────────
 function crearTransportador() {
@@ -55,7 +56,7 @@ async function enviarEmailConfirmacion({ email, nombre, apellido, cotizacion_id,
   const fecha   = new Date(timestamp).toLocaleString('es-GT', { dateStyle: 'long', timeStyle: 'short' });
   const nombreCompleto = capitalizarNombre([nombre, apellido].filter(Boolean).join(' ')) || 'Cliente';
   const mon     = moneda || 'USD';
-  const factor  = mon === 'GTQ' ? 7.90 : 1;
+  const factor  = mon === 'GTQ' ? TASA_GTQ : 1;
   const sym     = mon === 'GTQ' ? 'Q' : '$';
   const fmt     = n => sym + ((Number(n) || 0) * factor).toLocaleString('es-GT', { minimumFractionDigits: 2 });
   const det     = detalles_json || {};
