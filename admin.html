@@ -597,6 +597,11 @@
       <div class="table-wrap">
         <div class="table-head">
           <span class="table-head-title">Pipeline Comercial</span>
+          <div style="display:flex;align-items:center;gap:.45rem;background:rgba(255,255,255,.04);border:1px solid rgba(193,146,89,.15);border-radius:4px;padding:.35rem .7rem;flex:1;max-width:260px;margin:0 .5rem;">
+            <i class="fas fa-search" style="color:var(--gray);font-size:.7rem;flex-shrink:0;"></i>
+            <input id="leads-search" type="text" placeholder="Buscar lead..." oninput="buscarLeads()"
+              style="background:none;border:none;outline:none;color:var(--text);font-size:.78rem;width:100%;min-width:0;">
+          </div>
           <button class="topbar-btn btn-primary" onclick="openModal()"><i class="fas fa-plus"></i> Nuevo Lead</button>
         </div>
         <table>
@@ -635,6 +640,11 @@
       <div class="table-wrap">
         <div class="table-head">
           <span class="table-head-title">Base de Clientes</span>
+          <div style="display:flex;align-items:center;gap:.45rem;background:rgba(255,255,255,.04);border:1px solid rgba(193,146,89,.15);border-radius:4px;padding:.35rem .7rem;flex:1;max-width:260px;margin:0 .5rem;">
+            <i class="fas fa-search" style="color:var(--gray);font-size:.7rem;flex-shrink:0;"></i>
+            <input id="clientes-search" type="text" placeholder="Buscar cliente..." oninput="buscarClientes()"
+              style="background:none;border:none;outline:none;color:var(--text);font-size:.78rem;width:100%;min-width:0;">
+          </div>
           <button class="topbar-btn btn-primary" onclick="openClienteModal()"><i class="fas fa-plus"></i> Nuevo Cliente</button>
         </div>
         <table>
@@ -2537,9 +2547,11 @@
     _renderLeadsFilterTabs(_leadsAll);
     const BADGE = { 'Nuevo':'badge-new','Contactado':'badge-contact','En seguimiento':'badge-contact','Cotizado':'badge-quote','Ganado':'badge-won','Perdido':'badge-lost' };
     const tbody = document.getElementById('leads-tbody'); if (!tbody) return;
-    const filtrados = _leadsFiltro ? _leadsAll.filter(l=>l.estado===_leadsFiltro) : _leadsAll;
+    const _q = (document.getElementById('leads-search')?.value||'').toLowerCase().trim();
+    let filtrados = _leadsFiltro ? _leadsAll.filter(l=>l.estado===_leadsFiltro) : _leadsAll;
+    if (_q) filtrados = filtrados.filter(l=>[l.nombre,l.apellido,l.email,l.telefono,l.empresa,l.servicio,l._origen==='web'?'Web':'WhatsApp',l.presupuesto,l.estado].some(v=>v&&String(v).toLowerCase().includes(_q)));
     if (!filtrados.length) {
-      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay leads${_leadsFiltro?' con estado "'+_leadsFiltro+'"':''}.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">${_q?'Sin resultados para "'+_q+'".':`No hay leads${_leadsFiltro?' con estado "'+_leadsFiltro+'"':''}.`}</td></tr>`;
       return;
     }
     tbody.innerHTML = filtrados.map(l => {
@@ -2636,6 +2648,8 @@
     const l = _leadsCache[_id]; if (!l) return;
     showView('cotizaciones');
   }
+
+  function buscarLeads() { filterLeads(_leadsFiltro); }
 
   /* ── TOAST ──────────────────────────────────────────────── */
   function showToast(msg) {
@@ -3004,30 +3018,50 @@
     } catch(e) { showToast('Error al guardar: ' + e.message); }
   }
   /* ── CLIENTES ───────────────────────────────────────────── */
-  let _clientesCache={}, _editClienteId=null;
+  let _clientesCache={}, _clientesAll=[], _editClienteId=null;
+
+  function _renderClientes(items){
+    const tbody=document.getElementById('clientes-tbody'); if(!tbody)return;
+    if(!items.length){
+      const q=(document.getElementById('clientes-search')?.value||'').trim();
+      tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:2rem;">${q?'Sin resultados para "'+q+'".':'No hay clientes. ¡Crea el primero!'}</td></tr>`;
+      return;
+    }
+    tbody.innerHTML=items.map(c=>`<tr>
+      <td style="color:var(--gray);font-size:.72rem;">${c.id}</td>
+      <td class="td-bold">${capitalizarNombre([c.nombre,c.apellido].filter(Boolean).join(' '))||'—'}</td>
+      <td>${c.empresa||'—'}</td>
+      <td>${c.tipo||'—'}</td>
+      <td style="color:var(--gray);">${c.email||'—'}</td>
+      <td style="color:var(--gray);">${c.telefono||'—'}</td>
+      <td style="font-family:monospace;color:var(--gold);font-size:.72rem;">${c.codigo_cliente||'—'}</td>
+      <td style="font-family:monospace;color:var(--gray);font-size:.72rem;">${c.numero_agente||'—'}</td>
+      <td style="color:var(--gray);">${c.fechacreacion?new Date(c.fechacreacion).toLocaleDateString('es-GT'):'—'}</td>
+      <td><div class="action-btns">
+        <button class="act-btn" title="Editar" onclick="editCliente(${c.id})"><i class="fas fa-pencil-alt"></i></button>
+        <button class="act-btn danger" onclick="deleteCliente(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
+      </div></td>
+    </tr>`).join('');
+  }
+
+  function buscarClientes(){
+    const q=(document.getElementById('clientes-search')?.value||'').toLowerCase().trim();
+    const filtrados=q
+      ?_clientesAll.filter(c=>[c.nombre,c.apellido,c.empresa,c.tipo,c.email,c.telefono,c.codigo_cliente,c.numero_agente]
+          .some(v=>v&&String(v).toLowerCase().includes(q)))
+      :_clientesAll;
+    _renderClientes(filtrados);
+  }
+
   async function loadClientes(){
     const tbody=document.getElementById('clientes-tbody');
     if(!tbody)return;
     tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
     try{
       const items=await apiFetch('/api/clientes?tipo=Cliente');
-      _clientesCache={}; items.forEach(c=>_clientesCache[c.id]=c);
-      if(!items.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:2rem;">No hay clientes. ¡Crea el primero!</td></tr>';return;}
-      tbody.innerHTML=items.map(c=>`<tr>
-        <td style="color:var(--gray);font-size:.72rem;">${c.id}</td>
-        <td class="td-bold">${capitalizarNombre([c.nombre,c.apellido].filter(Boolean).join(' '))||'—'}</td>
-        <td>${c.empresa||'—'}</td>
-        <td>${c.tipo||'—'}</td>
-        <td style="color:var(--gray);">${c.email||'—'}</td>
-        <td style="color:var(--gray);">${c.telefono||'—'}</td>
-        <td style="font-family:monospace;color:var(--gold);font-size:.72rem;">${c.codigo_cliente||'—'}</td>
-        <td style="font-family:monospace;color:var(--gray);font-size:.72rem;">${c.numero_agente||'—'}</td>
-        <td style="color:var(--gray);">${c.fechacreacion?new Date(c.fechacreacion).toLocaleDateString('es-GT'):'—'}</td>
-        <td><div class="action-btns">
-          <button class="act-btn" title="Editar" onclick="editCliente(${c.id})"><i class="fas fa-pencil-alt"></i></button>
-          <button class="act-btn danger" onclick="deleteCliente(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
-        </div></td>
-      </tr>`).join('');
+      _clientesCache={}; _clientesAll=items;
+      items.forEach(c=>_clientesCache[c.id]=c);
+      buscarClientes();
     }catch(e){tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
   }
   function editCliente(id){
