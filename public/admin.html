@@ -3102,8 +3102,9 @@
       const cotCode = c => `COT-${yr(c.created_at)}-${String(c.id).padStart(5,'0')}`;
       const cliName = c => capitalizarNombre(c.clientes?.nombre) || (c.cliente_id ? `#${c.cliente_id}` : c.lead_id ? `Lead #${c.lead_id}` : '—');
       const fmtM = (c) => {
-        const sym = c.moneda==='GTQ'?'Q':'$';
-        return c.monto ? sym+Number(c.monto).toLocaleString() : '—';
+        const sym   = c.moneda==='GTQ'?'Q':'$';
+        const monto = convertirMoneda(Number(c.monto)||0,'USD',c.moneda||'USD');
+        return c.monto ? sym+monto.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
       };
       tbody.innerHTML=items.map(c=>`<tr>
         <td style="font-family:monospace;color:var(--gold);font-size:.72rem;">${cotCode(c)}</td>
@@ -3563,7 +3564,7 @@
     const cotCode=`COT-${yr(c.created_at)}-${String(c.id).padStart(5,'0')}`;
     const det=c.detalles_json||{};
     const sym=c.moneda==='GTQ'?'Q':'$';
-    const fmt=n=>sym+(Number(n)||0).toLocaleString('es-GT',{minimumFractionDigits:2});
+    const fmt=n=>sym+convertirMoneda(Number(n)||0,'USD',c.moneda||'USD').toLocaleString('es-GT',{minimumFractionDigits:2});
     let serviciosHtml='';
     if(det.servicios&&det.servicios.length){
       serviciosHtml=`<table style="width:100%;border-collapse:collapse;font-size:.75rem;margin-top:.5rem;">
