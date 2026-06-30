@@ -236,7 +236,7 @@ async function enviarEmailConfirmacion({ email, nombre, apellido, cotizacion_id,
   </div>
 
 </div>`,
-  }), 'CONFIRM-EMAIL', 3, 15000);
+  }), 'CONFIRM-EMAIL', 3, 0);
 }
 
 // ── Capitalizar texto (cada palabra con mayúscula inicial) ────────────────────
@@ -457,25 +457,27 @@ async function procesarConfirmacion({ cotizacion_id, lead_id, anticipo_confirmad
     }
   }
 
-  // 7. Send confirmation email (non-blocking)
+  // 7. Send confirmation email — awaited so it completes within the Vercel Lambda.
+  //    Wrapped in try/catch: a mail failure NEVER rolls back the DB confirmation above.
   console.log('[CONFIRM-EMAIL] cliente.email:', cliente.email || '(vacío)', '| cliente.id:', cliente.id, '| codigo_cliente:', codigo_cliente);
   if (cliente.email) {
-    enviarEmailConfirmacion({
-      email:         cliente.email,
-      nombre:        cliente.nombre,
-      apellido:      cliente.apellido || null,
-      cotizacion_id,
-      monto:         cot.monto,
-      anticipo:      montoAnticipo,
-      codigo_cliente,
-      timestamp:     ahora,
-      detalles_json: cot.detalles_json || null,
-      moneda:        cot.moneda || 'USD',
-    }).then(() => {
+    try {
+      await enviarEmailConfirmacion({
+        email:         cliente.email,
+        nombre:        cliente.nombre,
+        apellido:      cliente.apellido || null,
+        cotizacion_id,
+        monto:         cot.monto,
+        anticipo:      montoAnticipo,
+        codigo_cliente,
+        timestamp:     ahora,
+        detalles_json: cot.detalles_json || null,
+        moneda:        cot.moneda || 'USD',
+      });
       console.log('[CONFIRM-EMAIL] ✅ Enviado a:', cliente.email);
-    }).catch(e => {
+    } catch (e) {
       console.error('[CONFIRM-EMAIL] ✗ FALLÓ para:', cliente.email, '| error:', e.message);
-    });
+    }
   } else {
     console.warn('[CONFIRM-EMAIL] ✗ Sin email — cliente no tiene dirección registrada');
   }
