@@ -260,7 +260,8 @@ function show(id) {
 
 function fmt(n, moneda) {
   const m = moneda === 'GTQ' ? 'Q' : '$';
-  return m + Number(n).toLocaleString('es-GT', { minimumFractionDigits: 2 });
+  const factor = moneda === 'GTQ' ? 7.90 : 1;
+  return m + (Number(n) * factor).toLocaleString('es-GT', { minimumFractionDigits: 2 });
 }
 
 function capitalizarNombre(nombre) {
