@@ -203,7 +203,23 @@ async function _enviarBienvenida(nombre, email, usuarioId) {
 
     <p style="font-size:12px;color:#8A9990;line-height:1.6;margin:0;border-top:1px solid rgba(193,146,89,.12);padding-top:14px;">
       Si confirmaste una cotización anteriormente con este correo, ya puedes verla en tu portal al iniciar sesión.
-    </p>`;
+    </p>
+
+    <div style="margin-top:20px;border-top:1px solid rgba(193,146,89,.12);padding-top:18px;">
+      <a href="https://virtualestategt.com/documentos/guia-portal-cliente.pdf"
+         target="_blank"
+         style="display:block;background:#B8860B;color:#ffffff;padding:14px 20px;border-radius:4px;text-decoration:none;font-weight:700;font-size:14px;text-align:center;letter-spacing:.3px;margin-bottom:14px;">
+        📘 Descargar Guía del Portal
+      </a>
+      <p style="font-size:12px;color:#8A9990;line-height:1.6;margin:0 0 10px;">
+        Al utilizar nuestro portal, confirmas que has leído y aceptas lo indicado en estos documentos. Si tienes alguna objeción, contáctanos de inmediato.
+      </p>
+      <p style="font-size:11px;color:#6A7A6F;margin:0;text-align:center;">
+        <a href="https://virtualestategt.com/documentos/terminos-y-condiciones.pdf" target="_blank" style="color:#6A7A6F;text-decoration:underline;">Términos y Condiciones</a>
+        &nbsp;·&nbsp;
+        <a href="https://virtualestategt.com/documentos/politica-de-privacidad.pdf" target="_blank" style="color:#6A7A6F;text-decoration:underline;">Política de Privacidad</a>
+      </p>
+    </div>`;
 
   const html = buildEmailBase({
     titulo:          '¡Bienvenido a Virtual Estate GT!',

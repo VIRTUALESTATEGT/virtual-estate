@@ -188,6 +188,40 @@ async function enviarEmailConfirmacion({ email, nombre, apellido, cotizacion_id,
       </a>
     </div>
 
+    <!-- Documentos y constancia legal -->
+    <div style="margin:0 24px 28px;border-top:1px solid rgba(193,146,89,.15);padding-top:18px;">
+      <table style="width:100%;border-collapse:collapse;">
+        <tr>
+          <td style="padding-right:8px;vertical-align:top;">
+            <a href="https://virtualestategt.com/documentos/requisitos-as-built.pdf"
+               target="_blank"
+               style="display:block;background:#B8860B;color:#ffffff;padding:12px 10px;border-radius:4px;text-decoration:none;font-weight:700;font-size:12px;text-align:center;">
+              📗 Guía de Requisitos AS Built
+            </a>
+          </td>
+          <td style="padding-left:8px;vertical-align:top;">
+            <a href="https://virtualestategt.com/documentos/requisitos-real-estate.pdf"
+               target="_blank"
+               style="display:block;background:#B8860B;color:#ffffff;padding:12px 10px;border-radius:4px;text-decoration:none;font-weight:700;font-size:12px;text-align:center;">
+              📕 Guía de Requisitos Real Estate
+            </a>
+          </td>
+        </tr>
+      </table>
+      <div style="background:rgba(193,146,89,.07);border:1px solid rgba(193,146,89,.2);border-radius:4px;padding:12px 14px;margin-top:14px;">
+        <p style="font-size:12px;font-weight:700;color:#B09A6C;margin:0 0 4px;text-transform:uppercase;letter-spacing:.04em;">Importante</p>
+        <p style="font-size:12px;color:#8A9990;margin:0;line-height:1.6;">Antes de iniciar el servicio en sitio, se solicitará la firma del contrato correspondiente.</p>
+      </div>
+      <p style="font-size:12px;color:#8A9990;line-height:1.6;margin:14px 0 8px;">
+        Al continuar, confirmas que has leído y aceptas lo indicado en estos documentos. Si tienes alguna objeción, contáctanos de inmediato.
+      </p>
+      <p style="font-size:11px;color:#6A7A6F;margin:0;text-align:center;">
+        <a href="https://virtualestategt.com/documentos/terminos-y-condiciones.pdf" target="_blank" style="color:#6A7A6F;text-decoration:underline;">Términos y Condiciones</a>
+        &nbsp;·&nbsp;
+        <a href="https://virtualestategt.com/documentos/politica-de-privacidad.pdf" target="_blank" style="color:#6A7A6F;text-decoration:underline;">Política de Privacidad</a>
+      </p>
+    </div>
+
   </div>
 
   <!-- Footer -->
