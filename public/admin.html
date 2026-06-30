@@ -3088,6 +3088,15 @@
     }catch(e){showToast('Error: '+e.message);}
   }
 
+  function reenviarCotizacion(id){
+    const c=_cotizacionesCache[id]; if(!c)return showToast('Cotización no encontrada en caché');
+    const portalLink=`${window.location.origin}/portal/cotizacion/${id}`;
+    let nombre='',tel='',email='';
+    if(c.clientes){ nombre=capitalizarNombre([c.clientes.nombre,c.clientes.apellido].filter(Boolean).join(' '))||''; tel=c.clientes.telefono||''; email=c.clientes.email||''; }
+    else if(c.leads){ nombre=capitalizarNombre([c.leads.nombre,c.leads.apellido].filter(Boolean).join(' '))||''; tel=c.leads.telefono||''; email=c.leads.email||''; }
+    mostrarEnvioModal(id, portalLink, {nombre, tel, email});
+  }
+
   async function loadCotizaciones(){
     const tbody=document.getElementById('cotizaciones-tbody');
     if(!tbody)return;
@@ -3125,6 +3134,7 @@
           <button class="act-btn" title="Detalle" onclick="verDetalleCotizacion(${c.id})"><i class="fas fa-eye"></i></button>
           <button class="act-btn" title="Editar" onclick="editCotizacion(${c.id})"><i class="fas fa-pencil-alt"></i></button>
           ${c.estado!=='enviada'&&c.estado!=='confirmada'?`<button class="act-btn" title="Aprobar" style="color:#3ECF8E;" onclick="aprobarCotizacion(${c.id})"><i class="fas fa-check"></i></button>`:''}
+          ${(c.estado==='enviada'||c.estado==='confirmada')?`<button class="act-btn" title="Reenviar" onclick="reenviarCotizacion(${c.id})"><i class="fas fa-redo"></i></button>`:''}
           ${c.estado!=='rechazada'?`<button class="act-btn" title="Rechazar" style="color:#E08080;" onclick="desaprobarCotizacion(${c.id})"><i class="fas fa-times"></i></button>`:''}
           <button class="act-btn danger" onclick="deleteCotizacion(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
         </div></td>
@@ -4463,13 +4473,16 @@
   /* ── ENVÍO DE COTIZACIONES POR CANAL ────────────────────── */
   let _envioCotId=null, _envioLink='', _envioCanalesData={};
 
-  function mostrarEnvioModal(cotId, link){
+  function mostrarEnvioModal(cotId, link, opts){
     _envioCotId=cotId; _envioLink=link;
-    const cliId=document.getElementById('cot-cli-select').value;
-    const leadId=document.getElementById('cot-lead-select').value;
     let nombre='',tel='',email='';
-    if(cliId){ const c=_cotCliList.find(x=>String(x.id)===String(cliId))||{}; nombre=c.nombre||''; tel=c.telefono||''; email=c.email||''; }
-    else if(leadId){ const l=_cotLeadList.find(x=>String(x.id)===String(leadId))||{}; nombre=l.nombre||''; tel=l.telefono||''; email=l.email||''; }
+    if(opts){ nombre=opts.nombre||''; tel=opts.tel||''; email=opts.email||''; }
+    else {
+      const cliId=document.getElementById('cot-cli-select').value;
+      const leadId=document.getElementById('cot-lead-select').value;
+      if(cliId){ const c=_cotCliList.find(x=>String(x.id)===String(cliId))||{}; nombre=c.nombre||''; tel=c.telefono||''; email=c.email||''; }
+      else if(leadId){ const l=_cotLeadList.find(x=>String(x.id)===String(leadId))||{}; nombre=l.nombre||''; tel=l.telefono||''; email=l.email||''; }
+    }
     tel=formatearTelefono(tel);
     _envioCanalesData={tel,email,nombre};
     const sub=document.getElementById('envio-cot-subtitulo');
