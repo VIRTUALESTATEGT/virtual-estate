@@ -400,6 +400,7 @@ async function procesarConfirmacion({ cotizacion_id, lead_id, anticipo_confirmad
     else codigo_cliente = cliente.codigo_cliente;
 
     const updateFields = {
+      tipo:                          'Cliente',
       nombre:                        capitalizarNombre(lead?.nombre) || cliente.nombre,
       apellido:                      capitalizarNombre(lead?.apellido) ?? cliente.apellido ?? null,
       empresa:                       capitalizarNombre(lead?.empresa) ?? cliente.empresa ?? null,
