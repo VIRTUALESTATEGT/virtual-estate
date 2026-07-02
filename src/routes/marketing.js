@@ -136,4 +136,67 @@ router.delete('/instrucciones/:id', async (req, res) => {
   }
 });
 
+// ── Órdenes de Contenido ──────────────────────────────────────────────────────
+
+router.get('/ordenes', async (_req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('ordenes_contenido')
+      .select(`*, contenido_generado(id, estado, imagen_url, copy_texto, hashtags, prompt_usado, created_at)`)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/ordenes', async (req, res) => {
+  try {
+    const { titulo, descripcion, tipo_contenido, redes,
+            instrucciones_extra, instrucciones_ids } = req.body;
+    if (!titulo?.trim()) return res.status(400).json({ error: 'titulo es requerido' });
+    const { data, error } = await supabase
+      .from('ordenes_contenido')
+      .insert({
+        titulo:            titulo.trim(),
+        descripcion:       descripcion       ?? null,
+        tipo_contenido:    tipo_contenido    ?? 'imagen',
+        redes:             redes             ?? [],
+        instrucciones_extra: instrucciones_extra ?? null,
+        instrucciones_ids: instrucciones_ids ?? []
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post('/ordenes/:id/generar', async (req, res) => {
+  try {
+    const { ejecutar } = require('../services/contentEngine');
+    const contenido = await ejecutar(Number(req.params.id));
+    res.json({ ok: true, contenido });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.get('/contenido/:id', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('contenido_generado')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+    if (error) throw error;
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
