@@ -17,18 +17,28 @@ async function generarImagen(prompt) {
 
   const url = `${API_BASE}/${MODEL_ID}:generateContent?key=${key}`;
 
-  const { data } = await axios.post(
-    url,
-    {
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { responseModalities: ['IMAGE'] }
-    },
-    {
-      timeout:      28000,
-      responseType: 'json',
-      headers:      { 'Content-Type': 'application/json' }
+  let data;
+  try {
+    ({ data } = await axios.post(
+      url,
+      {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseModalities: ['IMAGE'] }
+      },
+      {
+        timeout:      28000,
+        responseType: 'json',
+        headers:      { 'Content-Type': 'application/json' }
+      }
+    ));
+  } catch (e) {
+    if (e.response) {
+      const status = e.response.status;
+      const body   = JSON.stringify(e.response.data ?? {}).slice(0, 400);
+      throw new Error(`Gemini ${status}: ${body}`);
     }
-  );
+    throw e;
+  }
 
   const parts = data?.candidates?.[0]?.content?.parts ?? [];
   const imagePart = parts.find(p => p.inlineData);

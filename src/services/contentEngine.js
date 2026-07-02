@@ -168,6 +168,7 @@ async function ejecutar(ordenId) {
     return fila;
 
   } catch (e) {
+    console.error('[contentEngine] orden', ordenId, '→ ERROR:', e.message);
     await supabase.from('ordenes_contenido').update({ estado: 'error' }).eq('id', ordenId);
     throw e;
   }
