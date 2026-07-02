@@ -11,7 +11,7 @@ const axios = require('axios');
 const MODEL_ID = 'gemini-2.5-flash-image';
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
-async function generarImagen(prompt) {
+async function generarImagen(prompt, { formato = '1:1' } = {}) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new Error('GEMINI_API_KEY no configurada');
 
@@ -23,7 +23,10 @@ async function generarImagen(prompt) {
       url,
       {
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseModalities: ['IMAGE'] }
+        generationConfig: {
+          responseModalities: ['IMAGE'],
+          imageConfig: { aspectRatio: formato }
+        }
       },
       {
         timeout:      28000,
