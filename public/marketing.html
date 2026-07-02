@@ -790,16 +790,45 @@ function renderOrdenes() {
 }
 
 function renderPreview(c, ordenId) {
-  const img = c.imagen_url
+  const imgBlock = c.imagen_url
     ? `<img class="preview-img" src="${esc(c.imagen_url)}" alt="Imagen generada" onerror="this.style.display='none'"/>`
-    : '';
+    : `<div style="background:var(--bg3);border:1px dashed var(--border);border-radius:4px;
+          padding:1.4rem;text-align:center;margin-bottom:.85rem">
+         <div style="font-size:.72rem;color:var(--gray);margin-bottom:.6rem">
+           Sin imagen — generación falló (quota o billing pendiente)
+         </div>
+         <button class="btn btn-ghost btn-sm" id="btn-retry-img-${c.id}"
+                 onclick="reintentarImagen(${c.id}, ${ordenId})">
+           🖼️ Reintentar imagen
+         </button>
+       </div>`;
   return `<div class="preview-wrap visible" id="preview-${ordenId}">
-    ${img}
+    ${imgBlock}
     <div class="preview-label">Copy</div>
     <div class="preview-copy">${esc(c.copy_texto||'')}</div>
     <div class="preview-label" style="margin-top:.6rem">Hashtags</div>
     <div class="preview-hashtags">${esc(c.hashtags||'')}</div>
   </div>`;
+}
+
+async function reintentarImagen(contenidoId, ordenId) {
+  const btn = document.getElementById('btn-retry-img-' + contenidoId);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Generando…'; }
+  try {
+    const { contenido } = await api('POST', `/contenido/${contenidoId}/reintentar-imagen`);
+    // Actualizar el contenido en _ordenes
+    const oIdx = _ordenes.findIndex(o => o.id === ordenId);
+    if (oIdx >= 0 && _ordenes[oIdx].contenido_generado?.length) {
+      _ordenes[oIdx].contenido_generado = _ordenes[oIdx].contenido_generado.map(c =>
+        c.id === contenidoId ? contenido : c
+      );
+    }
+    renderOrdenes();
+    toast('Imagen generada ✓');
+  } catch (e) {
+    if (btn) { btn.disabled = false; btn.textContent = '🖼️ Reintentar imagen'; }
+    toast('Error: ' + e.message, 'err');
+  }
 }
 
 async function crearOrden() {

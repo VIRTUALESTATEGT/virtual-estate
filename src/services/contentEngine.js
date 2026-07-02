@@ -130,24 +130,32 @@ async function ejecutar(ordenId) {
     const { prompt_imagen, copy_texto, hashtags } = contenido;
     if (!prompt_imagen?.trim()) throw new Error('Claude omitió prompt_imagen');
 
-    // 5. Generar imagen (solo si tipo != 'texto')
-    let imagenUrl = null;
+    // 5. Generar imagen (solo si tipo != 'texto') — modo degradado:
+    //    si falla, se guarda el copy igual con imagen_url=null
+    let imagenUrl   = null;
+    let imagenError = null;
+
     if (orden.tipo_contenido !== 'texto') {
-      const { buffer, mimeType } = await generarImagen(prompt_imagen);
+      try {
+        const { buffer, mimeType } = await generarImagen(prompt_imagen);
 
-      const ext      = mimeType === 'image/jpeg' ? 'jpg' : 'png';
-      const filePath = `ordenes/${ordenId}/${Date.now()}.${ext}`;
+        const ext      = mimeType === 'image/jpeg' ? 'jpg' : 'png';
+        const filePath = `ordenes/${ordenId}/${Date.now()}.${ext}`;
 
-      const { error: upErr } = await supabase.storage
-        .from(BUCKET)
-        .upload(filePath, buffer, { contentType: mimeType, upsert: false });
-      if (upErr) throw upErr;
+        const { error: upErr } = await supabase.storage
+          .from(BUCKET)
+          .upload(filePath, buffer, { contentType: mimeType, upsert: false });
+        if (upErr) throw upErr;
 
-      const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(filePath);
-      imagenUrl = urlData.publicUrl;
+        const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(filePath);
+        imagenUrl = urlData.publicUrl;
+      } catch (imgErr) {
+        console.error('[contentEngine] imagen fallida — modo degradado:', imgErr.message);
+        imagenError = imgErr.message;
+      }
     }
 
-    // 6. Guardar contenido_generado
+    // 6. Guardar contenido_generado (con o sin imagen)
     const { data: fila, error: insErr } = await supabase
       .from('contenido_generado')
       .insert({
@@ -162,10 +170,11 @@ async function ejecutar(ordenId) {
       .single();
     if (insErr) throw insErr;
 
-    // 7. Marcar orden como 'generada'
+    // 7. Marcar orden como 'generada' (aunque la imagen haya fallado)
     await supabase.from('ordenes_contenido').update({ estado: 'generada' }).eq('id', ordenId);
 
-    return fila;
+    // Devuelve el contenido + aviso de error de imagen si lo hubo
+    return { ...fila, _imagen_error: imagenError };
 
   } catch (e) {
     console.error('[contentEngine] orden', ordenId, '→ ERROR:', e.message);

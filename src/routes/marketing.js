@@ -199,4 +199,39 @@ router.get('/contenido/:id', async (req, res) => {
   }
 });
 
+// Reintentar solo la imagen de un contenido ya generado
+router.post('/contenido/:id/reintentar-imagen', async (req, res) => {
+  try {
+    const { data: cont, error: fetchErr } = await supabase
+      .from('contenido_generado').select('*').eq('id', req.params.id).single();
+    if (fetchErr) throw fetchErr;
+    if (!cont.prompt_usado?.trim())
+      return res.status(400).json({ error: 'No hay prompt_usado guardado para reintentar' });
+
+    const { generarImagen } = require('../services/imageProvider');
+    const { buffer, mimeType } = await generarImagen(cont.prompt_usado);
+
+    const ext      = mimeType === 'image/jpeg' ? 'jpg' : 'png';
+    const filePath = `ordenes/${cont.orden_id}/${Date.now()}.${ext}`;
+
+    const { error: upErr } = await supabase.storage
+      .from('marketing')
+      .upload(filePath, buffer, { contentType: mimeType, upsert: false });
+    if (upErr) throw upErr;
+
+    const { data: urlData } = supabase.storage.from('marketing').getPublicUrl(filePath);
+
+    const { data: updated, error: updErr } = await supabase
+      .from('contenido_generado')
+      .update({ imagen_url: urlData.publicUrl })
+      .eq('id', req.params.id)
+      .select().single();
+    if (updErr) throw updErr;
+
+    res.json({ ok: true, contenido: updated });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 module.exports = router;
