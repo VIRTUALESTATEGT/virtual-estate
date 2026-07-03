@@ -116,8 +116,11 @@ router.get('/ordenes', async (_req, res) => {
 router.post('/ordenes', async (req, res) => {
   try {
     const { titulo, descripcion, tipo_contenido, redes,
-            instrucciones_extra, instrucciones_ids, formatos } = req.body;
+            instrucciones_extra, instrucciones_ids, formatos, logo_posicion } = req.body;
     if (!titulo?.trim()) return res.status(400).json({ error: 'titulo es requerido' });
+    const POSICIONES_VALIDAS = ['inferior-derecha','inferior-izquierda','superior-derecha','superior-izquierda','centro','sin-logo'];
+    if (logo_posicion && !POSICIONES_VALIDAS.includes(logo_posicion))
+      return res.status(400).json({ error: 'logo_posicion inválida' });
     const { data, error } = await supabase
       .from('ordenes_contenido')
       .insert({
@@ -127,7 +130,8 @@ router.post('/ordenes', async (req, res) => {
         redes:              redes              ?? [],
         instrucciones_extra: instrucciones_extra ?? null,
         instrucciones_ids:  instrucciones_ids  ?? [],
-        formatos:           formatos?.length   ? formatos : ['1:1']
+        formatos:           formatos?.length   ? formatos : ['1:1'],
+        logo_posicion:      logo_posicion      ?? 'inferior-derecha'
       })
       .select().single();
     if (error) throw error;

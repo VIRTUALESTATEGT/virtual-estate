@@ -293,6 +293,17 @@
           <div class="form-group"><label>Título *</label><input type="text" id="ord-titulo" placeholder="Ej: Post Instagram — servicio 3D"/></div>
           <div class="form-group"><label>Tipo de contenido</label><select id="ord-tipo" onchange="toggleFormatos()"><option value="imagen">Imagen</option><option value="texto">Solo texto</option></select></div>
         </div>
+        <div class="form-group" id="logo-pos-group">
+          <label>Posición del logo</label>
+          <select id="ord-logo-pos">
+            <option value="inferior-derecha">Inferior derecha (default)</option>
+            <option value="inferior-izquierda">Inferior izquierda</option>
+            <option value="superior-derecha">Superior derecha</option>
+            <option value="superior-izquierda">Superior izquierda</option>
+            <option value="centro">Centro</option>
+            <option value="sin-logo">Sin logo</option>
+          </select>
+        </div>
         <div class="form-group"><label>Descripción / ¿Qué quieres comunicar?</label><textarea id="ord-desc" rows="3" placeholder="Describe el tema, el ángulo, el mensaje principal..."></textarea></div>
         <div class="form-group" id="formatos-group">
           <label>Formatos a generar</label>
@@ -522,7 +533,9 @@ function toggleForm() {
 }
 function toggleFormatos() {
   const tipo=document.getElementById('ord-tipo').value;
-  document.getElementById('formatos-group').style.display=tipo==='texto'?'none':'block';
+  const hide=tipo==='texto'?'none':'block';
+  document.getElementById('formatos-group').style.display=hide;
+  document.getElementById('logo-pos-group').style.display=hide;
 }
 function renderInstrSelector() {
   const sel=document.getElementById('instr-selector');
@@ -595,6 +608,7 @@ async function crearOrden() {
       descripcion:        document.getElementById('ord-desc').value.trim()||null,
       tipo_contenido:     document.getElementById('ord-tipo').value,
       redes, formatos,
+      logo_posicion:      document.getElementById('ord-logo-pos').value,
       instrucciones_extra:document.getElementById('ord-extra').value.trim()||null,
       instrucciones_ids:  instruccionesIds
     });
