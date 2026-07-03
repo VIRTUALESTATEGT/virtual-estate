@@ -10,6 +10,7 @@ const HEX_RE  = /^#[0-9A-Fa-f]{6}$/;
 // ── Status ────────────────────────────────────────────────────────────────────
 router.get('/status', (_req, res) => {
   res.json({ ok: true, modulo: 'marketing', fase: 5 });
+});
 
 // ── TEST SPIKE: verificar fuentes WOFF2 embebidas en SVG vía Sharp ────────────
 // TEMPORAL — eliminar antes del commit final de Fase 5
@@ -34,7 +35,6 @@ router.get('/test-fuentes', async (_req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
-});
 });
 
 // ── Identidad de Marca ────────────────────────────────────────────────────────
