@@ -12,21 +12,20 @@ router.get('/status', (_req, res) => {
   res.json({ ok: true, modulo: 'marketing', fase: 5 });
 });
 
-// ── TEST SPIKE: verificar fuentes WOFF2 embebidas en SVG vía Sharp ────────────
+// ── TEST SPIKE: verificar fuentes TTF vía fontconfig + Sharp ─────────────────
 // TEMPORAL — eliminar antes del commit final de Fase 5
 router.get('/test-fuentes', async (_req, res) => {
   try {
     const sharp = require('sharp');
-    const { fontFaceStyle } = require('../utils/fonts');
-    const style = fontFaceStyle();
+    const { setupFontconfig } = require('../utils/fonts');
+    setupFontconfig();
     const svg = Buffer.from(
       `<svg xmlns="http://www.w3.org/2000/svg" width="700" height="300">
-        <defs>${style}</defs>
         <rect width="700" height="300" fill="#0D1A14"/>
-        <text x="30" y="80"  font-family="Montserrat,sans-serif" font-weight="700" font-size="36" fill="#C19259">Virtual Estate GT</text>
-        <text x="30" y="135" font-family="Montserrat,sans-serif" font-weight="400" font-size="22" fill="#F5F0E8">Fotografia inmobiliaria premium</text>
-        <text x="30" y="200" font-family="Raleway,sans-serif"    font-weight="600" font-size="28" fill="#C19259">Escribenos por WhatsApp</text>
-        <text x="30" y="255" font-family="Montserrat,sans-serif" font-weight="400" font-size="16" fill="#7A8D85">Si ves Montserrat y Raleway: fuentes OK en Lambda</text>
+        <text x="30" y="80"  font-family="Montserrat" font-weight="700" font-size="36" fill="#C19259">Virtual Estate GT</text>
+        <text x="30" y="135" font-family="Montserrat" font-weight="400" font-size="22" fill="#F5F0E8">Fotografia inmobiliaria premium</text>
+        <text x="30" y="200" font-family="Raleway"    font-weight="600" font-size="28" fill="#C19259">Escribenos por WhatsApp</text>
+        <text x="30" y="255" font-family="Montserrat" font-weight="400" font-size="16" fill="#7A8D85">Si ves Montserrat y Raleway: fuentes OK en Lambda</text>
       </svg>`
     );
     const png = await sharp(svg).png().toBuffer();
