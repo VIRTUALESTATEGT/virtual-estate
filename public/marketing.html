@@ -150,9 +150,10 @@
     .approval-field label { margin-bottom: .3rem; }
     .approval-field textarea { width: 100%; min-height: 70px; }
     .approval-actions { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .3rem; }
-    .regen-form { display: none; margin-top: .6rem; }
+    .regen-form { display: none; margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--border); }
     .regen-form.open { display: block; }
-    .regen-form input { margin-bottom: .4rem; }
+    .regen-form label { margin-top: .3rem; }
+    .regen-form input, .regen-form select { margin-bottom: .1rem; }
 
     /* PROMPT STUDIO */
     .ps-result { font-size: .82rem; line-height: 1.75; color: var(--white); white-space: pre-wrap; padding: .2rem 0; }
@@ -293,16 +294,26 @@
           <div class="form-group"><label>Título *</label><input type="text" id="ord-titulo" placeholder="Ej: Post Instagram — servicio 3D"/></div>
           <div class="form-group"><label>Tipo de contenido</label><select id="ord-tipo" onchange="toggleFormatos()"><option value="imagen">Imagen</option><option value="texto">Solo texto</option></select></div>
         </div>
-        <div class="form-group" id="logo-pos-group">
-          <label>Posición del logo</label>
-          <select id="ord-logo-pos">
-            <option value="inferior-derecha">Inferior derecha (default)</option>
-            <option value="inferior-izquierda">Inferior izquierda</option>
-            <option value="superior-derecha">Superior derecha</option>
-            <option value="superior-izquierda">Superior izquierda</option>
-            <option value="centro">Centro</option>
-            <option value="sin-logo">Sin logo</option>
-          </select>
+        <div class="form-grid-2" id="logo-pos-group">
+          <div class="form-group">
+            <label>Posición del logo</label>
+            <select id="ord-logo-pos">
+              <option value="inferior-derecha">Inferior derecha (default)</option>
+              <option value="inferior-izquierda">Inferior izquierda</option>
+              <option value="superior-derecha">Superior derecha</option>
+              <option value="superior-izquierda">Superior izquierda</option>
+              <option value="centro">Centro</option>
+              <option value="sin-logo">Sin logo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tamaño del logo</label>
+            <select id="ord-logo-tamano">
+              <option value="pequeno">Pequeño (10%)</option>
+              <option value="mediano" selected>Mediano (15%)</option>
+              <option value="grande">Grande (22%)</option>
+            </select>
+          </div>
         </div>
         <div class="form-group"><label>Descripción / ¿Qué quieres comunicar?</label><textarea id="ord-desc" rows="3" placeholder="Describe el tema, el ángulo, el mensaje principal..."></textarea></div>
         <div class="form-group" id="formatos-group">
@@ -532,9 +543,9 @@ function toggleForm() {
   if(open) renderInstrSelector();
 }
 function toggleFormatos() {
-  const tipo=document.getElementById('ord-tipo').value;
-  const hide=tipo==='texto'?'none':'block';
-  document.getElementById('formatos-group').style.display=hide;
+  const hide=document.getElementById('ord-tipo').value==='texto'?'none':'grid';
+  document.getElementById('formatos-group').style.display=
+    document.getElementById('ord-tipo').value==='texto'?'none':'block';
   document.getElementById('logo-pos-group').style.display=hide;
 }
 function renderInstrSelector() {
@@ -609,6 +620,7 @@ async function crearOrden() {
       tipo_contenido:     document.getElementById('ord-tipo').value,
       redes, formatos,
       logo_posicion:      document.getElementById('ord-logo-pos').value,
+      logo_tamano:        document.getElementById('ord-logo-tamano').value,
       instrucciones_extra:document.getElementById('ord-extra').value.trim()||null,
       instrucciones_ids:  instruccionesIds
     });
@@ -655,6 +667,18 @@ async function generarContenido(ordenId) {
 }
 
 // ── Cola de Aprobación ────────────────────────────────────────────────────────
+const POS_OPTS = [
+  ['inferior-derecha','Inferior derecha'],['inferior-izquierda','Inferior izquierda'],
+  ['superior-derecha','Superior derecha'],['superior-izquierda','Superior izquierda'],
+  ['centro','Centro'],['sin-logo','Sin logo']
+];
+const TAM_OPTS = [['pequeno','Pequeño (10%)'],['mediano','Mediano (15%)'],['grande','Grande (22%)']];
+const FMT_OPTS = [['1:1','1:1 Post'],['4:5','4:5 Feed'],['9:16','9:16 Story/Reel'],['16:9','16:9 FB/LinkedIn']];
+
+function mkSel(name, id, opts, cur) {
+  return `<select id="${name}-${id}">${opts.map(([v,l])=>`<option value="${v}"${v===cur?' selected':''}>${esc(l)}</option>`).join('')}</select>`;
+}
+
 let _filtroEstado='pendiente';
 let _contenidos=[];
 
@@ -711,7 +735,14 @@ function renderAprobacion() {
           <button class="btn btn-ghost btn-xs" onclick="copiarContenido(${c.id})">⎘ Copiar</button>
         </div>
         <div class="regen-form" id="regen-${c.id}">
-          <input type="text" id="regen-ajuste-${c.id}" placeholder="Ajuste opcional (ej: más luz, estilo minimalista)"/>
+          <div class="form-grid-2" style="margin-bottom:.5rem">
+            <div><label>Posición del logo</label>${mkSel('regen-pos',c.id,POS_OPTS,c.ordenes_contenido?.logo_posicion??'inferior-derecha')}</div>
+            <div><label>Tamaño del logo</label>${mkSel('regen-tam',c.id,TAM_OPTS,c.ordenes_contenido?.logo_tamano??'mediano')}</div>
+          </div>
+          <div class="form-grid-2" style="margin-bottom:.5rem">
+            <div><label>Formato</label>${mkSel('regen-fmt',c.id,FMT_OPTS,c.formato??'1:1')}</div>
+            <div><label>Ajuste libre (opcional)</label><input type="text" id="regen-ajuste-${c.id}" placeholder="ej: más luz, estilo lujo"/></div>
+          </div>
           <button class="btn btn-primary btn-sm" id="regen-btn-${c.id}" onclick="regenerarContenido(${c.id})">
             <span class="spinner" id="regen-spin-${c.id}"></span> Generar nueva imagen
           </button>
@@ -750,11 +781,17 @@ function toggleRegen(id) {
 async function regenerarContenido(id) {
   const btn=document.getElementById('regen-btn-'+id);
   const spin=document.getElementById('regen-spin-'+id);
-  const ajuste=document.getElementById('regen-ajuste-'+id)?.value||'';
   btn.disabled=true; spin.style.display='inline-block';
   try {
-    const { contenido } = await api('POST',`/contenido/${id}/regenerar`,{ajuste});
-    _contenidos=_contenidos.map(c=>c.id===id?contenido:c);
+    const body={
+      ajuste:       document.getElementById('regen-ajuste-'+id)?.value.trim()||undefined,
+      logo_posicion:document.getElementById('regen-pos-'+id)?.value,
+      logo_tamano:  document.getElementById('regen-tam-'+id)?.value,
+      formato:      document.getElementById('regen-fmt-'+id)?.value
+    };
+    const { contenido } = await api('POST',`/contenido/${id}/regenerar`, body);
+    // Preservar ordenes_contenido del cache (no viene en la respuesta)
+    _contenidos=_contenidos.map(c=>c.id===id?{...contenido,ordenes_contenido:c.ordenes_contenido}:c);
     renderAprobacion();
     toast('Imagen regenerada ✓');
   } catch(e){ toast('Error: '+e.message,'err'); btn.disabled=false; spin.style.display='none'; }

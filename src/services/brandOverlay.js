@@ -13,39 +13,48 @@ const DIMS = {
   '16:9': { w: 1200, h: 675  }
 };
 
+// Mapeo tamaño → porcentaje del ancho de imagen
+const TAMANO_PCT = { pequeno: 0.10, mediano: 0.15, grande: 0.22 };
+
 // Calcula top/left del logo según posición y dimensiones
 function calcLogoPos(logoPosicion, { w, h, logoW, logoH, margin }) {
   switch (logoPosicion) {
-    case 'inferior-izquierda':  return { top: h - logoH - margin, left: margin };
-    case 'superior-derecha':    return { top: margin, left: w - logoW - margin };
-    case 'superior-izquierda':  return { top: margin, left: margin };
-    case 'centro':              return { top: Math.round((h - logoH) / 2), left: Math.round((w - logoW) / 2) };
+    case 'inferior-izquierda': return { top: h - logoH - margin, left: margin };
+    case 'superior-derecha':   return { top: margin, left: w - logoW - margin };
+    case 'superior-izquierda': return { top: margin, left: margin };
+    case 'centro':             return { top: Math.round((h - logoH) / 2), left: Math.round((w - logoW) / 2) };
     case 'inferior-derecha':
-    default:                    return { top: h - logoH - margin, left: w - logoW - margin };
+    default:                   return { top: h - logoH - margin, left: w - logoW - margin };
   }
 }
 
-async function aplicarOverlay(buffer, { formato = '1:1', identidad = {}, logoPosicion = 'inferior-derecha' } = {}) {
+async function aplicarOverlay(buffer, {
+  formato      = '1:1',
+  identidad    = {},
+  logoPosicion = 'inferior-derecha',
+  logoTamano   = 'mediano'
+} = {}) {
   const originalBuffer = buffer;
 
   try {
     const { w, h } = DIMS[formato] ?? DIMS['1:1'];
 
-    // 'sin-logo' → solo redimensionar, sin composite
     const pipeline = sharp(buffer).resize(w, h, { fit: 'cover', position: 'centre' });
 
+    // 'sin-logo' o sin URL → imagen limpia redimensionada
     if (logoPosicion === 'sin-logo' || !identidad?.logo_url?.trim()) {
       const overlayBuffer = await pipeline.png().toBuffer();
       return { overlayBuffer, originalBuffer };
     }
 
     // Descargar y redimensionar logo
-    const logoUrl = identidad.logo_url.trim();
+    const pct    = TAMANO_PCT[logoTamano] ?? TAMANO_PCT.mediano;
+    const logoW  = Math.round(w * pct);
+    const margin = Math.round(w * 0.03);
+
     let logoComposite;
     try {
-      const res = await axios.get(logoUrl, { responseType: 'arraybuffer', timeout: 5000 });
-      const logoW   = Math.round(w * 0.15);
-      const margin  = Math.round(w * 0.03);
+      const res = await axios.get(identidad.logo_url.trim(), { responseType: 'arraybuffer', timeout: 5000 });
       const logoResized = await sharp(Buffer.from(res.data))
         .resize(logoW, null, { fit: 'inside' })
         .png()
