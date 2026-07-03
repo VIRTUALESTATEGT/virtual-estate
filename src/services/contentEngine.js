@@ -86,10 +86,10 @@ Genera el JSON de contenido.`;
 
 // Genera imagen + overlay + sube ambas versiones a Storage.
 // Modo degradado: si algo falla devuelve { imagenUrl: null, error: msg }
-async function generarYSubirImagen(prompt, formato, ordenId, identidad, logoPosicion = 'inferior-derecha', logoTamano = 'mediano') {
+async function generarYSubirImagen(prompt, formato, ordenId, identidad, logoPosicion = 'inferior-derecha', logoTamano = 'mediano', logoTamanoPct = null) {
   try {
     const { buffer, mimeType }         = await generarImagen(prompt, { formato });
-    const { overlayBuffer, originalBuffer } = await aplicarOverlay(buffer, { formato, identidad, logoPosicion, logoTamano });
+    const { overlayBuffer, originalBuffer } = await aplicarOverlay(buffer, { formato, identidad, logoPosicion, logoTamano, logoTamanoPct });
 
     const slug = formato.replace(':', '-');
     const ts   = Date.now();
@@ -154,7 +154,9 @@ async function ejecutar(ordenId, formato = '1:1') {
     if (orden.tipo_contenido !== 'texto') {
       ({ imagenUrl, imagenOriginalUrl, imagenError } =
         await generarYSubirImagen(prompt_imagen, formato, ordenId, ctx.identidad,
-          orden.logo_posicion ?? 'inferior-derecha', orden.logo_tamano ?? 'mediano'));
+          orden.logo_posicion  ?? 'inferior-derecha',
+          orden.logo_tamano    ?? 'mediano',
+          orden.logo_tamano_pct ?? null));
     }
 
     const { data: fila, error: insErr } = await supabase
@@ -193,14 +195,15 @@ async function ejecutarFormato(contenidoBaseId, formato) {
 
   const [{ data: identidad }, { data: orden }] = await Promise.all([
     supabase.from('marca_identidad').select('*').limit(1).maybeSingle(),
-    supabase.from('ordenes_contenido').select('logo_posicion, logo_tamano').eq('id', base.orden_id).single()
+    supabase.from('ordenes_contenido').select('logo_posicion, logo_tamano, logo_tamano_pct').eq('id', base.orden_id).single()
   ]);
 
-  const logoPosicion = orden?.logo_posicion ?? 'inferior-derecha';
-  const logoTamano   = orden?.logo_tamano   ?? 'mediano';
+  const logoPosicion  = orden?.logo_posicion  ?? 'inferior-derecha';
+  const logoTamano    = orden?.logo_tamano    ?? 'mediano';
+  const logoTamanoPct = orden?.logo_tamano_pct ?? null;
 
   const { imagenUrl, imagenOriginalUrl, imagenError } =
-    await generarYSubirImagen(base.prompt_usado, formato, base.orden_id, identidad, logoPosicion, logoTamano);
+    await generarYSubirImagen(base.prompt_usado, formato, base.orden_id, identidad, logoPosicion, logoTamano, logoTamanoPct);
 
   const { data: fila, error: insErr } = await supabase
     .from('contenido_generado')
@@ -222,7 +225,7 @@ async function ejecutarFormato(contenidoBaseId, formato) {
 
 // ── Regenerar — nueva imagen con prompt ajustado ──────────────────────────────
 
-async function regenerar(contenidoId, { ajuste = '', logoPosicion, logoTamano, formato } = {}) {
+async function regenerar(contenidoId, { ajuste = '', logoPosicion, logoTamano, logoTamanoPct, formato } = {}) {
   const { data: cont, error } = await supabase
     .from('contenido_generado').select('*').eq('id', contenidoId).single();
   if (error) throw error;
@@ -234,16 +237,17 @@ async function regenerar(contenidoId, { ajuste = '', logoPosicion, logoTamano, f
 
   const [{ data: identidad }, { data: orden }] = await Promise.all([
     supabase.from('marca_identidad').select('*').limit(1).maybeSingle(),
-    supabase.from('ordenes_contenido').select('logo_posicion, logo_tamano').eq('id', cont.orden_id).single()
+    supabase.from('ordenes_contenido').select('logo_posicion, logo_tamano, logo_tamano_pct').eq('id', cont.orden_id).single()
   ]);
 
   // Overrides del body tienen prioridad; si no vienen, se usan los de la orden
-  const formatoFinal     = formato      ?? cont.formato             ?? '1:1';
-  const logoPosicionFinal = logoPosicion ?? orden?.logo_posicion    ?? 'inferior-derecha';
-  const logoTamanoFinal   = logoTamano   ?? orden?.logo_tamano      ?? 'mediano';
+  const formatoFinal      = formato       ?? cont.formato              ?? '1:1';
+  const logoPosicionFinal = logoPosicion  ?? orden?.logo_posicion      ?? 'inferior-derecha';
+  const logoTamanoFinal   = logoTamano    ?? orden?.logo_tamano        ?? 'mediano';
+  const logoTamanoPctFinal = logoTamanoPct ?? orden?.logo_tamano_pct   ?? null;
 
   const { imagenUrl, imagenOriginalUrl, imagenError } =
-    await generarYSubirImagen(promptAjustado, formatoFinal, cont.orden_id, identidad, logoPosicionFinal, logoTamanoFinal);
+    await generarYSubirImagen(promptAjustado, formatoFinal, cont.orden_id, identidad, logoPosicionFinal, logoTamanoFinal, logoTamanoPctFinal);
 
   const { data: updated, error: updErr } = await supabase
     .from('contenido_generado')

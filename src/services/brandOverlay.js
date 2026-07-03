@@ -29,10 +29,11 @@ function calcLogoPos(logoPosicion, { w, h, logoW, logoH, margin }) {
 }
 
 async function aplicarOverlay(buffer, {
-  formato      = '1:1',
-  identidad    = {},
-  logoPosicion = 'inferior-derecha',
-  logoTamano   = 'mediano'
+  formato        = '1:1',
+  identidad      = {},
+  logoPosicion   = 'inferior-derecha',
+  logoTamano     = 'mediano',
+  logoTamanoPct  = null          // número 5-40; tiene prioridad sobre logoTamano si presente
 } = {}) {
   const originalBuffer = buffer;
 
@@ -48,8 +49,11 @@ async function aplicarOverlay(buffer, {
     }
 
     // Descargar y redimensionar logo
-    const pct    = TAMANO_PCT[logoTamano] ?? TAMANO_PCT.mediano;
-    const logoW  = Math.round(w * pct);
+    // logoTamanoPct (número libre 5-40) tiene prioridad; fallback a enum legacy
+    const pct   = (typeof logoTamanoPct === 'number' && !isNaN(logoTamanoPct))
+      ? Math.max(5, Math.min(40, logoTamanoPct))
+      : (TAMANO_PCT[logoTamano] ?? TAMANO_PCT.mediano) * 100;
+    const logoW  = Math.round(w * pct / 100);
     const margin = Math.round(w * 0.03);
 
     let logoComposite;

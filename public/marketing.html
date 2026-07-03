@@ -307,12 +307,9 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Tamaño del logo</label>
-            <select id="ord-logo-tamano">
-              <option value="pequeno">Pequeño (10%)</option>
-              <option value="mediano" selected>Mediano (15%)</option>
-              <option value="grande">Grande (22%)</option>
-            </select>
+            <label>Tamaño del logo — <span id="ord-logo-pct-val">15</span>%</label>
+            <input type="range" id="ord-logo-pct" min="5" max="40" value="15"
+                   oninput="document.getElementById('ord-logo-pct-val').textContent=this.value"/>
           </div>
         </div>
         <div class="form-group"><label>Descripción / ¿Qué quieres comunicar?</label><textarea id="ord-desc" rows="3" placeholder="Describe el tema, el ángulo, el mensaje principal..."></textarea></div>
@@ -620,7 +617,7 @@ async function crearOrden() {
       tipo_contenido:     document.getElementById('ord-tipo').value,
       redes, formatos,
       logo_posicion:      document.getElementById('ord-logo-pos').value,
-      logo_tamano:        document.getElementById('ord-logo-tamano').value,
+      logo_tamano_pct:    Number(document.getElementById('ord-logo-pct').value),
       instrucciones_extra:document.getElementById('ord-extra').value.trim()||null,
       instrucciones_ids:  instruccionesIds
     });
@@ -672,7 +669,7 @@ const POS_OPTS = [
   ['superior-derecha','Superior derecha'],['superior-izquierda','Superior izquierda'],
   ['centro','Centro'],['sin-logo','Sin logo']
 ];
-const TAM_OPTS = [['pequeno','Pequeño (10%)'],['mediano','Mediano (15%)'],['grande','Grande (22%)']];
+
 const FMT_OPTS = [['1:1','1:1 Post'],['4:5','4:5 Feed'],['9:16','9:16 Story/Reel'],['16:9','16:9 FB/LinkedIn']];
 
 function mkSel(name, id, opts, cur) {
@@ -737,7 +734,7 @@ function renderAprobacion() {
         <div class="regen-form" id="regen-${c.id}">
           <div class="form-grid-2" style="margin-bottom:.5rem">
             <div><label>Posición del logo</label>${mkSel('regen-pos',c.id,POS_OPTS,c.ordenes_contenido?.logo_posicion??'inferior-derecha')}</div>
-            <div><label>Tamaño del logo</label>${mkSel('regen-tam',c.id,TAM_OPTS,c.ordenes_contenido?.logo_tamano??'mediano')}</div>
+            <div><label>Tamaño del logo — <span id="regen-pct-val-${c.id}">${c.ordenes_contenido?.logo_tamano_pct??15}</span>%</label><input type="range" id="regen-pct-${c.id}" min="5" max="40" value="${c.ordenes_contenido?.logo_tamano_pct??15}" oninput="document.getElementById('regen-pct-val-${c.id}').textContent=this.value"/></div>
           </div>
           <div class="form-grid-2" style="margin-bottom:.5rem">
             <div><label>Formato</label>${mkSel('regen-fmt',c.id,FMT_OPTS,c.formato??'1:1')}</div>
@@ -786,7 +783,7 @@ async function regenerarContenido(id) {
     const body={
       ajuste:       document.getElementById('regen-ajuste-'+id)?.value.trim()||undefined,
       logo_posicion:document.getElementById('regen-pos-'+id)?.value,
-      logo_tamano:  document.getElementById('regen-tam-'+id)?.value,
+      logo_tamano_pct: Number(document.getElementById('regen-pct-'+id)?.value) || 15,
       formato:      document.getElementById('regen-fmt-'+id)?.value
     };
     const { contenido } = await api('POST',`/contenido/${id}/regenerar`, body);

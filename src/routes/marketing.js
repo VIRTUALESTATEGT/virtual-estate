@@ -117,7 +117,7 @@ router.post('/ordenes', async (req, res) => {
   try {
     const { titulo, descripcion, tipo_contenido, redes,
             instrucciones_extra, instrucciones_ids, formatos,
-            logo_posicion, logo_tamano } = req.body;
+            logo_posicion, logo_tamano, logo_tamano_pct } = req.body;
     if (!titulo?.trim()) return res.status(400).json({ error: 'titulo es requerido' });
     const POSICIONES_VALIDAS = ['inferior-derecha','inferior-izquierda','superior-derecha','superior-izquierda','centro','sin-logo'];
     const TAMANOS_VALIDOS    = ['pequeno','mediano','grande'];
@@ -125,6 +125,8 @@ router.post('/ordenes', async (req, res) => {
       return res.status(400).json({ error: 'logo_posicion inválida' });
     if (logo_tamano && !TAMANOS_VALIDOS.includes(logo_tamano))
       return res.status(400).json({ error: 'logo_tamano inválido' });
+    if (logo_tamano_pct !== undefined && (!Number.isInteger(logo_tamano_pct) || logo_tamano_pct < 5 || logo_tamano_pct > 40))
+      return res.status(400).json({ error: 'logo_tamano_pct debe ser entero entre 5 y 40' });
     const { data, error } = await supabase
       .from('ordenes_contenido')
       .insert({
@@ -136,7 +138,8 @@ router.post('/ordenes', async (req, res) => {
         instrucciones_ids:  instrucciones_ids  ?? [],
         formatos:           formatos?.length   ? formatos : ['1:1'],
         logo_posicion:      logo_posicion      ?? 'inferior-derecha',
-        logo_tamano:        logo_tamano        ?? 'mediano'
+        logo_tamano:        logo_tamano        ?? 'mediano',
+        logo_tamano_pct:    logo_tamano_pct    ?? 15
       })
       .select().single();
     if (error) throw error;
@@ -158,7 +161,7 @@ router.get('/contenido', async (req, res) => {
   try {
     const { estado } = req.query;
     let q = supabase.from('contenido_generado')
-      .select('*, ordenes_contenido(logo_posicion, logo_tamano)')
+      .select('*, ordenes_contenido(logo_posicion, logo_tamano, logo_tamano_pct)')
       .order('created_at', { ascending: false });
     if (estado) q = q.eq('estado', estado);
     const { data, error } = await q;
@@ -219,12 +222,13 @@ router.post('/contenido/:id/reintentar-imagen', async (req, res) => {
 
 router.post('/contenido/:id/regenerar', async (req, res) => {
   try {
-    const { ajuste, logo_posicion, logo_tamano, formato } = req.body;
+    const { ajuste, logo_posicion, logo_tamano, logo_tamano_pct, formato } = req.body;
     const { regenerar } = require('../services/contentEngine');
     const contenido = await regenerar(req.params.id, {
       ajuste,
-      logoPosicion: logo_posicion,
-      logoTamano:   logo_tamano,
+      logoPosicion:  logo_posicion,
+      logoTamano:    logo_tamano,
+      logoTamanoPct: typeof logo_tamano_pct === 'number' ? logo_tamano_pct : null,
       formato
     });
     res.json({ ok: true, contenido });
