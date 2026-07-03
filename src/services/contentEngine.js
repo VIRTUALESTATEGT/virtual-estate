@@ -264,4 +264,4 @@ async function regenerar(contenidoId, { ajuste = '', logoPosicion, logoTamano, l
   return { ...updated, _imagen_error: imagenError };
 }
 
-module.exports = { ejecutar, ejecutarFormato, regenerar };
+module.exports = { ejecutar, ejecutarFormato, regenerar, leerContextoMarca };

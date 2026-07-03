@@ -7,33 +7,58 @@ const Anthropic = require('@anthropic-ai/sdk');
 const claude  = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
 const HEX_RE  = /^#[0-9A-Fa-f]{6}$/;
 
+// ── System prompt para plantillas compuestas (2 paneles) ──────────────────────
+const SYSTEM_COMPUESTA = `Eres director creativo de una agencia de marketing premium de bienes raíces en Guatemala.
+Creas contenido para imágenes comparativas de 2 paneles (antes/después, opción A/B, dos propiedades, etc.).
+Responde ÚNICAMENTE con JSON válido, sin markdown ni texto extra.
+
+Estructura exacta:
+{
+  "copy_texto": "...",
+  "hashtags": "...",
+  "paneles": [
+    { "prompt_imagen": "...", "titulo": "...", "subtitulo": "...", "precio": "...", "detalle": "..." },
+    { "prompt_imagen": "...", "titulo": "...", "subtitulo": "...", "precio": "...", "detalle": "..." }
+  ]
+}
+
+Reglas:
+- prompt_imagen: inglés, 60-100 palabras, solo la escena fotorrealista (sin texto, sin logos, sin personas identificables)
+- titulo: máx 20 caracteres (ej: "ANTES", "DESPUÉS", "OPCIÓN A")
+- subtitulo: máx 40 caracteres (características clave del panel)
+- precio: máx 20 caracteres (precio con moneda, o "" si no aplica)
+- detalle: máx 50 caracteres (ubicación u otro dato diferenciador)
+- copy_texto: español, máx 150 palabras, listo para publicar en redes
+- hashtags: mezcla español/inglés, relevantes a bienes raíces Guatemala`;
+
+function construirPromptCompuesta(orden, ctx, plantilla) {
+  const id  = ctx.identidad;
+  const col = id?.colores ?? {};
+  return `IDENTIDAD DE MARCA:
+- Nombre: ${id?.nombre_negocio    ?? 'Virtual Estate GT'}
+- Enfoque: ${id?.enfoque_negocio  ?? ''}
+- Tono: ${id?.tono_comunicacion   ?? ''}
+- Público: ${id?.publico_objetivo ?? ''}
+- Colores: primario ${col.primario ?? '#2D5016'}, acento ${col.acento ?? '#B8860B'}
+
+INSTRUCCIONES GENERALES:
+${ctx.generales.length    ? ctx.generales.map(i    => `• ${i}`).join('\n') : '(ninguna)'}
+
+INSTRUCCIONES ESPECÍFICAS:
+${ctx.individuales.length ? ctx.individuales.map(i => `• ${i}`).join('\n') : '(ninguna)'}
+
+ORDEN:
+- Título: ${orden.titulo ?? ''}
+- Descripción: ${orden.descripcion ?? ''}
+- Plantilla: ${plantilla.nombre} — ${plantilla.descripcion ?? ''}
+- Instrucciones extra: ${orden.instrucciones_extra ?? '(ninguna)'}
+
+Genera el JSON para los 2 paneles de la imagen comparativa.`;
+}
+
 // ── Status ────────────────────────────────────────────────────────────────────
 router.get('/status', (_req, res) => {
   res.json({ ok: true, modulo: 'marketing', fase: 5 });
-});
-
-// ── TEST SPIKE: verificar fuentes TTF vía fontconfig + Sharp ─────────────────
-// TEMPORAL — eliminar antes del commit final de Fase 5
-router.get('/test-fuentes', async (_req, res) => {
-  try {
-    const sharp = require('sharp');
-    const { setupFontconfig } = require('../utils/fonts');
-    setupFontconfig();
-    const svg = Buffer.from(
-      `<svg xmlns="http://www.w3.org/2000/svg" width="700" height="300">
-        <rect width="700" height="300" fill="#0D1A14"/>
-        <text x="30" y="80"  font-family="Montserrat" font-weight="700" font-size="36" fill="#C19259">Virtual Estate GT</text>
-        <text x="30" y="135" font-family="Montserrat" font-weight="400" font-size="22" fill="#F5F0E8">Fotografia inmobiliaria premium</text>
-        <text x="30" y="200" font-family="Raleway"    font-weight="600" font-size="28" fill="#C19259">Escribenos por WhatsApp</text>
-        <text x="30" y="255" font-family="Montserrat" font-weight="400" font-size="16" fill="#7A8D85">Si ves Montserrat y Raleway: fuentes OK en Lambda</text>
-      </svg>`
-    );
-    const png = await sharp(svg).png().toBuffer();
-    res.setHeader('Content-Type', 'image/png');
-    res.send(png);
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
 });
 
 // ── Identidad de Marca ────────────────────────────────────────────────────────
@@ -141,7 +166,8 @@ router.post('/ordenes', async (req, res) => {
   try {
     const { titulo, descripcion, tipo_contenido, redes,
             instrucciones_extra, instrucciones_ids, formatos,
-            logo_posicion, logo_tamano, logo_tamano_pct } = req.body;
+            logo_posicion, logo_tamano, logo_tamano_pct,
+            plantilla_id } = req.body;
     if (!titulo?.trim()) return res.status(400).json({ error: 'titulo es requerido' });
     const POSICIONES_VALIDAS = ['inferior-derecha','inferior-izquierda','superior-derecha','superior-izquierda','centro','sin-logo'];
     const TAMANOS_VALIDOS    = ['pequeno','mediano','grande'];
@@ -163,7 +189,8 @@ router.post('/ordenes', async (req, res) => {
         formatos:           formatos?.length   ? formatos : ['1:1'],
         logo_posicion:      logo_posicion      ?? 'inferior-derecha',
         logo_tamano:        logo_tamano        ?? 'mediano',
-        logo_tamano_pct:    logo_tamano_pct    ?? 15
+        logo_tamano_pct:    logo_tamano_pct    ?? 15,
+        plantilla_id:       plantilla_id       ?? null
       })
       .select().single();
     if (error) throw error;
@@ -342,6 +369,179 @@ Genera el prompt mejorado.`;
 
     const prompt = msg.content.find(b => b.type === 'text')?.text?.trim() ?? '';
     res.json({ prompt });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Plantillas compuestas ─────────────────────────────────────────────────────
+router.get('/plantillas', async (_req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('plantillas_compuestas').select('*').eq('activa', true).order('id');
+    if (error) throw error;
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Fase 1 de la generación compuesta: Claude genera plan (textos + prompts) y
+// crea el registro contenido_generado con paneles sin imagen_url todavía.
+router.post('/ordenes/:id/plan-compuesta', async (req, res) => {
+  const ordenId = Number(req.params.id);
+  const { formato = '1:1' } = req.body;
+  try {
+    const { data: orden, error: ordErr } = await supabase
+      .from('ordenes_contenido').select('*').eq('id', ordenId).single();
+    if (ordErr) throw ordErr;
+    if (!orden.plantilla_id) throw new Error('Esta orden no tiene plantilla asignada');
+
+    const { data: plantilla, error: ptErr } = await supabase
+      .from('plantillas_compuestas').select('*').eq('id', orden.plantilla_id).single();
+    if (ptErr) throw ptErr;
+
+    const { leerContextoMarca } = require('../services/contentEngine');
+    const ctx = await leerContextoMarca(orden.instrucciones_ids ?? []);
+
+    const msg = await claude.messages.create(
+      {
+        model:      'claude-sonnet-4-6',
+        max_tokens: 1200,
+        system:     SYSTEM_COMPUESTA,
+        messages:   [{ role: 'user', content: construirPromptCompuesta(orden, ctx, plantilla) }]
+      },
+      { timeout: 25000 }
+    );
+
+    const raw = msg.content.find(b => b.type === 'text')?.text ?? '';
+    let plan;
+    try {
+      const clean = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+      plan = JSON.parse(clean);
+    } catch { throw new Error('Claude no devolvió JSON válido para la compuesta'); }
+
+    if (!Array.isArray(plan.paneles) || plan.paneles.length < 2)
+      throw new Error('Claude no devolvió los 2 paneles requeridos');
+
+    const panelesInicial = plan.paneles.map(p => ({
+      prompt_imagen: p.prompt_imagen ?? '',
+      titulo:        p.titulo        ?? '',
+      subtitulo:     p.subtitulo     ?? '',
+      precio:        p.precio        ?? '',
+      detalle:       p.detalle       ?? '',
+      imagen_url:    null
+    }));
+
+    const { data: fila, error: insErr } = await supabase
+      .from('contenido_generado')
+      .insert({
+        orden_id:     ordenId,
+        plantilla_id: orden.plantilla_id,
+        copy_texto:   plan.copy_texto ?? '',
+        hashtags:     plan.hashtags   ?? '',
+        prompt_usado: 'compuesta',
+        paneles:      panelesInicial,
+        formato,
+        imagen_url:   null,
+        estado:       'pendiente'
+      })
+      .select().single();
+    if (insErr) throw insErr;
+
+    await supabase.from('ordenes_contenido').update({ estado: 'generando' }).eq('id', ordenId);
+    res.json({ contenido: fila });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Fase 2: el frontend llama este endpoint en paralelo (uno por panel).
+// Genera la foto IA del panel y guarda su URL en paneles[idx].imagen_url.
+router.post('/contenido/:id/paneles/:idx/foto', async (req, res) => {
+  const contenidoId = req.params.id;
+  const idx         = Number(req.params.idx);
+  try {
+    const { data: cont, error: contErr } = await supabase
+      .from('contenido_generado').select('*').eq('id', contenidoId).single();
+    if (contErr) throw contErr;
+
+    const paneles = cont.paneles ?? [];
+    if (!paneles[idx]) throw new Error(`Panel ${idx} no existe`);
+    const prompt = paneles[idx].prompt_imagen;
+    if (!prompt?.trim()) throw new Error(`Panel ${idx} sin prompt_imagen`);
+
+    const { generarImagen } = require('../services/imageProvider');
+    const { buffer } = await generarImagen(prompt, { formato: cont.formato ?? '1:1' });
+    const pngBuf = await require('sharp')(buffer).png().toBuffer();
+
+    const slug = (cont.formato ?? '1:1').replace(':', '-');
+    const path = `ordenes/${cont.orden_id}/panel-${idx}-${slug}-${Date.now()}.png`;
+    const { error: upErr } = await supabase.storage
+      .from('marketing').upload(path, pngBuf, { contentType: 'image/png', upsert: false });
+    if (upErr) throw upErr;
+
+    const { data: { publicUrl } } = supabase.storage.from('marketing').getPublicUrl(path);
+
+    const updPaneles = paneles.map((p, i) => i === idx ? { ...p, imagen_url: publicUrl } : p);
+    const { data: updated, error: updErr } = await supabase
+      .from('contenido_generado').update({ paneles: updPaneles }).eq('id', contenidoId).select().single();
+    if (updErr) throw updErr;
+
+    res.json({ ok: true, imagen_url: publicUrl, contenido: updated });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Fase 3: compone la imagen final a partir de las fotos de los paneles.
+router.post('/contenido/:id/componer', async (req, res) => {
+  try {
+    const { data: cont, error: contErr } = await supabase
+      .from('contenido_generado').select('*').eq('id', req.params.id).single();
+    if (contErr) throw contErr;
+    if (!cont.paneles?.length) throw new Error('Sin paneles para componer');
+
+    const { data: identidad } = await supabase
+      .from('marca_identidad').select('*').limit(1).maybeSingle();
+
+    const { renderComparativa2Col } = require('../services/templateEngine');
+    const composed = await renderComparativa2Col(
+      cont.paneles, { formato: cont.formato ?? '1:1', identidad: identidad ?? {} }
+    );
+
+    const slug = (cont.formato ?? '1:1').replace(':', '-');
+    const path = `ordenes/${cont.orden_id}/compuesta-${slug}-${Date.now()}.png`;
+    const { error: upErr } = await supabase.storage
+      .from('marketing').upload(path, composed, { contentType: 'image/png', upsert: false });
+    if (upErr) throw upErr;
+
+    const { data: { publicUrl } } = supabase.storage.from('marketing').getPublicUrl(path);
+    const { data: updated, error: updErr } = await supabase
+      .from('contenido_generado').update({ imagen_url: publicUrl }).eq('id', req.params.id).select().single();
+    if (updErr) throw updErr;
+
+    await supabase.from('ordenes_contenido').update({ estado: 'generada' }).eq('id', cont.orden_id);
+    res.json({ ok: true, imagen_url: publicUrl, contenido: updated });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Editar textos de los paneles sin regenerar imágenes.
+router.put('/contenido/:id/paneles-textos', async (req, res) => {
+  try {
+    const { paneles: upd } = req.body;
+    if (!Array.isArray(upd)) return res.status(400).json({ error: 'paneles debe ser un array' });
+
+    const { data: cont, error: contErr } = await supabase
+      .from('contenido_generado').select('paneles').eq('id', req.params.id).single();
+    if (contErr) throw contErr;
+
+    const updPaneles = (cont.paneles ?? []).map((p, i) => {
+      const u = upd[i] ?? {};
+      return {
+        ...p,
+        titulo:    u.titulo    !== undefined ? u.titulo    : p.titulo,
+        subtitulo: u.subtitulo !== undefined ? u.subtitulo : p.subtitulo,
+        precio:    u.precio    !== undefined ? u.precio    : p.precio,
+        detalle:   u.detalle   !== undefined ? u.detalle   : p.detalle,
+      };
+    });
+    const { data, error } = await supabase
+      .from('contenido_generado').update({ paneles: updPaneles }).eq('id', req.params.id).select().single();
+    if (error) throw error;
+    res.json(data);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

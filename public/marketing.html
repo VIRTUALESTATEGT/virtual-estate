@@ -158,6 +158,21 @@
     /* PROMPT STUDIO */
     .ps-result { font-size: .82rem; line-height: 1.75; color: var(--white); white-space: pre-wrap; padding: .2rem 0; }
 
+    /* PROGRESO COMPUESTA */
+    .panel-progress { margin-top:.5rem; }
+    .panel-step { display:flex; align-items:center; gap:.5rem; font-size:.72rem; color:var(--gray); margin-bottom:.25rem; }
+    .panel-step.done { color:#5AE08A; }
+    .panel-step.active { color:var(--gold); }
+    .panel-step-dot { width:8px; height:8px; border-radius:50%; background:var(--border); flex-shrink:0; }
+    .panel-step.done   .panel-step-dot { background:#5AE08A; }
+    .panel-step.active .panel-step-dot { background:var(--gold); animation:pulse .8s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* PANELES EDICIÓN EN COLA */
+    .panel-edit-block { background:var(--bg3); border:1px solid var(--border); border-radius:4px; padding:.6rem .8rem; margin-bottom:.4rem; }
+    .panel-edit-label { font-size:.62rem; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--gold); margin-bottom:.45rem; }
+    .panel-edit-grid { display:grid; grid-template-columns:1fr 1fr; gap:.4rem; }
+
     /* PLACEHOLDER */
     .placeholder-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 3rem 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; text-align: center; min-height: 320px; }
     .placeholder-icon  { font-size: 2.5rem; color: var(--gold); opacity: .5; }
@@ -213,7 +228,7 @@
 <div class="main">
   <div class="topbar">
     <div class="topbar-title">📣 Marketing</div>
-    <span class="topbar-badge">Fase 4</span>
+    <span class="topbar-badge">Fase 5</span>
     <div class="topbar-actions">
       <button class="topbar-btn btn-back" onclick="window.location='admin.html'">
         <i class="fas fa-arrow-left"></i> Volver al CRM
@@ -293,6 +308,15 @@
         <div class="form-grid-2">
           <div class="form-group"><label>Título *</label><input type="text" id="ord-titulo" placeholder="Ej: Post Instagram — servicio 3D"/></div>
           <div class="form-group"><label>Tipo de contenido</label><select id="ord-tipo" onchange="toggleFormatos()"><option value="imagen">Imagen</option><option value="texto">Solo texto</option></select></div>
+        </div>
+        <div class="form-group" id="plantilla-group">
+          <label>Plantilla compuesta (opcional)</label>
+          <select id="ord-plantilla" onchange="togglePlantilla()">
+            <option value="">— Imagen estándar —</option>
+          </select>
+          <div id="plantilla-hint" style="display:none;margin-top:.4rem;font-size:.7rem;color:var(--gold);background:rgba(193,146,89,.08);border:1px solid rgba(193,146,89,.2);border-radius:4px;padding:.4rem .6rem">
+            La IA generará los textos y fotos de cada panel automáticamente. El frontend los compone en paralelo.
+          </div>
         </div>
         <div class="form-grid-2" id="logo-pos-group">
           <div class="form-group">
@@ -531,13 +555,39 @@ async function deleteInstruccion(id) {
   catch(e){toast('Error: '+e.message,'err');}
 }
 
+// ── Plantillas compuestas ─────────────────────────────────────────────────────
+let _plantillas = [];
+async function loadPlantillas() {
+  try {
+    _plantillas = await api('GET', '/plantillas');
+    const sel = document.getElementById('ord-plantilla');
+    _plantillas.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id; opt.textContent = p.nombre;
+      sel.appendChild(opt);
+    });
+  } catch(_) {}
+}
+function togglePlantilla() {
+  const v = document.getElementById('ord-plantilla').value;
+  document.getElementById('plantilla-hint').style.display = v ? 'block' : 'none';
+  // Con plantilla: solo un formato (el primero seleccionado o 1:1)
+  if (v) {
+    document.getElementById('formatos-group').style.opacity = '.5';
+    document.getElementById('formatos-group').title = 'Con plantilla compuesta se genera solo el primer formato seleccionado';
+  } else {
+    document.getElementById('formatos-group').style.opacity = '1';
+    document.getElementById('formatos-group').title = '';
+  }
+}
+
 // ── Órdenes ───────────────────────────────────────────────────────────────────
 let _ordenes=[];
 function toggleForm() {
   const c=document.getElementById('orden-form-card');
   const open=c.style.display==='none';
   c.style.display=open?'block':'none';
-  if(open) renderInstrSelector();
+  if(open){ renderInstrSelector(); loadPlantillas(); }
 }
 function toggleFormatos() {
   const hide=document.getElementById('ord-tipo').value==='texto'?'none':'grid';
@@ -578,7 +628,9 @@ function renderOrdenes() {
           <button class="btn btn-primary btn-sm" id="btn-gen-${o.id}" onclick="generarContenido(${o.id})" ${canGen?'':'disabled'}>
             <span class="spinner" id="spin-${o.id}"></span> ${o.estado==='generada'?'Regenerar':'Generar'}
           </button>
+          ${o.plantilla_id ? '<span class="badge badge-formato" title="Plantilla compuesta">2 paneles</span>' : ''}
         </div>
+        <div id="gen-status-${o.id}" style="font-size:.68rem;color:var(--gold);min-height:.9em"></div>
       </div>
       ${contenidos.length ? renderPreviewOrden(o, contenidos) : ''}
     </div>`;
@@ -610,6 +662,8 @@ async function crearOrden() {
   if(!formatos.length)formatos.push('1:1');
   const redes=[...document.querySelectorAll('input[name="red"]:checked')].map(c=>c.value);
   const instruccionesIds=[...document.querySelectorAll('input[name="instr_id"]:checked')].map(c=>Number(c.value));
+  const plantillaId = document.getElementById('ord-plantilla').value
+    ? Number(document.getElementById('ord-plantilla').value) : null;
   try {
     const nueva=await api('POST','/ordenes',{
       titulo,
@@ -619,7 +673,8 @@ async function crearOrden() {
       logo_posicion:      document.getElementById('ord-logo-pos').value,
       logo_tamano_pct:    Number(document.getElementById('ord-logo-pct').value),
       instrucciones_extra:document.getElementById('ord-extra').value.trim()||null,
-      instrucciones_ids:  instruccionesIds
+      instrucciones_ids:  instruccionesIds,
+      plantilla_id:       plantillaId
     });
     _ordenes.unshift({...nueva,contenido_generado:[]});
     renderOrdenes();
@@ -630,9 +685,18 @@ async function crearOrden() {
   } catch(e){toast('Error: '+e.message,'err');}
 }
 
+function setOrdenStatus(ordenId, txt) {
+  const el = document.getElementById('gen-status-' + ordenId);
+  if (el) el.textContent = txt;
+}
+
 async function generarContenido(ordenId) {
   const oIdx=_ordenes.findIndex(o=>o.id===ordenId); if(oIdx<0)return;
   const orden=_ordenes[oIdx];
+
+  // Rama: plantilla compuesta
+  if (orden.plantilla_id) { await generarCompuesta(ordenId, oIdx); return; }
+
   const formatos=Array.isArray(orden.formatos)&&orden.formatos.length?orden.formatos:['1:1'];
   const btn=document.getElementById('btn-gen-'+ordenId);
   const spin=document.getElementById('spin-'+ordenId);
@@ -640,14 +704,12 @@ async function generarContenido(ordenId) {
   _ordenes[oIdx].estado='generando'; renderOrdenes();
 
   try {
-    // Primera llamada: Claude + imagen formato[0]
     const { contenido: c0 } = await api('POST',`/ordenes/${ordenId}/generar`,{formato:formatos[0]});
     _ordenes[oIdx].estado='generada';
     _ordenes[oIdx].contenido_generado=[c0,...(_ordenes[oIdx].contenido_generado||[])];
     renderOrdenes();
     toast(`Formato ${formatos[0]} generado ✓`);
 
-    // Formatos adicionales: reutiliza prompt del primer contenido
     for (let i=1;i<formatos.length;i++) {
       toast(`Generando formato ${formatos[i]}…`);
       try {
@@ -660,6 +722,44 @@ async function generarContenido(ordenId) {
   } catch(e) {
     _ordenes[oIdx].estado='error'; renderOrdenes();
     toast('Error generando: '+e.message,'err');
+  }
+}
+
+async function generarCompuesta(ordenId, oIdx) {
+  const orden = _ordenes[oIdx];
+  const formato = Array.isArray(orden.formatos)&&orden.formatos.length ? orden.formatos[0] : '1:1';
+  const btn  = document.getElementById('btn-gen-' + ordenId);
+  const spin = document.getElementById('spin-' + ordenId);
+  btn.disabled=true; spin.style.display='inline-block';
+  _ordenes[oIdx].estado='generando'; renderOrdenes();
+
+  try {
+    // Paso 1: Claude genera el plan
+    setOrdenStatus(ordenId, '1/3 Planificando con IA…');
+    const { contenido } = await api('POST', `/ordenes/${ordenId}/plan-compuesta`, { formato });
+    const cid = contenido.id;
+
+    // Paso 2: fotos de cada panel en paralelo
+    setOrdenStatus(ordenId, '2/3 Generando imágenes de paneles…');
+    const results = await Promise.allSettled(
+      contenido.paneles.map((_, idx) =>
+        api('POST', `/contenido/${cid}/paneles/${idx}/foto`, {})
+      )
+    );
+    const panelErrors = results.filter(r => r.status === 'rejected').map(r => r.reason?.message);
+    if (panelErrors.length) toast('Aviso panel: ' + panelErrors.join('; '), 'err');
+
+    // Paso 3: componer imagen final
+    setOrdenStatus(ordenId, '3/3 Componiendo imagen final…');
+    const { contenido: final } = await api('POST', `/contenido/${cid}/componer`, {});
+
+    _ordenes[oIdx].estado='generada';
+    _ordenes[oIdx].contenido_generado=[final,...(_ordenes[oIdx].contenido_generado||[])];
+    renderOrdenes();
+    toast('Imagen compuesta generada ✓');
+  } catch(e) {
+    _ordenes[oIdx].estado='error'; renderOrdenes();
+    toast('Error compuesta: '+e.message,'err');
   }
 }
 
@@ -723,11 +823,12 @@ function renderAprobacion() {
           <label>Hashtags</label>
           <textarea id="ac-tags-${c.id}" rows="2">${esc(c.hashtags||'')}</textarea>
         </div>
+        ${c.paneles?.length ? renderPanelesEdit(c) : ''}
         <div class="approval-actions">
           <button class="btn btn-ghost btn-xs" onclick="guardarEdits(${c.id})">💾 Guardar</button>
           <button class="btn btn-success btn-xs" onclick="aprobarContenido(${c.id})">✓ Aprobar</button>
           <button class="btn btn-danger btn-xs" onclick="rechazarContenido(${c.id})">✕ Rechazar</button>
-          <button class="btn btn-ghost btn-xs" onclick="toggleRegen(${c.id})">↺ Regenerar</button>
+          ${c.paneles?.length ? '' : `<button class="btn btn-ghost btn-xs" onclick="toggleRegen(${c.id})">↺ Regenerar</button>`}
           <button class="btn btn-ghost btn-xs" onclick="descargarImagen('${esc(c.imagen_url||'')}','ve-${c.id}-${esc(c.formato||'1x1').replace(':','x')}.png')">⬇ Descargar</button>
           <button class="btn btn-ghost btn-xs" onclick="copiarContenido(${c.id})">⎘ Copiar</button>
         </div>
@@ -812,6 +913,49 @@ async function copiarContenido(id) {
   const txt=(c.copy_texto||'')+(c.hashtags?'\n\n'+c.hashtags:'');
   try { await navigator.clipboard.writeText(txt); toast('Copiado al portapapeles ✓'); }
   catch(e){toast('Error copiando: '+e.message,'err');}
+}
+
+// ── Paneles compuestos (edición en cola de aprobación) ───────────────────────
+function renderPanelesEdit(c) {
+  const campos = [['titulo','Título'],['subtitulo','Subtítulo'],['precio','Precio'],['detalle','Detalle']];
+  const blocks = (c.paneles ?? []).map((p, i) => `
+    <div class="panel-edit-block">
+      <div class="panel-edit-label">Panel ${i + 1}</div>
+      <div class="panel-edit-grid">
+        ${campos.map(([k, lbl]) => `
+          <div><label>${lbl}</label>
+            <input type="text" id="pe-${k}-${c.id}-${i}" value="${esc(p[k] ?? '')}"/>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+  return `<div class="approval-field" style="margin-top:.5rem">
+    <label>Textos de paneles</label>
+    ${blocks}
+    <button class="btn btn-ghost btn-xs" id="recomp-btn-${c.id}" onclick="guardarYRecomponer(${c.id},${c.paneles.length})">
+      <span class="spinner" id="recomp-spin-${c.id}"></span> ↺ Guardar textos y recomponer
+    </button>
+  </div>`;
+}
+
+async function guardarYRecomponer(id, nPaneles) {
+  const btn  = document.getElementById('recomp-btn-' + id);
+  const spin = document.getElementById('recomp-spin-' + id);
+  btn.disabled = true; spin.style.display = 'inline-block';
+  try {
+    const campos = ['titulo','subtitulo','precio','detalle'];
+    const paneles = Array.from({ length: nPaneles }, (_, i) =>
+      Object.fromEntries(campos.map(k => [k, document.getElementById(`pe-${k}-${id}-${i}`)?.value ?? '']))
+    );
+    await api('PUT', `/contenido/${id}/paneles-textos`, { paneles });
+    toast('Textos guardados, recomponiendo…');
+    const { contenido } = await api('POST', `/contenido/${id}/componer`, {});
+    _contenidos = _contenidos.map(c => c.id === id ? { ...contenido, ordenes_contenido: c.ordenes_contenido } : c);
+    renderAprobacion();
+    toast('Recompuesto ✓');
+  } catch(e) {
+    toast('Error: ' + e.message, 'err');
+    btn.disabled = false; spin.style.display = 'none';
+  }
 }
 
 // ── Prompt Studio ─────────────────────────────────────────────────────────────
