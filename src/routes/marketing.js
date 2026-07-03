@@ -215,6 +215,41 @@ router.post('/contenido/:id/regenerar', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── Subida de logo de marca ───────────────────────────────────────────────────
+// Nombre fijo brand/logo.png + upsert:true → nunca acumula huérfanos.
+// Sharp convierte cualquier formato entrada (jpg/webp/png) a PNG.
+const multer = require('multer');
+const sharp  = require('sharp');
+
+const logoUpload = multer({
+  storage: multer.memoryStorage(),
+  limits:  { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ok = ['image/png', 'image/jpeg', 'image/webp'].includes(file.mimetype);
+    cb(ok ? null : new Error('Solo PNG, JPG o WEBP permitidos'), ok);
+  }
+});
+
+router.post('/brand/logo', (req, res) => {
+  logoUpload.single('logo')(req, res, async (err) => {
+    if (err) return res.status(400).json({ error: err.message });
+    if (!req.file) return res.status(400).json({ error: 'Archivo requerido' });
+    try {
+      const pngBuffer = await sharp(req.file.buffer).png().toBuffer();
+      const { error: upErr } = await supabase.storage
+        .from('marketing')
+        .upload('brand/logo.png', pngBuffer, {
+          contentType: 'image/png',
+          upsert: true           // sobrescribe siempre, sin huérfanos
+        });
+      if (upErr) throw upErr;
+      const { data: { publicUrl } } = supabase.storage
+        .from('marketing').getPublicUrl('brand/logo.png');
+      res.json({ url: `${publicUrl}?v=${Date.now()}` });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  });
+});
+
 // ── Prompt Studio (stateless) ─────────────────────────────────────────────────
 const PROMPT_STUDIO_SYSTEM = `Eres un ingeniero de prompts senior especializado en IA generativa para marketing de bienes raíces premium en Guatemala.
 

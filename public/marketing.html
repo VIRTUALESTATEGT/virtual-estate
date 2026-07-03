@@ -169,6 +169,22 @@
     #toast.show { transform: translateY(0); opacity: 1; }
     #toast.ok  { border-color: rgba(90,224,138,.35); color: #5AE08A; }
     #toast.err { border-color: rgba(224,128,128,.35); color: #E08080; }
+
+    /* LIGHTBOX */
+    #lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 10000; display: none; align-items: center; justify-content: center; cursor: grab; touch-action: none; }
+    #lightbox.open { display: flex; }
+    #lightbox.dragging { cursor: grabbing; }
+    #lightbox-img { max-width: 90vw; max-height: 90vh; object-fit: contain; transform-origin: center; user-select: none; pointer-events: none; will-change: transform; }
+    #lightbox-close { position: fixed; top: 1rem; right: 1.2rem; font-size: 1.6rem; color: rgba(245,240,232,.8); cursor: pointer; z-index: 10001; background: none; border: none; line-height: 1; transition: color .15s; }
+    #lightbox-close:hover { color: var(--white); }
+    .lb-trigger { cursor: zoom-in; }
+
+    /* LOGO UPLOAD */
+    .logo-row { display: flex; gap: .5rem; align-items: center; }
+    .logo-row input[type=url] { flex: 1; }
+    .logo-preview-wrap { margin-top: .5rem; min-height: 36px; }
+    .logo-preview-wrap img { max-height: 48px; max-width: 200px; border-radius: 4px; background: var(--bg3); padding: 4px; border: 1px solid var(--border); }
+    .logo-hint { font-size: .65rem; color: var(--gray); margin-top: .35rem; }
   </style>
 </head>
 <body>
@@ -215,7 +231,20 @@
         </div>
         <div class="form-grid-2">
           <div class="form-group"><label>Nombre del Negocio</label><input type="text" id="id-nombre" placeholder="Virtual Estate GT"/></div>
-          <div class="form-group"><label>URL del Logo</label><input type="url" id="id-logo" placeholder="https://..."/></div>
+          <div class="form-group">
+            <label>URL del Logo</label>
+            <div class="logo-row">
+              <input type="url" id="id-logo" placeholder="https://..." oninput="updateLogoPreview()"/>
+              <button class="btn btn-ghost btn-sm" type="button" onclick="document.getElementById('logo-file').click()">
+                <i class="fas fa-paperclip"></i> Subir logo
+              </button>
+              <input type="file" id="logo-file" accept=".png,.jpg,.jpeg,.webp" style="display:none" onchange="uploadLogo(this)"/>
+            </div>
+            <div class="logo-preview-wrap" id="logo-preview-wrap" style="display:none">
+              <img id="logo-preview" src="" alt="Logo preview" onclick="openLightbox(this.src)" class="lb-trigger"/>
+            </div>
+            <div class="logo-hint">💡 PNG con fondo transparente para mejor resultado en el overlay de imágenes.</div>
+          </div>
         </div>
         <div class="form-grid-3">
           <div class="form-group"><label>Color Primario</label><div class="color-pair"><input type="color" id="id-c1" value="#2D5016" oninput="syncHex('id-c1','id-c1t')"/><input type="text" id="id-c1t" value="#2D5016" maxlength="7" oninput="syncColor('id-c1t','id-c1')"/></div></div>
@@ -353,6 +382,11 @@
   </div><!-- /content -->
 </div><!-- /main -->
 
+<div id="lightbox">
+  <button id="lightbox-close" onclick="closeLightbox()" title="Cerrar (Esc)">✕</button>
+  <img id="lightbox-img" src="" alt=""/>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -403,6 +437,7 @@ async function loadIdentidad() {
     const col=d?.colores||DEFAULTS.colores, tip=d?.tipografias||DEFAULTS.tipografias;
     document.getElementById('id-nombre').value  = d?.nombre_negocio||DEFAULTS.nombre_negocio;
     document.getElementById('id-logo').value    = d?.logo_url||'';
+    updateLogoPreview();
     setColor('id-c1',col.primario||DEFAULTS.colores.primario);
     setColor('id-c2',col.secundario||DEFAULTS.colores.secundario);
     setColor('id-c3',col.acento||DEFAULTS.colores.acento);
@@ -534,7 +569,7 @@ function renderPreviewOrden(o, contenidos) {
   const imgGrid  = imagenes.length
     ? `<div class="preview-grid">${imagenes.map(c=>`
         <div class="preview-img-card">
-          <img src="${esc(c.imagen_url)}" alt="${esc(c.formato)}" onerror="this.style.display='none'"/>
+          <img src="${esc(c.imagen_url)}" alt="${esc(c.formato)}" class="lb-trigger" onclick="openLightbox(this.src)" onerror="this.style.display='none'"/>
           <div class="fmt-label">${esc(c.formato||'1:1')}</div>
         </div>`).join('')}</div>`
     : `<div class="no-img-placeholder">Sin imágenes generadas aún</div>`;
@@ -636,7 +671,7 @@ function renderAprobacion() {
   }
   grid.innerHTML=_contenidos.map(c=>{
     const imgBlock=c.imagen_url
-      ?`<img src="${esc(c.imagen_url)}" alt="imagen" style="width:100%;display:block" onerror="this.style.display='none'"/>`
+      ?`<img src="${esc(c.imagen_url)}" alt="imagen" style="width:100%;display:block" class="lb-trigger" onclick="openLightbox(this.src)" onerror="this.style.display='none'"/>`
       :`<div style="padding:2rem;text-align:center;font-size:.72rem;color:var(--gray)">Sin imagen</div>`;
     return `<div class="approval-card" id="ac-${c.id}">
       <div class="approval-img-wrap">
@@ -754,6 +789,109 @@ async function mejorarPrompt() {
 async function copiarPrompt() {
   try { await navigator.clipboard.writeText(_lastPrompt); toast('Prompt copiado ✓'); }
   catch(e){toast('Error copiando','err');}
+}
+
+// ── Lightbox ──────────────────────────────────────────────────────────────────
+let _lbScale = 1, _lbPos = {x:0, y:0};
+let _lbDragging = false, _lbPtrStart = {x:0, y:0}, _lbPosStart = {x:0, y:0};
+let _lbPinchDist = null;
+
+function openLightbox(url) {
+  if (!url) return;
+  const lb  = document.getElementById('lightbox');
+  const img = document.getElementById('lightbox-img');
+  img.src    = url;
+  _lbScale   = 1;
+  _lbPos     = {x:0, y:0};
+  _applyLb();
+  lb.classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+function _applyLb() {
+  document.getElementById('lightbox-img').style.transform =
+    `translate(${_lbPos.x}px,${_lbPos.y}px) scale(${_lbScale})`;
+}
+
+// Wheel zoom
+document.getElementById('lightbox').addEventListener('wheel', e => {
+  e.preventDefault();
+  _lbScale = Math.max(.25, Math.min(8, _lbScale * (e.deltaY < 0 ? 1.1 : 0.9)));
+  _applyLb();
+}, { passive: false });
+
+// Pointer drag
+document.getElementById('lightbox').addEventListener('pointerdown', e => {
+  if (e.target.id === 'lightbox-close') return;
+  _lbDragging  = true;
+  _lbPtrStart  = {x: e.clientX, y: e.clientY};
+  _lbPosStart  = {..._lbPos};
+  document.getElementById('lightbox').classList.add('dragging');
+  document.getElementById('lightbox').setPointerCapture(e.pointerId);
+});
+document.getElementById('lightbox').addEventListener('pointermove', e => {
+  if (!_lbDragging) return;
+  _lbPos = { x: _lbPosStart.x + e.clientX - _lbPtrStart.x, y: _lbPosStart.y + e.clientY - _lbPtrStart.y };
+  _applyLb();
+});
+document.getElementById('lightbox').addEventListener('pointerup', e => {
+  // If barely moved → treat as click-to-close on background
+  const moved = Math.abs(e.clientX-_lbPtrStart.x) + Math.abs(e.clientY-_lbPtrStart.y);
+  _lbDragging = false;
+  document.getElementById('lightbox').classList.remove('dragging');
+  if (moved < 5 && e.target.id === 'lightbox') closeLightbox();
+});
+
+// Pinch to zoom (touch)
+document.getElementById('lightbox').addEventListener('touchstart', e => {
+  if (e.touches.length === 2)
+    _lbPinchDist = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+}, { passive: true });
+document.getElementById('lightbox').addEventListener('touchmove', e => {
+  if (e.touches.length === 2 && _lbPinchDist) {
+    const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    _lbScale = Math.max(.25, Math.min(8, _lbScale * (d / _lbPinchDist)));
+    _lbPinchDist = d;
+    _applyLb();
+  }
+}, { passive: true });
+document.getElementById('lightbox').addEventListener('touchend', () => { _lbPinchDist = null; }, { passive: true });
+
+// Escape key
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+// ── Logo upload ───────────────────────────────────────────────────────────────
+function updateLogoPreview() {
+  const url  = document.getElementById('id-logo').value.trim();
+  const wrap = document.getElementById('logo-preview-wrap');
+  const img  = document.getElementById('logo-preview');
+  if (url) { img.src = url; wrap.style.display = 'block'; }
+  else     { wrap.style.display = 'none'; }
+}
+
+async function uploadLogo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { toast('El archivo excede 2 MB','err'); input.value=''; return; }
+  const fd = new FormData();
+  fd.append('logo', file);
+  try {
+    toast('Subiendo logo…');
+    const r = await fetch(API + '/brand/logo', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + getToken() },
+      body: fd
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'HTTP ' + r.status);
+    // Poblar campo URL + auto-guardar en DB
+    document.getElementById('id-logo').value = d.url;
+    updateLogoPreview();
+    await api('PUT', '/identidad', { logo_url: d.url });
+    toast('Logo subido y guardado ✓');
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+  input.value = '';
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
