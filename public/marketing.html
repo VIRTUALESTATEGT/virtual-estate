@@ -444,7 +444,12 @@ async function api(method, path, body) {
     body: body != null ? JSON.stringify(body) : undefined
   });
   const d = await r.json();
-  if (!r.ok) throw new Error(d.error || 'HTTP ' + r.status);
+  if (!r.ok) {
+    const err = new Error(d.error || 'HTTP ' + r.status);
+    err.status = r.status;
+    err.data   = d;
+    throw err;
+  }
   return d;
 }
 
@@ -751,15 +756,50 @@ async function generarCompuesta(ordenId, oIdx) {
 
     // Paso 3: componer imagen final
     setOrdenStatus(ordenId, '3/3 Componiendo imagen final…');
-    const { contenido: final } = await api('POST', `/contenido/${cid}/componer`, {});
+    try {
+      const { contenido: final } = await api('POST', `/contenido/${cid}/componer`, {});
+      _ordenes[oIdx].estado='generada';
+      _ordenes[oIdx].contenido_generado=[final,...(_ordenes[oIdx].contenido_generado||[])];
+      renderOrdenes();
+      toast('Imagen compuesta generada ✓');
+    } catch(e) {
+      if (e.status === 409 && e.data?.faltantes?.length) {
+        mostrarReintentoFaltantes(ordenId, oIdx, cid, e.data.faltantes);
+        return;
+      }
+      throw e;
+    }
+  } catch(e) {
+    _ordenes[oIdx].estado='error'; renderOrdenes();
+    toast('Error compuesta: '+e.message,'err');
+  }
+}
 
+function mostrarReintentoFaltantes(ordenId, oIdx, cid, faltantes) {
+  const el = document.getElementById('gen-status-' + ordenId);
+  if (!el) return;
+  el.innerHTML = `<span style="color:#E08080">Paneles sin foto: ${faltantes.map(i => i + 1).join(', ')}</span>
+    <button class="btn btn-ghost btn-xs" style="margin-left:.5rem"
+      onclick="reintentarFaltantes(${ordenId},${oIdx},${cid},[${faltantes}])">↺ Reintentar</button>`;
+}
+
+async function reintentarFaltantes(ordenId, oIdx, cid, faltantes) {
+  setOrdenStatus(ordenId, 'Reintentando paneles faltantes…');
+  await Promise.allSettled(
+    faltantes.map(idx => api('POST', `/contenido/${cid}/paneles/${idx}/foto`, {}))
+  );
+  setOrdenStatus(ordenId, 'Recomponiendo…');
+  try {
+    const { contenido: final } = await api('POST', `/contenido/${cid}/componer`, {});
     _ordenes[oIdx].estado='generada';
     _ordenes[oIdx].contenido_generado=[final,...(_ordenes[oIdx].contenido_generado||[])];
     renderOrdenes();
     toast('Imagen compuesta generada ✓');
   } catch(e) {
-    _ordenes[oIdx].estado='error'; renderOrdenes();
-    toast('Error compuesta: '+e.message,'err');
+    if (e.status === 409 && e.data?.faltantes?.length)
+      mostrarReintentoFaltantes(ordenId, oIdx, cid, e.data.faltantes);
+    else
+      toast('Error componiendo: '+e.message,'err');
   }
 }
 

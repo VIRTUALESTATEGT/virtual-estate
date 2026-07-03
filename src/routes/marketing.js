@@ -477,9 +477,12 @@ router.post('/contenido/:id/paneles/:idx/foto', async (req, res) => {
 
     const { data: { publicUrl } } = supabase.storage.from('marketing').getPublicUrl(path);
 
-    const updPaneles = paneles.map((p, i) => i === idx ? { ...p, imagen_url: publicUrl } : p);
     const { data: updated, error: updErr } = await supabase
-      .from('contenido_generado').update({ paneles: updPaneles }).eq('id', contenidoId).select().single();
+      .rpc('mkt_set_panel_foto', {
+        p_contenido_id: Number(contenidoId),
+        p_panel_idx:    idx,
+        p_url:          publicUrl
+      });
     if (updErr) throw updErr;
 
     res.json({ ok: true, imagen_url: publicUrl, contenido: updated });
@@ -493,6 +496,12 @@ router.post('/contenido/:id/componer', async (req, res) => {
       .from('contenido_generado').select('*').eq('id', req.params.id).single();
     if (contErr) throw contErr;
     if (!cont.paneles?.length) throw new Error('Sin paneles para componer');
+
+    const faltantes = cont.paneles
+      .map((p, i) => p.imagen_url ? null : i)
+      .filter(i => i !== null);
+    if (faltantes.length)
+      return res.status(409).json({ error: 'Paneles sin foto', faltantes });
 
     const { data: identidad } = await supabase
       .from('marca_identidad').select('*').limit(1).maybeSingle();
