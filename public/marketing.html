@@ -170,8 +170,11 @@
 
     /* PANELES EDICIÓN EN COLA */
     .panel-edit-block { background:var(--bg3); border:1px solid var(--border); border-radius:4px; padding:.6rem .8rem; margin-bottom:.4rem; }
-    .panel-edit-label { font-size:.62rem; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--gold); margin-bottom:.45rem; }
+    .panel-edit-label { font-size:.62rem; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--gold); margin-bottom:.45rem; display:flex; align-items:center; justify-content:space-between; }
     .panel-edit-grid { display:grid; grid-template-columns:1fr 1fr; gap:.4rem; }
+    .panel-ajuste-row { display:flex; gap:.4rem; align-items:center; margin-top:.45rem; }
+    .panel-ajuste-row input { flex:1; font-size:.72rem; }
+    .panel-ajuste-row .btn { flex-shrink:0; }
 
     /* PLACEHOLDER */
     .placeholder-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 3rem 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; text-align: center; min-height: 320px; }
@@ -566,6 +569,7 @@ async function loadPlantillas() {
   try {
     _plantillas = await api('GET', '/plantillas');
     const sel = document.getElementById('ord-plantilla');
+    while (sel.options.length > 1) sel.remove(1); // conserva "— Imagen estándar —"
     _plantillas.forEach(p => {
       const opt = document.createElement('option');
       opt.value = p.id; opt.textContent = p.nombre;
@@ -960,16 +964,26 @@ function renderPanelesEdit(c) {
   const campos = [['titulo','Título'],['subtitulo','Subtítulo'],['precio','Precio'],['detalle','Detalle']];
   const blocks = (c.paneles ?? []).map((p, i) => `
     <div class="panel-edit-block">
-      <div class="panel-edit-label">Panel ${i + 1}</div>
+      <div class="panel-edit-label">
+        <span>Panel ${i + 1}</span>
+        <button class="btn btn-ghost btn-xs" id="rpanel-btn-${c.id}-${i}"
+          onclick="regenerarPanel(${c.id},${i},${c.paneles.length})">
+          <span class="spinner" id="rpanel-spin-${c.id}-${i}"></span>↺ Regenerar este panel
+        </button>
+      </div>
       <div class="panel-edit-grid">
         ${campos.map(([k, lbl]) => `
           <div><label>${lbl}</label>
             <input type="text" id="pe-${k}-${c.id}-${i}" value="${esc(p[k] ?? '')}"/>
           </div>`).join('')}
       </div>
+      <div class="panel-ajuste-row">
+        <input type="text" id="pe-ajuste-${c.id}-${i}"
+          placeholder="Ajuste libre para esta foto (opcional — ej: más luz, vista nocturna)"/>
+      </div>
     </div>`).join('');
   return `<div class="approval-field" style="margin-top:.5rem">
-    <label>Textos de paneles</label>
+    <label>Textos y fotos de paneles</label>
     ${blocks}
     <button class="btn btn-ghost btn-xs" id="recomp-btn-${c.id}" onclick="guardarYRecomponer(${c.id},${c.paneles.length})">
       <span class="spinner" id="recomp-spin-${c.id}"></span> ↺ Guardar textos y recomponer
@@ -992,6 +1006,27 @@ async function guardarYRecomponer(id, nPaneles) {
     _contenidos = _contenidos.map(c => c.id === id ? { ...contenido, ordenes_contenido: c.ordenes_contenido } : c);
     renderAprobacion();
     toast('Recompuesto ✓');
+  } catch(e) {
+    toast('Error: ' + e.message, 'err');
+    btn.disabled = false; spin.style.display = 'none';
+  }
+}
+
+async function regenerarPanel(id, idx, nPaneles) {
+  const btn  = document.getElementById(`rpanel-btn-${id}-${idx}`);
+  const spin = document.getElementById(`rpanel-spin-${id}-${idx}`);
+  btn.disabled = true; spin.style.display = 'inline-block';
+  try {
+    const ajuste = document.getElementById(`pe-ajuste-${id}-${idx}`)?.value.trim() || undefined;
+    toast(`Generando foto del panel ${idx + 1}…`);
+    await api('POST', `/contenido/${id}/paneles/${idx}/foto`, ajuste ? { ajuste } : {});
+    toast(`Panel ${idx + 1} listo, recomponiendo…`);
+    const { contenido } = await api('POST', `/contenido/${id}/componer`, {});
+    _contenidos = _contenidos.map(c =>
+      c.id === id ? { ...contenido, ordenes_contenido: c.ordenes_contenido } : c
+    );
+    renderAprobacion();
+    toast(`Panel ${idx + 1} recompuesto ✓`);
   } catch(e) {
     toast('Error: ' + e.message, 'err');
     btn.disabled = false; spin.style.display = 'none';

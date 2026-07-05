@@ -6,6 +6,7 @@
 const sharp = require('sharp');
 const axios = require('axios');
 const { setupFontconfig } = require('../utils/fonts');
+const { aplicarOverlay }  = require('./brandOverlay');
 
 const DIMS = {
   '1:1':  { w: 1080, h: 1080 },
@@ -18,7 +19,13 @@ function esc(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-async function renderComparativa2Col(paneles, { formato = '1:1', identidad = {} } = {}) {
+async function renderComparativa2Col(paneles, {
+  formato       = '1:1',
+  identidad     = {},
+  logoPosicion  = 'inferior-derecha',
+  logoTamano    = 'mediano',
+  logoTamanoPct = null
+} = {}) {
   setupFontconfig();
   const { w, h } = DIMS[formato] ?? DIMS['1:1'];
   const pw = Math.floor(w / 2);
@@ -72,10 +79,15 @@ async function renderComparativa2Col(paneles, { formato = '1:1', identidad = {} 
   if (panelBufs[1]) composites.push({ input: panelBufs[1], top: 0, left: pw });
   composites.push({ input: svgOverlay, top: 0, left: 0 });
 
-  return sharp({ create: { width: w, height: h, channels: 4, background: { r: 13, g: 26, b: 20, alpha: 1 } } })
+  const composed = await sharp({ create: { width: w, height: h, channels: 4, background: { r: 13, g: 26, b: 20, alpha: 1 } } })
     .composite(composites)
     .png()
     .toBuffer();
+
+  const { overlayBuffer } = await aplicarOverlay(composed, {
+    formato, identidad, logoPosicion, logoTamano, logoTamanoPct
+  });
+  return overlayBuffer;
 }
 
 module.exports = { renderComparativa2Col };

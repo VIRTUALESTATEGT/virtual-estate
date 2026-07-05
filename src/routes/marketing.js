@@ -460,10 +460,14 @@ router.post('/contenido/:id/paneles/:idx/foto', async (req, res) => {
       .from('contenido_generado').select('*').eq('id', contenidoId).single();
     if (contErr) throw contErr;
 
+    const { ajuste } = req.body;
     const paneles = cont.paneles ?? [];
     if (!paneles[idx]) throw new Error(`Panel ${idx} no existe`);
-    const prompt = paneles[idx].prompt_imagen;
-    if (!prompt?.trim()) throw new Error(`Panel ${idx} sin prompt_imagen`);
+    const promptBase = paneles[idx].prompt_imagen;
+    if (!promptBase?.trim()) throw new Error(`Panel ${idx} sin prompt_imagen`);
+    const prompt = ajuste?.trim()
+      ? `${promptBase}. Additional adjustment: ${ajuste.trim()}`
+      : promptBase;
 
     const { generarImagen } = require('../services/imageProvider');
     const { buffer } = await generarImagen(prompt, { formato: cont.formato ?? '1:1' });
@@ -503,13 +507,20 @@ router.post('/contenido/:id/componer', async (req, res) => {
     if (faltantes.length)
       return res.status(409).json({ error: 'Paneles sin foto', faltantes });
 
-    const { data: identidad } = await supabase
-      .from('marca_identidad').select('*').limit(1).maybeSingle();
+    const [{ data: identidad }, { data: orden }] = await Promise.all([
+      supabase.from('marca_identidad').select('*').limit(1).maybeSingle(),
+      supabase.from('ordenes_contenido')
+        .select('logo_posicion, logo_tamano, logo_tamano_pct').eq('id', cont.orden_id).single()
+    ]);
 
     const { renderComparativa2Col } = require('../services/templateEngine');
-    const composed = await renderComparativa2Col(
-      cont.paneles, { formato: cont.formato ?? '1:1', identidad: identidad ?? {} }
-    );
+    const composed = await renderComparativa2Col(cont.paneles, {
+      formato:       cont.formato         ?? '1:1',
+      identidad:     identidad            ?? {},
+      logoPosicion:  orden?.logo_posicion  ?? 'inferior-derecha',
+      logoTamano:    orden?.logo_tamano    ?? 'mediano',
+      logoTamanoPct: orden?.logo_tamano_pct ?? null
+    });
 
     const slug = (cont.formato ?? '1:1').replace(':', '-');
     const path = `ordenes/${cont.orden_id}/compuesta-${slug}-${Date.now()}.png`;
