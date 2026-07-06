@@ -310,7 +310,13 @@
         <div class="card-header"><div class="card-title">Nueva Orden</div><button class="btn btn-ghost btn-xs" onclick="toggleForm()">✕</button></div>
         <div class="form-grid-2">
           <div class="form-group"><label>Título *</label><input type="text" id="ord-titulo" placeholder="Ej: Post Instagram — servicio 3D"/></div>
-          <div class="form-group"><label>Tipo de contenido</label><select id="ord-tipo" onchange="toggleFormatos()"><option value="imagen">Imagen</option><option value="texto">Solo texto</option></select></div>
+          <div class="form-group"><label>Tipo de contenido</label>
+            <select id="ord-tipo" onchange="toggleFormatos()">
+              <option value="imagen">Imagen</option>
+              <option value="texto">Solo texto</option>
+              <option value="video">🎬 Video (Veo 3.1 Fast)</option>
+            </select>
+          </div>
         </div>
         <div class="form-group" id="plantilla-group">
           <label>Plantilla compuesta (opcional)</label>
@@ -337,6 +343,26 @@
             <label>Tamaño del logo — <span id="ord-logo-pct-val">15</span>%</label>
             <input type="range" id="ord-logo-pct" min="5" max="40" value="15"
                    oninput="document.getElementById('ord-logo-pct-val').textContent=this.value"/>
+          </div>
+        </div>
+        <div class="form-group" id="video-opts-group" style="display:none">
+          <div class="form-grid-2">
+            <div class="form-group" style="margin-bottom:0">
+              <label>Aspecto del video</label>
+              <select id="ord-video-aspect">
+                <option value="16:9">16:9 — Horizontal (YouTube / Facebook)</option>
+                <option value="9:16">9:16 — Vertical (Reels / TikTok)</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label>Duración — <span id="ord-video-dur-lbl">8</span> seg
+                (~<span id="ord-video-cost-lbl">$0.80</span> USD a 720p)</label>
+              <select id="ord-video-dur" onchange="updateVideoCost()">
+                <option value="4">4 segundos (~$0.40)</option>
+                <option value="6">6 segundos (~$0.60)</option>
+                <option value="8" selected>8 segundos (~$0.80)</option>
+              </select>
+            </div>
           </div>
         </div>
         <div class="form-group"><label>Descripción / ¿Qué quieres comunicar?</label><textarea id="ord-desc" rows="3" placeholder="Describe el tema, el ángulo, el mensaje principal..."></textarea></div>
@@ -599,10 +625,19 @@ function toggleForm() {
   if(open){ renderInstrSelector(); loadPlantillas(); }
 }
 function toggleFormatos() {
-  const hide=document.getElementById('ord-tipo').value==='texto'?'none':'grid';
-  document.getElementById('formatos-group').style.display=
-    document.getElementById('ord-tipo').value==='texto'?'none':'block';
-  document.getElementById('logo-pos-group').style.display=hide;
+  const tipo    = document.getElementById('ord-tipo').value;
+  const isVideo = tipo === 'video';
+  const isTexto = tipo === 'texto';
+  document.getElementById('formatos-group').style.display    = isTexto || isVideo ? 'none' : 'block';
+  document.getElementById('logo-pos-group').style.display    = isTexto || isVideo ? 'none' : 'grid';
+  document.getElementById('plantilla-group').style.display   = isVideo            ? 'none' : 'block';
+  document.getElementById('video-opts-group').style.display  = isVideo            ? 'block': 'none';
+}
+function updateVideoCost() {
+  const dur  = Number(document.getElementById('ord-video-dur').value);
+  const cost = (dur * 0.10).toFixed(2);
+  document.getElementById('ord-video-dur-lbl').textContent  = dur;
+  document.getElementById('ord-video-cost-lbl').textContent = '$' + cost;
 }
 function renderInstrSelector() {
   const sel=document.getElementById('instr-selector');
@@ -615,7 +650,7 @@ async function loadOrdenes() {
   try { _ordenes=await api('GET','/ordenes'); renderOrdenes(); }
   catch(e){toast('Error cargando órdenes: '+e.message,'err');}
 }
-const TIPO_LABEL={imagen:'Imagen',texto:'Solo texto',carrusel:'Carrusel',video_slideshow:'Video'};
+const TIPO_LABEL={imagen:'Imagen',texto:'Solo texto',carrusel:'Carrusel',video_slideshow:'Video',video:'🎬 Video'};
 const BADGE={nueva:'badge-nueva',generando:'badge-generando',generada:'badge-generada',error:'badge-error'};
 const BADGE_TXT={nueva:'Nueva',generando:'Generando…',generada:'Generada',error:'Error'};
 function renderOrdenes() {
@@ -646,17 +681,27 @@ function renderOrdenes() {
   }).join('');
 }
 function renderPreviewOrden(o, contenidos) {
-  const copy0    = contenidos[0];
-  const imagenes = contenidos.filter(c=>c.imagen_url);
-  const imgGrid  = imagenes.length
-    ? `<div class="preview-grid">${imagenes.map(c=>`
+  const copy0   = contenidos[0];
+  const videos  = contenidos.filter(c => c.video_url);
+  const imgs    = contenidos.filter(c => c.imagen_url);
+  let mediaGrid;
+  if (videos.length) {
+    mediaGrid = `<div class="preview-grid">${videos.map(c => `
+      <div class="preview-img-card">
+        <video controls style="width:100%;display:block" src="${esc(c.video_url)}"></video>
+        <div class="fmt-label">${esc(c.formato||'16:9')} · ${c.duracion_seg ?? 8}s</div>
+      </div>`).join('')}</div>`;
+  } else if (imgs.length) {
+    mediaGrid = `<div class="preview-grid">${imgs.map(c => `
         <div class="preview-img-card">
           <img src="${esc(c.imagen_url)}" alt="${esc(c.formato)}" class="lb-trigger" onclick="openLightbox(this.src)" onerror="this.style.display='none'"/>
           <div class="fmt-label">${esc(c.formato||'1:1')}</div>
-        </div>`).join('')}</div>`
-    : `<div class="no-img-placeholder">Sin imágenes generadas aún</div>`;
+        </div>`).join('')}</div>`;
+  } else {
+    mediaGrid = `<div class="no-img-placeholder">Sin medios generados aún</div>`;
+  }
   return `<div class="preview-wrap visible">
-    ${imgGrid}
+    ${mediaGrid}
     <div class="preview-label">Copy</div>
     <div class="preview-copy">${esc(copy0.copy_texto||'')}</div>
     <div class="preview-label" style="margin-top:.6rem">Hashtags</div>
@@ -671,19 +716,28 @@ async function crearOrden() {
   if(!formatos.length)formatos.push('1:1');
   const redes=[...document.querySelectorAll('input[name="red"]:checked')].map(c=>c.value);
   const instruccionesIds=[...document.querySelectorAll('input[name="instr_id"]:checked')].map(c=>Number(c.value));
+  const tipo        = document.getElementById('ord-tipo').value;
+  const isVideo     = tipo === 'video';
   const plantillaId = document.getElementById('ord-plantilla').value
     ? Number(document.getElementById('ord-plantilla').value) : null;
+  const formatosFinal = isVideo
+    ? [document.getElementById('ord-video-aspect').value]
+    : formatos.length ? formatos : ['1:1'];
+  const duracionSeg = isVideo
+    ? Number(document.getElementById('ord-video-dur').value)
+    : null;
   try {
     const nueva=await api('POST','/ordenes',{
       titulo,
       descripcion:        document.getElementById('ord-desc').value.trim()||null,
-      tipo_contenido:     document.getElementById('ord-tipo').value,
-      redes, formatos,
+      tipo_contenido:     tipo,
+      redes, formatos:    formatosFinal,
       logo_posicion:      document.getElementById('ord-logo-pos').value,
       logo_tamano_pct:    Number(document.getElementById('ord-logo-pct').value),
       instrucciones_extra:document.getElementById('ord-extra').value.trim()||null,
       instrucciones_ids:  instruccionesIds,
-      plantilla_id:       plantillaId
+      plantilla_id:       isVideo ? null : plantillaId,
+      duracion_seg:       duracionSeg
     });
     _ordenes.unshift({...nueva,contenido_generado:[]});
     renderOrdenes();
@@ -702,6 +756,9 @@ function setOrdenStatus(ordenId, txt) {
 async function generarContenido(ordenId) {
   const oIdx=_ordenes.findIndex(o=>o.id===ordenId); if(oIdx<0)return;
   const orden=_ordenes[oIdx];
+
+  // Rama: video
+  if (orden.tipo_contenido === 'video') { await generarVideo(ordenId, oIdx); return; }
 
   // Rama: plantilla compuesta
   if (orden.plantilla_id) { await generarCompuesta(ordenId, oIdx); return; }
@@ -779,6 +836,58 @@ async function generarCompuesta(ordenId, oIdx) {
   }
 }
 
+async function generarVideo(ordenId, oIdx) {
+  const orden = _ordenes[oIdx];
+  const aspectRatio = orden.formatos?.[0] ?? '16:9';
+  const duracionSeg = orden.duracion_seg   ?? 8;
+  const btn  = document.getElementById('btn-gen-' + ordenId);
+  const spin = document.getElementById('spin-' + ordenId);
+  btn.disabled = true; spin.style.display = 'inline-block';
+  _ordenes[oIdx].estado = 'generando'; renderOrdenes();
+
+  let pollInterval = null;
+  try {
+    // Paso 1: Claude genera prompt + inicia Veo
+    setOrdenStatus(ordenId, '1/2 Generando prompt cinematográfico…');
+    const { contenido } = await api('POST', `/ordenes/${ordenId}/generar-video`, { aspectRatio, duracionSeg });
+    const cid = contenido.id;
+
+    // Paso 2: polling cada 10 s (máx 30 intentos = 5 min)
+    setOrdenStatus(ordenId, '2/2 Veo generando video (~1-2 min)…');
+    let intentos = 0;
+    pollInterval = setInterval(async () => {
+      intentos++;
+      if (intentos > 30) {
+        clearInterval(pollInterval);
+        setOrdenStatus(ordenId, '⚠ Tiempo agotado. Abre Cola de Aprobación para verificar.');
+        btn.disabled = false; spin.style.display = 'none';
+        return;
+      }
+      try {
+        const result = await api('GET', `/contenido/${cid}/estado-video`);
+        if (result.listo) {
+          clearInterval(pollInterval);
+          _ordenes[oIdx].estado = 'generada';
+          _ordenes[oIdx].contenido_generado = [
+            { ...contenido, video_url: result.video_url },
+            ...(_ordenes[oIdx].contenido_generado || [])
+          ];
+          renderOrdenes();
+          setOrdenStatus(ordenId, '');
+          btn.disabled = false; spin.style.display = 'none';
+          toast('Video generado ✓');
+        }
+      } catch(_) { /* error de polling no es fatal — seguir intentando */ }
+    }, 10000);
+
+  } catch(e) {
+    if (pollInterval) clearInterval(pollInterval);
+    _ordenes[oIdx].estado = 'error'; renderOrdenes();
+    btn.disabled = false; spin.style.display = 'none';
+    toast('Error generando video: ' + e.message, 'err');
+  }
+}
+
 function mostrarReintentoFaltantes(ordenId, oIdx, cid, faltantes) {
   const el = document.getElementById('gen-status-' + ordenId);
   if (!el) return;
@@ -849,9 +958,12 @@ function renderAprobacion() {
     return;
   }
   grid.innerHTML=_contenidos.map(c=>{
-    const imgBlock=c.imagen_url
-      ?`<img src="${esc(c.imagen_url)}" alt="imagen" style="width:100%;display:block" class="lb-trigger" onclick="openLightbox(this.src)" onerror="this.style.display='none'"/>`
-      :`<div style="padding:2rem;text-align:center;font-size:.72rem;color:var(--gray)">Sin imagen</div>`;
+    const isVideo = !!c.video_url;
+    const imgBlock = c.video_url
+      ? `<video controls style="width:100%;display:block" src="${esc(c.video_url)}"></video>`
+      : c.imagen_url
+        ? `<img src="${esc(c.imagen_url)}" alt="imagen" style="width:100%;display:block" class="lb-trigger" onclick="openLightbox(this.src)" onerror="this.style.display='none'"/>`
+        : `<div style="padding:2rem;text-align:center;font-size:.72rem;color:var(--gray)">${c.video_operation?'Video en proceso…':'Sin imagen'}</div>`;
     return `<div class="approval-card" id="ac-${c.id}">
       <div class="approval-img-wrap">
         ${imgBlock}
@@ -873,9 +985,18 @@ function renderAprobacion() {
           <button class="btn btn-success btn-xs" onclick="aprobarContenido(${c.id})">✓ Aprobar</button>
           <button class="btn btn-danger btn-xs" onclick="rechazarContenido(${c.id})">✕ Rechazar</button>
           ${c.paneles?.length ? '' : `<button class="btn btn-ghost btn-xs" onclick="toggleRegen(${c.id})">↺ Regenerar</button>`}
-          <button class="btn btn-ghost btn-xs" onclick="descargarImagen('${esc(c.imagen_url||'')}','ve-${c.id}-${esc(c.formato||'1x1').replace(':','x')}.png')">⬇ Descargar</button>
+          <button class="btn btn-ghost btn-xs" onclick="descargarImagen('${esc(c.video_url||c.imagen_url||'')}','ve-${c.id}.${c.video_url?'mp4':'png'}')">⬇ Descargar</button>
           <button class="btn btn-ghost btn-xs" onclick="copiarContenido(${c.id})">⎘ Copiar</button>
         </div>
+        ${c.video_operation ? `
+        <div class="regen-form" id="regen-${c.id}">
+          <div class="form-group"><label>Ajuste libre (opcional)</label>
+            <input type="text" id="regen-ajuste-${c.id}" placeholder="ej: más movimiento de cámara, amanecer"/>
+          </div>
+          <button class="btn btn-primary btn-sm" id="regen-btn-${c.id}" onclick="regenerarVideo(${c.id})">
+            <span class="spinner" id="regen-spin-${c.id}"></span> Generar nuevo video
+          </button>
+        </div>` : `
         <div class="regen-form" id="regen-${c.id}">
           <div class="form-grid-2" style="margin-bottom:.5rem">
             <div><label>Posición del logo</label>${mkSel('regen-pos',c.id,POS_OPTS,c.ordenes_contenido?.logo_posicion??'inferior-derecha')}</div>
@@ -888,7 +1009,7 @@ function renderAprobacion() {
           <button class="btn btn-primary btn-sm" id="regen-btn-${c.id}" onclick="regenerarContenido(${c.id})">
             <span class="spinner" id="regen-spin-${c.id}"></span> Generar nueva imagen
           </button>
-        </div>
+        </div>`}
       </div>
     </div>`;
   }).join('');
@@ -957,6 +1078,38 @@ async function copiarContenido(id) {
   const txt=(c.copy_texto||'')+(c.hashtags?'\n\n'+c.hashtags:'');
   try { await navigator.clipboard.writeText(txt); toast('Copiado al portapapeles ✓'); }
   catch(e){toast('Error copiando: '+e.message,'err');}
+}
+
+async function regenerarVideo(id) {
+  const btn  = document.getElementById('regen-btn-' + id);
+  const spin = document.getElementById('regen-spin-' + id);
+  btn.disabled = true; spin.style.display = 'inline-block';
+  try {
+    const ajuste = document.getElementById('regen-ajuste-' + id)?.value.trim() || undefined;
+    const { contenido } = await api('POST', `/contenido/${id}/regenerar-video`, ajuste ? { ajuste } : {});
+    toast('Video en cola, sondeando cada 10 s…');
+
+    // Polling hasta que el nuevo video esté listo
+    let intentos = 0;
+    const poll = setInterval(async () => {
+      intentos++;
+      if (intentos > 30) { clearInterval(poll); toast('Tiempo agotado. Recarga para verificar.', 'err'); return; }
+      try {
+        const result = await api('GET', `/contenido/${id}/estado-video`);
+        if (result.listo) {
+          clearInterval(poll);
+          _contenidos = _contenidos.map(c =>
+            c.id === id ? { ...c, video_url: result.video_url, video_operation: contenido.video_operation } : c
+          );
+          renderAprobacion();
+          toast('Video regenerado ✓');
+        }
+      } catch(_) {}
+    }, 10000);
+  } catch(e) {
+    toast('Error: ' + e.message, 'err');
+    btn.disabled = false; spin.style.display = 'none';
+  }
 }
 
 // ── Paneles compuestos (edición en cola de aprobación) ───────────────────────
