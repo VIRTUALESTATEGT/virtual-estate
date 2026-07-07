@@ -337,9 +337,53 @@ TEXTO PUBLICITARIO: hook, estructura (AIDA/PAS/storytelling), CTA, tono, longitu
 
 Responde ÚNICAMENTE con el prompt mejorado. Sin explicaciones, sin prefijos, sin markdown.`;
 
+const SYSTEM_VIDEO_STUDIO = `Eres director de fotografía y guionista de video especializado en bienes raíces premium de Guatemala.
+Creas prompts para Veo 3.1 (IA generativa de Google). Responde ÚNICAMENTE con JSON válido, sin markdown ni texto extra.
+
+ESTRUCTURA OBLIGATORIA por cada clip:
+[SUJETO] → [UNA SOLA ACCIÓN] → [MOVIMIENTO DE CÁMARA] → [ILUMINACIÓN] → [AMBIENTE/ATMÓSFERA]
+
+Reglas absolutas:
+- Inglés, máximo 100 palabras por clip
+- UNA sola acción por clip (Veo falla con múltiples acciones simultáneas)
+- Prohibido: texto en pantalla, logos visibles
+- Personas sí permitidas (familias, agentes, compradores) cuando la idea lo requiera
+- En multi-clip: consistencia visual entre todos los clips (misma paleta, iluminación y locación coherentes para que al editarlos en secuencia se sientan continuos)
+- Cada clip es un prompt independiente y completo
+
+Para CLIP ÚNICO (≤8 seg) responde EXACTAMENTE con este JSON:
+{
+  "tipo": "single",
+  "prompt": "...",
+  "limitantes": "..."
+}
+
+Para MULTI-CLIP (>8 seg) responde EXACTAMENTE con este JSON:
+{
+  "tipo": "multi",
+  "clips": [
+    { "numero": 1, "duracion_seg": N, "prompt": "..." },
+    { "numero": 2, "duracion_seg": N, "prompt": "..." }
+  ],
+  "limitantes": "..."
+}
+
+El campo "limitantes" va en español, 80-120 palabras. Debe ser específico a la idea del usuario:
+qué puede hacer Veo bien con esa idea, qué probablemente no puede lograr (texto en pantalla,
+logos, múltiples acciones distintas dentro de un clip, continuidad perfecta de movimiento entre
+clips, escenas muy complejas), y cómo resolverlo en edición externa (agregar texto/logo en
+post-producción, unir clips con corte o transición, etc.).`;
+
+const SYSTEM_VIDEO_MODIFY = `Eres asistente de dirección de video. El usuario quiere modificar ÚNICAMENTE un aspecto específico de un prompt de video para Veo 3.1.
+
+Aplica SOLO el cambio solicitado. No modifiques nada más: mantén la estructura, el movimiento de cámara, la iluminación, el ambiente y todos los demás detalles idénticos salvo lo pedido explícitamente.
+
+Responde ÚNICAMENTE con el prompt modificado en inglés. Sin explicaciones, sin JSON, solo el texto del prompt.`;
+
 router.post('/prompt-studio', async (req, res) => {
   try {
-    const { idea, destino = 'imagen_fotorrealista', idioma = 'ingles' } = req.body;
+    const { idea, destino = 'imagen_fotorrealista', idioma = 'ingles',
+            duracion_seg, duraciones_por_clip } = req.body;
     if (!idea?.trim()) return res.status(400).json({ error: 'idea es requerida' });
 
     const { data: identidad } = await supabase
@@ -347,6 +391,44 @@ router.post('/prompt-studio', async (req, res) => {
     const id  = identidad ?? {};
     const col = id.colores ?? {};
 
+    // ── Rama video: usa SYSTEM_VIDEO_STUDIO y devuelve { tipo, prompt?, clips?, limitantes }
+    if (destino === 'video') {
+      const dur  = Number(duracion_seg) || 8;
+      const dist = Array.isArray(duraciones_por_clip) && duraciones_por_clip.length
+        ? duraciones_por_clip
+        : Array.from({ length: Math.ceil(dur / 8) }, (_, i) => Math.min(8, dur - i * 8));
+      const tipo = dist.length === 1 ? 'single' : 'multi';
+
+      const userMsg = `IDENTIDAD DE MARCA:
+- Nombre: ${id.nombre_negocio   ?? 'Virtual Estate GT'}
+- Colores: ${col.primario ?? '#2D5016'} / ${col.acento ?? '#B8860B'}
+- Tono: ${id.tono_comunicacion  ?? 'profesional y premium'}
+
+IDEA: ${idea.trim()}
+DURACIÓN TOTAL: ${dur} segundos
+DISTRIBUCIÓN DE CLIPS: ${dist.map((d, i) => `Clip ${i + 1}: ${d}s`).join(', ')}
+TIPO REQUERIDO: ${tipo === 'single' ? 'CLIP ÚNICO' : `MULTI-CLIP (${dist.length} clips)`}
+
+Genera el JSON de video.`;
+
+      const msg = await claude.messages.create(
+        {
+          model:      'claude-sonnet-4-6',
+          max_tokens: 2000,
+          system:     SYSTEM_VIDEO_STUDIO,
+          messages:   [{ role: 'user', content: userMsg }]
+        },
+        { timeout: 25000 }
+      );
+
+      const raw = msg.content.find(b => b.type === 'text')?.text ?? '';
+      try {
+        const clean = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+        return res.json(JSON.parse(clean));
+      } catch { return res.status(500).json({ error: 'Claude no devolvió JSON válido' }); }
+    }
+
+    // ── Rama no-video: comportamiento original
     const userMsg = `IDENTIDAD DE MARCA:
 - Nombre: ${id.nombre_negocio    ?? 'Virtual Estate GT'}
 - Colores: ${col.primario ?? '#2D5016'} / ${col.acento ?? '#B8860B'}
@@ -370,6 +452,47 @@ Genera el prompt mejorado.`;
 
     const prompt = msg.content.find(b => b.type === 'text')?.text?.trim() ?? '';
     res.json({ prompt });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/prompt-studio/modificar', async (req, res) => {
+  try {
+    const { tipo, prompt, clips, clip_idx, modificacion } = req.body;
+    if (!modificacion?.trim()) return res.status(400).json({ error: 'modificacion es requerida' });
+
+    const applyModify = async (originalPrompt) => {
+      const msg = await claude.messages.create(
+        {
+          model:      'claude-sonnet-4-6',
+          max_tokens: 600,
+          system:     SYSTEM_VIDEO_MODIFY,
+          messages:   [{ role: 'user', content: `PROMPT ORIGINAL:\n${originalPrompt}\n\nMODIFICACIÓN SOLICITADA: ${modificacion.trim()}` }]
+        },
+        { timeout: 15000 }
+      );
+      return msg.content.find(b => b.type === 'text')?.text?.trim() ?? originalPrompt;
+    };
+
+    if (tipo === 'single') {
+      if (!prompt) return res.status(400).json({ error: 'prompt es requerido para tipo single' });
+      const modified = await applyModify(prompt);
+      return res.json({ tipo: 'single', prompt: modified });
+    }
+
+    // multi: apply to specific clip or all
+    if (!Array.isArray(clips) || !clips.length)
+      return res.status(400).json({ error: 'clips es requerido para tipo multi' });
+
+    const applyAll = clip_idx === 'all' || clip_idx === null || clip_idx === undefined;
+    const updatedClips = await Promise.all(
+      clips.map(async (c, i) => {
+        if (applyAll || Number(clip_idx) === i) {
+          return { ...c, prompt: await applyModify(c.prompt) };
+        }
+        return c;
+      })
+    );
+    res.json({ tipo: 'multi', clips: updatedClips });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

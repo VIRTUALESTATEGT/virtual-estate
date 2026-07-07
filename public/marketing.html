@@ -424,9 +424,9 @@
         <div class="form-group"><label>Tu idea</label><textarea id="ps-idea" rows="4" placeholder="Ej: Una propiedad de lujo al atardecer, enfocada en el jardín..."></textarea></div>
         <div class="form-grid-2">
           <div class="form-group"><label>Tipo de contenido destino</label>
-            <select id="ps-destino">
+            <select id="ps-destino" onchange="togglePsVideo()">
               <option value="imagen_fotorrealista">Imagen fotorrealista</option>
-              <option value="video">Video / animación</option>
+              <option value="video">🎬 Video (Veo 3.1)</option>
               <option value="diseno_grafico">Diseño gráfico</option>
               <option value="texto_publicitario">Texto publicitario</option>
             </select>
@@ -438,16 +438,47 @@
             </select>
           </div>
         </div>
+        <div id="ps-video-opts" style="display:none">
+          <div class="form-grid-2" style="margin-bottom:.5rem">
+            <div class="form-group" style="margin-bottom:0">
+              <label>Duración total — <span id="ps-dur-lbl">8</span> seg
+                (<span id="ps-clips-lbl">1 clip</span>)</label>
+              <input type="number" id="ps-dur" min="4" max="60" value="8"
+                     oninput="updateCostoVideo()" style="width:100%"/>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label>Costo estimado (Veo 3.1 Fast 720p)</label>
+              <div id="ps-costo" style="font-size:.82rem;padding:.45rem 0;color:var(--gold);font-weight:600">
+                $0.80 USD &nbsp;·&nbsp; Q6.32
+              </div>
+            </div>
+          </div>
+        </div>
         <button class="btn btn-primary btn-sm" id="ps-btn" onclick="mejorarPrompt()">
           <span class="spinner" id="ps-spin"></span> ✨ Mejorar prompt
         </button>
       </div>
       <div class="card" id="ps-result-card" style="display:none">
         <div class="card-header">
-          <div class="card-title">Prompt mejorado</div>
+          <div class="card-title" id="ps-result-title">Prompt mejorado</div>
           <button class="btn btn-ghost btn-sm" onclick="copiarPrompt()"><i class="fas fa-copy"></i> Copiar</button>
         </div>
         <div id="ps-result" class="ps-result"></div>
+        <div id="ps-modify-section" style="display:none;margin-top:1rem;padding-top:.75rem;border-top:1px solid var(--border)">
+          <div class="form-grid-2" style="margin-bottom:.5rem">
+            <div class="form-group" style="margin-bottom:0">
+              <label>Modificar solo esto</label>
+              <input type="text" id="ps-mod-txt" placeholder="ej: cambia la iluminación a atardecer"/>
+            </div>
+            <div class="form-group" style="margin-bottom:0" id="ps-mod-clip-wrap">
+              <label>Aplicar a</label>
+              <select id="ps-mod-clip"><option value="all">Todos los clips</option></select>
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="ps-mod-btn" onclick="modificarPrompt()">
+            <span class="spinner" id="ps-mod-spin"></span> Aplicar modificación
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1187,28 +1218,135 @@ async function regenerarPanel(id, idx, nPaneles) {
 }
 
 // ── Prompt Studio ─────────────────────────────────────────────────────────────
-let _lastPrompt='';
-async function mejorarPrompt() {
-  const idea=document.getElementById('ps-idea').value.trim();
-  if(!idea){toast('Escribe tu idea primero','err');return;}
-  const btn=document.getElementById('ps-btn'), spin=document.getElementById('ps-spin');
-  btn.disabled=true; spin.style.display='inline-block';
-  try {
-    const { prompt }=await api('POST','/prompt-studio',{
-      idea,
-      destino:  document.getElementById('ps-destino').value,
-      idioma:   document.getElementById('ps-idioma').value
-    });
-    _lastPrompt=prompt;
-    document.getElementById('ps-result').textContent=prompt;
-    document.getElementById('ps-result-card').style.display='block';
-    toast('Prompt generado ✓');
-  } catch(e){toast('Error: '+e.message,'err');}
-  finally { btn.disabled=false; spin.style.display='none'; }
+let _lastPrompt = '';
+let _videoResult = null;
+
+function togglePsVideo() {
+  const isVideo = document.getElementById('ps-destino').value === 'video';
+  document.getElementById('ps-video-opts').style.display = isVideo ? 'block' : 'none';
+  if (isVideo) updateCostoVideo();
 }
+
+function updateCostoVideo() {
+  const dur   = Math.max(4, Math.min(60, Number(document.getElementById('ps-dur').value) || 8));
+  const clips = Math.ceil(dur / 8);
+  const usd   = (dur * 0.10).toFixed(2);
+  const gtq   = (dur * 0.10 * 7.90).toFixed(2);
+  document.getElementById('ps-dur-lbl').textContent   = dur;
+  document.getElementById('ps-clips-lbl').textContent = clips === 1 ? '1 clip' : `${clips} clips`;
+  document.getElementById('ps-costo').innerHTML =
+    `$${usd} USD &nbsp;·&nbsp; Q${gtq}`;
+}
+
+async function mejorarPrompt() {
+  const idea = document.getElementById('ps-idea').value.trim();
+  if (!idea) { toast('Escribe tu idea primero', 'err'); return; }
+  const destino = document.getElementById('ps-destino').value;
+  const btn  = document.getElementById('ps-btn');
+  const spin = document.getElementById('ps-spin');
+  btn.disabled = true; spin.style.display = 'inline-block';
+  try {
+    if (destino === 'video') {
+      const dur  = Math.max(4, Math.min(60, Number(document.getElementById('ps-dur').value) || 8));
+      const dist = Array.from({ length: Math.ceil(dur / 8) }, (_, i) => Math.min(8, dur - i * 8));
+      const data = await api('POST', '/prompt-studio', {
+        idea, destino, duracion_seg: dur, duraciones_por_clip: dist
+      });
+      _videoResult = data;
+      _lastPrompt  = '';
+      renderResultadoVideo(data);
+    } else {
+      const { prompt } = await api('POST', '/prompt-studio', {
+        idea, destino, idioma: document.getElementById('ps-idioma').value
+      });
+      _lastPrompt  = prompt;
+      _videoResult = null;
+      document.getElementById('ps-result-title').textContent = 'Prompt mejorado';
+      document.getElementById('ps-result').textContent = prompt;
+      document.getElementById('ps-modify-section').style.display = 'none';
+      document.getElementById('ps-result-card').style.display = 'block';
+    }
+    toast('Prompt generado ✓');
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+  finally { btn.disabled = false; spin.style.display = 'none'; }
+}
+
+function renderResultadoVideo(data) {
+  const el    = document.getElementById('ps-result');
+  const title = document.getElementById('ps-result-title');
+  const mod   = document.getElementById('ps-modify-section');
+  const clipSel = document.getElementById('ps-mod-clip');
+
+  if (data.tipo === 'single') {
+    title.textContent = '🎬 Prompt de video (clip único)';
+    el.innerHTML =
+      `<div style="margin-bottom:.75rem">${esc(data.prompt)}</div>` +
+      `<div style="margin-top:.75rem;padding:.6rem .8rem;background:rgba(224,128,128,.08);border:1px solid rgba(224,128,128,.25);border-radius:4px;font-size:.75rem;line-height:1.6">` +
+      `<strong>⚠️ Limitantes</strong><br>${esc(data.limitantes)}</div>`;
+    clipSel.innerHTML = '<option value="all">Único clip</option>';
+    document.getElementById('ps-mod-clip-wrap').style.display = 'none';
+  } else {
+    title.textContent = `🎬 Guión multi-clip (${data.clips.length} clips)`;
+    const clipsHtml = data.clips.map(c =>
+      `<div style="margin-bottom:.6rem;padding:.6rem .8rem;background:var(--bg3);border-radius:4px;border:1px solid var(--border)">` +
+      `<div style="font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem">` +
+      `Clip ${c.numero} — ${c.duracion_seg}s</div>` +
+      `<div style="font-size:.82rem;line-height:1.7">${esc(c.prompt)}</div></div>`
+    ).join('');
+    el.innerHTML =
+      clipsHtml +
+      `<div style="margin-top:.75rem;padding:.6rem .8rem;background:rgba(224,128,128,.08);border:1px solid rgba(224,128,128,.25);border-radius:4px;font-size:.75rem;line-height:1.6">` +
+      `<strong>⚠️ Limitantes</strong><br>${esc(data.limitantes)}</div>`;
+    clipSel.innerHTML =
+      '<option value="all">Todos los clips</option>' +
+      data.clips.map((c, i) => `<option value="${i}">Solo Clip ${c.numero}</option>`).join('');
+    document.getElementById('ps-mod-clip-wrap').style.display = '';
+  }
+
+  mod.style.display = 'block';
+  document.getElementById('ps-result-card').style.display = 'block';
+}
+
+async function modificarPrompt() {
+  if (!_videoResult) return;
+  const modificacion = document.getElementById('ps-mod-txt').value.trim();
+  if (!modificacion) { toast('Escribe qué quieres modificar', 'err'); return; }
+  const clip_idx = document.getElementById('ps-mod-clip').value;
+  const btn  = document.getElementById('ps-mod-btn');
+  const spin = document.getElementById('ps-mod-spin');
+  btn.disabled = true; spin.style.display = 'inline-block';
+  try {
+    const body = {
+      tipo:        _videoResult.tipo,
+      prompt:      _videoResult.prompt,
+      clips:       _videoResult.clips,
+      clip_idx:    clip_idx === 'all' ? 'all' : Number(clip_idx),
+      modificacion
+    };
+    const data = await api('POST', '/prompt-studio/modificar', body);
+    _videoResult = { ..._videoResult, ...data };
+    renderResultadoVideo(_videoResult);
+    document.getElementById('ps-mod-txt').value = '';
+    toast('Prompt modificado ✓');
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+  finally { btn.disabled = false; spin.style.display = 'none'; }
+}
+
 async function copiarPrompt() {
-  try { await navigator.clipboard.writeText(_lastPrompt); toast('Prompt copiado ✓'); }
-  catch(e){toast('Error copiando','err');}
+  try {
+    let txt = _lastPrompt;
+    if (_videoResult) {
+      if (_videoResult.tipo === 'single') {
+        txt = _videoResult.prompt;
+      } else {
+        txt = _videoResult.clips
+          .map(c => `--- Clip ${c.numero} (${c.duracion_seg}s) ---\n${c.prompt}`)
+          .join('\n\n');
+      }
+    }
+    await navigator.clipboard.writeText(txt);
+    toast('Prompt copiado ✓');
+  } catch(e) { toast('Error copiando', 'err'); }
 }
 
 // ── Lightbox ──────────────────────────────────────────────────────────────────
