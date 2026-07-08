@@ -356,14 +356,15 @@
             </div>
             <div class="form-group" style="margin-bottom:0">
               <label>Duración — <span id="ord-video-dur-lbl">8</span> seg
-                (~<span id="ord-video-cost-lbl">$0.80</span> USD a 720p)</label>
-              <select id="ord-video-dur" onchange="updateVideoCost()">
-                <option value="4">4 segundos (~$0.40)</option>
-                <option value="6">6 segundos (~$0.60)</option>
-                <option value="8" selected>8 segundos (~$0.80)</option>
-              </select>
+                (~<span id="ord-video-cost-lbl">$0.80</span> USD · <span id="ord-video-clips-lbl">1 clip</span>)</label>
+              <input type="number" id="ord-video-dur" min="4" max="60" value="8"
+                     oninput="updateVideoCost()" style="width:100%"/>
             </div>
           </div>
+        </div>
+        <div id="video-guion-preview" style="display:none;margin-top:.6rem;padding:.6rem .8rem;background:rgba(193,146,89,.06);border:1px solid rgba(193,146,89,.2);border-radius:4px">
+          <div style="font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem">📋 Guión del Prompt Studio</div>
+          <div id="video-guion-clips" style="max-height:200px;overflow-y:auto;font-size:.75rem;line-height:1.6"></div>
         </div>
         <div class="form-group"><label>Descripción / ¿Qué quieres comunicar?</label><textarea id="ord-desc" rows="3" placeholder="Describe el tema, el ángulo, el mensaje principal..."></textarea></div>
         <div class="form-group" id="formatos-group">
@@ -464,6 +465,10 @@
           <button class="btn btn-ghost btn-sm" onclick="copiarPrompt()"><i class="fas fa-copy"></i> Copiar</button>
         </div>
         <div id="ps-result" class="ps-result"></div>
+        <div id="ps-usar-btn-wrap" style="display:none;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border)">
+          <button class="btn btn-primary btn-sm" onclick="usarGuionEnOrden()">📋 Usar este guión en una orden</button>
+          <span style="font-size:.7rem;color:var(--gray);margin-left:.5rem">Precarga el guión en el formulario de nueva orden</span>
+        </div>
         <div id="ps-modify-section" style="display:none;margin-top:1rem;padding-top:.75rem;border-top:1px solid var(--border)">
           <div class="form-grid-2" style="margin-bottom:.5rem">
             <div class="form-group" style="margin-bottom:0">
@@ -665,10 +670,12 @@ function toggleFormatos() {
   document.getElementById('video-opts-group').style.display  = isVideo            ? 'block': 'none';
 }
 function updateVideoCost() {
-  const dur  = Number(document.getElementById('ord-video-dur').value);
-  const cost = (dur * 0.10).toFixed(2);
-  document.getElementById('ord-video-dur-lbl').textContent  = dur;
-  document.getElementById('ord-video-cost-lbl').textContent = '$' + cost;
+  const dur   = Math.max(4, Math.min(60, Number(document.getElementById('ord-video-dur').value) || 8));
+  const clips = Math.ceil(dur / 8);
+  const cost  = (dur * 0.10).toFixed(2);
+  document.getElementById('ord-video-dur-lbl').textContent   = dur;
+  document.getElementById('ord-video-cost-lbl').textContent  = '$' + cost;
+  document.getElementById('ord-video-clips-lbl').textContent = clips === 1 ? '1 clip' : `${clips} clips`;
 }
 function renderInstrSelector() {
   const sel=document.getElementById('instr-selector');
@@ -712,11 +719,26 @@ function renderOrdenes() {
   }).join('');
 }
 function renderPreviewOrden(o, contenidos) {
-  const copy0   = contenidos[0];
-  const videos  = contenidos.filter(c => c.video_url);
-  const imgs    = contenidos.filter(c => c.imagen_url);
+  const copy0      = contenidos[0];
+  const multiClips = contenidos.filter(c => c.clips?.length > 0);
+  const videos     = contenidos.filter(c => c.video_url && !c.clips?.length);
+  const imgs       = contenidos.filter(c => c.imagen_url);
   let mediaGrid;
-  if (videos.length) {
+  if (multiClips.length) {
+    const mc = multiClips[0];
+    const clipsHtml = (mc.clips || []).map(cl => cl.video_url
+      ? `<div class="preview-img-card">
+           <video controls style="width:100%;display:block" src="${esc(cl.video_url)}"></video>
+           <div class="fmt-label">Clip ${cl.numero} · ${cl.duracion_seg}s</div>
+         </div>`
+      : `<div class="preview-img-card">
+           <div style="padding:1.5rem;text-align:center;font-size:.7rem;color:var(--gray)">
+             Clip ${cl.numero}<br>${cl.estado}
+           </div>
+         </div>`
+    ).join('');
+    mediaGrid = `<div class="preview-grid">${clipsHtml}</div>`;
+  } else if (videos.length) {
     mediaGrid = `<div class="preview-grid">${videos.map(c => `
       <div class="preview-img-card">
         <video controls style="width:100%;display:block" src="${esc(c.video_url)}"></video>
@@ -770,10 +792,15 @@ async function crearOrden() {
       plantilla_id:       isVideo ? null : plantillaId,
       duracion_seg:       duracionSeg
     });
+    // Guardar guión si viene del Prompt Studio
+    if (isVideo && _videoResult?.tipo === 'multi')
+      _guionPorOrden[nueva.id] = _videoResult.clips;
+
     _ordenes.unshift({...nueva,contenido_generado:[]});
     renderOrdenes();
     ['ord-titulo','ord-desc','ord-extra'].forEach(id=>document.getElementById(id).value='');
     document.querySelectorAll('input[name="red"],input[name="instr_id"],input[name="formato"]').forEach(c=>{c.checked=c.value==='1:1';});
+    document.getElementById('video-guion-preview').style.display = 'none';
     toggleForm();
     toast('Orden creada ✓');
   } catch(e){toast('Error: '+e.message,'err');}
@@ -867,10 +894,79 @@ async function generarCompuesta(ordenId, oIdx) {
   }
 }
 
+// ── Frame extraction ──────────────────────────────────────────────────────────
+
+async function extractLastFrame(videoUrl) {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.crossOrigin = 'anonymous'; // requerido para evitar canvas tainted
+    video.preload = 'auto';
+    video.muted   = true;
+    video.src     = videoUrl;
+
+    video.addEventListener('error', () => {
+      reject(new Error(
+        'No se pudo cargar el video para extraer el frame. ' +
+        'Posible error de CORS en el bucket "marketing" de Supabase Storage. ' +
+        'Verifica que la política CORS del bucket permita Access-Control-Allow-Origin: * para video/mp4.'
+      ));
+    });
+
+    video.addEventListener('loadedmetadata', () => {
+      video.currentTime = Math.max(0, video.duration - 0.05);
+    });
+
+    video.addEventListener('seeked', () => {
+      const canvas = document.createElement('canvas');
+      canvas.width  = video.videoWidth  || 1280;
+      canvas.height = video.videoHeight || 720;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      try {
+        canvas.toBlob(blob => {
+          if (blob) resolve(blob);
+          else reject(new Error('canvas.toBlob devolvió null'));
+        }, 'image/png');
+      } catch(e) {
+        if (e.name === 'SecurityError') {
+          reject(new Error(
+            'CORS: el canvas fue marcado como tainted. ' +
+            'Configura Access-Control-Allow-Origin: * en el bucket "marketing" de Supabase Storage.'
+          ));
+        } else {
+          reject(e);
+        }
+      }
+    });
+  });
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result.split(',')[1]); // solo la parte base64
+    reader.onerror  = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+// ── Generación de video ───────────────────────────────────────────────────────
+
 async function generarVideo(ordenId, oIdx) {
   const orden = _ordenes[oIdx];
+  const duracionSeg = orden.duracion_seg ?? 8;
+
+  // Bifurcación multi-clip: requiere guión del Prompt Studio
+  if (duracionSeg > 8) {
+    const guion = _guionPorOrden[ordenId];
+    if (!guion?.length) {
+      toast('Para video >8s genera primero un guión en Prompt Studio y usa "Usar este guión en una orden".', 'err');
+      return;
+    }
+    await generarVideoMultiClip(ordenId, oIdx, guion);
+    return;
+  }
+
   const aspectRatio = orden.formatos?.[0] ?? '16:9';
-  const duracionSeg = orden.duracion_seg   ?? 8;
   const btn  = document.getElementById('btn-gen-' + ordenId);
   const spin = document.getElementById('spin-' + ordenId);
   btn.disabled = true; spin.style.display = 'inline-block';
@@ -916,6 +1012,168 @@ async function generarVideo(ordenId, oIdx) {
     _ordenes[oIdx].estado = 'error'; renderOrdenes();
     btn.disabled = false; spin.style.display = 'none';
     toast('Error generando video: ' + e.message, 'err');
+  }
+}
+
+async function generarVideoMultiClip(ordenId, oIdx, clipsData) {
+  const orden      = _ordenes[oIdx];
+  const aspectRatio = orden.formatos?.[0] ?? '16:9';
+  const btn  = document.getElementById('btn-gen-' + ordenId);
+  const spin = document.getElementById('spin-' + ordenId);
+  btn.disabled = true; spin.style.display = 'inline-block';
+  _ordenes[oIdx].estado = 'generando'; renderOrdenes();
+
+  try {
+    // Paso 1: crear contenido_generado con clips inicializados
+    setOrdenStatus(ordenId, `Iniciando ${clipsData.length} clips…`);
+    const { contenido } = await api('POST', `/ordenes/${ordenId}/generar-video`, {
+      clips: clipsData.map((c, i) => ({
+        numero:      c.numero ?? (i + 1),
+        duracion_seg: c.duracion_seg,
+        prompt:       c.prompt
+      }))
+    });
+    const cid = contenido.id;
+
+    let imagenAnterior = null; // base64 del último frame del clip previo
+
+    for (let i = 0; i < clipsData.length; i++) {
+      const clip = clipsData[i];
+      setOrdenStatus(ordenId,
+        `▶ Clip ${i + 1}/${clipsData.length}: generando (~1-2 min)…`
+      );
+
+      // Iniciar generación del clip (con frame del anterior si existe)
+      await api('POST', `/contenido/${cid}/clips/${i}/iniciar`, {
+        prompt:        clip.prompt,
+        duracionSeg:   clip.duracion_seg,
+        aspectRatio,
+        imagenInicial: imagenAnterior ? { data: imagenAnterior, mimeType: 'image/png' } : undefined
+      });
+
+      // Polling del clip
+      const videoUrl = await new Promise((resolve, reject) => {
+        let intentos = 0;
+        const poll = setInterval(async () => {
+          if (++intentos > 30) {
+            clearInterval(poll);
+            reject(new Error(`Timeout en Clip ${i + 1} (>5 min)`));
+            return;
+          }
+          try {
+            const r = await api('GET', `/contenido/${cid}/clips/${i}/estado`);
+            if (r.listo) { clearInterval(poll); resolve(r.video_url); }
+          } catch(_) {}
+        }, 10000);
+      });
+
+      setOrdenStatus(ordenId, `✓ Clip ${i + 1}/${clipsData.length} listo`);
+
+      // Extraer último frame para el siguiente clip
+      if (i < clipsData.length - 1) {
+        setOrdenStatus(ordenId,
+          `✓ Clip ${i + 1} listo. Extrayendo frame para encadenar…`
+        );
+        try {
+          const blob = await extractLastFrame(videoUrl);
+          imagenAnterior = await blobToBase64(blob);
+        } catch(e) {
+          // CORS u otro error: continuar sin frame (pierde continuidad visual pero no bloquea)
+          imagenAnterior = null;
+          if (e.message.includes('CORS') || e.message.includes('tainted')) {
+            toast(`⚠️ Frame CORS: ${e.message}`, 'err');
+          }
+        }
+      }
+    }
+
+    // Todos los clips listos — refrescar desde servidor
+    const listaActualizada = await api('GET', '/ordenes');
+    const nuevoIdx = listaActualizada.findIndex(o => o.id === ordenId);
+    if (nuevoIdx >= 0) _ordenes[oIdx] = listaActualizada[nuevoIdx];
+    renderOrdenes();
+    setOrdenStatus(ordenId, '');
+    btn.disabled = false; spin.style.display = 'none';
+    toast(`Video multi-clip listo ✓ (${clipsData.length} clips)`);
+  } catch(e) {
+    _ordenes[oIdx].estado = 'error'; renderOrdenes();
+    btn.disabled = false; spin.style.display = 'none';
+    toast('Error multi-clip: ' + e.message, 'err');
+  }
+}
+
+async function regenerarClip(contenidoId, clipIdx) {
+  const c = _contenidos.find(c => c.id === contenidoId);
+  if (!c?.clips) return;
+  const clip = c.clips[clipIdx];
+  if (!clip) return;
+
+  const haySiguientes = clipIdx < c.clips.length - 1;
+  const conSiguientes = haySiguientes &&
+    confirm(`¿Regenerar solo el Clip ${clip.numero} o también los clips siguientes para mantener continuidad?\n\nAceptar = este clip y siguientes\nCancelar = solo este clip`);
+
+  const desde = clipIdx;
+  const hasta  = conSiguientes ? c.clips.length - 1 : clipIdx;
+  let imagenAnterior = null;
+
+  // Si el clip que regeneramos no es el primero: intentar extraer frame del anterior
+  if (clipIdx > 0 && c.clips[clipIdx - 1]?.video_url) {
+    try {
+      const blob = await extractLastFrame(c.clips[clipIdx - 1].video_url);
+      imagenAnterior = await blobToBase64(blob);
+    } catch(e) {
+      imagenAnterior = null;
+      if (e.message.includes('CORS') || e.message.includes('tainted'))
+        toast(`⚠️ Frame CORS: ${e.message}`, 'err');
+    }
+  }
+
+  for (let i = desde; i <= hasta; i++) {
+    const cl = c.clips[i];
+    toast(`Regenerando Clip ${cl.numero}…`);
+    try {
+      await api('POST', `/contenido/${contenidoId}/clips/${i}/iniciar`, {
+        prompt:        cl.prompt,
+        duracionSeg:   cl.duracion_seg,
+        aspectRatio:   c.formato,
+        imagenInicial: imagenAnterior ? { data: imagenAnterior, mimeType: 'image/png' } : undefined
+      });
+
+      const videoUrl = await new Promise((resolve, reject) => {
+        let intentos = 0;
+        const poll = setInterval(async () => {
+          if (++intentos > 30) { clearInterval(poll); reject(new Error('Timeout')); return; }
+          try {
+            const r = await api('GET', `/contenido/${contenidoId}/clips/${i}/estado`);
+            if (r.listo) { clearInterval(poll); resolve(r.video_url); }
+          } catch(_) {}
+        }, 10000);
+      });
+
+      toast(`Clip ${cl.numero} regenerado ✓`);
+
+      if (i < hasta) {
+        try {
+          const blob = await extractLastFrame(videoUrl);
+          imagenAnterior = await blobToBase64(blob);
+        } catch(e) { imagenAnterior = null; }
+      }
+    } catch(e) {
+      toast(`Error Clip ${cl.numero}: ${e.message}`, 'err');
+      break;
+    }
+  }
+
+  await loadAprobacion();
+}
+
+async function descargarTodosClips(contenidoId) {
+  const c = _contenidos.find(c => c.id === contenidoId);
+  if (!c?.clips) return;
+  const listos = c.clips.filter(cl => cl.video_url);
+  for (let i = 0; i < listos.length; i++) {
+    descargarImagen(listos[i].video_url, `clip-${listos[i].numero}.mp4`);
+    if (i < listos.length - 1) await new Promise(r => setTimeout(r, 800));
   }
 }
 
@@ -989,6 +1247,42 @@ function renderAprobacion() {
     return;
   }
   grid.innerHTML=_contenidos.map(c=>{
+    // ── Card multi-clip ────────────────────────────────────────────────────────
+    if (c.clips?.length > 0) {
+      const clipsHtml = c.clips.map((cl, i) => `
+        <div style="margin-bottom:.55rem">
+          <div style="font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gold);margin-bottom:.2rem;display:flex;align-items:center;gap:.4rem">
+            <span>Clip ${cl.numero} · ${cl.duracion_seg}s</span>
+            <span style="color:${cl.estado==='listo'?'#6fcf97':'var(--gray)'}">${cl.estado}</span>
+            ${cl.video_url?`<a href="${esc(cl.video_url)}" download="clip-${cl.numero}.mp4" style="color:var(--gold)">⬇</a>`:''}
+            <button class="btn btn-ghost btn-xs" onclick="regenerarClip(${c.id},${i})">↺ Regen</button>
+          </div>
+          ${cl.video_url
+            ?`<video controls style="width:100%;display:block;border-radius:3px" src="${esc(cl.video_url)}"></video>`
+            :`<div style="background:var(--bg3);padding:1rem;text-align:center;font-size:.72rem;color:var(--gray);border-radius:3px">${cl.estado==='generando'?'Generando…':'Pendiente'}</div>`
+          }
+        </div>`).join('');
+      return `<div class="approval-card" id="ac-${c.id}">
+        <div class="approval-body" style="padding:.75rem">
+          <div style="font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem">
+            🎬 Multi-clip · ${c.clips.length} clips · ${c.formato} · ${c.duracion_seg}s
+            <span class="badge ${ESTADO_BADGE[c.estado]||''}">${ESTADO_TXT[c.estado]||c.estado}</span>
+          </div>
+          ${clipsHtml}
+          <div class="approval-field"><label>Copy</label><textarea id="ac-copy-${c.id}" rows="3">${esc(c.copy_texto||'')}</textarea></div>
+          <div class="approval-field"><label>Hashtags</label><textarea id="ac-tags-${c.id}" rows="2">${esc(c.hashtags||'')}</textarea></div>
+          <div class="approval-actions" style="margin-top:.5rem">
+            <button class="btn btn-ghost btn-xs" onclick="guardarEdits(${c.id})">💾 Guardar</button>
+            <button class="btn btn-success btn-xs" onclick="aprobarContenido(${c.id})">✓ Aprobar</button>
+            <button class="btn btn-danger btn-xs" onclick="rechazarContenido(${c.id})">✕ Rechazar</button>
+            <button class="btn btn-ghost btn-xs" onclick="descargarTodosClips(${c.id})">⬇ Descargar todos</button>
+            <button class="btn btn-ghost btn-xs" onclick="copiarContenido(${c.id})">⎘ Copiar</button>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    // ── Card imagen o video single-clip ────────────────────────────────────────
     const isVideo = !!c.video_url;
     const imgBlock = c.video_url
       ? `<video controls style="width:100%;display:block" src="${esc(c.video_url)}"></video>`
@@ -1218,8 +1512,9 @@ async function regenerarPanel(id, idx, nPaneles) {
 }
 
 // ── Prompt Studio ─────────────────────────────────────────────────────────────
-let _lastPrompt = '';
-let _videoResult = null;
+let _lastPrompt   = '';
+let _videoResult  = null;
+let _guionPorOrden = {};   // { [ordenId]: clips[] } — guiones del Prompt Studio listos para generar
 
 function togglePsVideo() {
   const isVideo = document.getElementById('ps-destino').value === 'video';
@@ -1304,7 +1599,44 @@ function renderResultadoVideo(data) {
   }
 
   mod.style.display = 'block';
+  document.getElementById('ps-usar-btn-wrap').style.display = 'block';
   document.getElementById('ps-result-card').style.display = 'block';
+}
+
+function usarGuionEnOrden() {
+  if (!_videoResult) return;
+  const dur = _videoResult.tipo === 'multi'
+    ? _videoResult.clips.reduce((s, c) => s + c.duracion_seg, 0)
+    : 8;
+  const aspect = '16:9'; // default; usuario puede cambiarlo en el form
+
+  // Cambiar a pestaña Órdenes y abrir formulario
+  showTab('ordenes', document.getElementById('nav-ordenes'));
+  const formCard = document.getElementById('orden-form-card');
+  formCard.style.display = 'block';
+  renderInstrSelector(); loadPlantillas();
+
+  // Pre-cargar tipo y opciones de video
+  document.getElementById('ord-tipo').value = 'video';
+  toggleFormatos();
+  document.getElementById('ord-video-aspect').value = aspect;
+  document.getElementById('ord-video-dur').value    = dur;
+  updateVideoCost();
+
+  // Mostrar guión en la vista previa del formulario
+  if (_videoResult.tipo === 'multi') {
+    const clipsHtml = _videoResult.clips.map(c =>
+      `<div style="margin-bottom:.35rem;padding:.4rem .5rem;background:rgba(0,0,0,.18);border-radius:3px">` +
+      `<span style="color:var(--gold);font-weight:600">Clip ${c.numero} — ${c.duracion_seg}s</span><br>` +
+      `<span style="color:var(--light-gray)">${esc(c.prompt)}</span></div>`
+    ).join('');
+    document.getElementById('video-guion-clips').innerHTML = clipsHtml;
+    document.getElementById('video-guion-preview').style.display = 'block';
+  } else {
+    document.getElementById('video-guion-preview').style.display = 'none';
+  }
+
+  toast('Guión cargado en el formulario ✓ — completa el título y crea la orden');
 }
 
 async function modificarPrompt() {

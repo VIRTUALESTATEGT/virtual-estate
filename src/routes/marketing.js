@@ -155,7 +155,7 @@ router.get('/ordenes', async (_req, res) => {
   try {
     const { data, error } = await supabase
       .from('ordenes_contenido')
-      .select(`*, contenido_generado(id, estado, formato, imagen_url, imagen_original_url, copy_texto, hashtags, prompt_usado, video_url, video_operation, duracion_seg, plantilla_id, paneles, created_at)`)
+      .select(`*, contenido_generado(id, estado, formato, imagen_url, imagen_original_url, copy_texto, hashtags, prompt_usado, video_url, video_operation, duracion_seg, plantilla_id, paneles, clips, created_at)`)
       .order('created_at', { ascending: false });
     if (error) throw error;
     res.json(data);
@@ -543,14 +543,54 @@ ORDEN:
 Genera el JSON de video.`;
 }
 
-// Fase 1: Claude genera prompt cinematográfico + copy + hashtags, lanza Veo y guarda la operation.
+// Fase 1: lanza generación de video.
+// - Multi-clip: body.clips[] (del Prompt Studio) → crea contenido con clips jsonb inicializado,
+//   no lanza Veo (el frontend orquesta clip a clip).
+// - Single-clip: Claude genera prompt + lanza Veo directo.
 router.post('/ordenes/:id/generar-video', async (req, res) => {
   const ordenId = Number(req.params.id);
   try {
+    const { clips } = req.body;
     const { data: orden, error: ordErr } = await supabase
       .from('ordenes_contenido').select('*').eq('id', ordenId).single();
     if (ordErr) throw ordErr;
 
+    const aspectRatio = (orden.formatos ?? ['16:9'])[0];
+
+    // ── Multi-clip: frontend provee los prompts del guión
+    if (Array.isArray(clips) && clips.length > 1) {
+      const clipsInicial = clips.map((c, i) => ({
+        numero:      c.numero ?? (i + 1),
+        duracion_seg: Number(c.duracion_seg) || 8,
+        prompt:       c.prompt ?? '',
+        operation:   null,
+        video_url:   null,
+        estado:      'pendiente'
+      }));
+      const durTotal = clipsInicial.reduce((s, c) => s + c.duracion_seg, 0);
+
+      const { data: fila, error: insErr } = await supabase
+        .from('contenido_generado')
+        .insert({
+          orden_id:     ordenId,
+          copy_texto:   '',
+          hashtags:     '',
+          prompt_usado: clipsInicial.map(c => `Clip ${c.numero}: ${c.prompt}`).join('\n'),
+          formato:      aspectRatio,
+          duracion_seg: durTotal,
+          clips:        clipsInicial,
+          video_url:    null,
+          imagen_url:   null,
+          estado:       'pendiente'
+        })
+        .select().single();
+      if (insErr) throw insErr;
+
+      await supabase.from('ordenes_contenido').update({ estado: 'generando' }).eq('id', ordenId);
+      return res.json({ contenido: fila });
+    }
+
+    // ── Single-clip: Claude genera prompt + lanza Veo
     const { leerContextoMarca } = require('../services/contentEngine');
     const ctx = await leerContextoMarca(orden.instrucciones_ids ?? []);
 
@@ -574,9 +614,7 @@ router.post('/ordenes/:id/generar-video', async (req, res) => {
     const { prompt_video, copy_texto, hashtags } = plan;
     if (!prompt_video?.trim()) throw new Error('Claude omitió prompt_video');
 
-    const aspectRatio = (orden.formatos ?? ['16:9'])[0];
     const duracionSeg = orden.duracion_seg ?? 8;
-
     const { iniciarVideo } = require('../services/videoProvider');
     const operationName = await iniciarVideo(prompt_video, { aspectRatio, duracionSeg });
 
@@ -599,6 +637,75 @@ router.post('/ordenes/:id/generar-video', async (req, res) => {
 
     await supabase.from('ordenes_contenido').update({ estado: 'generando' }).eq('id', ordenId);
     res.json({ contenido: fila });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Multi-clip Paso 2a: inicia Veo para un clip específico.
+// imagenInicial opcional: { data: base64, mimeType: 'image/png' } — extraído en frontend.
+router.post('/contenido/:id/clips/:idx/iniciar', async (req, res) => {
+  try {
+    const { prompt, duracionSeg, aspectRatio, imagenInicial } = req.body;
+    const idx = Number(req.params.idx);
+    if (!prompt?.trim()) return res.status(400).json({ error: 'prompt es requerido' });
+
+    const { iniciarVideo } = require('../services/videoProvider');
+    const operationName = await iniciarVideo(prompt, {
+      aspectRatio:   aspectRatio  ?? '16:9',
+      duracionSeg:   duracionSeg  ?? 8,
+      imagenInicial: imagenInicial ?? null
+    });
+
+    const { data: updated, error } = await supabase.rpc('mkt_set_clip', {
+      p_contenido_id: Number(req.params.id),
+      p_clip_idx:     idx,
+      p_patch:        { operation: operationName, estado: 'generando' }
+    });
+    if (error) throw error;
+
+    res.json({ ok: true, operation: operationName, contenido: updated });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Multi-clip Paso 2b: polling del estado de un clip; si listo, sube mp4 a Storage.
+router.get('/contenido/:id/clips/:idx/estado', async (req, res) => {
+  try {
+    const idx = Number(req.params.idx);
+    const { data: cont, error: contErr } = await supabase
+      .from('contenido_generado')
+      .select('clips, orden_id, formato')
+      .eq('id', req.params.id).single();
+    if (contErr) throw contErr;
+
+    const clip = cont.clips?.[idx];
+    if (!clip)          throw new Error(`Clip ${idx} no existe`);
+    if (clip.video_url) return res.json({ listo: true, video_url: clip.video_url });
+    if (!clip.operation) throw new Error(`Clip ${idx} sin operation`);
+
+    const { consultarVideo } = require('../services/videoProvider');
+    const result = await consultarVideo(clip.operation);
+    if (!result.listo) return res.json({ listo: false });
+
+    const slug = (cont.formato ?? '16-9').replace(':', '-');
+    const path = `ordenes/${cont.orden_id}/clip-${idx}-${slug}-${Date.now()}.mp4`;
+    const { error: upErr } = await supabase.storage
+      .from('marketing').upload(path, result.videoBuffer, { contentType: 'video/mp4', upsert: false });
+    if (upErr) throw upErr;
+
+    const { data: { publicUrl } } = supabase.storage.from('marketing').getPublicUrl(path);
+
+    const { data: updated, error: updErr } = await supabase.rpc('mkt_set_clip', {
+      p_contenido_id: Number(req.params.id),
+      p_clip_idx:     idx,
+      p_patch:        { video_url: publicUrl, estado: 'listo' }
+    });
+    if (updErr) throw updErr;
+
+    // Si todos los clips están listos → orden a 'generada'
+    const todosListos = updated?.clips?.every(c => c.estado === 'listo');
+    if (todosListos)
+      await supabase.from('ordenes_contenido').update({ estado: 'generada' }).eq('id', cont.orden_id);
+
+    res.json({ listo: true, video_url: publicUrl });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

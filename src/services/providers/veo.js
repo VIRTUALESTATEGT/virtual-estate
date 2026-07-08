@@ -14,11 +14,20 @@ function key() {
   return k;
 }
 
-async function iniciarVideo(prompt, { aspectRatio = '16:9', duracionSeg = 8 } = {}) {
+async function iniciarVideo(prompt, { aspectRatio = '16:9', duracionSeg = 8, imagenInicial = null } = {}) {
+  const instance = { prompt };
+  if (imagenInicial?.data) {
+    instance.image = {
+      inlineData: {
+        mimeType: imagenInicial.mimeType ?? 'image/png',
+        data:     imagenInicial.data        // base64 string, sin prefijo data:...
+      }
+    };
+  }
   const { data } = await axios.post(
     `${BASE}/models/${MODEL_ID}:predictLongRunning?key=${key()}`,
     {
-      instances:  [{ prompt }],
+      instances:  [instance],
       parameters: { aspectRatio, sampleCount: 1, durationSeconds: Number(duracionSeg) }
     },
     { timeout: 30000 }
