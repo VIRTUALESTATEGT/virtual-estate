@@ -18,10 +18,8 @@ async function iniciarVideo(prompt, { aspectRatio = '16:9', duracionSeg = 8, ima
   const instance = { prompt };
   if (imagenInicial?.data) {
     instance.image = {
-      inlineData: {
-        mimeType: imagenInicial.mimeType ?? 'image/png',
-        data:     imagenInicial.data        // base64 string, sin prefijo data:...
-      }
+      bytesBase64Encoded: imagenInicial.data,
+      mimeType:           imagenInicial.mimeType ?? 'image/png'
     };
   }
   let data;
