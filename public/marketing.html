@@ -1064,6 +1064,7 @@ async function generarVideoMultiClip(ordenId, oIdx, clipsData) {
       // Polling del clip
       const videoUrl = await new Promise((resolve, reject) => {
         let intentos = 0;
+        let erroresConsec = 0;
         const poll = setInterval(async () => {
           if (++intentos > 30) {
             clearInterval(poll);
@@ -1072,8 +1073,14 @@ async function generarVideoMultiClip(ordenId, oIdx, clipsData) {
           }
           try {
             const r = await api('GET', `/contenido/${cid}/clips/${i}/estado`);
+            erroresConsec = 0;
             if (r.listo) { clearInterval(poll); resolve(r.video_url); }
-          } catch(_) {}
+          } catch(_) {
+            if (++erroresConsec >= 5) {
+              clearInterval(poll);
+              reject(new Error(`Clip ${i + 1}: 5 errores consecutivos en estado`));
+            }
+          }
         }, 10000);
       });
 
@@ -1197,6 +1204,7 @@ async function reanudarOrdenVideo(ordenId) {
   function pollClip(idx) {
     return new Promise((resolve, reject) => {
       let intentos = 0;
+      let erroresConsec = 0;
       const t = setInterval(async () => {
         if (++intentos > 30) {
           clearInterval(t);
@@ -1205,8 +1213,14 @@ async function reanudarOrdenVideo(ordenId) {
         }
         try {
           const r = await api('GET', `/contenido/${cid}/clips/${idx}/estado`);
+          erroresConsec = 0;
           if (r.listo) { clearInterval(t); resolve(r.video_url); }
-        } catch(_) {}
+        } catch(_) {
+          if (++erroresConsec >= 5) {
+            clearInterval(t);
+            reject(new Error(`Clip ${idx + 1}: 5 errores consecutivos en estado`));
+          }
+        }
       }, 10000);
     });
   }
