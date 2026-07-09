@@ -38,10 +38,16 @@ async function iniciarVideo(prompt, { aspectRatio = '16:9', duracionSeg = 8, ima
 }
 
 async function consultarVideo(operationName) {
-  const { data } = await axios.get(
-    `${BASE}/${operationName}?key=${key()}`,
-    { timeout: 15000 }
-  );
+  const pollUrl = `${BASE}/${operationName}?key=${key()}`;
+  let data;
+  try {
+    const res = await axios.get(pollUrl, { timeout: 15000 });
+    data = res.data;
+  } catch (e) {
+    const geminiBody = e.response?.data;
+    const detail = geminiBody ? JSON.stringify(geminiBody) : e.message;
+    throw new Error(`Gemini ${e.response?.status ?? 'ERR'} al consultar operation "${operationName}" — URL: ${pollUrl.split('?')[0]} — body: ${detail}`);
+  }
 
   if (!data.done) return { listo: false };
 
