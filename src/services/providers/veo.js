@@ -24,14 +24,23 @@ async function iniciarVideo(prompt, { aspectRatio = '16:9', duracionSeg = 8, ima
       }
     };
   }
-  const { data } = await axios.post(
-    `${BASE}/models/${MODEL_ID}:predictLongRunning?key=${key()}`,
-    {
-      instances:  [instance],
-      parameters: { aspectRatio, sampleCount: 1, durationSeconds: Number(duracionSeg) }
-    },
-    { timeout: 30000 }
-  );
+  let data;
+  try {
+    const res = await axios.post(
+      `${BASE}/models/${MODEL_ID}:predictLongRunning?key=${key()}`,
+      {
+        instances:  [instance],
+        parameters: { aspectRatio, sampleCount: 1, durationSeconds: Number(duracionSeg) }
+      },
+      { timeout: 30000 }
+    );
+    data = res.data;
+  } catch (e) {
+    const geminiBody = e.response?.data;
+    const detail = geminiBody ? JSON.stringify(geminiBody) : e.message;
+    const hasImg = !!imagenInicial?.data;
+    throw new Error(`Veo iniciar ${e.response?.status ?? 'ERR'} (conImagen=${hasImg}, modelo=${MODEL_ID}) — body: ${detail}`);
+  }
   // data.name = "models/veo-3.1-fast-generate-preview/operations/{id}"
   if (!data.name) throw new Error('Veo no devolvió operation name');
   return data.name;
