@@ -710,6 +710,9 @@ function renderOrdenes() {
           <button class="btn btn-primary btn-sm" id="btn-gen-${o.id}" onclick="generarContenido(${o.id})" ${canGen?'':'disabled'}>
             <span class="spinner" id="spin-${o.id}"></span> ${o.estado==='generada'?'Regenerar':'Generar'}
           </button>
+          ${o.tipo_contenido==='video'&&o.estado==='generando'
+            ? `<button class="btn btn-secondary btn-sm" id="btn-rean-${o.id}" onclick="reanudarOrdenVideo(${o.id})">▶ Reanudar</button>`
+            : ''}
           ${o.plantilla_id ? '<span class="badge badge-formato" title="Plantilla compuesta">2 paneles</span>' : ''}
         </div>
         <div id="gen-status-${o.id}" style="font-size:.68rem;color:var(--gold);min-height:.9em"></div>
@@ -790,9 +793,10 @@ async function crearOrden() {
       instrucciones_extra:document.getElementById('ord-extra').value.trim()||null,
       instrucciones_ids:  instruccionesIds,
       plantilla_id:       isVideo ? null : plantillaId,
-      duracion_seg:       duracionSeg
+      duracion_seg:       duracionSeg,
+      guion_clips:        (isVideo && _videoResult?.tipo === 'multi') ? _videoResult.clips : null
     });
-    // Guardar guión si viene del Prompt Studio
+    // Mantener en memoria también para la sesión actual
     if (isVideo && _videoResult?.tipo === 'multi')
       _guionPorOrden[nueva.id] = _videoResult.clips;
 
@@ -1026,13 +1030,19 @@ async function generarVideoMultiClip(ordenId, oIdx, clipsData) {
   try {
     // Paso 1: crear contenido_generado con clips inicializados
     setOrdenStatus(ordenId, `Iniciando ${clipsData.length} clips…`);
-    const { contenido } = await api('POST', `/ordenes/${ordenId}/generar-video`, {
-      clips: clipsData.map((c, i) => ({
-        numero:      c.numero ?? (i + 1),
-        duracion_seg: c.duracion_seg,
-        prompt:       c.prompt
-      }))
-    });
+    const { contenido } = await Promise.race([
+      api('POST', `/ordenes/${ordenId}/generar-video`, {
+        clips: clipsData.map((c, i) => ({
+          numero:       c.numero ?? (i + 1),
+          duracion_seg: c.duracion_seg,
+          prompt:       c.prompt
+        }))
+      }),
+      new Promise((_, rej) => setTimeout(
+        () => rej(new Error('Timeout: el servidor tardó más de 30 s creando el contenido')),
+        30000
+      ))
+    ]);
     const cid = contenido.id;
 
     let imagenAnterior = null; // base64 del último frame del clip previo
@@ -1099,6 +1109,167 @@ async function generarVideoMultiClip(ordenId, oIdx, clipsData) {
     _ordenes[oIdx].estado = 'error'; renderOrdenes();
     btn.disabled = false; spin.style.display = 'none';
     toast('Error multi-clip: ' + e.message, 'err');
+  }
+}
+
+// Reanuda una orden de video que quedó en estado 'generando' tras un error o reload.
+async function reanudarOrdenVideo(ordenId) {
+  const oIdx = _ordenes.findIndex(o => o.id === ordenId);
+  if (oIdx < 0) return;
+  const orden = _ordenes[oIdx];
+
+  const btn  = document.getElementById('btn-rean-' + ordenId);
+  const spin = document.getElementById('spin-' + ordenId);
+  if (btn) btn.disabled = true;
+
+  // Tomar el contenido más reciente de la orden
+  const contenidos = (orden.contenido_generado || [])
+    .slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const c = contenidos[0] ?? null;
+
+  // ── Caso A: sin fila, o fila con clips=null y sin video_operation ─────────
+  if (!c || (!c.clips && !c.video_operation)) {
+    // Intentar relanzar con guion_clips persistido en la orden
+    const guion = orden.guion_clips || _guionPorOrden[ordenId];
+    if (!guion?.length) {
+      toast('Guión perdido — ve al Prompt Studio, genera el guión y presiona "Generar".', 'err');
+      if (btn) btn.disabled = false;
+      return;
+    }
+    // Crear nueva fila y arrancar el flujo multi-clip
+    await generarVideoMultiClip(ordenId, oIdx, guion);
+    return;
+  }
+
+  // ── Caso B: fila single-clip con video_operation activa ───────────────────
+  if (!c.clips && c.video_operation) {
+    setOrdenStatus(ordenId, 'Retomando video… comprobando estado en Veo.');
+    if (spin) spin.style.display = 'inline-block';
+    let intentos = 0;
+    const poll = setInterval(async () => {
+      if (++intentos > 30) {
+        clearInterval(poll);
+        setOrdenStatus(ordenId, '⚠ Tiempo agotado. Abre Cola de Aprobación para verificar.');
+        if (btn) btn.disabled = false;
+        if (spin) spin.style.display = 'none';
+        return;
+      }
+      try {
+        const result = await api('GET', `/contenido/${c.id}/estado-video`);
+        if (result.listo) {
+          clearInterval(poll);
+          const lista = await api('GET', '/ordenes');
+          const ni = lista.findIndex(o => o.id === ordenId);
+          if (ni >= 0) _ordenes[oIdx] = lista[ni];
+          _ordenes[oIdx].estado = 'generada';
+          renderOrdenes();
+          setOrdenStatus(ordenId, '');
+          if (btn) btn.disabled = false;
+          if (spin) spin.style.display = 'none';
+          toast('Video retomado y listo ✓');
+        }
+      } catch(_) {}
+    }, 10000);
+    return;
+  }
+
+  // ── Caso C: fila multi-clip con estados mixtos ────────────────────────────
+  const clips = c.clips;
+  const cid   = c.id;
+  const aspectRatio = orden.formatos?.[0] ?? '16:9';
+
+  // Primer clip no listo
+  const firstPending = clips.findIndex(cl => cl.estado !== 'listo');
+  if (firstPending === -1) {
+    // Todos ya listos — solo refrescar UI
+    const lista = await api('GET', '/ordenes');
+    const ni = lista.findIndex(o => o.id === ordenId);
+    if (ni >= 0) _ordenes[oIdx] = lista[ni];
+    renderOrdenes();
+    toast('Todos los clips ya estaban listos ✓');
+    if (btn) btn.disabled = false;
+    return;
+  }
+
+  if (spin) spin.style.display = 'inline-block';
+
+  // Helper: polling de un clip hasta que el backend lo marque listo
+  function pollClip(idx) {
+    return new Promise((resolve, reject) => {
+      let intentos = 0;
+      const t = setInterval(async () => {
+        if (++intentos > 30) {
+          clearInterval(t);
+          reject(new Error(`Timeout en Clip ${idx + 1} (>5 min)`));
+          return;
+        }
+        try {
+          const r = await api('GET', `/contenido/${cid}/clips/${idx}/estado`);
+          if (r.listo) { clearInterval(t); resolve(r.video_url); }
+        } catch(_) {}
+      }, 10000);
+    });
+  }
+
+  try {
+    let imagenAnterior = null;
+
+    // Si el primer clip pendiente no es el 0, intentar extraer frame del anterior listo
+    if (firstPending > 0 && clips[firstPending - 1]?.video_url) {
+      try {
+        const blob = await extractLastFrame(clips[firstPending - 1].video_url);
+        imagenAnterior = await blobToBase64(blob);
+      } catch(_) { imagenAnterior = null; }
+    }
+
+    for (let i = firstPending; i < clips.length; i++) {
+      const clip = clips[i];
+      setOrdenStatus(ordenId, `▶ Clip ${i + 1}/${clips.length}: retomando…`);
+
+      let videoUrl;
+      if (clip.estado === 'generando' && clip.operation) {
+        // Veo ya fue iniciado — solo hacer polling
+        videoUrl = await pollClip(i);
+      } else {
+        // Pendiente: iniciar Veo
+        await api('POST', `/contenido/${cid}/clips/${i}/iniciar`, {
+          prompt:        clip.prompt,
+          duracionSeg:   clip.duracion_seg,
+          aspectRatio,
+          imagenInicial: imagenAnterior ? { data: imagenAnterior, mimeType: 'image/png' } : undefined
+        });
+        videoUrl = await pollClip(i);
+      }
+
+      setOrdenStatus(ordenId, `✓ Clip ${i + 1}/${clips.length} listo`);
+
+      // Extraer frame para continuidad con el siguiente
+      if (i < clips.length - 1) {
+        try {
+          const blob = await extractLastFrame(videoUrl);
+          imagenAnterior = await blobToBase64(blob);
+        } catch(e) {
+          imagenAnterior = null;
+          if (e.message.includes('CORS') || e.message.includes('tainted'))
+            toast(`⚠️ Frame CORS: ${e.message}`, 'err');
+        }
+      }
+    }
+
+    // Todos listos — refrescar desde servidor
+    const lista = await api('GET', '/ordenes');
+    const ni = lista.findIndex(o => o.id === ordenId);
+    if (ni >= 0) _ordenes[oIdx] = lista[ni];
+    renderOrdenes();
+    setOrdenStatus(ordenId, '');
+    if (btn) btn.disabled = false;
+    if (spin) spin.style.display = 'none';
+    toast(`Video reanudado ✓ (${clips.length - firstPending} clips completados)`);
+  } catch(e) {
+    _ordenes[oIdx].estado = 'error'; renderOrdenes();
+    if (btn) btn.disabled = false;
+    if (spin) spin.style.display = 'none';
+    toast('Error al reanudar: ' + e.message, 'err');
   }
 }
 

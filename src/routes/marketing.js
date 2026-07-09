@@ -167,7 +167,7 @@ router.post('/ordenes', async (req, res) => {
     const { titulo, descripcion, tipo_contenido, redes,
             instrucciones_extra, instrucciones_ids, formatos,
             logo_posicion, logo_tamano, logo_tamano_pct,
-            plantilla_id, duracion_seg } = req.body;
+            plantilla_id, duracion_seg, guion_clips } = req.body;
     if (!titulo?.trim()) return res.status(400).json({ error: 'titulo es requerido' });
     const POSICIONES_VALIDAS = ['inferior-derecha','inferior-izquierda','superior-derecha','superior-izquierda','centro','sin-logo'];
     const TAMANOS_VALIDOS    = ['pequeno','mediano','grande'];
@@ -191,7 +191,8 @@ router.post('/ordenes', async (req, res) => {
         logo_tamano:        logo_tamano        ?? 'mediano',
         logo_tamano_pct:    logo_tamano_pct    ?? 15,
         plantilla_id:       plantilla_id       ?? null,
-        duracion_seg:       duracion_seg       ?? 8
+        duracion_seg:       duracion_seg       ?? 8,
+        guion_clips:        Array.isArray(guion_clips) && guion_clips.length ? guion_clips : null
       })
       .select().single();
     if (error) throw error;
@@ -551,14 +552,21 @@ router.post('/ordenes/:id/generar-video', async (req, res) => {
   const ordenId = Number(req.params.id);
   try {
     const { clips } = req.body;
+
+    // Presencia de la clave 'clips' → rama multi-clip explícita
+    if ('clips' in req.body) {
+      if (!Array.isArray(clips) || clips.length === 0)
+        return res.status(400).json({ error: 'clips debe ser un array no vacío' });
+    }
+
     const { data: orden, error: ordErr } = await supabase
       .from('ordenes_contenido').select('*').eq('id', ordenId).single();
     if (ordErr) throw ordErr;
 
     const aspectRatio = (orden.formatos ?? ['16:9'])[0];
 
-    // ── Multi-clip: frontend provee los prompts del guión
-    if (Array.isArray(clips) && clips.length > 1) {
+    // ── Multi-clip: frontend provee los prompts del guión (1 clip o más)
+    if (Array.isArray(clips) && clips.length >= 1) {
       const clipsInicial = clips.map((c, i) => ({
         numero:      c.numero ?? (i + 1),
         duracion_seg: Number(c.duracion_seg) || 8,
