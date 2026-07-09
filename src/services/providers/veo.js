@@ -5,8 +5,11 @@
 
 const axios = require('axios');
 
-const MODEL_ID = 'veo-3.1-fast-generate-preview';
-const BASE     = 'https://generativelanguage.googleapis.com/v1beta';
+const MODELS = {
+  fast:    'veo-3.1-fast-generate-preview',
+  quality: 'veo-3.1-generate-preview'
+};
+const BASE = 'https://generativelanguage.googleapis.com/v1beta';
 
 function key() {
   const k = process.env.GEMINI_API_KEY;
@@ -14,7 +17,8 @@ function key() {
   return k;
 }
 
-async function iniciarVideo(prompt, { aspectRatio = '16:9', duracionSeg = 8, imagenInicial = null } = {}) {
+async function iniciarVideo(prompt, { aspectRatio = '16:9', duracionSeg = 8, imagenInicial = null, calidad = 'fast' } = {}) {
+  const modelId  = MODELS[calidad] ?? MODELS.fast;
   const instance = { prompt };
   if (imagenInicial?.data) {
     instance.image = {
@@ -25,7 +29,7 @@ async function iniciarVideo(prompt, { aspectRatio = '16:9', duracionSeg = 8, ima
   let data;
   try {
     const res = await axios.post(
-      `${BASE}/models/${MODEL_ID}:predictLongRunning?key=${key()}`,
+      `${BASE}/models/${modelId}:predictLongRunning?key=${key()}`,
       {
         instances:  [instance],
         parameters: { aspectRatio, sampleCount: 1, durationSeconds: Number(duracionSeg) }
@@ -37,9 +41,8 @@ async function iniciarVideo(prompt, { aspectRatio = '16:9', duracionSeg = 8, ima
     const geminiBody = e.response?.data;
     const detail = geminiBody ? JSON.stringify(geminiBody) : e.message;
     const hasImg = !!imagenInicial?.data;
-    throw new Error(`Veo iniciar ${e.response?.status ?? 'ERR'} (conImagen=${hasImg}, modelo=${MODEL_ID}) — body: ${detail}`);
+    throw new Error(`Veo iniciar ${e.response?.status ?? 'ERR'} (conImagen=${hasImg}, modelo=${modelId}) — body: ${detail}`);
   }
-  // data.name = "models/veo-3.1-fast-generate-preview/operations/{id}"
   if (!data.name) throw new Error('Veo no devolvió operation name');
   return data.name;
 }

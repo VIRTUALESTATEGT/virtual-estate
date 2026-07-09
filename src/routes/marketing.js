@@ -167,7 +167,8 @@ router.post('/ordenes', async (req, res) => {
     const { titulo, descripcion, tipo_contenido, redes,
             instrucciones_extra, instrucciones_ids, formatos,
             logo_posicion, logo_tamano, logo_tamano_pct,
-            plantilla_id, duracion_seg, guion_clips } = req.body;
+            plantilla_id, duracion_seg, guion_clips,
+            permitir_voces, video_calidad } = req.body;
     if (!titulo?.trim()) return res.status(400).json({ error: 'titulo es requerido' });
     const POSICIONES_VALIDAS = ['inferior-derecha','inferior-izquierda','superior-derecha','superior-izquierda','centro','sin-logo'];
     const TAMANOS_VALIDOS    = ['pequeno','mediano','grande'];
@@ -192,7 +193,9 @@ router.post('/ordenes', async (req, res) => {
         logo_tamano_pct:    logo_tamano_pct    ?? 15,
         plantilla_id:       plantilla_id       ?? null,
         duracion_seg:       duracion_seg       ?? 8,
-        guion_clips:        Array.isArray(guion_clips) && guion_clips.length ? guion_clips : null
+        guion_clips:        Array.isArray(guion_clips) && guion_clips.length ? guion_clips : null,
+        permitir_voces:     Boolean(permitir_voces),
+        video_calidad:      ['fast', 'quality'].includes(video_calidad) ? video_calidad : 'fast'
       })
       .select().single();
     if (error) throw error;
@@ -338,7 +341,11 @@ TEXTO PUBLICITARIO: hook, estructura (AIDA/PAS/storytelling), CTA, tono, longitu
 
 Responde ÚNICAMENTE con el prompt mejorado. Sin explicaciones, sin prefijos, sin markdown.`;
 
-const SYSTEM_VIDEO_STUDIO = `Eres director de fotografía y guionista de video especializado en bienes raíces premium de Guatemala.
+function buildSystemVideoStudio(permitirVoces = false) {
+  const sonidoRegla = permitirVoces
+    ? ''
+    : '\n- Cada prompt debe incluir al final: "ambient sound only, no dialogue, no speech"';
+  return `Eres director de fotografía y guionista de video especializado en bienes raíces premium de Guatemala.
 Creas prompts para Veo 3.1 (IA generativa de Google). Responde ÚNICAMENTE con JSON válido, sin markdown ni texto extra.
 
 ESTRUCTURA OBLIGATORIA por cada clip:
@@ -351,6 +358,7 @@ Reglas absolutas:
 - Personas sí permitidas (familias, agentes, compradores) cuando la idea lo requiera
 - En multi-clip: consistencia visual entre todos los clips (misma paleta, iluminación y locación coherentes para que al editarlos en secuencia se sientan continuos)
 - Cada clip es un prompt independiente y completo
+- Integra anclas fotográficas de realismo como parte natural de la descripción cinematográfica: especifica cámara y lente (ej. "shot on Sony A7III, 35mm lens"), incluye "natural skin texture" cuando haya personas, usa "documentary style" cuando refuerce la atmósfera real, añade "subtle handheld movement" cuando la escena lo permita${sonidoRegla}
 
 Para CLIP ÚNICO (≤8 seg) responde EXACTAMENTE con este JSON:
 {
@@ -374,6 +382,7 @@ qué puede hacer Veo bien con esa idea, qué probablemente no puede lograr (text
 logos, múltiples acciones distintas dentro de un clip, continuidad perfecta de movimiento entre
 clips, escenas muy complejas), y cómo resolverlo en edición externa (agregar texto/logo en
 post-producción, unir clips con corte o transición, etc.).`;
+}
 
 const SYSTEM_VIDEO_MODIFY = `Eres asistente de dirección de video. El usuario quiere modificar ÚNICAMENTE un aspecto específico de un prompt de video para Veo 3.1.
 
@@ -384,7 +393,7 @@ Responde ÚNICAMENTE con el prompt modificado en inglés. Sin explicaciones, sin
 router.post('/prompt-studio', async (req, res) => {
   try {
     const { idea, destino = 'imagen_fotorrealista', idioma = 'ingles',
-            duracion_seg, duraciones_por_clip } = req.body;
+            duracion_seg, duraciones_por_clip, permitir_voces = false } = req.body;
     if (!idea?.trim()) return res.status(400).json({ error: 'idea es requerida' });
 
     const { data: identidad } = await supabase
@@ -416,7 +425,7 @@ Genera el JSON de video.`;
         {
           model:      'claude-sonnet-4-6',
           max_tokens: 2000,
-          system:     SYSTEM_VIDEO_STUDIO,
+          system:     buildSystemVideoStudio(Boolean(permitir_voces)),
           messages:   [{ role: 'user', content: userMsg }]
         },
         { timeout: 25000 }
@@ -515,6 +524,8 @@ Reglas para prompt_video:
 - SIN texto en pantalla, SIN logos visibles, SIN personas identificables
 - Para 9:16: encuadre vertical, detalles macro, perspectiva íntima
 - Para 16:9: planos amplios, arquitectura, paisaje, vuelo aéreo
+- Integra anclas fotográficas de realismo como descripción cinematográfica natural: cámara y lente (ej. "shot on Sony A7III, 35mm lens"), "documentary style" si refuerza la atmósfera, "subtle handheld movement" si aplica
+- Respeta la instrucción de sonido que viene en la orden
 - copy_texto: español, máx 150 palabras, listo para publicar en redes
 - hashtags: mezcla español/inglés, relevantes a bienes raíces Guatemala`;
 
@@ -540,6 +551,7 @@ ORDEN:
 - Aspecto: ${(orden.formatos ?? ['16:9'])[0]} · Duración: ${orden.duracion_seg ?? 8} segundos
 - Instrucciones extra: ${orden.instrucciones_extra ?? '(ninguna)'}
 - Redes destino: ${(orden.redes ?? []).join(', ') || '(no especificadas)'}
+- Sonido: ${orden.permitir_voces ? 'diálogo/voces IA permitidos' : 'ambient sound only, no dialogue, no speech'}
 
 Genera el JSON de video.`;
 }
@@ -623,8 +635,9 @@ router.post('/ordenes/:id/generar-video', async (req, res) => {
     if (!prompt_video?.trim()) throw new Error('Claude omitió prompt_video');
 
     const duracionSeg = orden.duracion_seg ?? 8;
+    const calidad     = orden.video_calidad ?? 'fast';
     const { iniciarVideo } = require('../services/videoProvider');
-    const operationName = await iniciarVideo(prompt_video, { aspectRatio, duracionSeg });
+    const operationName = await iniciarVideo(prompt_video, { aspectRatio, duracionSeg, calidad });
 
     const { data: fila, error: insErr } = await supabase
       .from('contenido_generado')
@@ -650,17 +663,29 @@ router.post('/ordenes/:id/generar-video', async (req, res) => {
 
 // Multi-clip Paso 2a: inicia Veo para un clip específico.
 // imagenInicial opcional: { data: base64, mimeType: 'image/png' } — extraído en frontend.
+// calidad NO se acepta del frontend: se lee desde ordenes_contenido vía contenido.orden_id
+// para evitar mezcla de modelos si el usuario reanuda tras un refresh.
 router.post('/contenido/:id/clips/:idx/iniciar', async (req, res) => {
   try {
     const { prompt, duracionSeg, aspectRatio, imagenInicial } = req.body;
     const idx = Number(req.params.idx);
     if (!prompt?.trim()) return res.status(400).json({ error: 'prompt es requerido' });
 
+    // Leer calidad desde la orden (fuente de verdad en DB)
+    const { data: cont, error: contErr } = await supabase
+      .from('contenido_generado').select('orden_id').eq('id', req.params.id).single();
+    if (contErr) throw contErr;
+    const { data: orden, error: ordErr } = await supabase
+      .from('ordenes_contenido').select('video_calidad').eq('id', cont.orden_id).single();
+    if (ordErr) throw ordErr;
+    const calidad = orden.video_calidad ?? 'fast';
+
     const { iniciarVideo } = require('../services/videoProvider');
     const operationName = await iniciarVideo(prompt, {
       aspectRatio:   aspectRatio  ?? '16:9',
       duracionSeg:   duracionSeg  ?? 8,
-      imagenInicial: imagenInicial ?? null
+      imagenInicial: imagenInicial ?? null,
+      calidad
     });
 
     const { data: updated, error } = await supabase.rpc('mkt_set_clip', {
@@ -762,14 +787,19 @@ router.post('/contenido/:id/regenerar-video', async (req, res) => {
       .eq('id', req.params.id).single();
     if (contErr) throw contErr;
 
+    const { data: orden, error: ordErr } = await supabase
+      .from('ordenes_contenido').select('video_calidad').eq('id', cont.orden_id).single();
+    if (ordErr) throw ordErr;
+
     const promptFinal = ajuste?.trim()
       ? `${cont.prompt_usado}. Additional adjustment: ${ajuste.trim()}`
       : cont.prompt_usado;
 
     const { iniciarVideo } = require('../services/videoProvider');
     const operationName = await iniciarVideo(promptFinal, {
-      aspectRatio: cont.formato    ?? '16:9',
-      duracionSeg: cont.duracion_seg ?? 8
+      aspectRatio: cont.formato      ?? '16:9',
+      duracionSeg: cont.duracion_seg ?? 8,
+      calidad:     orden.video_calidad ?? 'fast'
     });
 
     const { data: updated, error: updErr } = await supabase

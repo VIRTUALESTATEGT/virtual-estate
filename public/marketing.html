@@ -355,11 +355,30 @@
               </select>
             </div>
             <div class="form-group" style="margin-bottom:0">
+              <label>Calidad</label>
+              <select id="ord-video-calidad" onchange="updateVideoCost()">
+                <option value="fast">Fast (720p) — $0.10/seg</option>
+                <option value="quality">Quality (1080p) — $0.40/seg</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-grid-2" style="margin-top:.5rem">
+            <div class="form-group" style="margin-bottom:0">
               <label>Duración — <span id="ord-video-dur-lbl">8</span> seg
-                (~<span id="ord-video-cost-lbl">$0.80</span> USD · <span id="ord-video-clips-lbl">1 clip</span>)</label>
+                (<span id="ord-video-clips-lbl">1 clip</span>)</label>
               <input type="number" id="ord-video-dur" min="4" max="60" value="8"
                      oninput="updateVideoCost()" style="width:100%"/>
             </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label>Costo estimado</label>
+              <div id="ord-video-cost-lbl" style="font-size:.82rem;padding:.45rem 0;color:var(--gold);font-weight:600">$0.80 USD · Q6.32</div>
+            </div>
+          </div>
+          <div style="margin-top:.5rem">
+            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.82rem">
+              <input type="checkbox" id="ord-permitir-voces"/>
+              Permitir diálogo/voces IA
+            </label>
           </div>
         </div>
         <div id="video-guion-preview" style="display:none;margin-top:.6rem;padding:.6rem .8rem;background:rgba(193,146,89,.06);border:1px solid rgba(193,146,89,.2);border-radius:4px">
@@ -448,10 +467,25 @@
                      oninput="updateCostoVideo()" style="width:100%"/>
             </div>
             <div class="form-group" style="margin-bottom:0">
-              <label>Costo estimado (Veo 3.1 Fast 720p)</label>
+              <label>Calidad</label>
+              <select id="ps-calidad" onchange="updateCostoVideo()">
+                <option value="fast">Fast (720p) — $0.10/seg</option>
+                <option value="quality">Quality (1080p) — $0.40/seg</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-grid-2" style="margin-bottom:.5rem">
+            <div class="form-group" style="margin-bottom:0">
+              <label>Costo estimado</label>
               <div id="ps-costo" style="font-size:.82rem;padding:.45rem 0;color:var(--gold);font-weight:600">
                 $0.80 USD &nbsp;·&nbsp; Q6.32
               </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0;display:flex;align-items:center;padding-top:1.5rem">
+              <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.82rem;margin:0">
+                <input type="checkbox" id="ps-permitir-voces"/>
+                Permitir diálogo/voces IA
+              </label>
             </div>
           </div>
         </div>
@@ -670,11 +704,14 @@ function toggleFormatos() {
   document.getElementById('video-opts-group').style.display  = isVideo            ? 'block': 'none';
 }
 function updateVideoCost() {
-  const dur   = Math.max(4, Math.min(60, Number(document.getElementById('ord-video-dur').value) || 8));
-  const clips = Math.ceil(dur / 8);
-  const cost  = (dur * 0.10).toFixed(2);
+  const dur     = Math.max(4, Math.min(60, Number(document.getElementById('ord-video-dur').value) || 8));
+  const calidad = document.getElementById('ord-video-calidad').value;
+  const rate    = calidad === 'quality' ? 0.40 : 0.10;
+  const clips   = Math.ceil(dur / 8);
+  const usd     = (dur * rate).toFixed(2);
+  const gtq     = (dur * rate * 7.90).toFixed(2);
   document.getElementById('ord-video-dur-lbl').textContent   = dur;
-  document.getElementById('ord-video-cost-lbl').textContent  = '$' + cost;
+  document.getElementById('ord-video-cost-lbl').textContent  = `$${usd} USD · Q${gtq}`;
   document.getElementById('ord-video-clips-lbl').textContent = clips === 1 ? '1 clip' : `${clips} clips`;
 }
 function renderInstrSelector() {
@@ -794,7 +831,9 @@ async function crearOrden() {
       instrucciones_ids:  instruccionesIds,
       plantilla_id:       isVideo ? null : plantillaId,
       duracion_seg:       duracionSeg,
-      guion_clips:        (isVideo && _videoResult?.tipo === 'multi') ? _videoResult.clips : null
+      guion_clips:        (isVideo && _videoResult?.tipo === 'multi') ? _videoResult.clips : null,
+      permitir_voces:     isVideo ? document.getElementById('ord-permitir-voces').checked : false,
+      video_calidad:      isVideo ? document.getElementById('ord-video-calidad').value    : null
     });
     // Mantener en memoria también para la sesión actual
     if (isVideo && _videoResult?.tipo === 'multi')
@@ -1708,10 +1747,12 @@ function togglePsVideo() {
 }
 
 function updateCostoVideo() {
-  const dur   = Math.max(4, Math.min(60, Number(document.getElementById('ps-dur').value) || 8));
-  const clips = Math.ceil(dur / 8);
-  const usd   = (dur * 0.10).toFixed(2);
-  const gtq   = (dur * 0.10 * 7.90).toFixed(2);
+  const dur     = Math.max(4, Math.min(60, Number(document.getElementById('ps-dur').value) || 8));
+  const calidad = document.getElementById('ps-calidad').value;
+  const rate    = calidad === 'quality' ? 0.40 : 0.10;
+  const clips   = Math.ceil(dur / 8);
+  const usd     = (dur * rate).toFixed(2);
+  const gtq     = (dur * rate * 7.90).toFixed(2);
   document.getElementById('ps-dur-lbl').textContent   = dur;
   document.getElementById('ps-clips-lbl').textContent = clips === 1 ? '1 clip' : `${clips} clips`;
   document.getElementById('ps-costo').innerHTML =
@@ -1730,7 +1771,8 @@ async function mejorarPrompt() {
       const dur  = Math.max(4, Math.min(60, Number(document.getElementById('ps-dur').value) || 8));
       const dist = Array.from({ length: Math.ceil(dur / 8) }, (_, i) => Math.min(8, dur - i * 8));
       const data = await api('POST', '/prompt-studio', {
-        idea, destino, duracion_seg: dur, duraciones_por_clip: dist
+        idea, destino, duracion_seg: dur, duraciones_por_clip: dist,
+        permitir_voces: document.getElementById('ps-permitir-voces').checked
       });
       _videoResult = data;
       _lastPrompt  = '';
