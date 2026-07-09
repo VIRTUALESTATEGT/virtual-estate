@@ -705,7 +705,7 @@ function toggleFormatos() {
 }
 function updateVideoCost() {
   const dur     = Math.max(4, Math.min(60, Number(document.getElementById('ord-video-dur').value) || 8));
-  const calidad = document.getElementById('ord-video-calidad').value;
+  const calidad = document.getElementById('ord-video-calidad')?.value ?? 'fast';
   const rate    = calidad === 'quality' ? 0.40 : 0.10;
   const clips   = Math.ceil(dur / 8);
   const usd     = (dur * rate).toFixed(2);
@@ -1748,7 +1748,7 @@ function togglePsVideo() {
 
 function updateCostoVideo() {
   const dur     = Math.max(4, Math.min(60, Number(document.getElementById('ps-dur').value) || 8));
-  const calidad = document.getElementById('ps-calidad').value;
+  const calidad = document.getElementById('ps-calidad')?.value ?? 'fast';
   const rate    = calidad === 'quality' ? 0.40 : 0.10;
   const clips   = Math.ceil(dur / 8);
   const usd     = (dur * rate).toFixed(2);
@@ -1831,39 +1831,44 @@ function renderResultadoVideo(data) {
 }
 
 function usarGuionEnOrden() {
-  if (!_videoResult) return;
-  const dur = _videoResult.tipo === 'multi'
-    ? _videoResult.clips.reduce((s, c) => s + c.duracion_seg, 0)
-    : 8;
-  const aspect = '16:9'; // default; usuario puede cambiarlo en el form
+  if (!_videoResult) { toast('Genera un guión de video primero', 'err'); return; }
+  try {
+    const dur = _videoResult.tipo === 'multi'
+      ? _videoResult.clips.reduce((s, c) => s + c.duracion_seg, 0)
+      : 8;
 
-  // Cambiar a pestaña Órdenes y abrir formulario
-  showTab('ordenes', document.getElementById('nav-ordenes'));
-  const formCard = document.getElementById('orden-form-card');
-  formCard.style.display = 'block';
-  renderInstrSelector(); loadPlantillas();
+    // Cambiar a pestaña Órdenes y abrir formulario
+    showTab('ordenes', document.getElementById('nav-ordenes'));
+    const formCard = document.getElementById('orden-form-card');
+    formCard.style.display = 'block';
+    renderInstrSelector(); loadPlantillas();
 
-  // Pre-cargar tipo y opciones de video
-  document.getElementById('ord-tipo').value = 'video';
-  toggleFormatos();
-  document.getElementById('ord-video-aspect').value = aspect;
-  document.getElementById('ord-video-dur').value    = dur;
-  updateVideoCost();
+    // Pre-cargar tipo y opciones de video
+    document.getElementById('ord-tipo').value = 'video';
+    toggleFormatos();
+    document.getElementById('ord-video-aspect').value = '16:9';
+    document.getElementById('ord-video-dur').value    = dur;
+    updateVideoCost();
 
-  // Mostrar guión en la vista previa del formulario
-  if (_videoResult.tipo === 'multi') {
-    const clipsHtml = _videoResult.clips.map(c =>
-      `<div style="margin-bottom:.35rem;padding:.4rem .5rem;background:rgba(0,0,0,.18);border-radius:3px">` +
-      `<span style="color:var(--gold);font-weight:600">Clip ${c.numero} — ${c.duracion_seg}s</span><br>` +
-      `<span style="color:var(--light-gray)">${esc(c.prompt)}</span></div>`
-    ).join('');
-    document.getElementById('video-guion-clips').innerHTML = clipsHtml;
-    document.getElementById('video-guion-preview').style.display = 'block';
-  } else {
-    document.getElementById('video-guion-preview').style.display = 'none';
+    // Mostrar guión en la vista previa del formulario
+    const preview = document.getElementById('video-guion-preview');
+    if (_videoResult.tipo === 'multi') {
+      const clipsHtml = _videoResult.clips.map(c =>
+        `<div style="margin-bottom:.35rem;padding:.4rem .5rem;background:rgba(0,0,0,.18);border-radius:3px">` +
+        `<span style="color:var(--gold);font-weight:600">Clip ${c.numero} — ${c.duracion_seg}s</span><br>` +
+        `<span style="color:var(--light-gray)">${esc(c.prompt)}</span></div>`
+      ).join('');
+      document.getElementById('video-guion-clips').innerHTML = clipsHtml;
+      preview.style.display = 'block';
+      setTimeout(() => preview.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+    } else {
+      preview.style.display = 'none';
+    }
+
+    toast('Guión cargado en el formulario ✓ — completa el título y crea la orden');
+  } catch(e) {
+    toast('Error al cargar guión: ' + e.message, 'err');
   }
-
-  toast('Guión cargado en el formulario ✓ — completa el título y crea la orden');
 }
 
 async function modificarPrompt() {
