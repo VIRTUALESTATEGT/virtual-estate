@@ -55,10 +55,18 @@ async function leerContextoMarca(instruccionesIds) {
   };
 }
 
-function construirPrompt(orden, ctx) {
+function construirPrompt(orden, ctx, analisisRef = null) {
   const id  = ctx.identidad;
   const col = id?.colores     ?? {};
   const tip = id?.tipografias ?? {};
+  const refSection = analisisRef ? `
+REFERENCIA VISUAL (respetar este estilo en prompt_imagen):
+- Estilo: ${analisisRef.estilo ?? ''}
+- Paleta de colores: ${analisisRef.paleta_colores ?? ''}
+- Composición: ${analisisRef.composicion ?? ''}
+- Iluminación: ${analisisRef.iluminacion ?? ''}
+- Elementos clave: ${analisisRef.elementos_clave ?? ''}
+- Prompt base sugerido: ${analisisRef.prompt_sugerido ?? ''}` : '';
   return `IDENTIDAD DE MARCA:
 - Nombre: ${id?.nombre_negocio    ?? 'Virtual Estate GT'}
 - Enfoque: ${id?.enfoque_negocio  ?? ''}
@@ -79,7 +87,7 @@ ORDEN DE CONTENIDO:
 - Tipo: ${orden.tipo_contenido ?? 'imagen'}
 - Formatos: ${(orden.formatos ?? ['1:1']).join(', ')}
 - Redes destino: ${(orden.redes ?? []).join(', ') || '(no especificadas)'}
-- Instrucciones extra: ${orden.instrucciones_extra ?? '(ninguna)'}
+- Instrucciones extra: ${orden.instrucciones_extra ?? '(ninguna)'}${refSection}
 
 Genera el JSON de contenido.`;
 }
@@ -126,13 +134,23 @@ async function ejecutar(ordenId, formato = '1:1') {
 
     const ctx = await leerContextoMarca(orden.instrucciones_ids ?? []);
 
+    let analisisRef = null;
+    if (orden.referencia_id) {
+      const { data: ref } = await supabase
+        .from('referencias_publicidad')
+        .select('analisis')
+        .eq('id', orden.referencia_id)
+        .single();
+      analisisRef = ref?.analisis ?? null;
+    }
+
     // Claude → copy + prompt
     const msg = await claude.messages.create(
       {
         model:      'claude-sonnet-4-6',
         max_tokens: 1024,
         system:     SYSTEM_PROMPT,
-        messages:   [{ role: 'user', content: construirPrompt(orden, ctx) }]
+        messages:   [{ role: 'user', content: construirPrompt(orden, ctx, analisisRef) }]
       },
       { timeout: 20000 }
     );

@@ -182,6 +182,19 @@
     .placeholder-title { font-family: 'Raleway',sans-serif; font-size: 1.1rem; font-weight: 600; }
     .placeholder-sub   { font-size: .78rem; color: var(--gray); max-width: 340px; line-height: 1.6; }
     .placeholder-badge { font-size: .65rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--bg); background: var(--gold); padding: .25rem .7rem; border-radius: 20px; }
+    /* REFERENCIAS */
+    .ref-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap: 1rem; margin-top: 1rem; }
+    .ref-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; }
+    .ref-thumb { width: 100%; aspect-ratio: 4/3; object-fit: cover; cursor: zoom-in; display: block; background: var(--bg3); }
+    .ref-body { padding: .75rem; display: flex; flex-direction: column; gap: .5rem; flex: 1; }
+    .ref-desc { font-size: .78rem; font-weight: 600; }
+    .ref-notas { font-size: .72rem; color: var(--gray); line-height: 1.5; }
+    .ref-analisis { font-size: .72rem; line-height: 1.6; background: rgba(193,146,89,.06); border: 1px solid rgba(193,146,89,.18); border-radius: 4px; padding: .55rem .7rem; }
+    .ref-analisis-row { display: flex; gap: .4rem; }
+    .ref-analisis-lbl { color: var(--gold); font-weight: 600; white-space: nowrap; }
+    .ref-actions { display: flex; gap: .4rem; margin-top: auto; padding-top: .4rem; }
+    .ref-badge-ok  { font-size: .6rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: .18rem .45rem; border-radius: 20px; background: rgba(42,122,74,.15); color: #5AE08A; border: 1px solid rgba(42,122,74,.25); }
+    .ref-badge-no  { font-size: .6rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: .18rem .45rem; border-radius: 20px; background: rgba(122,141,133,.12); color: var(--gray); border: 1px solid rgba(122,141,133,.2); }
 
     /* TOAST */
     #toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: .7rem 1.2rem; font-size: .78rem; z-index: 9999; transform: translateY(60px); opacity: 0; transition: all .25s; pointer-events: none; max-width: 320px; }
@@ -405,6 +418,12 @@
             <label class="check-item"><input type="checkbox" name="red" value="whatsapp"/>  WhatsApp</label>
           </div>
         </div>
+        <div class="form-group" id="ref-selector-group">
+          <label>Basar en referencia <span style="color:var(--gray);font-weight:400">(opcional — solo imágenes analizadas)</span></label>
+          <select id="ord-referencia">
+            <option value="">— Sin referencia —</option>
+          </select>
+        </div>
         <div class="form-group"><label>Instrucciones individuales a aplicar</label><div id="instr-selector" class="instr-selector"><span style="font-size:.72rem;color:var(--gray)">Cargando...</span></div></div>
         <div class="form-group"><label>Instrucciones extra (opcional)</label><textarea id="ord-extra" rows="2" placeholder="Cualquier detalle adicional..."></textarea></div>
         <div style="display:flex;justify-content:flex-end;gap:.6rem">
@@ -429,12 +448,32 @@
 
     <!-- ── Referencias ───────────────────────────────────────────────────── -->
     <div class="tab-panel" id="tab-referencias">
-      <div class="placeholder-card">
-        <div class="placeholder-icon"><i class="fas fa-images"></i></div>
-        <div class="placeholder-title">Referencias de Publicidad</div>
-        <div class="placeholder-sub">Sube archivos de referencia visual y notas para inspirar al agente.</div>
-        <span class="placeholder-badge">Próximamente</span>
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-header"><div class="card-title"><i class="fas fa-upload" style="margin-right:.4rem"></i>Subir Referencia</div></div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>Imagen <span style="color:var(--gray);font-weight:400">(JPG / PNG / WEBP · máx 5 MB)</span></label>
+            <input type="file" id="ref-file" accept="image/jpeg,image/png,image/webp" style="font-size:.78rem"/>
+          </div>
+          <div class="form-group">
+            <label>Descripción</label>
+            <input type="text" id="ref-desc" placeholder="Ej: Campaña de lujo, paleta tierra"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Notas</label>
+          <textarea id="ref-notas" rows="2" placeholder="Contexto adicional, fuente, campaña original…"></textarea>
+        </div>
+        <div style="display:flex;justify-content:flex-end">
+          <button class="btn btn-primary btn-sm" onclick="subirReferencia()"><i class="fas fa-upload"></i> Subir</button>
+        </div>
       </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.25rem">
+        <div style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)">Galería</div>
+        <button class="btn btn-ghost btn-xs" onclick="loadReferencias()">↻ Actualizar</button>
+      </div>
+      <div id="ref-grid" class="ref-grid"></div>
     </div>
 
     <!-- ── Prompt Studio ─────────────────────────────────────────────────── -->
@@ -562,7 +601,7 @@ function toast(msg, type = 'ok') {
 }
 
 // ── Tabs ─────────────────────────────────────────────────────────────────────
-const TAB_LOADERS = { identidad: loadIdentidad, instrucciones: loadInstrucciones, ordenes: loadOrdenes, aprobacion: loadAprobacion };
+const TAB_LOADERS = { identidad: loadIdentidad, instrucciones: loadInstrucciones, ordenes: loadOrdenes, aprobacion: loadAprobacion, referencias: loadReferencias };
 function showTab(name, el) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('[id^="nav-"]').forEach(n => n.classList.remove('active'));
@@ -692,7 +731,7 @@ function toggleForm() {
   const c=document.getElementById('orden-form-card');
   const open=c.style.display==='none';
   c.style.display=open?'block':'none';
-  if(open){ renderInstrSelector(); loadPlantillas(); }
+  if(open){ renderInstrSelector(); loadPlantillas(); loadRefSelector(); }
 }
 function toggleFormatos() {
   const tipo    = document.getElementById('ord-tipo').value;
@@ -702,6 +741,7 @@ function toggleFormatos() {
   document.getElementById('logo-pos-group').style.display    = isTexto || isVideo ? 'none' : 'grid';
   document.getElementById('plantilla-group').style.display   = isVideo            ? 'none' : 'block';
   document.getElementById('video-opts-group').style.display  = isVideo            ? 'block': 'none';
+  document.getElementById('ref-selector-group').style.display= isVideo            ? 'none' : 'block';
 }
 function updateVideoCost() {
   const dur     = Math.max(4, Math.min(60, Number(document.getElementById('ord-video-dur').value) || 8));
@@ -833,7 +873,8 @@ async function crearOrden() {
       duracion_seg:       duracionSeg,
       guion_clips:        (isVideo && _videoResult?.tipo === 'multi') ? _videoResult.clips : null,
       permitir_voces:     isVideo ? document.getElementById('ord-permitir-voces').checked : false,
-      video_calidad:      isVideo ? document.getElementById('ord-video-calidad').value    : null
+      video_calidad:      isVideo ? document.getElementById('ord-video-calidad').value    : null,
+      referencia_id:      !isVideo ? (Number(document.getElementById('ord-referencia').value) || null) : null
     });
     // Mantener en memoria también para la sesión actual
     if (isVideo && _videoResult?.tipo === 'multi')
@@ -843,6 +884,7 @@ async function crearOrden() {
     renderOrdenes();
     ['ord-titulo','ord-desc','ord-extra'].forEach(id=>document.getElementById(id).value='');
     document.querySelectorAll('input[name="red"],input[name="instr_id"],input[name="formato"]').forEach(c=>{c.checked=c.value==='1:1';});
+    document.getElementById('ord-referencia').value = '';
     document.getElementById('video-guion-preview').style.display = 'none';
     toggleForm();
     toast('Orden creada ✓');
@@ -1911,6 +1953,117 @@ async function copiarPrompt() {
     await navigator.clipboard.writeText(txt);
     toast('Prompt copiado ✓');
   } catch(e) { toast('Error copiando', 'err'); }
+}
+
+// ── Referencias ──────────────────────────────────────────────────────────────
+let _referencias = [];
+
+async function loadReferencias() {
+  try {
+    _referencias = await api('GET', '/referencias');
+    renderReferencias();
+  } catch(e) { toast('Error cargando referencias: ' + e.message, 'err'); }
+}
+
+function renderReferencias() {
+  const grid = document.getElementById('ref-grid');
+  if (!grid) return;
+  if (!_referencias.length) {
+    grid.innerHTML = '<div style="color:var(--gray);font-size:.78rem;padding:.5rem 0">No hay referencias aún. Sube una imagen arriba.</div>';
+    return;
+  }
+  grid.innerHTML = _referencias.map(r => {
+    const analizado = !!r.analisis;
+    const analisisHtml = analizado ? `
+      <div class="ref-analisis">
+        <div class="ref-analisis-row"><span class="ref-analisis-lbl">Estilo:</span> ${esc(r.analisis.estilo ?? '')}</div>
+        <div class="ref-analisis-row"><span class="ref-analisis-lbl">Paleta:</span> ${esc(r.analisis.paleta_colores ?? '')}</div>
+        <div class="ref-analisis-row"><span class="ref-analisis-lbl">Composición:</span> ${esc(r.analisis.composicion ?? '')}</div>
+        <div class="ref-analisis-row"><span class="ref-analisis-lbl">Iluminación:</span> ${esc(r.analisis.iluminacion ?? '')}</div>
+        <div class="ref-analisis-row"><span class="ref-analisis-lbl">Elementos:</span> ${esc(r.analisis.elementos_clave ?? '')}</div>
+        <div class="ref-analisis-row" style="margin-top:.3rem"><span class="ref-analisis-lbl">Prompt sugerido:</span></div>
+        <div style="margin-top:.2rem;font-style:italic;color:var(--gray)">${esc(r.analisis.prompt_sugerido ?? '')}</div>
+      </div>` : '';
+    return `
+    <div class="ref-card" id="ref-card-${r.id}">
+      <img class="ref-thumb lb-trigger" src="${esc(r.archivo_url)}" alt="${esc(r.descripcion||'')}"
+           onclick="openLightbox('${esc(r.archivo_url)}')" onerror="this.style.display='none'"/>
+      <div class="ref-body">
+        <div style="display:flex;align-items:center;gap:.4rem">
+          <span class="${analizado ? 'ref-badge-ok' : 'ref-badge-no'}">${analizado ? '✓ Analizada' : 'Sin análisis'}</span>
+        </div>
+        ${r.descripcion ? `<div class="ref-desc">${esc(r.descripcion)}</div>` : ''}
+        ${r.notas      ? `<div class="ref-notas">${esc(r.notas)}</div>`      : ''}
+        ${analisisHtml}
+        <div class="ref-actions">
+          ${!analizado ? `<button class="btn btn-primary btn-xs" onclick="analizarReferencia(${r.id})"><i class="fas fa-wand-magic-sparkles"></i> Analizar con IA</button>` : ''}
+          <button class="btn btn-ghost btn-xs" style="margin-left:auto;color:var(--danger,#E08080)" onclick="eliminarReferencia(${r.id})"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function subirReferencia() {
+  const file = document.getElementById('ref-file').files[0];
+  if (!file) { toast('Selecciona una imagen', 'err'); return; }
+  const fd = new FormData();
+  fd.append('imagen', file);
+  const desc  = document.getElementById('ref-desc').value.trim();
+  const notas = document.getElementById('ref-notas').value.trim();
+  if (desc)  fd.append('descripcion', desc);
+  if (notas) fd.append('notas', notas);
+  try {
+    const r = await fetch('/api/marketing/referencias', { method: 'POST', body: fd });
+    if (!r.ok) { const e = await r.json(); throw new Error(e.error); }
+    const nueva = await r.json();
+    _referencias.unshift(nueva);
+    renderReferencias();
+    document.getElementById('ref-file').value  = '';
+    document.getElementById('ref-desc').value  = '';
+    document.getElementById('ref-notas').value = '';
+    toast('Referencia subida ✓');
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+async function analizarReferencia(id) {
+  const card = document.getElementById('ref-card-' + id);
+  const btn  = card?.querySelector('button.btn-primary');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analizando…'; }
+  try {
+    const data = await api('POST', `/referencias/${id}/analizar`);
+    const idx  = _referencias.findIndex(r => r.id === id);
+    if (idx >= 0) _referencias[idx] = data;
+    renderReferencias();
+    toast('Análisis completado ✓');
+  } catch(e) {
+    toast('Error: ' + e.message, 'err');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Analizar con IA'; }
+  }
+}
+
+async function eliminarReferencia(id) {
+  if (!confirm('¿Eliminar esta referencia? No se puede deshacer.')) return;
+  try {
+    await api('DELETE', `/referencias/${id}`);
+    _referencias = _referencias.filter(r => r.id !== id);
+    renderReferencias();
+    toast('Referencia eliminada');
+  } catch(e) { toast('Error: ' + e.message, 'err'); }
+}
+
+async function loadRefSelector() {
+  try {
+    if (!_referencias.length) _referencias = await api('GET', '/referencias');
+    const sel = document.getElementById('ord-referencia');
+    while (sel.options.length > 1) sel.remove(1);
+    _referencias.filter(r => r.analisis).forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r.id;
+      opt.textContent = r.descripcion || `Referencia #${r.id}`;
+      sel.appendChild(opt);
+    });
+  } catch(_) {}
 }
 
 // ── Lightbox ──────────────────────────────────────────────────────────────────

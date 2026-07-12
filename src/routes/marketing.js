@@ -168,7 +168,7 @@ router.post('/ordenes', async (req, res) => {
             instrucciones_extra, instrucciones_ids, formatos,
             logo_posicion, logo_tamano, logo_tamano_pct,
             plantilla_id, duracion_seg, guion_clips,
-            permitir_voces, video_calidad } = req.body;
+            permitir_voces, video_calidad, referencia_id } = req.body;
     if (!titulo?.trim()) return res.status(400).json({ error: 'titulo es requerido' });
     const POSICIONES_VALIDAS = ['inferior-derecha','inferior-izquierda','superior-derecha','superior-izquierda','centro','sin-logo'];
     const TAMANOS_VALIDOS    = ['pequeno','mediano','grande'];
@@ -195,7 +195,8 @@ router.post('/ordenes', async (req, res) => {
         duracion_seg:       duracion_seg       ?? 8,
         guion_clips:        Array.isArray(guion_clips) && guion_clips.length ? guion_clips : null,
         permitir_voces:     Boolean(permitir_voces),
-        video_calidad:      ['fast', 'quality'].includes(video_calidad) ? video_calidad : 'fast'
+        video_calidad:      ['fast', 'quality'].includes(video_calidad) ? video_calidad : 'fast',
+        referencia_id:      referencia_id ? Number(referencia_id) : null
       })
       .select().single();
     if (error) throw error;
@@ -1002,6 +1003,137 @@ router.put('/contenido/:id/paneles-textos', async (req, res) => {
     const { data, error } = await supabase
       .from('contenido_generado').update({ paneles: updPaneles }).eq('id', req.params.id).select().single();
     if (error) throw error;
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Referencias de Publicidad ─────────────────────────────────────────────────
+
+const refUpload = multer({
+  storage: multer.memoryStorage(),
+  limits:  { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ok = ['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype);
+    cb(ok ? null : new Error('Solo JPG, PNG o WEBP permitidos'), ok);
+  }
+});
+
+router.get('/referencias', async (_req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('referencias_publicidad')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.post('/referencias', (req, res) => {
+  refUpload.single('imagen')(req, res, async (err) => {
+    if (err) return res.status(400).json({ error: err.message });
+    if (!req.file) return res.status(400).json({ error: 'Imagen requerida' });
+    const { descripcion, notas } = req.body;
+    try {
+      const ext  = req.file.mimetype === 'image/png' ? 'png'
+                 : req.file.mimetype === 'image/webp' ? 'webp' : 'jpg';
+      const path = `referencias/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('marketing')
+        .upload(path, req.file.buffer, { contentType: req.file.mimetype, upsert: false });
+      if (upErr) throw upErr;
+      const { data: { publicUrl } } = supabase.storage.from('marketing').getPublicUrl(path);
+      const { data, error: insErr } = await supabase
+        .from('referencias_publicidad')
+        .insert({ descripcion: descripcion ?? null, notas: notas ?? null, archivo_url: publicUrl })
+        .select().single();
+      if (insErr) throw insErr;
+      res.status(201).json(data);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  });
+});
+
+router.delete('/referencias/:id', async (req, res) => {
+  try {
+    const { data: ref, error: fetchErr } = await supabase
+      .from('referencias_publicidad').select('archivo_url').eq('id', req.params.id).single();
+    if (fetchErr) throw fetchErr;
+    if (ref.archivo_url) {
+      // URL: .../storage/v1/object/public/marketing/referencias/...
+      const bucketPath = ref.archivo_url.split('/marketing/')[1];
+      if (bucketPath) await supabase.storage.from('marketing').remove([bucketPath]);
+    }
+    const { error: delErr } = await supabase
+      .from('referencias_publicidad').delete().eq('id', req.params.id);
+    if (delErr) throw delErr;
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+const SYSTEM_ANALISIS_REF = `Eres director de arte de una agencia premium de marketing inmobiliario. Analiza la imagen publicitaria de referencia y devuelve ÚNICAMENTE JSON válido con esta estructura exacta:
+{
+  "estilo": "...",
+  "paleta_colores": "...",
+  "composicion": "...",
+  "iluminacion": "...",
+  "elementos_clave": "...",
+  "prompt_sugerido": "..."
+}
+Reglas:
+- estilo: 1-2 frases describiendo el estilo visual general
+- paleta_colores: lista los colores dominantes con su rol (fondo, acento, texto, etc.)
+- composicion: tipo de plano, punto focal, distribución de elementos, regla de tercios
+- iluminacion: tipo de luz, dirección, contraste, hora del día si aplica
+- elementos_clave: objetos, texturas, materiales o recursos visuales que definen la pieza
+- prompt_sugerido: inglés, 80-150 palabras, prompt fotorrealista que replica el ESTILO de la referencia adaptado a inmuebles residenciales/comerciales en Guatemala; NO copies el contenido literal; sin texto en imagen, sin logos, sin personas identificables`;
+
+router.post('/referencias/:id/analizar', async (req, res) => {
+  try {
+    const { data: ref, error: fetchErr } = await supabase
+      .from('referencias_publicidad').select('archivo_url').eq('id', req.params.id).single();
+    if (fetchErr) throw fetchErr;
+    if (!ref.archivo_url) return res.status(400).json({ error: 'Sin imagen adjunta' });
+
+    const imgResp = await fetch(ref.archivo_url);
+    if (!imgResp.ok) throw new Error(`No se pudo descargar la imagen: ${imgResp.status}`);
+    const rawBuffer = Buffer.from(await imgResp.arrayBuffer());
+
+    // Redimensiona a máx 1568px del lado largo — Claude no gana nada con más resolución
+    const resizedBuffer = await sharp(rawBuffer)
+      .resize({ width: 1568, height: 1568, fit: 'inside', withoutEnlargement: true })
+      .jpeg({ quality: 85 })
+      .toBuffer();
+
+    const base64 = resizedBuffer.toString('base64');
+
+    const msg = await claude.messages.create({
+      model:      'claude-sonnet-4-6',
+      max_tokens: 1024,
+      system:     SYSTEM_ANALISIS_REF,
+      messages: [{
+        role:    'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
+          { type: 'text',  text: 'Analiza esta imagen de referencia publicitaria y devuelve el JSON solicitado.' }
+        ]
+      }]
+    });
+
+    const rawText = msg.content.find(b => b.type === 'text')?.text ?? '';
+    let analisis;
+    try {
+      const clean = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+      analisis = JSON.parse(clean);
+    } catch {
+      throw new Error(`Claude no devolvió JSON válido: ${rawText.slice(0, 300)}`);
+    }
+
+    const { data, error: updErr } = await supabase
+      .from('referencias_publicidad')
+      .update({ analisis })
+      .eq('id', req.params.id)
+      .select().single();
+    if (updErr) throw updErr;
     res.json(data);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
