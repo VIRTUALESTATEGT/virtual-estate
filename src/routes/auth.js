@@ -3,6 +3,8 @@ const router = express.Router();
 const supabase = require('../config/supabase');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const authMiddleware = require('../middleware/auth');
+const { requireSuperadmin } = require('../middleware/roles');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'virtual-estate-secret-key';
 const JWT_EXPIRES = '8h';
@@ -113,8 +115,8 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// SIGNUP (internal staff — kept for compatibility)
-router.post('/signup', async (req, res) => {
+// SIGNUP (internal staff — superadmin only)
+router.post('/signup', authMiddleware, requireSuperadmin, async (req, res) => {
   try {
     const { nombre, email, password } = req.body;
 

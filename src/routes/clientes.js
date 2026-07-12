@@ -2,6 +2,16 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
 
+// Solo staff accede a rutas de gestión; el cliente queda limitado a /me*
+router.use((req, res, next) => {
+  const esCliente = (req.usuario?.role || req.usuario?.rol) === 'cliente'
+                    && !req.usuario?.is_superadmin;
+  if (esCliente && !req.path.startsWith('/me')) {
+    return res.status(403).json({ error: 'Acceso denegado.' });
+  }
+  next();
+});
+
 router.get('/', async (req, res) => {
   try {
     let query = supabase.from('clientes').select('*').order('id', { ascending: false });
