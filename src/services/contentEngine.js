@@ -10,7 +10,7 @@ const { aplicarOverlay }  = require('./brandOverlay');
 const BUCKET = 'marketing';
 const claude  = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
 
-const SYSTEM_PROMPT = `Eres director creativo de una agencia de marketing premium especializada en bienes raíces en Guatemala. Creas contenido visual y textual de alta calidad para redes sociales.
+const SYSTEM_PROMPT_MARCA = `Eres director creativo de una agencia de marketing premium especializada en bienes raíces en Guatemala. Creas contenido visual y textual de alta calidad para redes sociales.
 
 Recibirás el perfil de marca y una orden de contenido. Responde ÚNICAMENTE con JSON válido. Sin markdown, sin bloques de código, sin texto fuera del JSON.
 
@@ -25,6 +25,26 @@ Reglas:
 - prompt_imagen: inglés, 80-150 palabras, estilo fotorrealista editorial, sin texto visible, sin logos, sin marcas comerciales, sin personas identificables, composición y luz de alta calidad
 - copy_texto: español, tono fiel a la marca, máximo 200 palabras, listo para publicar
 - hashtags: mezcla español/inglés, relevantes a bienes raíces Guatemala y al tema, separados por espacio`;
+
+const SYSTEM_PROMPT_GENERICO = `Eres director creativo de una agencia de marketing premium. Creas contenido visual y textual de alta calidad para redes sociales.
+
+Responde ÚNICAMENTE con JSON válido. Sin markdown, sin bloques de código, sin texto fuera del JSON.
+
+Estructura exacta requerida:
+{
+  "prompt_imagen": "...",
+  "copy_texto": "...",
+  "hashtags": "..."
+}
+
+Reglas:
+- prompt_imagen: inglés, 80-150 palabras, estilo fotorrealista editorial, sin texto visible, sin logos, sin marcas comerciales, sin personas identificables, composición y luz de alta calidad
+- copy_texto: español, máximo 200 palabras, listo para publicar
+- hashtags: relevantes al tema y la plataforma, separados por espacio`;
+
+function buildSystemPromptEngine(usarMarca) {
+  return usarMarca ? SYSTEM_PROMPT_MARCA : SYSTEM_PROMPT_GENERICO;
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -55,10 +75,9 @@ async function leerContextoMarca(instruccionesIds) {
   };
 }
 
-function construirPrompt(orden, ctx, analisisRef = null) {
-  const id  = ctx.identidad;
-  const col = id?.colores     ?? {};
-  const tip = id?.tipografias ?? {};
+const CTX_VACIO = { identidad: {}, generales: [], individuales: [] };
+
+function construirPrompt(orden, ctx, analisisRef = null, usarMarca = true) {
   const refSection = analisisRef ? `
 REFERENCIA VISUAL (respetar este estilo en prompt_imagen):
 - Estilo: ${analisisRef.estilo ?? ''}
@@ -67,6 +86,22 @@ REFERENCIA VISUAL (respetar este estilo en prompt_imagen):
 - Iluminación: ${analisisRef.iluminacion ?? ''}
 - Elementos clave: ${analisisRef.elementos_clave ?? ''}
 - Prompt base sugerido: ${analisisRef.prompt_sugerido ?? ''}` : '';
+
+  if (!usarMarca) {
+    return `ORDEN DE CONTENIDO:
+- Título: ${orden.titulo ?? ''}
+- Descripción: ${orden.descripcion ?? ''}
+- Tipo: ${orden.tipo_contenido ?? 'imagen'}
+- Formatos: ${(orden.formatos ?? ['1:1']).join(', ')}
+- Redes destino: ${(orden.redes ?? []).join(', ') || '(no especificadas)'}
+- Instrucciones extra: ${orden.instrucciones_extra ?? '(ninguna)'}${refSection}
+
+Genera el JSON de contenido.`;
+  }
+
+  const id  = ctx.identidad;
+  const col = id?.colores     ?? {};
+  const tip = id?.tipografias ?? {};
   return `IDENTIDAD DE MARCA:
 - Nombre: ${id?.nombre_negocio    ?? 'Virtual Estate GT'}
 - Enfoque: ${id?.enfoque_negocio  ?? ''}
@@ -94,10 +129,11 @@ Genera el JSON de contenido.`;
 
 // Genera imagen + overlay + sube ambas versiones a Storage.
 // Modo degradado: si algo falla devuelve { imagenUrl: null, error: msg }
-async function generarYSubirImagen(prompt, formato, ordenId, identidad, logoPosicion = 'inferior-derecha', logoTamano = 'mediano', logoTamanoPct = null) {
+async function generarYSubirImagen(prompt, formato, ordenId, identidad, logoPosicion = 'inferior-derecha', logoTamano = 'mediano', logoTamanoPct = null, usarMarca = true) {
   try {
+    const posicionEfectiva = usarMarca ? logoPosicion : 'sin-logo';
     const { buffer, mimeType }         = await generarImagen(prompt, { formato });
-    const { overlayBuffer, originalBuffer } = await aplicarOverlay(buffer, { formato, identidad, logoPosicion, logoTamano, logoTamanoPct });
+    const { overlayBuffer, originalBuffer } = await aplicarOverlay(buffer, { formato, identidad, logoPosicion: posicionEfectiva, logoTamano, logoTamanoPct });
 
     const slug = formato.replace(':', '-');
     const ts   = Date.now();
@@ -132,7 +168,10 @@ async function ejecutar(ordenId, formato = '1:1') {
       .from('ordenes_contenido').select('*').eq('id', ordenId).single();
     if (ordenErr) throw ordenErr;
 
-    const ctx = await leerContextoMarca(orden.instrucciones_ids ?? []);
+    const usarMarca = orden.usar_marca !== false;
+    const ctx = usarMarca
+      ? await leerContextoMarca(orden.instrucciones_ids ?? [])
+      : CTX_VACIO;
 
     let analisisRef = null;
     if (orden.referencia_id) {
@@ -149,8 +188,8 @@ async function ejecutar(ordenId, formato = '1:1') {
       {
         model:      'claude-sonnet-4-6',
         max_tokens: 1024,
-        system:     SYSTEM_PROMPT,
-        messages:   [{ role: 'user', content: construirPrompt(orden, ctx, analisisRef) }]
+        system:     buildSystemPromptEngine(usarMarca),
+        messages:   [{ role: 'user', content: construirPrompt(orden, ctx, analisisRef, usarMarca) }]
       },
       { timeout: 20000 }
     );
@@ -174,7 +213,8 @@ async function ejecutar(ordenId, formato = '1:1') {
         await generarYSubirImagen(prompt_imagen, formato, ordenId, ctx.identidad,
           orden.logo_posicion  ?? 'inferior-derecha',
           orden.logo_tamano    ?? 'mediano',
-          orden.logo_tamano_pct ?? null));
+          orden.logo_tamano_pct ?? null,
+          usarMarca));
     }
 
     const { data: fila, error: insErr } = await supabase
@@ -213,15 +253,16 @@ async function ejecutarFormato(contenidoBaseId, formato) {
 
   const [{ data: identidad }, { data: orden }] = await Promise.all([
     supabase.from('marca_identidad').select('*').limit(1).maybeSingle(),
-    supabase.from('ordenes_contenido').select('logo_posicion, logo_tamano, logo_tamano_pct').eq('id', base.orden_id).single()
+    supabase.from('ordenes_contenido').select('logo_posicion, logo_tamano, logo_tamano_pct, usar_marca').eq('id', base.orden_id).single()
   ]);
 
+  const usarMarca     = orden?.usar_marca !== false;
   const logoPosicion  = orden?.logo_posicion  ?? 'inferior-derecha';
   const logoTamano    = orden?.logo_tamano    ?? 'mediano';
   const logoTamanoPct = orden?.logo_tamano_pct ?? null;
 
   const { imagenUrl, imagenOriginalUrl, imagenError } =
-    await generarYSubirImagen(base.prompt_usado, formato, base.orden_id, identidad, logoPosicion, logoTamano, logoTamanoPct);
+    await generarYSubirImagen(base.prompt_usado, formato, base.orden_id, identidad, logoPosicion, logoTamano, logoTamanoPct, usarMarca);
 
   const { data: fila, error: insErr } = await supabase
     .from('contenido_generado')
@@ -255,9 +296,10 @@ async function regenerar(contenidoId, { ajuste = '', logoPosicion, logoTamano, l
 
   const [{ data: identidad }, { data: orden }] = await Promise.all([
     supabase.from('marca_identidad').select('*').limit(1).maybeSingle(),
-    supabase.from('ordenes_contenido').select('logo_posicion, logo_tamano, logo_tamano_pct').eq('id', cont.orden_id).single()
+    supabase.from('ordenes_contenido').select('logo_posicion, logo_tamano, logo_tamano_pct, usar_marca').eq('id', cont.orden_id).single()
   ]);
 
+  const usarMarca = orden?.usar_marca !== false;
   // Overrides del body tienen prioridad; si no vienen, se usan los de la orden
   const formatoFinal      = formato       ?? cont.formato              ?? '1:1';
   const logoPosicionFinal = logoPosicion  ?? orden?.logo_posicion      ?? 'inferior-derecha';
@@ -265,7 +307,7 @@ async function regenerar(contenidoId, { ajuste = '', logoPosicion, logoTamano, l
   const logoTamanoPctFinal = logoTamanoPct ?? orden?.logo_tamano_pct   ?? null;
 
   const { imagenUrl, imagenOriginalUrl, imagenError } =
-    await generarYSubirImagen(promptAjustado, formatoFinal, cont.orden_id, identidad, logoPosicionFinal, logoTamanoFinal, logoTamanoPctFinal);
+    await generarYSubirImagen(promptAjustado, formatoFinal, cont.orden_id, identidad, logoPosicionFinal, logoTamanoFinal, logoTamanoPctFinal, usarMarca);
 
   const { data: updated, error: updErr } = await supabase
     .from('contenido_generado')

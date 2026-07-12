@@ -327,7 +327,15 @@
         <button class="btn btn-primary btn-sm" onclick="toggleForm()"><i class="fas fa-plus"></i> Nueva Orden</button>
       </div>
       <div class="card" id="orden-form-card" style="display:none">
-        <div class="card-header"><div class="card-title">Nueva Orden</div><button class="btn btn-ghost btn-xs" onclick="toggleForm()">✕</button></div>
+        <div class="card-header">
+          <div class="card-title">Nueva Orden</div>
+          <div id="ord-marca-toggle" class="marca-toggle on" onclick="toggleOrdMarca()" title="Contexto Virtual Estate ON/OFF" style="margin-right:.5rem">
+            🏢 Virtual Estate
+            <div class="marca-toggle-track"><div class="marca-toggle-thumb"></div></div>
+            <span id="ord-marca-lbl">ON</span>
+          </div>
+          <button class="btn btn-ghost btn-xs" onclick="toggleForm()">✕</button>
+        </div>
         <div class="form-grid-2">
           <div class="form-group"><label>Título *</label><input type="text" id="ord-titulo" placeholder="Ej: Post Instagram — servicio 3D"/></div>
           <div class="form-group"><label>Tipo de contenido</label>
@@ -752,7 +760,7 @@ function toggleForm() {
   const c=document.getElementById('orden-form-card');
   const open=c.style.display==='none';
   c.style.display=open?'block':'none';
-  if(open){ renderInstrSelector(); loadPlantillas(); loadRefSelector(); }
+  if(open){ renderInstrSelector(); loadPlantillas(); loadRefSelector(); resetOrdMarca(); }
 }
 function toggleFormatos() {
   const tipo    = document.getElementById('ord-tipo').value;
@@ -895,7 +903,8 @@ async function crearOrden() {
       guion_clips:        (isVideo && _videoResult?.tipo === 'multi') ? _videoResult.clips : null,
       permitir_voces:     isVideo ? document.getElementById('ord-permitir-voces').checked : false,
       video_calidad:      isVideo ? document.getElementById('ord-video-calidad').value    : null,
-      referencia_id:      !isVideo ? (Number(document.getElementById('ord-referencia').value) || null) : null
+      referencia_id:      !isVideo ? (Number(document.getElementById('ord-referencia').value) || null) : null,
+      usar_marca:         getOrdMarca()
     });
     // Mantener en memoria también para la sesión actual
     if (isVideo && _videoResult?.tipo === 'multi')
@@ -1995,6 +2004,24 @@ function toggleMarca() {
   syncToggleUI();
 }
 syncToggleUI();
+
+// Toggle per-orden (precargado desde getMarca() al abrir el form, no persiste en localStorage)
+let _ordMarca = true;
+function getOrdMarca() { return _ordMarca; }
+function toggleOrdMarca() {
+  _ordMarca = !_ordMarca;
+  const tog = document.getElementById('ord-marca-toggle');
+  const lbl = document.getElementById('ord-marca-lbl');
+  if (tog) tog.className = `marca-toggle${_ordMarca ? ' on' : ''}`;
+  if (lbl) lbl.textContent = _ordMarca ? 'ON' : 'OFF';
+}
+function resetOrdMarca() {
+  _ordMarca = getMarca();
+  const tog = document.getElementById('ord-marca-toggle');
+  const lbl = document.getElementById('ord-marca-lbl');
+  if (tog) tog.className = `marca-toggle${_ordMarca ? ' on' : ''}`;
+  if (lbl) lbl.textContent = _ordMarca ? 'ON' : 'OFF';
+}
 
 // ── Referencias ──────────────────────────────────────────────────────────────
 let _referencias = [];

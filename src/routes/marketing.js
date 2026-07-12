@@ -8,11 +8,7 @@ const claude  = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
 const HEX_RE  = /^#[0-9A-Fa-f]{6}$/;
 
 // ── System prompt para plantillas compuestas (2 paneles) ──────────────────────
-const SYSTEM_COMPUESTA = `Eres director creativo de una agencia de marketing premium de bienes raíces en Guatemala.
-Creas contenido para imágenes comparativas de 2 paneles (antes/después, opción A/B, dos propiedades, etc.).
-Responde ÚNICAMENTE con JSON válido, sin markdown ni texto extra.
-
-Estructura exacta:
+const ESTRUCTURA_COMPUESTA = `Estructura exacta:
 {
   "copy_texto": "...",
   "hashtags": "...",
@@ -28,10 +24,26 @@ Reglas:
 - subtitulo: máx 40 caracteres (características clave del panel)
 - precio: máx 20 caracteres (precio con moneda, o "" si no aplica)
 - detalle: máx 50 caracteres (ubicación u otro dato diferenciador)
-- copy_texto: español, máx 150 palabras, listo para publicar en redes
-- hashtags: mezcla español/inglés, relevantes a bienes raíces Guatemala`;
+- copy_texto: español, máx 150 palabras, listo para publicar en redes`;
 
-function construirPromptCompuesta(orden, ctx, plantilla) {
+function buildSystemCompuesta(usarMarca) {
+  const encabezado = usarMarca
+    ? `Eres director creativo de una agencia de marketing premium de bienes raíces en Guatemala.\nCreas contenido para imágenes comparativas de 2 paneles (antes/después, opción A/B, dos propiedades, etc.).\nResponde ÚNICAMENTE con JSON válido, sin markdown ni texto extra.\n\n${ESTRUCTURA_COMPUESTA}\n- hashtags: mezcla español/inglés, relevantes a bienes raíces Guatemala`
+    : `Eres director creativo de una agencia de marketing premium.\nCreas contenido para imágenes comparativas de 2 paneles (antes/después, opción A/B, comparación de opciones, etc.).\nResponde ÚNICAMENTE con JSON válido, sin markdown ni texto extra.\n\n${ESTRUCTURA_COMPUESTA}\n- hashtags: relevantes al tema del contenido, separados por espacio`;
+  return encabezado;
+}
+
+function construirPromptCompuesta(orden, ctx, plantilla, usarMarca = true) {
+  const ordenSection = `ORDEN:
+- Título: ${orden.titulo ?? ''}
+- Descripción: ${orden.descripcion ?? ''}
+- Plantilla: ${plantilla.nombre} — ${plantilla.descripcion ?? ''}
+- Instrucciones extra: ${orden.instrucciones_extra ?? '(ninguna)'}
+
+Genera el JSON para los 2 paneles de la imagen comparativa.`;
+
+  if (!usarMarca) return ordenSection;
+
   const id  = ctx.identidad;
   const col = id?.colores ?? {};
   return `IDENTIDAD DE MARCA:
@@ -47,13 +59,7 @@ ${ctx.generales.length    ? ctx.generales.map(i    => `• ${i}`).join('\n') : '
 INSTRUCCIONES ESPECÍFICAS:
 ${ctx.individuales.length ? ctx.individuales.map(i => `• ${i}`).join('\n') : '(ninguna)'}
 
-ORDEN:
-- Título: ${orden.titulo ?? ''}
-- Descripción: ${orden.descripcion ?? ''}
-- Plantilla: ${plantilla.nombre} — ${plantilla.descripcion ?? ''}
-- Instrucciones extra: ${orden.instrucciones_extra ?? '(ninguna)'}
-
-Genera el JSON para los 2 paneles de la imagen comparativa.`;
+${ordenSection}`;
 }
 
 // ── Status ────────────────────────────────────────────────────────────────────
@@ -168,7 +174,8 @@ router.post('/ordenes', async (req, res) => {
             instrucciones_extra, instrucciones_ids, formatos,
             logo_posicion, logo_tamano, logo_tamano_pct,
             plantilla_id, duracion_seg, guion_clips,
-            permitir_voces, video_calidad, referencia_id } = req.body;
+            permitir_voces, video_calidad, referencia_id,
+            usar_marca } = req.body;
     if (!titulo?.trim()) return res.status(400).json({ error: 'titulo es requerido' });
     const POSICIONES_VALIDAS = ['inferior-derecha','inferior-izquierda','superior-derecha','superior-izquierda','centro','sin-logo'];
     const TAMANOS_VALIDOS    = ['pequeno','mediano','grande'];
@@ -196,7 +203,8 @@ router.post('/ordenes', async (req, res) => {
         guion_clips:        Array.isArray(guion_clips) && guion_clips.length ? guion_clips : null,
         permitir_voces:     Boolean(permitir_voces),
         video_calidad:      ['fast', 'quality'].includes(video_calidad) ? video_calidad : 'fast',
-        referencia_id:      referencia_id ? Number(referencia_id) : null
+        referencia_id:      referencia_id ? Number(referencia_id) : null,
+        usar_marca:         usar_marca === false ? false : true
       })
       .select().single();
     if (error) throw error;
@@ -519,17 +527,7 @@ router.post('/prompt-studio/modificar', async (req, res) => {
 });
 
 // ── Video con Veo 3.1 ─────────────────────────────────────────────────────────
-const SYSTEM_VIDEO = `Eres director creativo de una agencia de marketing premium de bienes raíces en Guatemala.
-Creas prompts de video para Veo (IA generativa de Google). Responde ÚNICAMENTE con JSON válido, sin markdown.
-
-Estructura exacta:
-{
-  "prompt_video": "...",
-  "copy_texto":   "...",
-  "hashtags":     "..."
-}
-
-Reglas para prompt_video:
+const REGLAS_VIDEO = `Reglas para prompt_video:
 - Inglés, 80-120 palabras, estilo cinematográfico editorial
 - Describe movimiento de cámara (drone tracking shot, slow dolly, cinematic pan, aerial orbit, etc.)
 - Describe iluminación (golden hour, soft morning light, dramatic shadows, etc.) y materiales/texturas
@@ -537,11 +535,28 @@ Reglas para prompt_video:
 - Para 9:16: encuadre vertical, detalles macro, perspectiva íntima
 - Para 16:9: planos amplios, arquitectura, paisaje, vuelo aéreo
 - Integra anclas fotográficas de realismo como descripción cinematográfica natural: cámara y lente (ej. "shot on Sony A7III, 35mm lens"), "documentary style" si refuerza la atmósfera, "subtle handheld movement" si aplica
-- Respeta la instrucción de sonido que viene en la orden
-- copy_texto: español, máx 150 palabras, listo para publicar en redes
-- hashtags: mezcla español/inglés, relevantes a bienes raíces Guatemala`;
+- Respeta la instrucción de sonido que viene en la orden`;
 
-function construirPromptVideo(orden, ctx) {
+function buildSystemVideo(usarMarca) {
+  const encabezado = usarMarca
+    ? `Eres director creativo de una agencia de marketing premium de bienes raíces en Guatemala.\nCreas prompts de video para Veo (IA generativa de Google). Responde ÚNICAMENTE con JSON válido, sin markdown.\n\nEstructura exacta:\n{\n  "prompt_video": "...",\n  "copy_texto":   "...",\n  "hashtags":     "..."\n}\n\n${REGLAS_VIDEO}\n- copy_texto: español, máx 150 palabras, listo para publicar en redes\n- hashtags: mezcla español/inglés, relevantes a bienes raíces Guatemala`
+    : `Eres director creativo de una agencia de marketing premium.\nCreas prompts de video para Veo (IA generativa de Google). Responde ÚNICAMENTE con JSON válido, sin markdown.\n\nEstructura exacta:\n{\n  "prompt_video": "...",\n  "copy_texto":   "...",\n  "hashtags":     "..."\n}\n\n${REGLAS_VIDEO}\n- copy_texto: español, máx 150 palabras, listo para publicar en redes\n- hashtags: relevantes al tema y la plataforma, separados por espacio`;
+  return encabezado;
+}
+
+function construirPromptVideo(orden, ctx, usarMarca = true) {
+  const ordenSection = `ORDEN:
+- Título: ${orden.titulo ?? ''}
+- Descripción: ${orden.descripcion ?? ''}
+- Aspecto: ${(orden.formatos ?? ['16:9'])[0]} · Duración: ${orden.duracion_seg ?? 8} segundos
+- Instrucciones extra: ${orden.instrucciones_extra ?? '(ninguna)'}
+- Redes destino: ${(orden.redes ?? []).join(', ') || '(no especificadas)'}
+- Sonido: ${orden.permitir_voces ? 'diálogo/voces IA permitidos' : 'ambient sound only, no dialogue, no speech'}
+
+Genera el JSON de video.`;
+
+  if (!usarMarca) return ordenSection;
+
   const id  = ctx.identidad;
   const col = id?.colores ?? {};
   return `IDENTIDAD DE MARCA:
@@ -557,15 +572,7 @@ ${ctx.generales.length    ? ctx.generales.map(i    => `• ${i}`).join('\n') : '
 INSTRUCCIONES ESPECÍFICAS:
 ${ctx.individuales.length ? ctx.individuales.map(i => `• ${i}`).join('\n') : '(ninguna)'}
 
-ORDEN:
-- Título: ${orden.titulo ?? ''}
-- Descripción: ${orden.descripcion ?? ''}
-- Aspecto: ${(orden.formatos ?? ['16:9'])[0]} · Duración: ${orden.duracion_seg ?? 8} segundos
-- Instrucciones extra: ${orden.instrucciones_extra ?? '(ninguna)'}
-- Redes destino: ${(orden.redes ?? []).join(', ') || '(no especificadas)'}
-- Sonido: ${orden.permitir_voces ? 'diálogo/voces IA permitidos' : 'ambient sound only, no dialogue, no speech'}
-
-Genera el JSON de video.`;
+${ordenSection}`;
 }
 
 // Fase 1: lanza generación de video.
@@ -623,15 +630,18 @@ router.post('/ordenes/:id/generar-video', async (req, res) => {
     }
 
     // ── Single-clip: Claude genera prompt + lanza Veo
+    const usarMarcaVideo = orden.usar_marca !== false;
     const { leerContextoMarca } = require('../services/contentEngine');
-    const ctx = await leerContextoMarca(orden.instrucciones_ids ?? []);
+    const ctxVideo = usarMarcaVideo
+      ? await leerContextoMarca(orden.instrucciones_ids ?? [])
+      : { identidad: {}, generales: [], individuales: [] };
 
     const msg = await claude.messages.create(
       {
         model:      'claude-sonnet-4-6',
         max_tokens: 1024,
-        system:     SYSTEM_VIDEO,
-        messages:   [{ role: 'user', content: construirPromptVideo(orden, ctx) }]
+        system:     buildSystemVideo(usarMarcaVideo),
+        messages:   [{ role: 'user', content: construirPromptVideo(orden, ctxVideo, usarMarcaVideo) }]
       },
       { timeout: 20000 }
     );
@@ -850,15 +860,18 @@ router.post('/ordenes/:id/plan-compuesta', async (req, res) => {
       .from('plantillas_compuestas').select('*').eq('id', orden.plantilla_id).single();
     if (ptErr) throw ptErr;
 
+    const usarMarcaComp = orden.usar_marca !== false;
     const { leerContextoMarca } = require('../services/contentEngine');
-    const ctx = await leerContextoMarca(orden.instrucciones_ids ?? []);
+    const ctxComp = usarMarcaComp
+      ? await leerContextoMarca(orden.instrucciones_ids ?? [])
+      : { identidad: {}, generales: [], individuales: [] };
 
     const msg = await claude.messages.create(
       {
         model:      'claude-sonnet-4-6',
         max_tokens: 1200,
-        system:     SYSTEM_COMPUESTA,
-        messages:   [{ role: 'user', content: construirPromptCompuesta(orden, ctx, plantilla) }]
+        system:     buildSystemCompuesta(usarMarcaComp),
+        messages:   [{ role: 'user', content: construirPromptCompuesta(orden, ctxComp, plantilla, usarMarcaComp) }]
       },
       { timeout: 25000 }
     );
@@ -963,16 +976,17 @@ router.post('/contenido/:id/componer', async (req, res) => {
     const [{ data: identidad }, { data: orden }] = await Promise.all([
       supabase.from('marca_identidad').select('*').limit(1).maybeSingle(),
       supabase.from('ordenes_contenido')
-        .select('logo_posicion, logo_tamano, logo_tamano_pct').eq('id', cont.orden_id).single()
+        .select('logo_posicion, logo_tamano, logo_tamano_pct, usar_marca').eq('id', cont.orden_id).single()
     ]);
 
+    const usarMarcaComp = orden?.usar_marca !== false;
     const { renderComparativa2Col } = require('../services/templateEngine');
     const composed = await renderComparativa2Col(cont.paneles, {
-      formato:       cont.formato         ?? '1:1',
-      identidad:     identidad            ?? {},
-      logoPosicion:  orden?.logo_posicion  ?? 'inferior-derecha',
-      logoTamano:    orden?.logo_tamano    ?? 'mediano',
-      logoTamanoPct: orden?.logo_tamano_pct ?? null
+      formato:       cont.formato                                       ?? '1:1',
+      identidad:     identidad                                          ?? {},
+      logoPosicion:  usarMarcaComp ? (orden?.logo_posicion ?? 'inferior-derecha') : 'sin-logo',
+      logoTamano:    orden?.logo_tamano                                 ?? 'mediano',
+      logoTamanoPct: orden?.logo_tamano_pct                             ?? null
     });
 
     const slug = (cont.formato ?? '1:1').replace(':', '-');
