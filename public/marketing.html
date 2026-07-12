@@ -1701,8 +1701,11 @@ function loadScript(src) {
 
 async function getFFmpegWasm() {
   if (_ffmpegInst?.isLoaded()) return _ffmpegInst;
-  await loadScript('https://unpkg.com/@ffmpeg/ffmpeg@0.11.12/dist/ffmpeg.min.js');
-  _ffmpegInst = FFmpeg.createFFmpeg({ log: false });
+  await loadScript('/vendor/ffmpeg/ffmpeg.min.js');
+  _ffmpegInst = FFmpeg.createFFmpeg({
+    log:      false,
+    corePath: '/vendor/ffmpeg/ffmpeg-core.js'
+  });
   await _ffmpegInst.load();
   return _ffmpegInst;
 }
