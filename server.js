@@ -307,6 +307,7 @@ app.use('/assets',    express.static(path.join(__dirname, 'public', 'assets'), {
 app.use('/assets',    express.static(path.join(__dirname, 'images', 'assets'), { dotfiles: 'ignore' }));
 app.use('/images',    express.static(path.join(__dirname, 'images'),    { dotfiles: 'ignore' }));
 app.use('/documentos',express.static(path.join(__dirname, 'documentos'),{ dotfiles: 'ignore' }));
+app.use('/vendor',    express.static(path.join(__dirname, 'public', 'vendor'), { dotfiles: 'ignore' }));
 
 // ============================================================
 // WHATSAPP WEBHOOK — Meta Business API
