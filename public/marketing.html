@@ -2014,7 +2014,7 @@ async function subirReferencia() {
   if (desc)  fd.append('descripcion', desc);
   if (notas) fd.append('notas', notas);
   try {
-    const r = await fetch('/api/marketing/referencias', { method: 'POST', body: fd });
+    const r = await fetch(API + '/referencias', { method: 'POST', headers: { 'Authorization': 'Bearer ' + getToken() }, body: fd });
     if (!r.ok) { const e = await r.json(); throw new Error(e.error); }
     const nueva = await r.json();
     _referencias.unshift(nueva);
