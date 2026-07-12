@@ -328,11 +328,16 @@ router.post('/brand/logo', (req, res) => {
 });
 
 // ── Prompt Studio (stateless) ─────────────────────────────────────────────────
-const PROMPT_STUDIO_SYSTEM = `Eres un ingeniero de prompts senior especializado en IA generativa para marketing de bienes raíces premium en Guatemala.
+
+function buildSystemPromptStudio(usarMarca) {
+  const intro = usarMarca
+    ? `Eres un ingeniero de prompts senior especializado en IA generativa para marketing de bienes raíces premium en Guatemala.\n\nVirtual Estate GT es una empresa guatemalteca especializada en escaneo 3D Matterport, tours virtuales y documentación inmobiliaria. Audiencias principales: inmobiliarias, corredores, propietarios y constructoras.`
+    : `Eres un ingeniero de prompts senior especializado en IA generativa para marketing premium.`;
+  return `${intro}
 
 Transforma la idea del usuario en un prompt profesional y detallado según el tipo de contenido:
 
-IMAGEN FOTORREALISTA: tipo de toma (angular/aérea/macro/etc), iluminación (hora, dirección, calidad), lente/distancia focal, ambiente y atmósfera, paleta de color, estilo (editorial/arquitectónico/lifestyle), negativos (lo que NO debe aparecer).
+IMAGEN FOTORREALISTA: prompt de 150-250 palabras con especificaciones completas — cámara y modelo exacto, lente y distancia focal, apertura, iluminación (temperatura en Kelvin, dirección, calidad: suave/dura/difusa), composición (regla de tercios, punto focal, líneas guía, profundidad de campo), atmósfera y mood, materiales y texturas clave, paleta cromática, estilo (editorial/arquitectónico/lifestyle), post-procesado sugerido, negativos (lo que NO debe aparecer).
 
 VIDEO: movimiento de cámara, duración, ritmo, transiciones, música sugerida, estilo cinematográfico.
 
@@ -341,13 +346,16 @@ DISEÑO GRÁFICO: composición, tipografía sugerida, jerarquía visual, espacio
 TEXTO PUBLICITARIO: hook, estructura (AIDA/PAS/storytelling), CTA, tono, longitud, plataforma destino.
 
 Responde ÚNICAMENTE con el prompt mejorado. Sin explicaciones, sin prefijos, sin markdown.`;
+}
 
-function buildSystemVideoStudio(permitirVoces = false) {
+function buildSystemVideoStudio(permitirVoces = false, usarMarca = true) {
   const sonidoRegla = permitirVoces
     ? ''
     : '\n- Cada prompt debe incluir al final: "ambient sound only, no dialogue, no speech"';
-  return `Eres director de fotografía y guionista de video especializado en bienes raíces premium de Guatemala.
-Creas prompts para Veo 3.1 (IA generativa de Google). Responde ÚNICAMENTE con JSON válido, sin markdown ni texto extra.
+  const encabezado = usarMarca
+    ? `Eres director de fotografía y guionista de video especializado en bienes raíces premium de Guatemala.\nCreas prompts para Veo 3.1 (IA generativa de Google). Virtual Estate GT se especializa en escaneo 3D Matterport, tours virtuales y documentación inmobiliaria. Responde ÚNICAMENTE con JSON válido, sin markdown ni texto extra.`
+    : `Eres director de fotografía y guionista de video especializado en producción audiovisual premium.\nCreas prompts para Veo 3.1 (IA generativa de Google). Responde ÚNICAMENTE con JSON válido, sin markdown ni texto extra.`;
+  return `${encabezado}
 
 ESTRUCTURA OBLIGATORIA por cada clip:
 [SUJETO] → [UNA SOLA ACCIÓN] → [MOVIMIENTO DE CÁMARA] → [ILUMINACIÓN] → [AMBIENTE/ATMÓSFERA]
@@ -385,24 +393,37 @@ clips, escenas muy complejas), y cómo resolverlo en edición externa (agregar t
 post-producción, unir clips con corte o transición, etc.).`;
 }
 
-const SYSTEM_VIDEO_MODIFY = `Eres asistente de dirección de video. El usuario quiere modificar ÚNICAMENTE un aspecto específico de un prompt de video para Veo 3.1.
+function buildSystemVideoModify(usarMarca) {
+  const rol = usarMarca
+    ? 'Eres asistente de dirección de video especializado en bienes raíces premium de Guatemala.'
+    : 'Eres asistente de dirección de video.';
+  return `${rol} El usuario quiere modificar ÚNICAMENTE un aspecto específico de un prompt de video para Veo 3.1.
 
 Aplica SOLO el cambio solicitado. No modifiques nada más: mantén la estructura, el movimiento de cámara, la iluminación, el ambiente y todos los demás detalles idénticos salvo lo pedido explícitamente.
 
 Responde ÚNICAMENTE con el prompt modificado en inglés. Sin explicaciones, sin JSON, solo el texto del prompt.`;
+}
 
 router.post('/prompt-studio', async (req, res) => {
   try {
     const { idea, destino = 'imagen_fotorrealista', idioma = 'ingles',
-            duracion_seg, duraciones_por_clip, permitir_voces = false } = req.body;
+            duracion_seg, duraciones_por_clip, permitir_voces = false,
+            usar_marca = true } = req.body;
     if (!idea?.trim()) return res.status(400).json({ error: 'idea es requerida' });
 
-    const { data: identidad } = await supabase
-      .from('marca_identidad').select('*').limit(1).maybeSingle();
-    const id  = identidad ?? {};
-    const col = id.colores ?? {};
+    let id = {}, col = {};
+    if (usar_marca) {
+      const { data: identidad } = await supabase
+        .from('marca_identidad').select('*').limit(1).maybeSingle();
+      id  = identidad ?? {};
+      col = id.colores ?? {};
+    }
 
-    // ── Rama video: usa SYSTEM_VIDEO_STUDIO y devuelve { tipo, prompt?, clips?, limitantes }
+    const marcaSection = usar_marca
+      ? `IDENTIDAD DE MARCA:\n- Nombre: ${id.nombre_negocio ?? 'Virtual Estate GT'}\n- Colores: ${col.primario ?? '#2D5016'} / ${col.acento ?? '#B8860B'}\n- Tono: ${id.tono_comunicacion ?? 'profesional y premium'}\n\n`
+      : '';
+
+    // ── Rama video
     if (destino === 'video') {
       const dur  = Number(duracion_seg) || 8;
       const dist = Array.isArray(duraciones_por_clip) && duraciones_por_clip.length
@@ -410,12 +431,7 @@ router.post('/prompt-studio', async (req, res) => {
         : Array.from({ length: Math.ceil(dur / 8) }, (_, i) => Math.min(8, dur - i * 8));
       const tipo = dist.length === 1 ? 'single' : 'multi';
 
-      const userMsg = `IDENTIDAD DE MARCA:
-- Nombre: ${id.nombre_negocio   ?? 'Virtual Estate GT'}
-- Colores: ${col.primario ?? '#2D5016'} / ${col.acento ?? '#B8860B'}
-- Tono: ${id.tono_comunicacion  ?? 'profesional y premium'}
-
-IDEA: ${idea.trim()}
+      const userMsg = `${marcaSection}IDEA: ${idea.trim()}
 DURACIÓN TOTAL: ${dur} segundos
 DISTRIBUCIÓN DE CLIPS: ${dist.map((d, i) => `Clip ${i + 1}: ${d}s`).join(', ')}
 TIPO REQUERIDO: ${tipo === 'single' ? 'CLIP ÚNICO' : `MULTI-CLIP (${dist.length} clips)`}
@@ -426,7 +442,7 @@ Genera el JSON de video.`;
         {
           model:      'claude-sonnet-4-6',
           max_tokens: 2000,
-          system:     buildSystemVideoStudio(Boolean(permitir_voces)),
+          system:     buildSystemVideoStudio(Boolean(permitir_voces), Boolean(usar_marca)),
           messages:   [{ role: 'user', content: userMsg }]
         },
         { timeout: 25000 }
@@ -439,13 +455,8 @@ Genera el JSON de video.`;
       } catch { return res.status(500).json({ error: 'Claude no devolvió JSON válido' }); }
     }
 
-    // ── Rama no-video: comportamiento original
-    const userMsg = `IDENTIDAD DE MARCA:
-- Nombre: ${id.nombre_negocio    ?? 'Virtual Estate GT'}
-- Colores: ${col.primario ?? '#2D5016'} / ${col.acento ?? '#B8860B'}
-- Tono: ${id.tono_comunicacion   ?? 'profesional y premium'}
-
-IDEA: ${idea.trim()}
+    // ── Rama no-video
+    const userMsg = `${marcaSection}IDEA: ${idea.trim()}
 TIPO DE CONTENIDO: ${destino}
 IDIOMA DEL PROMPT DE SALIDA: ${idioma === 'espanol' ? 'español' : 'inglés'}
 
@@ -454,8 +465,8 @@ Genera el prompt mejorado.`;
     const msg = await claude.messages.create(
       {
         model:      'claude-sonnet-4-6',
-        max_tokens: 800,
-        system:     PROMPT_STUDIO_SYSTEM,
+        max_tokens: 1200,
+        system:     buildSystemPromptStudio(Boolean(usar_marca)),
         messages:   [{ role: 'user', content: userMsg }]
       },
       { timeout: 20000 }
@@ -468,7 +479,7 @@ Genera el prompt mejorado.`;
 
 router.post('/prompt-studio/modificar', async (req, res) => {
   try {
-    const { tipo, prompt, clips, clip_idx, modificacion } = req.body;
+    const { tipo, prompt, clips, clip_idx, modificacion, usar_marca = true } = req.body;
     if (!modificacion?.trim()) return res.status(400).json({ error: 'modificacion es requerida' });
 
     const applyModify = async (originalPrompt) => {
@@ -476,7 +487,7 @@ router.post('/prompt-studio/modificar', async (req, res) => {
         {
           model:      'claude-sonnet-4-6',
           max_tokens: 600,
-          system:     SYSTEM_VIDEO_MODIFY,
+          system:     buildSystemVideoModify(Boolean(usar_marca)),
           messages:   [{ role: 'user', content: `PROMPT ORIGINAL:\n${originalPrompt}\n\nMODIFICACIÓN SOLICITADA: ${modificacion.trim()}` }]
         },
         { timeout: 15000 }
@@ -1070,29 +1081,46 @@ router.delete('/referencias/:id', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-const SYSTEM_ANALISIS_REF = `Eres director de arte de una agencia premium de marketing inmobiliario. Analiza la imagen publicitaria de referencia y devuelve ÚNICAMENTE JSON válido con esta estructura exacta:
+function buildSystemAnalisisRef(usarMarca, identidad) {
+  const id = identidad ?? {};
+  const marcaCtx = usarMarca
+    ? ` Contexto: Virtual Estate GT es una empresa guatemalteca especializada en escaneo 3D Matterport, tours virtuales y documentación inmobiliaria (clientes: inmobiliarias, corredores, propietarios, constructoras). Nombre del negocio: ${id.nombre_negocio ?? 'Virtual Estate GT'}. Tono: ${id.tono_comunicacion ?? 'profesional y premium'}.`
+    : '';
+  const adaptacionField = usarMarca
+    ? `\n  "adaptacion_virtual_estate": "cómo llevar este estilo específicamente a marketing de tours 3D, escaneo Matterport e inmuebles guatemaltecos",`
+    : '';
+  return `Eres director de arte de una agencia premium de marketing${usarMarca ? ' inmobiliario en Guatemala' : ''}.${marcaCtx} Analiza la imagen publicitaria de referencia y devuelve ÚNICAMENTE JSON válido con esta estructura exacta:
 {
   "estilo": "...",
-  "paleta_colores": "...",
-  "composicion": "...",
-  "iluminacion": "...",
-  "elementos_clave": "...",
-  "prompt_sugerido": "..."
+  "paleta_colores": "... (incluye hex aproximados de los colores dominantes)",
+  "composicion": "layout, jerarquía visual, proporciones, regla de tercios, líneas guía",
+  "iluminacion": "tipo, dirección, temperatura de color, contraste, hora del día si aplica",
+  "tipografia_percibida": "estilo tipográfico visible o inferible, peso, jerarquía",
+  "emociones_transmitidas": "...",
+  "publico_al_que_apela": "...",
+  "tecnicas_publicitarias": "recursos usados: contraste, urgencia, aspiracional, storytelling...",
+  "elementos_clave": "objetos, texturas, materiales o recursos visuales que definen la pieza",
+  "que_replicar": "qué aspectos adoptar para producción propia",
+  "que_evitar": "qué elementos no funcionarían o serían problemáticos de replicar",${adaptacionField}
+  "prompt_sugerido": "inglés, 150-250 palabras, fotorrealista, replica el ESTILO de la referencia${usarMarca ? ' adaptado a inmuebles residenciales/comerciales en Guatemala' : ''}; especifica cámara, lente, apertura, iluminación con temperatura y dirección, composición, atmósfera, post-procesado; NO copies el contenido literal; sin texto en imagen, sin logos, sin personas identificables"
 }
-Reglas:
-- estilo: 1-2 frases describiendo el estilo visual general
-- paleta_colores: lista los colores dominantes con su rol (fondo, acento, texto, etc.)
-- composicion: tipo de plano, punto focal, distribución de elementos, regla de tercios
-- iluminacion: tipo de luz, dirección, contraste, hora del día si aplica
-- elementos_clave: objetos, texturas, materiales o recursos visuales que definen la pieza
-- prompt_sugerido: inglés, 80-150 palabras, prompt fotorrealista que replica el ESTILO de la referencia adaptado a inmuebles residenciales/comerciales en Guatemala; NO copies el contenido literal; sin texto en imagen, sin logos, sin personas identificables`;
+Devuelve SOLO el JSON. Sin markdown, sin texto fuera del objeto.`;
+}
 
 router.post('/referencias/:id/analizar', async (req, res) => {
   try {
+    const { usar_marca = true } = req.body;
+
     const { data: ref, error: fetchErr } = await supabase
       .from('referencias_publicidad').select('archivo_url').eq('id', req.params.id).single();
     if (fetchErr) throw fetchErr;
     if (!ref.archivo_url) return res.status(400).json({ error: 'Sin imagen adjunta' });
+
+    let identidad = null;
+    if (usar_marca) {
+      const { data } = await supabase.from('marca_identidad').select('*').limit(1).maybeSingle();
+      identidad = data ?? null;
+    }
 
     const imgResp = await fetch(ref.archivo_url);
     if (!imgResp.ok) throw new Error(`No se pudo descargar la imagen: ${imgResp.status}`);
@@ -1108,8 +1136,8 @@ router.post('/referencias/:id/analizar', async (req, res) => {
 
     const msg = await claude.messages.create({
       model:      'claude-sonnet-4-6',
-      max_tokens: 1024,
-      system:     SYSTEM_ANALISIS_REF,
+      max_tokens: 2000,
+      system:     buildSystemAnalisisRef(Boolean(usar_marca), identidad),
       messages: [{
         role:    'user',
         content: [

@@ -195,6 +195,13 @@
     .ref-actions { display: flex; gap: .4rem; margin-top: auto; padding-top: .4rem; }
     .ref-badge-ok  { font-size: .6rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: .18rem .45rem; border-radius: 20px; background: rgba(42,122,74,.15); color: #5AE08A; border: 1px solid rgba(42,122,74,.25); }
     .ref-badge-no  { font-size: .6rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: .18rem .45rem; border-radius: 20px; background: rgba(122,141,133,.12); color: var(--gray); border: 1px solid rgba(122,141,133,.2); }
+    /* TOGGLE MARCA */
+    .marca-toggle { display: inline-flex; align-items: center; gap: .5rem; cursor: pointer; font-size: .72rem; font-weight: 600; color: var(--gray); user-select: none; }
+    .marca-toggle.on { color: var(--gold); }
+    .marca-toggle-track { width: 32px; height: 17px; border-radius: 20px; background: rgba(122,141,133,.25); position: relative; transition: background .2s; flex-shrink: 0; }
+    .marca-toggle.on .marca-toggle-track { background: rgba(193,146,89,.5); }
+    .marca-toggle-thumb { position: absolute; top: 2px; left: 2px; width: 13px; height: 13px; border-radius: 50%; background: var(--gray); transition: transform .2s, background .2s; }
+    .marca-toggle.on .marca-toggle-thumb { transform: translateX(15px); background: var(--gold); }
 
     /* TOAST */
     #toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; padding: .7rem 1.2rem; font-size: .78rem; z-index: 9999; transform: translateY(60px); opacity: 0; transition: all .25s; pointer-events: none; max-width: 320px; }
@@ -471,7 +478,14 @@
 
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.25rem">
         <div style="font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)">Galería</div>
-        <button class="btn btn-ghost btn-xs" onclick="loadReferencias()">↻ Actualizar</button>
+        <div style="display:flex;align-items:center;gap:.75rem">
+          <div id="marca-toggle-ref" class="marca-toggle on" onclick="toggleMarca()" title="Contexto Virtual Estate ON/OFF">
+            🏢 Virtual Estate
+            <div class="marca-toggle-track"><div class="marca-toggle-thumb"></div></div>
+            <span id="marca-lbl-ref">ON</span>
+          </div>
+          <button class="btn btn-ghost btn-xs" onclick="loadReferencias()">↻ Actualizar</button>
+        </div>
       </div>
       <div id="ref-grid" class="ref-grid"></div>
     </div>
@@ -479,7 +493,14 @@
     <!-- ── Prompt Studio ─────────────────────────────────────────────────── -->
     <div class="tab-panel" id="tab-prompts">
       <div class="card">
-        <div class="card-header"><div class="card-title">🔮 Prompt Studio</div></div>
+        <div class="card-header">
+          <div class="card-title">🔮 Prompt Studio</div>
+          <div id="marca-toggle-ps" class="marca-toggle on" onclick="toggleMarca()" title="Contexto Virtual Estate ON/OFF">
+            🏢 Virtual Estate
+            <div class="marca-toggle-track"><div class="marca-toggle-thumb"></div></div>
+            <span id="marca-lbl-ps">ON</span>
+          </div>
+        </div>
         <div class="form-group"><label>Tu idea</label><textarea id="ps-idea" rows="4" placeholder="Ej: Una propiedad de lujo al atardecer, enfocada en el jardín..."></textarea></div>
         <div class="form-grid-2">
           <div class="form-group"><label>Tipo de contenido destino</label>
@@ -1814,14 +1835,16 @@ async function mejorarPrompt() {
       const dist = Array.from({ length: Math.ceil(dur / 8) }, (_, i) => Math.min(8, dur - i * 8));
       const data = await api('POST', '/prompt-studio', {
         idea, destino, duracion_seg: dur, duraciones_por_clip: dist,
-        permitir_voces: document.getElementById('ps-permitir-voces').checked
+        permitir_voces: document.getElementById('ps-permitir-voces').checked,
+        usar_marca: getMarca()
       });
       _videoResult = data;
       _lastPrompt  = '';
       renderResultadoVideo(data);
     } else {
       const { prompt } = await api('POST', '/prompt-studio', {
-        idea, destino, idioma: document.getElementById('ps-idioma').value
+        idea, destino, idioma: document.getElementById('ps-idioma').value,
+        usar_marca: getMarca()
       });
       _lastPrompt  = prompt;
       _videoResult = null;
@@ -1927,7 +1950,8 @@ async function modificarPrompt() {
       prompt:      _videoResult.prompt,
       clips:       _videoResult.clips,
       clip_idx:    clip_idx === 'all' ? 'all' : Number(clip_idx),
-      modificacion
+      modificacion,
+      usar_marca:  getMarca()
     };
     const data = await api('POST', '/prompt-studio/modificar', body);
     _videoResult = { ..._videoResult, ...data };
@@ -1955,6 +1979,23 @@ async function copiarPrompt() {
   } catch(e) { toast('Error copiando', 'err'); }
 }
 
+// ── Toggle contexto de marca ─────────────────────────────────────────────────
+function getMarca() { return localStorage.getItem('mkt_usar_marca') !== '0'; }
+function syncToggleUI() {
+  const on = getMarca();
+  ['ps', 'ref'].forEach(sfx => {
+    const tog = document.getElementById(`marca-toggle-${sfx}`);
+    const lel = document.getElementById(`marca-lbl-${sfx}`);
+    if (tog) tog.className = `marca-toggle${on ? ' on' : ''}`;
+    if (lel) lel.textContent = on ? 'ON' : 'OFF';
+  });
+}
+function toggleMarca() {
+  localStorage.setItem('mkt_usar_marca', getMarca() ? '0' : '1');
+  syncToggleUI();
+}
+syncToggleUI();
+
 // ── Referencias ──────────────────────────────────────────────────────────────
 let _referencias = [];
 
@@ -1972,17 +2013,32 @@ function renderReferencias() {
     grid.innerHTML = '<div style="color:var(--gray);font-size:.78rem;padding:.5rem 0">No hay referencias aún. Sube una imagen arriba.</div>';
     return;
   }
+  const row = (lbl, val) => val
+    ? `<div class="ref-analisis-row"><span class="ref-analisis-lbl">${lbl}:</span> ${esc(val)}</div>`
+    : '';
   grid.innerHTML = _referencias.map(r => {
     const analizado = !!r.analisis;
+    const a = r.analisis ?? {};
     const analisisHtml = analizado ? `
       <div class="ref-analisis">
-        <div class="ref-analisis-row"><span class="ref-analisis-lbl">Estilo:</span> ${esc(r.analisis.estilo ?? '')}</div>
-        <div class="ref-analisis-row"><span class="ref-analisis-lbl">Paleta:</span> ${esc(r.analisis.paleta_colores ?? '')}</div>
-        <div class="ref-analisis-row"><span class="ref-analisis-lbl">Composición:</span> ${esc(r.analisis.composicion ?? '')}</div>
-        <div class="ref-analisis-row"><span class="ref-analisis-lbl">Iluminación:</span> ${esc(r.analisis.iluminacion ?? '')}</div>
-        <div class="ref-analisis-row"><span class="ref-analisis-lbl">Elementos:</span> ${esc(r.analisis.elementos_clave ?? '')}</div>
-        <div class="ref-analisis-row" style="margin-top:.3rem"><span class="ref-analisis-lbl">Prompt sugerido:</span></div>
-        <div style="margin-top:.2rem;font-style:italic;color:var(--gray)">${esc(r.analisis.prompt_sugerido ?? '')}</div>
+        <div style="font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem">Análisis visual</div>
+        ${row('Estilo', a.estilo)}
+        ${row('Paleta', a.paleta_colores)}
+        ${row('Composición', a.composicion)}
+        ${row('Iluminación', a.iluminacion)}
+        ${row('Tipografía', a.tipografia_percibida)}
+        ${row('Emociones', a.emociones_transmitidas)}
+        <div style="font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin:.5rem 0 .3rem">Estrategia</div>
+        ${row('Público', a.publico_al_que_apela)}
+        ${row('Técnicas', a.tecnicas_publicitarias)}
+        ${row('Elementos clave', a.elementos_clave)}
+        ${row('Replicar', a.que_replicar)}
+        ${row('Evitar', a.que_evitar)}
+        ${a.adaptacion_virtual_estate ? `
+        <div style="font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin:.5rem 0 .3rem">🏢 Adaptación Virtual Estate</div>
+        <div style="font-size:.72rem;line-height:1.6;color:var(--gold-lt)">${esc(a.adaptacion_virtual_estate)}</div>` : ''}
+        <div style="font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin:.5rem 0 .3rem">Prompt sugerido</div>
+        <div style="font-size:.72rem;line-height:1.7;font-style:italic;color:var(--gray)">${esc(a.prompt_sugerido ?? '')}</div>
       </div>` : '';
     return `
     <div class="ref-card" id="ref-card-${r.id}">
@@ -1996,7 +2052,7 @@ function renderReferencias() {
         ${r.notas      ? `<div class="ref-notas">${esc(r.notas)}</div>`      : ''}
         ${analisisHtml}
         <div class="ref-actions">
-          ${!analizado ? `<button class="btn btn-primary btn-xs" onclick="analizarReferencia(${r.id})"><i class="fas fa-wand-magic-sparkles"></i> Analizar con IA</button>` : ''}
+          ${!analizado ? `<button class="btn btn-primary btn-xs" onclick="analizarReferencia(${r.id})"><i class="fas fa-wand-magic-sparkles"></i> Analizar con IA</button>` : `<button class="btn btn-ghost btn-xs" onclick="analizarReferencia(${r.id})" title="Re-analizar"><i class="fas fa-rotate-right"></i></button>`}
           <button class="btn btn-ghost btn-xs" style="margin-left:auto;color:var(--danger,#E08080)" onclick="eliminarReferencia(${r.id})"><i class="fas fa-trash"></i></button>
         </div>
       </div>
@@ -2031,7 +2087,7 @@ async function analizarReferencia(id) {
   const btn  = card?.querySelector('button.btn-primary');
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analizando…'; }
   try {
-    const data = await api('POST', `/referencias/${id}/analizar`);
+    const data = await api('POST', `/referencias/${id}/analizar`, { usar_marca: getMarca() });
     const idx  = _referencias.findIndex(r => r.id === id);
     if (idx >= 0) _referencias[idx] = data;
     renderReferencias();
