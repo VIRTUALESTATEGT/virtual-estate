@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
-const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const authMiddleware = require('../middleware/auth');
 const { requireSuperadmin } = require('../middleware/roles');
+const { hashPassword, verificarPassword } = require('../utils/passwords');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'virtual-estate-secret-key';
 const JWT_EXPIRES = '8h';
@@ -78,9 +78,8 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Email o contraseña incorrectos' });
     }
 
-    const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
-
-    if (data.password !== hashedPassword) {
+    const pwdOk = await verificarPassword(password, data.password, data.id);
+    if (!pwdOk) {
       await recordFailedAttempt(ip);
       return res.status(401).json({ error: 'Email o contraseña incorrectos' });
     }
@@ -120,7 +119,7 @@ router.post('/signup', authMiddleware, requireSuperadmin, async (req, res) => {
   try {
     const { nombre, email, password } = req.body;
 
-    const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+    const hashedPassword = await hashPassword(password);
 
     const { data, error } = await supabase
       .from('usuarios')
@@ -265,7 +264,7 @@ router.post('/registro-cliente', async (req, res) => {
     if (existing)
       return res.status(409).json({ error: 'Ya existe una cuenta con este correo electrónico' });
 
-    const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+    const hashedPassword = await hashPassword(password);
 
     // Create usuarios record
     const { data: usuario, error: uErr } = await supabase

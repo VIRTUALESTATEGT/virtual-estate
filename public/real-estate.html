@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Real Estate — Virtual Estate</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Raleway:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+  :root{--bg:#0D1A14;--bg2:#0E1615;--bg3:#1E3028;--bg4:#162820;--gold:#C19259;--gold-lt:#D4A96A;--white:#F5F0E8;--gray:#8A9990;--border:rgba(193,146,89,.18);--tr:.35s cubic-bezier(.25,.46,.45,.94);--r:4px;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg);color:var(--white);font-family:'Montserrat',sans-serif;font-weight:300;line-height:1.6;overflow-x:hidden;}
+  a{text-decoration:none;color:inherit;}
+  button{cursor:pointer;font-family:'Montserrat',sans-serif;}
+  h1,h2,h3{font-family:'Raleway',sans-serif;font-weight:700;}
+  .label{font-size:.62rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);font-weight:600;}
+  .container{width:min(1280px,92vw);margin-inline:auto;}
+  .btn{display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.8rem;border-radius:var(--r);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;transition:var(--tr);font-family:'Montserrat',sans-serif;border:none;cursor:pointer;}
+  .btn-gold{background:var(--gold);color:var(--bg);}
+  .btn-gold:hover{background:var(--gold-lt);}
+  .btn-outline{border:1.5px solid var(--gold);color:var(--gold);background:transparent;}
+  .btn-outline:hover{background:var(--gold);color:var(--bg);}
+  .divider{width:44px;height:2px;background:var(--gold);margin:1rem 0;}
+
+  /* ── NAV ─────────────────────────────── */
+  #nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(13,26,20,.96);backdrop-filter:blur(18px);padding:.7rem 0;border-bottom:1px solid var(--border);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;}
+  .nav-logo img{height:87px;width:auto;object-fit:contain;}
+  .nav-links{display:flex;gap:2rem;align-items:center;}
+  .nav-links a{font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;font-weight:500;color:rgba(245,240,232,.7);transition:color .25s;position:relative;}
+  .nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1.5px;background:var(--gold);transform:scaleX(0);transform-origin:right;transition:transform .3s;}
+  .nav-links a:hover{color:var(--white);}
+  .nav-links a:hover::after{transform:scaleX(1);transform-origin:left;}
+  .nav-links a.active{color:var(--gold);}
+  .nav-links a.active::after{transform:scaleX(1);}
+  .nav-portal{padding:.5rem 1.4rem;border:1.5px solid var(--gold);border-radius:var(--r);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:600;transition:var(--tr);}
+  .nav-portal:hover{background:var(--gold);color:var(--bg);}
+  .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;}
+  .hamburger span{display:block;width:24px;height:1.5px;background:var(--white);transition:var(--tr);}
+  .mobile-menu{position:fixed;inset:0;background:rgba(7,16,10,.97);z-index:2000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2rem;opacity:0;pointer-events:none;transition:opacity .3s;}
+  .mobile-menu.open{opacity:1;pointer-events:all;}
+  .mobile-menu a{font-size:1.2rem;letter-spacing:.14em;text-transform:uppercase;color:var(--white);}
+  .mobile-close{background:none;border:none;color:var(--white);font-size:1.4rem;position:absolute;top:2rem;right:2rem;cursor:pointer;}
+
+  /* ── PAGE HEADER ─────────────────────── */
+  .page-header{padding:120px 0 60px;background:var(--bg2);border-bottom:1px solid var(--border);}
+  .page-header h1{font-size:clamp(1.8rem,3.5vw,3rem);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem;}
+  .page-header p{font-size:.85rem;color:var(--gray);font-weight:400;max-width:500px;}
+  .page-header-inner{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;}
+
+  /* ── MAIN LAYOUT ─────────────────────── */
+  .re-layout{display:grid;grid-template-columns:280px 1fr;gap:2rem;padding:2.5rem 0 5rem;}
+
+  /* ── FILTERS SIDEBAR ─────────────────── */
+  .filters-sidebar{
+    background:var(--bg2);border:1px solid var(--border);
+    border-radius:var(--r);padding:1.6rem;height:fit-content;
+    position:sticky;top:80px;
+  }
+  .filter-title{font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1rem;}
+  .filter-section{margin-bottom:1.6rem;padding-bottom:1.4rem;border-bottom:1px solid var(--border);}
+  .filter-section:last-child{border-bottom:none;margin-bottom:0;}
+  .filter-section-title{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.8rem;color:var(--white);}
+  .filter-input{
+    width:100%;padding:.6rem .8rem;background:rgba(255,255,255,.04);
+    border:1px solid var(--border);border-radius:var(--r);
+    color:var(--white);font-family:'Montserrat',sans-serif;font-size:.78rem;
+  }
+  .filter-input:focus{outline:none;border-color:var(--gold);}
+  .filter-input option{background:var(--bg2);}
+  .price-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
+  .filter-checks{display:flex;flex-direction:column;gap:.5rem;}
+  .filter-check{display:flex;align-items:center;gap:.6rem;font-size:.76rem;color:rgba(245,240,232,.7);cursor:pointer;}
+  .filter-check input{accent-color:var(--gold);}
+  .filter-check:hover{color:var(--white);}
+  .filter-btn{width:100%;padding:.7rem;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:var(--tr);margin-top:.8rem;}
+  .filter-btn:hover{background:var(--gold-lt);}
+  .filter-reset{width:100%;padding:.55rem;background:transparent;color:var(--gray);border:1px solid var(--border);border-radius:var(--r);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:500;cursor:pointer;transition:var(--tr);margin-top:.4rem;}
+  .filter-reset:hover{border-color:var(--gold);color:var(--gold);}
+
+  /* ── LISTINGS ────────────────────────── */
+  .listings-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;flex-wrap:wrap;gap:.8rem;}
+  .listings-count{font-size:.8rem;color:var(--gray);font-weight:400;}
+  .listings-count strong{color:var(--white);}
+  .sort-select{
+    padding:.5rem .9rem;background:rgba(255,255,255,.04);
+    border:1px solid var(--border);border-radius:var(--r);
+    color:var(--white);font-family:'Montserrat',sans-serif;font-size:.74rem;
+  }
+  .sort-select:focus{outline:none;}
+  .sort-select option{background:var(--bg2);}
+
+  .view-toggle{display:flex;gap:.3rem;}
+  .view-btn{
+    width:32px;height:32px;border:1px solid var(--border);border-radius:var(--r);
+    background:transparent;color:var(--gray);display:flex;align-items:center;justify-content:center;
+    font-size:.78rem;cursor:pointer;transition:var(--tr);
+  }
+  .view-btn.active,.view-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+  .properties-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem;}
+  .properties-grid.list-view{grid-template-columns:1fr;}
+
+  .prop-card{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--bg2);transition:var(--tr);}
+  .prop-card:hover{transform:translateY(-5px);border-color:rgba(193,146,89,.4);}
+
+  .prop-img{height:200px;position:relative;background:var(--bg3);display:flex;align-items:center;justify-content:center;}
+  .prop-img-ph{width:100%;height:100%;background:linear-gradient(135deg,var(--bg3) 0%,#0A180E 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;}
+  .prop-img-ph i{font-size:2rem;color:rgba(193,146,89,.2);}
+  .prop-img-ph span{font-size:.58rem;letter-spacing:.1em;color:var(--gray);text-transform:uppercase;}
+  .prop-badge{position:absolute;top:.8rem;left:.8rem;padding:.22rem .65rem;border-radius:2px;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;}
+  .badge-venta{background:var(--gold);color:var(--bg);}
+  .badge-renta{background:transparent;color:var(--gold);border:1.5px solid var(--gold);}
+  .prop-tour-badge{position:absolute;bottom:.8rem;right:.8rem;background:rgba(13,26,20,.85);backdrop-filter:blur(8px);border:1px solid var(--border);padding:.22rem .65rem;border-radius:2px;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:600;}
+
+  .prop-body{padding:1.2rem;}
+  .prop-code{font-size:.56rem;letter-spacing:.14em;color:var(--gray);text-transform:uppercase;margin-bottom:.25rem;font-weight:500;}
+  .prop-name{font-size:.95rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.25rem;}
+  .prop-loc{font-size:.72rem;color:var(--gray);display:flex;align-items:center;gap:.3rem;margin-bottom:.8rem;}
+  .prop-specs{display:flex;gap:.8rem;margin-bottom:.8rem;flex-wrap:wrap;}
+  .prop-spec{font-size:.68rem;color:rgba(245,240,232,.5);display:flex;align-items:center;gap:.28rem;}
+  .prop-price{font-family:'Raleway',sans-serif;font-size:1.3rem;font-weight:700;color:var(--gold);}
+  .prop-foot{padding:.85rem 1.2rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .prop-link{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--gold);display:flex;align-items:center;gap:.35rem;transition:gap .2s;}
+  .prop-link:hover{gap:.65rem;}
+  .prop-heart{color:var(--gray);transition:color .2s;cursor:pointer;}
+  .prop-heart:hover,.prop-heart.faved{color:var(--gold);}
+
+  /* List view card */
+  .properties-grid.list-view .prop-card{display:grid;grid-template-columns:280px 1fr auto;}
+  .properties-grid.list-view .prop-img{height:100%;min-height:160px;}
+  .properties-grid.list-view .prop-foot{flex-direction:column;align-items:flex-end;justify-content:center;gap:.8rem;border-top:none;border-left:1px solid var(--border);}
+
+  /* ── PAGINATION ──────────────────────── */
+  .pagination{display:flex;justify-content:center;gap:.4rem;margin-top:2.5rem;}
+  .page-btn{
+    width:36px;height:36px;border:1px solid var(--border);border-radius:var(--r);
+    background:transparent;color:var(--gray);display:flex;align-items:center;justify-content:center;
+    font-size:.78rem;cursor:pointer;transition:var(--tr);font-family:'Montserrat',sans-serif;
+  }
+  .page-btn.active,.page-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(193,146,89,.08);}
+
+  /* ── ENLISTAR BANNER ─────────────────── */
+  .enlistar-banner{
+    background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+    padding:3rem;text-align:center;margin-bottom:2rem;
+  }
+  .enlistar-banner h3{font-size:1.4rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem;}
+  .enlistar-banner p{font-size:.83rem;color:var(--gray);margin-bottom:1.5rem;font-weight:400;}
+
+  /* ── SOCIAL FLOAT ────────────────────── */
+  .social-float{position:fixed;right:1.5rem;top:50%;transform:translateY(-50%);z-index:999;display:flex;flex-direction:column;gap:.55rem;}
+  .social-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:rgba(13,26,20,.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:.78rem;transition:var(--tr);}
+  .social-btn:hover{border-color:var(--gold);color:var(--gold);}
+  .social-btn.whatsapp:hover{border-color:#25D366;color:#25D366;}
+
+  /* ── SCROLL TOP ──────────────────────── */
+  #scroll-top{position:fixed;bottom:1.8rem;right:1.5rem;width:38px;height:38px;border-radius:50%;background:var(--gold);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:.8rem;z-index:997;border:none;opacity:0;pointer-events:none;transition:var(--tr);}
+  #scroll-top.visible{opacity:1;pointer-events:all;}
+
+  /* ── TOAST ───────────────────────────── */
+  .toast{position:fixed;bottom:1.8rem;left:50%;transform:translateX(-50%) translateY(60px);background:var(--bg3);border:1px solid var(--gold);color:var(--white);padding:.8rem 1.6rem;border-radius:var(--r);font-size:.78rem;z-index:9999;transition:transform .35s;font-weight:500;}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+
+  /* ── CAROUSEL ───────────────────────── */
+  .prop-img{position:relative;overflow:hidden;}
+  .carousel-btn{
+    position:absolute;top:50%;transform:translateY(-50%);
+    width:30px;height:30px;border-radius:50%;border:1.5px solid rgba(245,240,232,.6);
+    background:rgba(13,26,20,.75);backdrop-filter:blur(6px);
+    color:var(--white);font-size:.65rem;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;z-index:5;opacity:0;transition:opacity .2s,background .2s;
+  }
+  .prop-img:hover .carousel-btn{opacity:1;}
+  .carousel-btn.prev{left:.5rem;}
+  .carousel-btn.next{right:2.4rem;}
+  .carousel-dots{
+    position:absolute;bottom:.6rem;left:50%;transform:translateX(-50%);
+    display:flex;gap:.3rem;z-index:5;
+  }
+  .c-dot{
+    width:5px;height:5px;border-radius:50%;background:rgba(245,240,232,.4);
+    cursor:pointer;transition:.2s;
+  }
+  .c-dot.active{background:var(--gold);width:12px;border-radius:3px;}
+
+  /* ── DETAIL MODAL ────────────────────── */
+  .detail-overlay{
+    display:none;position:fixed;inset:0;z-index:1200;
+    background:rgba(0,0,0,.85);backdrop-filter:blur(12px);
+    align-items:flex-start;justify-content:center;overflow-y:auto;padding:2rem 1rem;
+  }
+  .detail-overlay.open{display:flex;}
+  .detail-modal{
+    background:var(--bg2);border:1px solid var(--border);border-radius:6px;
+    width:min(900px,98vw);position:relative;overflow:hidden;
+  }
+  .detail-close{
+    position:absolute;top:1rem;right:1rem;z-index:10;
+    width:32px;height:32px;border-radius:50%;background:rgba(13,26,20,.8);
+    border:1px solid var(--border);color:var(--white);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:.8rem;transition:.2s;
+  }
+  .detail-close:hover{background:var(--gold);color:var(--bg);}
+  .detail-gallery{
+    height:360px;background:var(--bg3);position:relative;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .detail-gallery-ph{
+    display:flex;flex-direction:column;align-items:center;gap:.8rem;color:var(--gray);
+  }
+  .detail-gallery-ph i{font-size:3rem;color:rgba(193,146,89,.3);}
+  .detail-gallery-ph span{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;}
+  .detail-gallery-nav{
+    position:absolute;top:50%;transform:translateY(-50%);
+    display:flex;justify-content:space-between;width:100%;padding:0 1rem;
+    pointer-events:none;
+  }
+  .detail-gallery-btn{
+    width:40px;height:40px;border-radius:50%;
+    background:rgba(13,26,20,.75);border:1.5px solid rgba(245,240,232,.4);
+    color:var(--white);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;pointer-events:all;transition:.2s;font-size:.8rem;
+  }
+  .detail-gallery-btn:hover{background:var(--gold);border-color:var(--gold);color:var(--bg);}
+  .detail-body{padding:2rem;}
+  .detail-grid{display:grid;grid-template-columns:1fr 320px;gap:2rem;}
+  .detail-info-row{display:flex;gap:1rem;flex-wrap:wrap;margin:1rem 0;padding:1rem 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+  .detail-spec{display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:rgba(245,240,232,.7);}
+  .detail-spec i{color:var(--gold);font-size:.7rem;}
+  .detail-section-title{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.6rem;}
+  .detail-description{font-size:.82rem;color:var(--gray);line-height:1.8;font-weight:400;}
+  .detail-checklist{display:flex;flex-direction:column;gap:.45rem;}
+  .detail-check-item{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:rgba(245,240,232,.75);}
+  .detail-check-item i{color:var(--gold);font-size:.65rem;}
+  .detail-side-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;}
+  .detail-price-big{font-family:'Raleway',sans-serif;font-size:2rem;font-weight:700;color:var(--gold);margin-bottom:.4rem;}
+  .detail-tour-lock{
+    background:rgba(193,146,89,.08);border:1px solid var(--border);border-radius:var(--r);
+    padding:1rem;margin-top:1rem;text-align:center;
+  }
+  .detail-tour-lock i{font-size:1.4rem;color:var(--gold);margin-bottom:.5rem;}
+  .detail-tour-lock p{font-size:.75rem;color:var(--gray);line-height:1.5;margin-bottom:.8rem;font-weight:400;}
+
+  /* ── ADICIONALES MODAL ───────────────── */
+  .adic-overlay{
+    display:none;position:fixed;inset:0;z-index:1300;
+    background:rgba(0,0,0,.88);backdrop-filter:blur(14px);
+    align-items:flex-start;justify-content:center;
+    overflow-y:auto;padding:2rem 1rem;
+  }
+  .adic-overlay.open{display:flex;}
+  .adic-modal{
+    background:var(--bg2);border:1px solid var(--border);border-radius:6px;
+    width:min(860px,98vw);position:relative;
+  }
+  .adic-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:1.4rem 1.8rem;border-bottom:1px solid var(--border);
+    position:sticky;top:0;background:var(--bg2);z-index:5;
+  }
+  .adic-header h3{font-size:1rem;text-transform:uppercase;letter-spacing:.07em;}
+  .adic-close{
+    width:30px;height:30px;border-radius:50%;background:rgba(13,26,20,.8);
+    border:1px solid var(--border);color:var(--white);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font-size:.75rem;transition:.2s;
+  }
+  .adic-close:hover{background:var(--gold);color:var(--bg);}
+  .adic-body{padding:1.6rem 1.8rem;}
+  .adic-cat-title{
+    font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--gold);font-weight:600;margin-bottom:.8rem;
+    padding-bottom:.5rem;border-bottom:1px solid var(--border);
+  }
+  .adic-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));
+    gap:.4rem;margin-bottom:1.6rem;
+  }
+  .adic-check{
+    display:flex;align-items:center;gap:.5rem;
+    padding:.4rem .55rem;border:1px solid transparent;border-radius:var(--r);
+    font-size:.73rem;color:rgba(245,240,232,.7);cursor:pointer;
+    transition:.2s;white-space:nowrap;
+  }
+  .adic-check input{accent-color:var(--gold);width:12px;height:12px;flex-shrink:0;}
+  .adic-check:hover{background:rgba(193,146,89,.05);border-color:var(--border);color:var(--white);}
+  .adic-check.selected{background:rgba(193,146,89,.1);border-color:rgba(193,146,89,.35);color:var(--white);}
+  .adic-footer{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:1.1rem 1.8rem;border-top:1px solid var(--border);
+    position:sticky;bottom:0;background:var(--bg2);
+  }
+  .adic-count-badge{
+    font-size:.72rem;color:var(--gold);font-weight:600;
+    background:rgba(193,146,89,.12);padding:.3rem .75rem;border-radius:20px;
+  }
+  .btn-mas{
+    width:100%;padding:.6rem;background:transparent;
+    color:var(--gold);border:1.5px solid var(--gold);border-radius:var(--r);
+    font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;
+    cursor:pointer;transition:.2s;margin-top:.5rem;
+    display:flex;align-items:center;justify-content:center;gap:.5rem;
+  }
+  .btn-mas:hover{background:var(--gold);color:var(--bg);}
+  .adic-applied-chips{
+    display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem;
+    max-height:60px;overflow-y:auto;
+  }
+  .adic-chip{
+    font-size:.6rem;background:rgba(193,146,89,.15);border:1px solid rgba(193,146,89,.3);
+    color:var(--gold);padding:.2rem .6rem;border-radius:20px;
+    display:flex;align-items:center;gap:.3rem;cursor:pointer;
+  }
+  .adic-chip:hover{background:rgba(193,146,89,.25);}
+
+  /* ── FOOTER COMPLETO ─────────────────── */
+  footer{background:#07100A;border-top:1px solid var(--border);padding:4rem 0 1.8rem;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:3rem;padding-bottom:2.5rem;border-bottom:1px solid var(--border);margin-bottom:1.6rem;}
+  .footer-logo img{height:56px;width:auto;object-fit:contain;margin-bottom:.8rem;}
+  .footer-tagline{font-size:.78rem;color:var(--gray);line-height:1.7;max-width:260px;font-weight:400;}
+  .footer-col-title{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;font-weight:600;}
+  .footer-links{display:flex;flex-direction:column;gap:.5rem;}
+  .footer-link{font-size:.78rem;color:var(--gray);transition:color .2s;font-weight:400;}
+  .footer-link:hover{color:var(--white);}
+  .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;font-size:.68rem;color:var(--gray);}
+
+  /* ── RESPONSIVE ──────────────────────── */
+  @media(max-width:900px){
+    .re-layout{grid-template-columns:1fr;}
+    .filters-sidebar{position:static;}
+    .properties-grid.list-view .prop-card{grid-template-columns:1fr;}
+    .properties-grid.list-view .prop-img{min-height:180px;}
+    .properties-grid.list-view .prop-foot{border-left:none;border-top:1px solid var(--border);flex-direction:row;}
+    .social-float{display:none;}
+    .footer-grid{grid-template-columns:1fr 1fr;}
+  }
+  @media(max-width:600px){
+    .nav-links{display:none;}
+    .hamburger{display:flex;}
+    .properties-grid{grid-template-columns:1fr;}
+    .price-row{grid-template-columns:1fr;}
+    .footer-grid{grid-template-columns:1fr;}
+  }
+  </style>
+</head>
+<body>
+
+<!-- ── SOCIAL FLOAT ──────────────────────────────────── -->
+<div class="social-float">
+  <a href="https://wa.me/50239902399" target="_blank" class="social-btn whatsapp"><i class="fab fa-whatsapp"></i></a>
+  <a href="https://www.instagram.com/virtualestategt" target="_blank" class="social-btn"><i class="fab fa-instagram"></i></a>
+  <a href="https://www.facebook.com/virtualestategt" target="_blank" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+</div>
+
+<button id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-chevron-up"></i></button>
+<div class="toast" id="toast"></div>
+
+<!-- ── NAV ───────────────────────────────────────────── -->
+<!-- ── MOBILE MENU ──────────────────────────────────────── -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')"><i class="fas fa-times"></i></button>
+  <a href="index.html#about">Nosotros</a>
+  <a href="index.html#divisiones">Servicios</a>
+  <a href="real-estate.html">Real Estate</a>
+  <a href="as-built.html">AS Built</a>
+  <a href="construccion.html">Construcción</a>
+  <a href="index.html#cotizador">Cotizador</a>
+  <a href="index.html#contacto">Contacto</a>
+  <a href="index.html#agentes">Agentes</a>
+  <a href="portal.html" style="color:var(--gold);">Portal</a>
+</div>
+
+<nav id="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="nav-logo"><img src="assets/logo-letras.png" alt="Virtual Estate"/></a>
+    <div class="nav-links">
+      <a href="index.html#about">Nosotros</a>
+      <a href="index.html#divisiones">Servicios</a>
+      <a href="real-estate.html" class="active">Real Estate</a>
+      <a href="as-built.html">AS Built</a>
+      <a href="construccion.html">Construcción</a>
+      <a href="index.html#cotizador">Cotizador</a>
+      <a href="index.html#contacto">Contacto</a>
+      <a href="index.html#agentes">Agentes</a>
+      <a href="portal.html" class="nav-portal">Portal</a>
+    </div>
+    <div class="hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+
+<!-- ── PAGE HEADER ────────────────────────────────────── -->
+<div class="page-header">
+  <div class="container">
+    <div class="page-header-inner">
+      <div>
+        <span class="label">Portafolio de Propiedades</span>
+        <div class="divider"></div>
+        <h1>Real Estate Premium</h1>
+        <p>Cada propiedad incluye recorrido virtual 3D, fotografía profesional y ficha técnica completa.</p>
+      </div>
+      <a href="index.html#cotizador" class="btn btn-outline">
+        <i class="fas fa-plus"></i> Enlistar mi propiedad
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN ───────────────────────────────────────────── -->
+<div class="container">
+  <div class="re-layout">
+
+    <!-- FILTERS SIDEBAR -->
+    <aside class="filters-sidebar">
+      <div class="filter-title">Filtros de búsqueda</div>
+
+      <div class="filter-section">
+        <div class="filter-section-title">Modalidad</div>
+        <div class="filter-checks">
+          <label class="filter-check"><input type="checkbox" checked/> Venta</label>
+          <label class="filter-check"><input type="checkbox" checked/> Renta</label>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-section-title">Tipo de Propiedad</div>
+        <div class="filter-checks">
+          <label class="filter-check"><input type="checkbox" checked/> Casa</label>
+          <label class="filter-check"><input type="checkbox" checked/> Apartamento</label>
+          <label class="filter-check"><input type="checkbox" checked/> Oficina</label>
+          <label class="filter-check"><input type="checkbox" checked/> Bodega</label>
+          <label class="filter-check"><input type="checkbox" checked/> Local comercial</label>
+          <label class="filter-check"><input type="checkbox" checked/> Otro</label>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-section-title">Disponibilidad</div>
+        <div class="filter-checks">
+          <label class="filter-check"><input type="checkbox" checked/> Vacía (inmediata)</label>
+          <label class="filter-check"><input type="checkbox" checked/> Habitada de momento</label>
+          <label class="filter-check"><input type="checkbox" checked/> En construcción</label>
+          <label class="filter-check"><input type="checkbox" checked/> Airbnb</label>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-section-title">Rango de Precio (USD)</div>
+        <div class="price-row">
+          <input type="number" class="filter-input" placeholder="Mínimo" id="f-min"/>
+          <input type="number" class="filter-input" placeholder="Máximo" id="f-max"/>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-section-title">Metraje de construcción (m²)</div>
+        <div class="price-row">
+          <input type="number" class="filter-input" placeholder="Desde"/>
+          <input type="number" class="filter-input" placeholder="Hasta"/>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-section-title">Ubicación / Zona</div>
+        <select class="filter-input" style="width:100%;margin-bottom:.5rem;">
+          <option value="">Todas las zonas</option>
+          <option>Zona 10</option>
+          <option>Zona 14</option>
+          <option>Zona 15</option>
+          <option>Villa Nueva</option>
+          <option>Mixco</option>
+          <option>Otro departamento</option>
+        </select>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-section-title">Ambientes</div>
+        <div class="filter-checks">
+          <label class="filter-check"><input type="checkbox"/> Jardín</label>
+          <label class="filter-check"><input type="checkbox"/> Terraza</label>
+          <label class="filter-check"><input type="checkbox"/> Estacionamiento</label>
+          <label class="filter-check"><input type="checkbox"/> Bodega</label>
+          <label class="filter-check"><input type="checkbox"/> Área de servicio</label>
+          <label class="filter-check"><input type="checkbox"/> Amenidades</label>
+          <label class="filter-check"><input type="checkbox"/> Cisterna de agua</label>
+          <label class="filter-check"><input type="checkbox"/> Planta de tratamiento</label>
+        </div>
+      </div>
+
+      <!-- ADICIONALES APLICADOS -->
+      <div id="adic-chips-container" style="display:none;margin-bottom:.6rem;">
+        <div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.4rem;">Adicionales activos</div>
+        <div class="adic-applied-chips" id="adic-chips"></div>
+      </div>
+
+      <button class="btn-mas" onclick="abrirAdicionales()">
+        <i class="fas fa-sliders-h"></i> Más opciones · Adicionales
+        <span id="adic-sidebar-count" style="display:none;background:var(--gold);color:var(--bg);border-radius:20px;padding:.1rem .5rem;font-size:.58rem;"></span>
+      </button>
+
+      <button class="filter-btn" onclick="aplicarFiltros()" style="margin-top:.7rem;">
+        <i class="fas fa-search"></i> Aplicar filtros
+      </button>
+      <button class="filter-reset" onclick="resetFiltros()">
+        <i class="fas fa-redo"></i> Limpiar filtros
+      </button>
+    </aside>
+
+    <!-- LISTINGS -->
+    <div>
+      <div class="listings-header">
+        <div class="listings-count">Mostrando <strong id="prop-count">9</strong> propiedades</div>
+        <div style="display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;">
+          <!-- Toggle moneda -->
+          <div style="display:flex;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;">
+            <button id="re-btn-usd" onclick="setReCurrency('USD')" style="padding:.38rem .9rem;background:var(--gold);color:var(--bg);border:none;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:.2s;">$ USD</button>
+            <button id="re-btn-gtq" onclick="setReCurrency('GTQ')" style="padding:.38rem .9rem;background:transparent;color:var(--gray);border:none;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;transition:.2s;">Q GTQ</button>
+          </div>
+          <select class="sort-select" onchange="sortProperties(this.value)">
+            <option value="default">Ordenar por</option>
+            <option value="price-asc">Precio: menor a mayor</option>
+            <option value="price-desc">Precio: mayor a menor</option>
+            <option value="m2-desc">Mayor metraje</option>
+            <option value="newest">Más recientes</option>
+          </select>
+          <div class="view-toggle">
+            <button class="view-btn active" id="btn-grid" onclick="setView('grid')" title="Vista cuadrícula">
+              <i class="fas fa-th"></i>
+            </button>
+            <button class="view-btn" id="btn-list" onclick="setView('list')" title="Vista lista">
+              <i class="fas fa-list"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="properties-grid" id="propsGrid">
+        <!-- 9 property cards - using the new code structure [TIPO]-[AÑO]-[SEQ] -->
+
+        <div class="prop-card">
+          <div class="prop-img">
+            <div class="prop-img-ph"><i class="fas fa-building"></i><span>Tour virtual disponible</span></div>
+            <span class="prop-badge badge-venta">Venta</span>
+            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
+          </div>
+          <div class="prop-body">
+            <div class="prop-code">PRO-26-0001</div>
+            <div class="prop-name"><i class="fas fa-building" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Apartamento Zona 14</div>
+            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Zona 14, Guatemala</div>
+            <div class="prop-specs">
+              <span class="prop-spec"><i class="fas fa-bed"></i> 3 hab.</span>
+              <span class="prop-spec"><i class="fas fa-bath"></i> 2 baños</span>
+              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 145 m²</span>
+              <span class="prop-spec"><i class="fas fa-car"></i> 2 est.</span>
+            </div>
+            <div class="prop-price" data-code="PRO-26-0001">$185,000</div>
+          </div>
+          <div class="prop-foot">
+            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
+            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0001')"></i>
+          </div>
+        </div>
+
+        <div class="prop-card">
+          <div class="prop-img">
+            <div class="prop-img-ph"><i class="fas fa-home"></i><span>Tour virtual disponible</span></div>
+            <span class="prop-badge badge-venta">Venta</span>
+            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
+          </div>
+          <div class="prop-body">
+            <div class="prop-code">PRO-26-0002</div>
+            <div class="prop-name"><i class="fas fa-home" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Casa Colonia Oakland</div>
+            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Villa Nueva, Guatemala</div>
+            <div class="prop-specs">
+              <span class="prop-spec"><i class="fas fa-bed"></i> 4 hab.</span>
+              <span class="prop-spec"><i class="fas fa-bath"></i> 3 baños</span>
+              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 290 m²</span>
+              <span class="prop-spec"><i class="fas fa-tree"></i> Jardín</span>
+            </div>
+            <div class="prop-price" data-code="PRO-26-0002">$320,000</div>
+          </div>
+          <div class="prop-foot">
+            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
+            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0002')"></i>
+          </div>
+        </div>
+
+        <div class="prop-card">
+          <div class="prop-img">
+            <div class="prop-img-ph"><i class="fas fa-store"></i><span>Tour virtual disponible</span></div>
+            <span class="prop-badge badge-renta">Renta</span>
+            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
+          </div>
+          <div class="prop-body">
+            <div class="prop-code">PRO-26-0003</div>
+            <div class="prop-name"><i class="fas fa-briefcase" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Oficina Pradera Torre 4</div>
+            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Zona 10, Guatemala</div>
+            <div class="prop-specs">
+              <span class="prop-spec"><i class="fas fa-users"></i> 8 puestos</span>
+              <span class="prop-spec"><i class="fas fa-bath"></i> 1 baño</span>
+              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 95 m²</span>
+            </div>
+            <div class="prop-price" data-code="PRO-26-0003">$1,200 / mes</div>
+          </div>
+          <div class="prop-foot">
+            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
+            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0003')"></i>
+          </div>
+        </div>
+
+        <div class="prop-card">
+          <div class="prop-img">
+            <div class="prop-img-ph"><i class="fas fa-city"></i><span>Tour virtual disponible</span></div>
+            <span class="prop-badge badge-venta">Venta</span>
+            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
+          </div>
+          <div class="prop-body">
+            <div class="prop-code">PRO-26-0004</div>
+            <div class="prop-name"><i class="fas fa-city" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Penthouse Zona 15</div>
+            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Zona 15, Guatemala</div>
+            <div class="prop-specs">
+              <span class="prop-spec"><i class="fas fa-bed"></i> 3 hab.</span>
+              <span class="prop-spec"><i class="fas fa-bath"></i> 3 baños</span>
+              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 220 m²</span>
+              <span class="prop-spec"><i class="fas fa-sun"></i> Terraza</span>
+            </div>
+            <div class="prop-price" data-code="PRO-26-0004">$480,000</div>
+          </div>
+          <div class="prop-foot">
+            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
+            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0004')"></i>
+          </div>
+        </div>
+
+        <div class="prop-card">
+          <div class="prop-img">
+            <div class="prop-img-ph"><i class="fas fa-warehouse"></i><span>Tour virtual disponible</span></div>
+            <span class="prop-badge badge-renta">Renta</span>
+            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
+          </div>
+          <div class="prop-body">
+            <div class="prop-code">PRO-26-0005</div>
+            <div class="prop-name"><i class="fas fa-warehouse" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Bodega Industrial Mixco</div>
+            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Mixco, Guatemala</div>
+            <div class="prop-specs">
+              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 800 m²</span>
+              <span class="prop-spec"><i class="fas fa-truck"></i> Acceso</span>
+              <span class="prop-spec"><i class="fas fa-bolt"></i> 220V</span>
+            </div>
+            <div class="prop-price" data-code="PRO-26-0005">$3,500 / mes</div>
+          </div>
+          <div class="prop-foot">
+            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
+            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0005')"></i>
+          </div>
+        </div>
+
+        <div class="prop-card">
+          <div class="prop-img">
+            <div class="prop-img-ph"><i class="fas fa-home"></i><span>Tour virtual disponible</span></div>
+            <span class="prop-badge badge-venta">Venta</span>
+            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
+          </div>
+          <div class="prop-body">
+            <div class="prop-code">PRO-26-0006</div>
+            <div class="prop-name"><i class="fas fa-home" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Casa Condominio Norte</div>
+            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Fraijanes, Guatemala</div>
+            <div class="prop-specs">
+              <span class="prop-spec"><i class="fas fa-bed"></i> 3 hab.</span>
+              <span class="prop-spec"><i class="fas fa-bath"></i> 2 baños</span>
+              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 180 m²</span>
+              <span class="prop-spec"><i class="fas fa-shield-alt"></i> Seg.</span>
+            </div>
+            <div class="prop-price" data-code="PRO-26-0006">$195,000</div>
+          </div>
+          <div class="prop-foot">
+            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
+            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0006')"></i>
+          </div>
+        </div>
+
+        <div class="prop-card">
+          <div class="prop-img">
+            <div class="prop-img-ph"><i class="fas fa-store-alt"></i><span>Tour virtual disponible</span></div>
+            <span class="prop-badge badge-renta">Renta</span>
+            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
+          </div>
+          <div class="prop-body">
+            <div class="prop-code">PRO-26-0007</div>
+            <div class="prop-name"><i class="fas fa-store" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Local Comercial Zona 4</div>
+            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Zona 4, Guatemala</div>
+            <div class="prop-specs">
+              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 65 m²</span>
+              <span class="prop-spec"><i class="fas fa-users"></i> Alto flujo</span>
+            </div>
+            <div class="prop-price" data-code="PRO-26-0007">$850 / mes</div>
+          </div>
+          <div class="prop-foot">
+            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
+            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0007')"></i>
+          </div>
+        </div>
+
+        <!-- Multiple units same building: PRO-26-0008-01, -02 -->
+        <div class="prop-card">
+          <div class="prop-img">
+            <div class="prop-img-ph"><i class="fas fa-building"></i><span>Tour virtual disponible</span></div>
+            <span class="prop-badge badge-venta">Venta</span>
+            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
+          </div>
+          <div class="prop-body">
+            <div class="prop-code">PRO-26-0008-01</div>
+            <div class="prop-name"><i class="fas fa-building" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Apartamento Torre Azul — Unidad A</div>
+            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Zona 10, Guatemala</div>
+            <div class="prop-specs">
+              <span class="prop-spec"><i class="fas fa-bed"></i> 2 hab.</span>
+              <span class="prop-spec"><i class="fas fa-bath"></i> 2 baños</span>
+              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 110 m²</span>
+            </div>
+            <div class="prop-price" data-code="PRO-26-0008-01">$220,000</div>
+          </div>
+          <div class="prop-foot">
+            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
+            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0008-01')"></i>
+          </div>
+        </div>
+
+        <div class="prop-card">
+          <div class="prop-img">
+            <div class="prop-img-ph"><i class="fas fa-building"></i><span>Tour virtual disponible</span></div>
+            <span class="prop-badge badge-venta">Venta</span>
+            <span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>
+          </div>
+          <div class="prop-body">
+            <div class="prop-code">PRO-26-0008-02</div>
+            <div class="prop-name"><i class="fas fa-building" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Apartamento Torre Azul — Unidad B</div>
+            <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> Zona 10, Guatemala</div>
+            <div class="prop-specs">
+              <span class="prop-spec"><i class="fas fa-bed"></i> 2 hab.</span>
+              <span class="prop-spec"><i class="fas fa-bath"></i> 2 baños</span>
+              <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 115 m²</span>
+            </div>
+            <div class="prop-price" data-code="PRO-26-0008-02">$235,000</div>
+          </div>
+          <div class="prop-foot">
+            <a href="#" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
+            <i class="far fa-heart prop-heart" onclick="toggleFav(this,'PRO-26-0008-02')"></i>
+          </div>
+        </div>
+
+      </div><!-- /grid -->
+
+      <div class="pagination">
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
+      </div>
+
+      <!-- Enlistar banner -->
+      <div class="enlistar-banner" style="margin-top:3rem;">
+        <h3>¿Tienes una propiedad que quieres enlistar?</h3>
+        <p>Publicamos tu propiedad con recorrido virtual 3D, fotografía profesional y ficha técnica completa.<br/>Contáctanos y te explicamos cómo funciona el proceso.</p>
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+          <a href="index.html#contacto" class="btn btn-gold"><i class="fas fa-plus"></i> Enlistar mi propiedad</a>
+          <a href="https://wa.me/50239902399" target="_blank" class="btn btn-outline"><i class="fab fa-whatsapp"></i> Consultar por WhatsApp</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">
+          <img src="assets/logo-letras.png" alt="Virtual Estate"/>
+        </div>
+        <p class="footer-tagline">
+          Transformamos espacios físicos en experiencias digitales que venden, documentan y proyectan.
+        </p>
+        <div style="display:flex;gap:.7rem;margin-top:1.2rem;">
+          <a href="https://wa.me/50239902399" target="_blank" style="width:30px;height:30px;border-radius:50%;background:rgba(193,146,89,.12);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:.72rem;transition:.3s;">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+          <a href="https://www.instagram.com/virtualestategt" target="_blank" style="width:30px;height:30px;border-radius:50%;background:rgba(193,146,89,.12);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:.72rem;transition:.3s;">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="https://www.facebook.com/virtualestategt" target="_blank" style="width:30px;height:30px;border-radius:50%;background:rgba(193,146,89,.12);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:.72rem;transition:.3s;">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Servicios</div>
+        <div class="footer-links">
+          <a href="index.html#divisiones" class="footer-link">Escaneo 3D y Tours Virtuales</a>
+          <a href="index.html#divisiones" class="footer-link">AS BUILT / Documentación</a>
+          <a href="index.html#divisiones" class="footer-link">Construcción y Remodelación</a>
+          <a href="real-estate.html" class="footer-link">Real Estate</a>
+          <a href="index.html#cotizador" class="footer-link">Cotizador</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Empresa</div>
+        <div class="footer-links">
+          <a href="index.html#about" class="footer-link">Quiénes Somos</a>
+          <a href="index.html#valores" class="footer-link">Misión y Visión</a>
+          <a href="index.html#proceso" class="footer-link">Nuestro Proceso</a>
+          <a href="index.html#contacto" class="footer-link">Contacto</a>
+          <a href="portal.html" class="footer-link">Portal de Clientes</a>
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Legal</div>
+        <div class="footer-links">
+          <a href="#" class="footer-link">Términos y Condiciones</a>
+          <a href="#" class="footer-link">Política de Privacidad</a>
+          <a href="#" class="footer-link">Contrato de Intermediación</a>
+          <a href="#" class="footer-link">Requisitos Real Estate</a>
+        </div>
+        <div style="margin-top:1.2rem;padding:1rem;border:1px solid var(--border);border-radius:var(--r);">
+          <div class="footer-col-title" style="margin-bottom:.4rem;">Contacto</div>
+          <p style="font-size:.72rem;color:var(--gray);line-height:1.7;">
+            +502 3990-2399<br/>
+            info@virtualestategt.com<br/>
+            Zona 10, Guatemala
+          </p>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;padding:.6rem 0;border-top:1px solid var(--border);margin-bottom:0;">
+      <span style="font-size:.65rem;letter-spacing:.12em;color:var(--gray);font-weight:400;">Desarrollado por Paramétrica S.A.</span>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Virtual Estate Guatemala. Todos los derechos reservados.</span>
+      <span>@virtualestategt</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ── PROPERTY DETAIL MODAL ───────────────────────────── -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
+  <div class="detail-modal" id="detailModal">
+    <button class="detail-close" onclick="closeDetailBtn()"><i class="fas fa-times"></i></button>
+
+    <div class="detail-gallery" id="detailGallery">
+      <div class="detail-gallery-ph">
+        <i class="fas fa-camera" id="detailIcon"></i>
+        <span id="detailPhotoLabel">Foto 1 de 4</span>
+      </div>
+      <div class="detail-gallery-nav">
+        <button class="detail-gallery-btn" onclick="galNav(-1)"><i class="fas fa-chevron-left"></i></button>
+        <button class="detail-gallery-btn" onclick="galNav(1)"><i class="fas fa-chevron-right"></i></button>
+      </div>
+      <!-- Photo counter badge -->
+      <div style="position:absolute;bottom:.8rem;right:.8rem;background:rgba(13,26,20,.75);border:1px solid var(--border);padding:.2rem .6rem;border-radius:2px;font-size:.62rem;color:var(--gold);z-index:5;" id="galCounter">1 / 4</div>
+    </div>
+
+    <div class="detail-body">
+      <div class="detail-grid">
+        <div>
+          <span class="label" id="detailCode">PRO-26-0001</span>
+          <h2 style="font-size:1.6rem;text-transform:uppercase;letter-spacing:.06em;margin:.4rem 0;" id="detailName">Propiedad</h2>
+          <div style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--gray);">
+            <i class="fas fa-map-marker-alt" style="color:var(--gold);"></i>
+            <span id="detailLoc">Ubicación</span>
+          </div>
+
+          <div class="detail-info-row" id="detailSpecs"></div>
+
+          <div class="detail-section-title" style="margin-top:1.2rem;">Descripción</div>
+          <p class="detail-description" id="detailDesc">
+            Propiedad con recorrido virtual 3D, fotografía profesional y ficha técnica completa disponible.
+          </p>
+
+          <div class="detail-section-title" style="margin-top:1.4rem;">Incluye</div>
+          <div class="detail-checklist">
+            <div class="detail-check-item"><i class="fas fa-check-circle"></i> Recorrido virtual 3D (solicitar acceso)</div>
+            <div class="detail-check-item"><i class="fas fa-check-circle"></i> Fotografía profesional</div>
+            <div class="detail-check-item"><i class="fas fa-check-circle"></i> Ficha técnica completa</div>
+            <div class="detail-check-item"><i class="fas fa-check-circle"></i> Planos de distribución</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="detail-side-box">
+            <div class="detail-section-title">Precio</div>
+            <div class="detail-price-big" id="detailPrice">$0</div>
+            <div id="detailModalidad" style="font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:1rem;"></div>
+
+            <a href="https://wa.me/50239902399?text=Hola%2C+me+interesa+la+propiedad+" id="detailWA"
+               target="_blank" class="btn btn-gold" style="width:100%;justify-content:center;margin-bottom:.6rem;">
+              <i class="fab fa-whatsapp"></i> Consultar por WhatsApp
+            </a>
+            <a href="index.html#cotizador" class="btn btn-outline" style="width:100%;justify-content:center;font-size:.62rem;">
+              <i class="fas fa-file-invoice"></i> Cotizar servicio
+            </a>
+
+            <div class="detail-tour-lock" style="margin-top:1.2rem;">
+              <i class="fas fa-lock"></i>
+              <p>El recorrido virtual 3D de esta propiedad es exclusivo y requiere agendar una reunión con nuestro equipo para obtener acceso único.</p>
+              <a href="index.html#contacto" class="btn btn-outline" style="width:100%;justify-content:center;font-size:.6rem;">
+                <i class="fas fa-calendar-check"></i> Agendar reunión
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADICIONALES MODAL ────────────────────────────────── -->
+<div class="adic-overlay" id="adicOverlay" onclick="cerrarAdicionales(event)">
+  <div class="adic-modal" id="adicModal">
+
+    <div class="adic-header">
+      <div>
+        <h3>Filtrar por Adicionales</h3>
+        <p style="font-size:.72rem;color:var(--gray);margin-top:.2rem;font-weight:400;">Selecciona las características que debe tener la propiedad</p>
+      </div>
+      <button class="adic-close" onclick="cerrarAdicBtn()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="adic-body">
+
+      <!-- SERVICIOS BÁSICOS -->
+      <div class="adic-cat-title"><i class="fas fa-plug" style="margin-right:.4rem;"></i> Servicios Básicos</div>
+      <div class="adic-grid" id="adic-servicios">
+        <label class="adic-check"><input type="checkbox" value="Agua potable" onchange="actualizarAdic(this)"/> Agua potable</label>
+        <label class="adic-check"><input type="checkbox" value="Drenaje" onchange="actualizarAdic(this)"/> Drenaje</label>
+        <label class="adic-check"><input type="checkbox" value="Cable" onchange="actualizarAdic(this)"/> Cable</label>
+        <label class="adic-check"><input type="checkbox" value="Electricidad" onchange="actualizarAdic(this)"/> Electricidad</label>
+        <label class="adic-check"><input type="checkbox" value="Gas Natural" onchange="actualizarAdic(this)"/> Gas Natural</label>
+        <label class="adic-check"><input type="checkbox" value="Internet" onchange="actualizarAdic(this)"/> Internet</label>
+        <label class="adic-check"><input type="checkbox" value="Pavimento" onchange="actualizarAdic(this)"/> Pavimento</label>
+        <label class="adic-check"><input type="checkbox" value="Teléfono" onchange="actualizarAdic(this)"/> Teléfono</label>
+        <label class="adic-check"><input type="checkbox" value="Panel solar" onchange="actualizarAdic(this)"/> Panel solar</label>
+        <label class="adic-check"><input type="checkbox" value="Planta eléctrica" onchange="actualizarAdic(this)"/> Planta eléctrica</label>
+        <label class="adic-check"><input type="checkbox" value="Cisterna" onchange="actualizarAdic(this)"/> Cisterna</label>
+        <label class="adic-check"><input type="checkbox" value="Portero" onchange="actualizarAdic(this)"/> Portero</label>
+      </div>
+
+      <!-- ESPACIOS -->
+      <div class="adic-cat-title"><i class="fas fa-door-open" style="margin-right:.4rem;"></i> Espacios y Ambientes</div>
+      <div class="adic-grid">
+        <label class="adic-check"><input type="checkbox" value="Antecomedor" onchange="actualizarAdic(this)"/> Antecomedor</label>
+        <label class="adic-check"><input type="checkbox" value="Ático" onchange="actualizarAdic(this)"/> Ático</label>
+        <label class="adic-check"><input type="checkbox" value="Balcón" onchange="actualizarAdic(this)"/> Balcón</label>
+        <label class="adic-check"><input type="checkbox" value="Bodega" onchange="actualizarAdic(this)"/> Bodega</label>
+        <label class="adic-check"><input type="checkbox" value="Chimenea" onchange="actualizarAdic(this)"/> Chimenea</label>
+        <label class="adic-check"><input type="checkbox" value="Cocina equipada" onchange="actualizarAdic(this)"/> Cocina equipada</label>
+        <label class="adic-check"><input type="checkbox" value="Cocina integral" onchange="actualizarAdic(this)"/> Cocina integral</label>
+        <label class="adic-check"><input type="checkbox" value="Comedor" onchange="actualizarAdic(this)"/> Comedor</label>
+        <label class="adic-check"><input type="checkbox" value="Cuarto de servicio" onchange="actualizarAdic(this)"/> Cuarto de servicio</label>
+        <label class="adic-check"><input type="checkbox" value="Dos plantas" onchange="actualizarAdic(this)"/> Dos plantas</label>
+        <label class="adic-check"><input type="checkbox" value="Elevador" onchange="actualizarAdic(this)"/> Elevador</label>
+        <label class="adic-check"><input type="checkbox" value="Escritorio" onchange="actualizarAdic(this)"/> Escritorio</label>
+        <label class="adic-check"><input type="checkbox" value="Estudio" onchange="actualizarAdic(this)"/> Estudio</label>
+        <label class="adic-check"><input type="checkbox" value="Galería" onchange="actualizarAdic(this)"/> Galería</label>
+        <label class="adic-check"><input type="checkbox" value="Garaje" onchange="actualizarAdic(this)"/> Garaje</label>
+        <label class="adic-check"><input type="checkbox" value="Jardín" onchange="actualizarAdic(this)"/> Jardín</label>
+        <label class="adic-check"><input type="checkbox" value="Lavandería" onchange="actualizarAdic(this)"/> Lavandería</label>
+        <label class="adic-check"><input type="checkbox" value="Living comedor" onchange="actualizarAdic(this)"/> Living comedor</label>
+        <label class="adic-check"><input type="checkbox" value="Mini bodega" onchange="actualizarAdic(this)"/> Mini bodega</label>
+        <label class="adic-check"><input type="checkbox" value="Oficina" onchange="actualizarAdic(this)"/> Oficina</label>
+        <label class="adic-check"><input type="checkbox" value="Patio" onchange="actualizarAdic(this)"/> Patio</label>
+        <label class="adic-check"><input type="checkbox" value="Planta Baja" onchange="actualizarAdic(this)"/> Planta baja</label>
+        <label class="adic-check"><input type="checkbox" value="Recámara en planta baja" onchange="actualizarAdic(this)"/> Rec. planta baja</label>
+        <label class="adic-check"><input type="checkbox" value="Sala" onchange="actualizarAdic(this)"/> Sala</label>
+        <label class="adic-check"><input type="checkbox" value="Sótano" onchange="actualizarAdic(this)"/> Sótano</label>
+        <label class="adic-check"><input type="checkbox" value="Suite" onchange="actualizarAdic(this)"/> Suite</label>
+        <label class="adic-check"><input type="checkbox" value="Terraza" onchange="actualizarAdic(this)"/> Terraza</label>
+        <label class="adic-check"><input type="checkbox" value="Tres plantas" onchange="actualizarAdic(this)"/> Tres plantas</label>
+        <label class="adic-check"><input type="checkbox" value="Vestíbulo" onchange="actualizarAdic(this)"/> Vestíbulo</label>
+        <label class="adic-check"><input type="checkbox" value="Asadores" onchange="actualizarAdic(this)"/> Asadores</label>
+        <label class="adic-check"><input type="checkbox" value="Roof garden" onchange="actualizarAdic(this)"/> Roof garden</label>
+      </div>
+
+      <!-- ADICIONALES -->
+      <div class="adic-cat-title"><i class="fas fa-star" style="margin-right:.4rem;"></i> Adicionales y Equipamiento</div>
+      <div class="adic-grid">
+        <label class="adic-check"><input type="checkbox" value="Aire acondicionado" onchange="actualizarAdic(this)"/> Aire acondicionado</label>
+        <label class="adic-check"><input type="checkbox" value="Alarma" onchange="actualizarAdic(this)"/> Alarma</label>
+        <label class="adic-check"><input type="checkbox" value="Alberca" onchange="actualizarAdic(this)"/> Alberca</label>
+        <label class="adic-check"><input type="checkbox" value="Amueblado" onchange="actualizarAdic(this)"/> Amueblado</label>
+        <label class="adic-check"><input type="checkbox" value="Apto crédito" onchange="actualizarAdic(this)"/> Apto crédito</label>
+        <label class="adic-check"><input type="checkbox" value="Apto mascotas" onchange="actualizarAdic(this)"/> Apto mascotas</label>
+        <label class="adic-check"><input type="checkbox" value="Calefacción" onchange="actualizarAdic(this)"/> Calefacción</label>
+        <label class="adic-check"><input type="checkbox" value="Deck" onchange="actualizarAdic(this)"/> Deck</label>
+        <label class="adic-check"><input type="checkbox" value="En construcción" onchange="actualizarAdic(this)"/> En construcción</label>
+        <label class="adic-check"><input type="checkbox" value="Estacionamiento subterráneo" onchange="actualizarAdic(this)"/> Est. subterráneo</label>
+        <label class="adic-check"><input type="checkbox" value="Hidromasaje" onchange="actualizarAdic(this)"/> Hidromasaje</label>
+        <label class="adic-check"><input type="checkbox" value="Jacuzzi" onchange="actualizarAdic(this)"/> Jacuzzi</label>
+        <label class="adic-check"><input type="checkbox" value="Parrilla" onchange="actualizarAdic(this)"/> Parrilla</label>
+        <label class="adic-check"><input type="checkbox" value="Perimetral" onchange="actualizarAdic(this)"/> Perimetral</label>
+        <label class="adic-check"><input type="checkbox" value="Riego automático" onchange="actualizarAdic(this)"/> Riego automático</label>
+        <label class="adic-check"><input type="checkbox" value="Sauna" onchange="actualizarAdic(this)"/> Sauna</label>
+        <label class="adic-check"><input type="checkbox" value="Seguridad 24hs" onchange="actualizarAdic(this)"/> Seguridad 24hs</label>
+        <label class="adic-check"><input type="checkbox" value="Simulador de Golf" onchange="actualizarAdic(this)"/> Simulador Golf</label>
+        <label class="adic-check"><input type="checkbox" value="Solario" onchange="actualizarAdic(this)"/> Solario</label>
+        <label class="adic-check"><input type="checkbox" value="Área de Yoga" onchange="actualizarAdic(this)"/> Área de Yoga</label>
+        <label class="adic-check"><input type="checkbox" value="Acceso a playa" onchange="actualizarAdic(this)"/> Acceso a playa</label>
+        <label class="adic-check"><input type="checkbox" value="Lobby y Recepción" onchange="actualizarAdic(this)"/> Lobby y Recepción</label>
+      </div>
+
+      <!-- AMENIDADES -->
+      <div class="adic-cat-title"><i class="fas fa-swimmer" style="margin-right:.4rem;"></i> Amenidades Comunitarias</div>
+      <div class="adic-grid">
+        <label class="adic-check"><input type="checkbox" value="Área de juegos infantiles" onchange="actualizarAdic(this)"/> Juegos infantiles</label>
+        <label class="adic-check"><input type="checkbox" value="Cancha de pádel" onchange="actualizarAdic(this)"/> Cancha pádel</label>
+        <label class="adic-check"><input type="checkbox" value="Cancha de tenis" onchange="actualizarAdic(this)"/> Cancha tenis</label>
+        <label class="adic-check"><input type="checkbox" value="Centro de deportes" onchange="actualizarAdic(this)"/> Centro deportes</label>
+        <label class="adic-check"><input type="checkbox" value="Cine" onchange="actualizarAdic(this)"/> Cine</label>
+        <label class="adic-check"><input type="checkbox" value="Fogatero" onchange="actualizarAdic(this)"/> Fogatero</label>
+        <label class="adic-check"><input type="checkbox" value="Gimnasio" onchange="actualizarAdic(this)"/> Gimnasio</label>
+        <label class="adic-check"><input type="checkbox" value="Piscina comunitaria" onchange="actualizarAdic(this)"/> Piscina comunal</label>
+        <label class="adic-check"><input type="checkbox" value="Sala de juegos" onchange="actualizarAdic(this)"/> Sala de juegos</label>
+        <label class="adic-check"><input type="checkbox" value="SUM" onchange="actualizarAdic(this)"/> Salón usos múltiples</label>
+        <label class="adic-check"><input type="checkbox" value="BBQ común" onchange="actualizarAdic(this)"/> BBQ común</label>
+        <label class="adic-check"><input type="checkbox" value="Coworking" onchange="actualizarAdic(this)"/> Coworking</label>
+      </div>
+
+    </div><!-- /adic-body -->
+
+    <div class="adic-footer">
+      <div>
+        <span class="adic-count-badge" id="adic-count-badge">0 seleccionados</span>
+        <button onclick="limpiarAdic()" style="background:none;border:none;color:var(--gray);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;margin-left:.8rem;font-family:'Montserrat',sans-serif;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--gray)'">
+          <i class="fas fa-redo"></i> Limpiar
+        </button>
+      </div>
+      <button onclick="aplicarAdicionales()" class="btn btn-gold" style="font-size:.7rem;">
+        <i class="fas fa-check"></i> Aplicar filtros
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+window.addEventListener('scroll',()=>{
+  document.getElementById('scroll-top').classList.toggle('visible',window.scrollY>300);
+});
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
+function toggleFav(el,code){
+  event.stopPropagation();
+  el.classList.toggle('far');el.classList.toggle('fas');
+  el.classList.toggle('faved');
+  showToast(el.classList.contains('fas')?`❤ ${code} guardada. Inicia sesión para guardar permanentemente.`:`Propiedad removida de favoritos`);
+}
+function setView(v){
+  const grid=document.getElementById('propsGrid');
+  document.getElementById('btn-grid').classList.toggle('active',v==='grid');
+  document.getElementById('btn-list').classList.toggle('active',v==='list');
+  grid.classList.toggle('list-view',v==='list');
+}
+function aplicarFiltros(){showToast('Filtros aplicados — ' + document.getElementById('prop-count').textContent + ' resultados');}
+function resetFiltros(){showToast('Filtros reiniciados');}
+function sortProperties(v){showToast('Ordenado: '+v);}
+
+/* ── CAROUSEL ─────────────────────────────────────────── */
+document.querySelectorAll('.prop-img').forEach(img=>{
+  // Add prev/next buttons
+  const prev = document.createElement('button');
+  prev.className='carousel-btn prev';
+  prev.innerHTML='<i class="fas fa-chevron-left"></i>';
+  const next = document.createElement('button');
+  next.className='carousel-btn next';
+  next.innerHTML='<i class="fas fa-chevron-right"></i>';
+
+  // Dots
+  const dots = document.createElement('div');
+  dots.className='carousel-dots';
+  const N=4;
+  for(let i=0;i<N;i++){
+    const d=document.createElement('div');
+    d.className='c-dot'+(i===0?' active':'');
+    d.onclick=(e)=>{e.stopPropagation();setCarouselIdx(img,i);};
+    dots.appendChild(d);
+  }
+  img.appendChild(prev);
+  img.appendChild(next);
+  img.appendChild(dots);
+  img._idx=0;
+
+  prev.onclick=e=>{e.stopPropagation();setCarouselIdx(img,img._idx-1);};
+  next.onclick=e=>{e.stopPropagation();setCarouselIdx(img,img._idx+1);};
+});
+
+function setCarouselIdx(img,idx){
+  const N=4;
+  img._idx=(idx+N)%N;
+  const dots=img.querySelectorAll('.c-dot');
+  dots.forEach((d,i)=>d.classList.toggle('active',i===img._idx));
+  // When real photos are available, show img._idx
+  // For now update badge if present
+  const badge=img.querySelector('.prop-tour-badge');
+  if(badge) badge.style.opacity=img._idx===0?'1':'0.6';
+}
+
+/* ── DETAIL MODAL ─────────────────────────────────────── */
+let galIdx=0, galTotal=4;
+
+const PROPS = {
+  'PRO-26-0001':{ name:'Apartamento Zona 14', loc:'Zona 14, Ciudad de Guatemala', price:'$185,000', modalidad:'Venta', specs:[{i:'fa-bed',t:'3 habitaciones'},{i:'fa-bath',t:'2 baños'},{i:'fa-ruler-combined',t:'145 m²'},{i:'fa-car',t:'2 est.'}], desc:'Moderno apartamento ubicado en Zona 14, con excelentes acabados, vistas panorámicas y tour virtual 3D disponible para acceso exclusivo.' },
+  'PRO-26-0002':{ name:'Casa Colonia Oakland', loc:'Villa Nueva, Guatemala', price:'$320,000', modalidad:'Venta', specs:[{i:'fa-bed',t:'4 habitaciones'},{i:'fa-bath',t:'3 baños'},{i:'fa-ruler-combined',t:'290 m²'},{i:'fa-tree',t:'Jardín'}], desc:'Amplia casa familiar con jardín, área de BBQ y acabados de alta calidad. Recorrido virtual disponible bajo cita.' },
+  'PRO-26-0003':{ name:'Oficina Pradera Torre 4', loc:'Zona 10, Ciudad de Guatemala', price:'$1,200 / mes', modalidad:'Renta', specs:[{i:'fa-users',t:'8 puestos'},{i:'fa-bath',t:'1 baño'},{i:'fa-ruler-combined',t:'95 m²'},{i:'fa-wifi',t:'Internet incluido'}], desc:'Oficina ejecutiva en ubicación premium, Torre 4 del Centro Pradera. Disponible desde el mes siguiente.' },
+  'PRO-26-0004':{ name:'Penthouse Zona 15', loc:'Zona 15, Ciudad de Guatemala', price:'$480,000', modalidad:'Venta', specs:[{i:'fa-bed',t:'3 habitaciones'},{i:'fa-bath',t:'3 baños'},{i:'fa-ruler-combined',t:'220 m²'},{i:'fa-sun',t:'Terraza'}], desc:'Penthouse exclusivo con terraza privada y vistas únicas. Acabados de lujo, cocina integrada y área de entretenimiento.' },
+  'PRO-26-0005':{ name:'Bodega Industrial Mixco', loc:'Mixco, Guatemala', price:'$2,800 / mes', modalidad:'Renta', specs:[{i:'fa-ruler-combined',t:'800 m²'},{i:'fa-truck',t:'Acceso trailer'},{i:'fa-bolt',t:'Trifásico'}], desc:'Bodega industrial de alto estándar con acceso de trailer, plataforma de carga y electricidad trifásica.' },
+  'PRO-26-0006':{ name:'Local Comercial Miraflores', loc:'Villa Nueva, Guatemala', price:'$95,000', modalidad:'Venta', specs:[{i:'fa-ruler-combined',t:'120 m²'},{i:'fa-store',t:'Esquinero'},{i:'fa-car',t:'Parqueo'}], desc:'Local comercial en esquina con alta visibilidad en área residencial consolidada de Villa Nueva.' },
+  'PRO-26-0008-01':{ name:'Apto. Torre Cayalá · Unidad 01', loc:'Zona 16, Guatemala', price:'$210,000', modalidad:'Venta', specs:[{i:'fa-bed',t:'2 habitaciones'},{i:'fa-bath',t:'2 baños'},{i:'fa-ruler-combined',t:'110 m²'},{i:'fa-building',t:'Piso 8'}], desc:'Apartamento en Torre Cayalá, unidad 01. Amenidades completas: piscina, gimnasio, lobby de lujo.' },
+  'PRO-26-0008-02':{ name:'Apto. Torre Cayalá · Unidad 02', loc:'Zona 16, Guatemala', price:'$225,000', modalidad:'Venta', specs:[{i:'fa-bed',t:'2 habitaciones'},{i:'fa-bath',t:'2 baños'},{i:'fa-ruler-combined',t:'118 m²'},{i:'fa-building',t:'Piso 12'}], desc:'Apartamento en Torre Cayalá, unidad 02, piso 12. Vistas superiores y luz natural todo el día.' },
+  'PRO-26-0009':{ name:'Casa en Condominio Santa Fe', loc:'Mixco, Guatemala', price:'$155,000', modalidad:'Venta', specs:[{i:'fa-bed',t:'3 habitaciones'},{i:'fa-bath',t:'2 baños'},{i:'fa-ruler-combined',t:'180 m²'},{i:'fa-lock',t:'Condominio cerrado'}], desc:'Casa en condominio privado con seguridad 24/7. Ideal para familia, jardín propio y acceso rápido a periférico.' },
+};
+
+function openDetail(code){
+  const p=PROPS[code];
+  if(!p)return;
+  document.getElementById('detailCode').textContent=code;
+  document.getElementById('detailName').textContent=p.name;
+  document.getElementById('detailLoc').textContent=p.loc;
+  document.getElementById('detailPrice').textContent=p.price;
+  document.getElementById('detailModalidad').textContent=p.modalidad;
+  document.getElementById('detailDesc').textContent=p.desc;
+  document.getElementById('detailWA').href=`https://wa.me/50239902399?text=${encodeURIComponent('Hola, me interesa la propiedad '+code+' — '+p.name)}`;
+  const sp=document.getElementById('detailSpecs');
+  sp.innerHTML=p.specs.map(s=>`<div class="detail-spec"><i class="fas ${s.i}"></i> ${s.t}</div>`).join('');
+  galIdx=0; galTotal=4;
+  updateGalDisplay(code);
+  document.getElementById('detailOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function updateGalDisplay(code){
+  document.getElementById('detailPhotoLabel').textContent=`Foto ${galIdx+1} de ${galTotal}`;
+  document.getElementById('galCounter').textContent=`${galIdx+1} / ${galTotal}`;
+  // Icon variety by index
+  const icons=['fa-camera','fa-image','fa-home','fa-building'];
+  document.getElementById('detailIcon').className='fas '+icons[galIdx%icons.length];
+}
+function galNav(dir){
+  galIdx=(galIdx+dir+galTotal)%galTotal;
+  updateGalDisplay();
+}
+function closeDetail(e){if(e.target===document.getElementById('detailOverlay'))closeDetailBtn();}
+function closeDetailBtn(){
+  document.getElementById('detailOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+// Make cards clickable
+document.querySelectorAll('.prop-card').forEach(card=>{
+  card.style.cursor='pointer';
+  card.addEventListener('click',function(e){
+    if(e.target.closest('.prop-heart')||e.target.closest('.carousel-btn')||e.target.closest('.c-dot')) return;
+    const code=this.querySelector('.prop-code');
+    if(code) openDetail(code.textContent.trim());
+  });
+});
+
+/* ── ADICIONALES MODAL ─────────────────────────────────── */
+let adicSeleccionados = new Set();
+
+function abrirAdicionales(){
+  document.getElementById('adicOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function cerrarAdicionales(e){
+  if(e.target===document.getElementById('adicOverlay')) cerrarAdicBtn();
+}
+function cerrarAdicBtn(){
+  document.getElementById('adicOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function actualizarAdic(cb){
+  const label = cb.closest('.adic-check');
+  if(cb.checked){
+    adicSeleccionados.add(cb.value);
+    label.classList.add('selected');
+  } else {
+    adicSeleccionados.delete(cb.value);
+    label.classList.remove('selected');
+  }
+  const count = adicSeleccionados.size;
+  document.getElementById('adic-count-badge').textContent = count + ' seleccionado' + (count!==1?'s':'');
+}
+function limpiarAdic(){
+  document.querySelectorAll('#adicModal .adic-check input').forEach(cb=>{
+    cb.checked=false;
+    cb.closest('.adic-check').classList.remove('selected');
+  });
+  adicSeleccionados.clear();
+  document.getElementById('adic-count-badge').textContent='0 seleccionados';
+  renderChips();
+}
+function aplicarAdicionales(){
+  renderChips();
+  cerrarAdicBtn();
+  const count=adicSeleccionados.size;
+  const countEl=document.getElementById('adic-sidebar-count');
+  if(count>0){
+    countEl.textContent=count;
+    countEl.style.display='inline';
+  } else {
+    countEl.style.display='none';
+  }
+  showToast(count>0?`Filtrando por ${count} adicional${count!==1?'es':''}...`:'Adicionales eliminados del filtro');
+}
+function renderChips(){
+  const container=document.getElementById('adic-chips-container');
+  const chips=document.getElementById('adic-chips');
+  if(adicSeleccionados.size===0){
+    container.style.display='none';
+    return;
+  }
+  container.style.display='block';
+  chips.innerHTML=[...adicSeleccionados].map(v=>
+    `<span class="adic-chip" onclick="quitarChip('${v}')">
+       ${v} <i class="fas fa-times"></i>
+     </span>`
+  ).join('');
+}
+function quitarChip(val){
+  adicSeleccionados.delete(val);
+  // Uncheck in modal
+  document.querySelectorAll('#adicModal .adic-check input').forEach(cb=>{
+    if(cb.value===val){ cb.checked=false; cb.closest('.adic-check').classList.remove('selected'); }
+  });
+  document.getElementById('adic-count-badge').textContent=adicSeleccionados.size+' seleccionado'+(adicSeleccionados.size!==1?'s':'');
+  aplicarAdicionales();
+}
+
+/* ── TOGGLE MONEDA REAL ESTATE ────────────────────────── */
+const RE_TASA = 7.90;
+let reCurrency = 'USD';
+// Precios USD originales para cada propiedad
+const RE_PRICES_USD = {
+  'PRO-26-0001': 185000,
+  'PRO-26-0002': 320000,
+  'PRO-26-0003': 1200,   // mensual
+  'PRO-26-0004': 480000,
+  'PRO-26-0005': 3500,   // mensual
+  'PRO-26-0006': 195000,
+  'PRO-26-0007': 850,    // mensual
+  'PRO-26-0008-01': 220000,
+  'PRO-26-0008-02': 235000,
+};
+const RE_RENTA = ['PRO-26-0003','PRO-26-0005','PRO-26-0007']; // propiedades en renta (precio mensual)
+
+function setReCurrency(cur){
+  reCurrency = cur;
+  document.getElementById('re-btn-usd').style.background = cur==='USD' ? 'var(--gold)' : 'transparent';
+  document.getElementById('re-btn-usd').style.color      = cur==='USD' ? 'var(--bg)'   : 'var(--gray)';
+  document.getElementById('re-btn-gtq').style.background = cur==='GTQ' ? 'var(--gold)' : 'transparent';
+  document.getElementById('re-btn-gtq').style.color      = cur==='GTQ' ? 'var(--bg)'   : 'var(--gray)';
+
+  document.querySelectorAll('.prop-price[data-code]').forEach(el=>{
+    const code = el.getAttribute('data-code');
+    const usd  = RE_PRICES_USD[code];
+    if(!usd) return;
+    const isRenta = RE_RENTA.includes(code);
+    if(cur==='GTQ'){
+      const q = Math.round(usd * RE_TASA).toLocaleString('es-GT');
+      el.textContent = isRenta ? `Q${q} / mes` : `Q${q}`;
+    } else {
+      const u = usd.toLocaleString('en-US');
+      el.textContent = isRenta ? `$${u} / mes` : `$${u}`;
+    }
+  });
+}
+</script>
+</body>
+</html>

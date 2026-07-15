@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
-const crypto = require('crypto');
 const verificarPermiso = require('../middleware/permisos');
+const { hashPassword } = require('../utils/passwords');
 
 const PERMISOS_LISTA = [
   'ver_propiedades','crear_propiedad','editar_propiedad','eliminar_propiedad','publicar_propiedad',
@@ -51,7 +51,7 @@ router.post('/', verificarPermiso('crear_usuario'), async (req, res) => {
     const { nombre, email, password, role, permisos } = req.body;
     if (!nombre || !email || !password)
       return res.status(400).json({ error: 'Nombre, email y contraseña son requeridos.' });
-    const hashed = crypto.createHash('sha256').update(password).digest('hex');
+    const hashed = await hashPassword(password);
     const { data: user, error: ue } = await supabase
       .from('usuarios')
       .insert([{ nombre, email, password: hashed, role: role || 'asistente', estado: 'activo', is_superadmin: false }])

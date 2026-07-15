@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>AS BUILT — Documentación Técnica Digital · Virtual Estate</title>
+  <meta name="description" content="Documentación digital precisa de espacios construidos. Planos base, modelos 3D y registro técnico para arquitectura y construcción en Guatemala."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+  :root{
+    --bg:#0D1A14;--bg2:#0E1615;--bg3:#1E3028;--bg4:#162820;
+    --gold:#C19259;--gold-lt:#D4A96A;--gold-dk:#9A7240;
+    --white:#F5F0E8;--gray:#8A9990;--gray-lt:#B0BEB8;
+    --border:rgba(193,146,89,.18);--tr:.4s cubic-bezier(.25,.46,.45,.94);--r:4px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg);color:var(--white);font-family:'Montserrat',sans-serif;font-weight:300;line-height:1.6;overflow-x:hidden;}
+  img{display:block;width:100%;object-fit:cover;}
+  a{text-decoration:none;color:inherit;}
+  button{cursor:pointer;font-family:'Montserrat',sans-serif;}
+  h1,h2,h3,h4{font-family:'Raleway',sans-serif;font-weight:600;line-height:1.15;}
+  .label{font-size:.65rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);font-weight:600;}
+  .container{width:min(1280px,92vw);margin-inline:auto;}
+  .section-pad{padding:100px 0;}
+  .divider{width:48px;height:2px;background:var(--gold);margin:1.2rem 0;}
+  .divider.center{margin-inline:auto;}
+  .btn{display:inline-flex;align-items:center;gap:.5rem;padding:.8rem 2rem;border-radius:var(--r);font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;font-weight:600;transition:var(--tr);font-family:'Montserrat',sans-serif;}
+  .btn-gold{background:var(--gold);color:var(--bg);}
+  .btn-gold:hover{background:var(--gold-lt);transform:translateY(-2px);}
+  .btn-outline{border:1.5px solid var(--gold);color:var(--gold);background:transparent;}
+  .btn-outline:hover{background:var(--gold);color:var(--bg);transform:translateY(-2px);}
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease;}
+  .reveal.visible{opacity:1;transform:translateY(0);}
+
+  /* NAV */
+  #nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:1.1rem 0;transition:background .4s,padding .4s;}
+  #nav.scrolled{background:rgba(13,26,20,.96);backdrop-filter:blur(18px);padding:.7rem 0;border-bottom:1px solid var(--border);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;}
+  .nav-logo img{height:87px;width:auto;object-fit:contain;}
+  .nav-links{display:flex;gap:2rem;align-items:center;}
+  .nav-links a{font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;font-weight:500;color:rgba(245,240,232,.7);transition:color .25s;position:relative;}
+  .nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1.5px;background:var(--gold);transform:scaleX(0);transform-origin:right;transition:transform .3s;}
+  .nav-links a:hover{color:var(--white);}
+  .nav-links a:hover::after,.nav-links a.active::after{transform:scaleX(1);transform-origin:left;}
+  .nav-links a.active{color:var(--gold);}
+  .nav-portal{padding:.5rem 1.4rem;border:1.5px solid var(--gold);border-radius:var(--r);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:600;transition:var(--tr);}
+  .nav-portal:hover{background:var(--gold);color:var(--bg);}
+  .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;}
+  .hamburger span{display:block;width:24px;height:1.5px;background:var(--white);}
+
+  /* HERO */
+  .page-hero{
+    padding:180px 0 90px;
+    background:linear-gradient(160deg,#081008 0%,#0D1A14 50%,#1A2E20 100%);
+    position:relative;overflow:hidden;
+  }
+  .page-hero::before{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(circle at 70% 50%,rgba(193,146,89,.08) 0%,transparent 60%);
+  }
+  .page-hero-label{font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:.7rem;}
+  .page-hero-label::before{content:'';width:24px;height:1.5px;background:var(--gold);}
+  .page-hero h1{font-size:clamp(2.4rem,5vw,4rem);text-transform:uppercase;letter-spacing:.08em;margin-bottom:1rem;}
+  .page-hero h1 span{color:var(--gold);}
+  .page-hero p{font-size:.9rem;color:var(--gray);line-height:1.85;max-width:600px;font-weight:400;margin-bottom:2.2rem;}
+  .hero-stats{display:flex;gap:3rem;flex-wrap:wrap;margin-top:2rem;}
+  .hero-stat{border-left:2px solid var(--gold);padding-left:1.2rem;}
+  .hero-stat-num{font-family:'Raleway',sans-serif;font-size:2rem;font-weight:700;color:var(--gold);line-height:1;}
+  .hero-stat-lbl{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-top:.3rem;font-weight:500;}
+
+  /* INTRO */
+  #intro{background:var(--bg2);}
+  .intro-grid{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:center;}
+  .intro-visual{
+    border:1px solid var(--border);border-radius:var(--r);
+    overflow:hidden;aspect-ratio:4/3;background:var(--bg3);
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+  }
+  .intro-visual img{width:100%;height:100%;object-fit:cover;}
+  .intro-visual-overlay{
+    position:absolute;inset:0;
+    background:linear-gradient(to top,rgba(13,26,20,.7) 0%,transparent 50%);
+  }
+  .intro-visual-badge{
+    position:absolute;bottom:1.2rem;left:1.2rem;
+    background:rgba(13,26,20,.85);backdrop-filter:blur(8px);
+    border:1px solid var(--border);border-radius:var(--r);
+    padding:.5rem 1rem;font-size:.6rem;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--gold);font-weight:600;
+  }
+
+  /* SERVICIOS GRID */
+  #servicios{background:var(--bg);}
+  .servicios-header{text-align:center;margin-bottom:4rem;}
+  .servicios-header h2{font-size:clamp(1.8rem,3vw,2.6rem);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.8rem;}
+  .servicios-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;}
+  .servicio-card{
+    border:1px solid var(--border);border-radius:var(--r);
+    overflow:hidden;background:var(--bg2);transition:var(--tr);
+    display:flex;flex-direction:column;
+  }
+  .servicio-card:hover{transform:translateY(-6px);border-color:rgba(193,146,89,.4);}
+  .servicio-img{height:200px;overflow:hidden;background:var(--bg3);}
+  .servicio-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s;}
+  .servicio-card:hover .servicio-img img{transform:scale(1.05);}
+  .servicio-body{padding:1.4rem;flex:1;display:flex;flex-direction:column;}
+  .servicio-num{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.4rem;}
+  .servicio-title{font-size:.95rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.6rem;}
+  .servicio-desc{font-size:.78rem;color:var(--gray);line-height:1.7;font-weight:400;flex:1;}
+
+  /* PROCESO */
+  #proceso-ab{background:var(--bg3);}
+  .proceso-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;}
+  .proceso-step{text-align:center;padding:2rem 1.2rem;border:1px solid var(--border);border-radius:var(--r);background:rgba(255,255,255,.02);transition:var(--tr);}
+  .proceso-step:hover{border-color:rgba(193,146,89,.4);background:rgba(193,146,89,.04);}
+  .proceso-num{font-family:'Raleway',sans-serif;font-size:3rem;font-weight:700;color:rgba(193,146,89,.12);line-height:1;margin-bottom:.5rem;}
+  .proceso-icon{color:var(--gold);font-size:1.3rem;margin-bottom:.8rem;}
+  .proceso-title{font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;}
+  .proceso-desc{font-size:.75rem;color:var(--gray);line-height:1.65;font-weight:400;}
+
+  /* ENTREGABLES */
+  #entregables{background:var(--bg2);}
+  .entregables-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start;}
+  .entregable-item{display:flex;gap:1.2rem;align-items:flex-start;margin-bottom:1.4rem;}
+  .entregable-icon{width:44px;height:44px;border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:.9rem;flex-shrink:0;}
+  .entregable-title{font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.2rem;}
+  .entregable-desc{font-size:.78rem;color:var(--gray);line-height:1.6;font-weight:400;}
+
+  /* CTA */
+  #cta-ab{background:var(--bg);border-top:1px solid var(--border);}
+  .cta-box{text-align:center;padding:5rem 0;}
+  .cta-box h2{font-size:clamp(1.8rem,3vw,2.6rem);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem;}
+  .cta-box p{font-size:.88rem;color:var(--gray);margin-bottom:2.2rem;max-width:500px;margin-inline:auto;font-weight:400;}
+  .cta-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;}
+
+  /* FOOTER */
+  footer{background:#07100A;border-top:1px solid var(--border);padding:2rem 0;}
+  .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;font-size:.68rem;color:var(--gray);}
+
+  /* MOBILE MENU */
+  .mobile-menu{display:none;position:fixed;inset:0;z-index:1100;background:rgba(13,26,20,.98);backdrop-filter:blur(16px);flex-direction:column;align-items:center;justify-content:center;gap:1.8rem;}
+  .mobile-menu.open{display:flex;}
+  .mobile-menu a{font-size:1.2rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;}
+  .mobile-close{position:absolute;top:1.5rem;right:1.5rem;background:none;border:none;color:var(--gold);font-size:1.3rem;cursor:pointer;}
+
+  /* SOCIAL FLOAT */
+  .social-float{position:fixed;right:1.5rem;top:50%;transform:translateY(-50%);z-index:999;display:flex;flex-direction:column;gap:.6rem;}
+  .social-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:rgba(13,26,20,.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:.82rem;transition:var(--tr);}
+  .social-btn:hover{border-color:var(--gold);color:var(--gold);}
+  .social-btn.whatsapp:hover{border-color:#25D366;color:#25D366;}
+
+  @media(max-width:1024px){
+    .servicios-grid{grid-template-columns:1fr 1fr;}
+    .proceso-grid{grid-template-columns:1fr 1fr;}
+    .intro-grid{grid-template-columns:1fr;gap:3rem;}
+    .entregables-grid{grid-template-columns:1fr;}
+  }
+  @media(max-width:768px){
+    .nav-links{display:none;}
+    .hamburger{display:flex;}
+    .servicios-grid{grid-template-columns:1fr;}
+    .hero-stats{gap:2rem;}
+    .social-float{display:none;}
+  }
+  </style>
+</head>
+<body>
+
+<div class="social-float">
+  <a href="https://wa.me/50239902399" target="_blank" class="social-btn whatsapp"><i class="fab fa-whatsapp"></i></a>
+  <a href="https://www.instagram.com/virtualestategt" target="_blank" class="social-btn"><i class="fab fa-instagram"></i></a>
+  <a href="https://www.facebook.com/virtualestategt" target="_blank" class="social-btn"><i class="fab fa-facebook-f"></i></a>
+</div>
+
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" onclick="document.getElementById('mobileMenu').classList.remove('open')"><i class="fas fa-times"></i></button>
+  <a href="index.html">Inicio</a>
+  <a href="index.html#about">Nosotros</a>
+  <a href="real-estate.html">Real Estate</a>
+  <a href="as-built.html">AS Built</a>
+  <a href="construccion.html">Construcción</a>
+  <a href="index.html#cotizador">Cotizador</a>
+  <a href="index.html#contacto">Contacto</a>
+  <a href="portal.html" style="color:var(--gold);">Portal</a>
+</div>
+
+<nav id="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="nav-logo"><img src="assets/logo-letras.png" alt="Virtual Estate"/></a>
+    <div class="nav-links">
+      <a href="index.html#about">Nosotros</a>
+      <a href="index.html#divisiones">Servicios</a>
+      <a href="real-estate.html">Real Estate</a>
+      <a href="as-built.html" class="active">AS Built</a>
+      <a href="construccion.html">Construcción</a>
+      <a href="index.html#cotizador">Cotizador</a>
+      <a href="index.html#contacto">Contacto</a>
+      <span style="width:1px;height:18px;background:var(--border);flex-shrink:0;"></span>
+      <a href="portal.html" class="nav-portal">Portal</a>
+    </div>
+    <div class="hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="page-hero">
+  <div class="container" style="position:relative;z-index:2;">
+    <div class="page-hero-label">Nuestras Divisiones</div>
+    <h1>AS <span>BUILT</span></h1>
+    <p>Documentación digital precisa de espacios construidos. Generamos planos base, modelos 3D y registros técnicos que garantizan exactitud para arquitectura, diseño y construcción.</p>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+      <a href="index.html#cotizador" class="btn btn-gold"><i class="fas fa-calculator"></i> Cotizar proyecto</a>
+      <a href="https://wa.me/50239902399?text=Hola%2C%20me%20interesa%20el%20servicio%20de%20AS%20BUILT" target="_blank" class="btn btn-outline"><i class="fab fa-whatsapp"></i> Consultar por WhatsApp</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-num">±1cm</div><div class="hero-stat-lbl">Precisión de levantamiento</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">PDF</div><div class="hero-stat-lbl">+ DWG entregable</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">3D</div><div class="hero-stat-lbl">Modelo digital incluido</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- INTRO -->
+<section id="intro" class="section-pad">
+  <div class="container">
+    <div class="intro-grid">
+      <div class="reveal">
+        <span class="label">Qué es AS BUILT</span>
+        <div class="divider"></div>
+        <h2 style="font-size:clamp(1.6rem,2.5vw,2.2rem);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1.2rem;">
+          El registro digital exacto de lo construido
+        </h2>
+        <p style="font-size:.85rem;color:var(--gray);line-height:1.85;margin-bottom:1rem;font-weight:400;">
+          Un AS BUILT es la documentación técnica que refleja fielmente el estado real de una construcción una vez terminada. Con tecnología de escaneo 3D y fotogrametría, capturamos cada detalle estructural, instalación y acabado con una precisión de ±1 centímetro.
+        </p>
+        <p style="font-size:.85rem;color:var(--gray);line-height:1.85;margin-bottom:1.8rem;font-weight:400;">
+          El resultado: planos actualizados, modelos 3D y registros digitales que sirven de base para remodelaciones, valuaciones, trámites legales y gestión de propiedades.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:.7rem;">
+          <div style="display:flex;align-items:center;gap:.8rem;font-size:.82rem;color:rgba(245,240,232,.8);">
+            <i class="fas fa-check-circle" style="color:var(--gold);"></i> Ideal para propiedades sin planos actualizados
+          </div>
+          <div style="display:flex;align-items:center;gap:.8rem;font-size:.82rem;color:rgba(245,240,232,.8);">
+            <i class="fas fa-check-circle" style="color:var(--gold);"></i> Requerido por bancos, notarios y municipalidades
+          </div>
+          <div style="display:flex;align-items:center;gap:.8rem;font-size:.82rem;color:rgba(245,240,232,.8);">
+            <i class="fas fa-check-circle" style="color:var(--gold);"></i> Base para remodelaciones y proyectos de diseño
+          </div>
+          <div style="display:flex;align-items:center;gap:.8rem;font-size:.82rem;color:rgba(245,240,232,.8);">
+            <i class="fas fa-check-circle" style="color:var(--gold);"></i> Entrega en 6–8 días hábiles
+          </div>
+        </div>
+      </div>
+      <div class="reveal" style="transition-delay:.15s;">
+        <div class="intro-visual">
+          <img src="assets/as-built/modelo-3d.jpeg" alt="Modelo 3D AS BUILT"/>
+          <div class="intro-visual-overlay"></div>
+          <div class="intro-visual-badge"><i class="fas fa-cube" style="margin-right:.4rem;"></i>Modelo 3D de alta precisión</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICIOS -->
+<section id="servicios" class="section-pad">
+  <div class="container">
+    <div class="servicios-header reveal">
+      <span class="label">Nuestros Servicios</span>
+      <div class="divider center"></div>
+      <h2>Todo lo que incluye AS BUILT</h2>
+      <p style="font-size:.85rem;color:var(--gray);max-width:580px;margin-inline:auto;margin-top:.8rem;font-weight:400;line-height:1.8;">
+        Cada proyecto AS BUILT se adapta al tipo de espacio y a las necesidades del cliente. Desde un levantamiento básico hasta una documentación técnica completa.
+      </p>
+    </div>
+
+    <div class="servicios-grid">
+
+      <div class="servicio-card reveal">
+        <div class="servicio-img">
+          <img src="assets/as-built/visita-in-situ.jpeg" alt="Visita in situ"/>
+        </div>
+        <div class="servicio-body">
+          <div class="servicio-num">01</div>
+          <div class="servicio-title">Visita In Situ</div>
+          <p class="servicio-desc">Realizamos una visita presencial al inmueble para conocer el espacio, evaluar sus condiciones actuales y definir con el cliente los requerimientos específicos del levantamiento. Esta etapa nos permite planificar el trabajo técnico y ajustar el alcance del proyecto.</p>
+        </div>
+      </div>
+
+      <div class="servicio-card reveal" style="transition-delay:.1s;">
+        <div class="servicio-img">
+          <img src="assets/as-built/documentacion-tecnica.jpeg" alt="Documentación Técnica"/>
+        </div>
+        <div class="servicio-body">
+          <div class="servicio-num">02</div>
+          <div class="servicio-title">Documentación Técnica</div>
+          <p class="servicio-desc">Generación de planos base en AutoCAD (DWG) y PDF que reflejan el estado real construido: plantas, cortes, fachadas y detalles. Listos para trabajar en cualquier software de diseño.</p>
+        </div>
+      </div>
+
+      <div class="servicio-card reveal" style="transition-delay:.2s;">
+        <div class="servicio-img">
+          <img src="assets/as-built/modelado.jpeg" alt="Modelado 3D"/>
+        </div>
+        <div class="servicio-body">
+          <div class="servicio-num">03</div>
+          <div class="servicio-title">Modelado 3D</div>
+          <p class="servicio-desc">Modelo tridimensional del espacio construido generado a partir del escaneo. Útil para visualización, remodelaciones, cotizaciones y presentaciones a clientes o inversores.</p>
+        </div>
+      </div>
+
+      <div class="servicio-card reveal" style="transition-delay:.05s;">
+        <div class="servicio-img">
+          <img src="assets/as-built/modelo-3d.jpeg" alt="Modelo Digital Completo"/>
+        </div>
+        <div class="servicio-body">
+          <div class="servicio-num">04</div>
+          <div class="servicio-title">Modelo Digital Completo</div>
+          <p class="servicio-desc">Integración del modelo 3D con nube de puntos, planos y métricas en un solo entregable digital. Incluye mediciones volumétricas y cálculo de áreas exactas por espacio.</p>
+        </div>
+      </div>
+
+      <div class="servicio-card reveal" style="transition-delay:.15s;">
+        <div class="servicio-img">
+          <img src="assets/as-built/dollhouse.jpeg" alt="Vista Dollhouse"/>
+        </div>
+        <div class="servicio-body">
+          <div class="servicio-num">05</div>
+          <div class="servicio-title">Vista Dollhouse</div>
+          <p class="servicio-desc">Vista aérea seccionada del modelo 3D que permite ver la distribución interna completa del inmueble. Ideal para presentaciones inmobiliarias y planos de venta o arrendamiento.</p>
+        </div>
+      </div>
+
+      <div class="servicio-card reveal" style="transition-delay:.25s;">
+        <div class="servicio-img">
+          <img src="assets/as-built/produccion-audiovisual.jpeg" alt="Producción Audiovisual"/>
+        </div>
+        <div class="servicio-body">
+          <div class="servicio-num">06</div>
+          <div class="servicio-title">Producción Audiovisual</div>
+          <p class="servicio-desc">Fotografía profesional y video del espacio documentado. Capturas con equipo de alta resolución para presentaciones corporativas, redes sociales y uso del cliente.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PROCESO -->
+<section id="proceso-ab" class="section-pad">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:4rem;" class="reveal">
+      <span class="label">Cómo Trabajamos</span>
+      <div class="divider center"></div>
+      <h2 style="font-size:clamp(1.8rem,3vw,2.6rem);text-transform:uppercase;letter-spacing:.08em;">Nuestro proceso AS BUILT</h2>
+    </div>
+    <div class="proceso-grid">
+      <div class="proceso-step reveal">
+        <div class="proceso-num">01</div>
+        <div class="proceso-icon"><i class="fas fa-phone-alt"></i></div>
+        <div class="proceso-title">Consulta inicial</div>
+        <p class="proceso-desc">Coordinamos por WhatsApp o correo. Nos cuentas el tipo de propiedad, metraje aproximado y para qué necesitas los planos.</p>
+      </div>
+      <div class="proceso-step reveal" style="transition-delay:.1s;">
+        <div class="proceso-num">02</div>
+        <div class="proceso-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="proceso-title">Agendamiento</div>
+        <p class="proceso-desc">Coordinamos fecha y hora de visita. El proceso de escaneo toma entre 2 y 6 horas según el tamaño del inmueble, sin interrumpir su funcionamiento.</p>
+      </div>
+      <div class="proceso-step reveal" style="transition-delay:.2s;">
+        <div class="proceso-num">03</div>
+        <div class="proceso-icon"><i class="fas fa-drafting-compass"></i></div>
+        <div class="proceso-title">Procesamiento</div>
+        <p class="proceso-desc">Procesamos la nube de puntos, generamos los planos en AutoCAD y el modelo 3D. Control de calidad interno antes de entregar.</p>
+      </div>
+      <div class="proceso-step reveal" style="transition-delay:.3s;">
+        <div class="proceso-num">04</div>
+        <div class="proceso-icon"><i class="fas fa-file-download"></i></div>
+        <div class="proceso-title">Entrega digital</div>
+        <p class="proceso-desc">Recibes todos los archivos en formato PDF y DWG vía enlace de descarga. Soporte técnico incluido durante 15 días después de la entrega.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ENTREGABLES -->
+<section id="entregables" class="section-pad">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:4rem;" class="reveal">
+      <span class="label">Lo que recibes</span>
+      <div class="divider center"></div>
+      <h2 style="font-size:clamp(1.8rem,3vw,2.6rem);text-transform:uppercase;letter-spacing:.08em;">Entregables del proyecto</h2>
+    </div>
+    <div class="entregables-grid">
+      <div class="reveal">
+        <div class="entregable-item">
+          <div class="entregable-icon"><i class="fas fa-file-pdf"></i></div>
+          <div>
+            <div class="entregable-title">Planos 2D en PDF</div>
+            <p class="entregable-desc">Plantas del inmueble en formato PDF imprimible. Escala indicada y norte geográfico incluidos.</p>
+          </div>
+        </div>
+        <div class="entregable-item">
+          <div class="entregable-icon"><i class="fas fa-vector-square"></i></div>
+          <div>
+            <div class="entregable-title">Archivos DWG (AutoCAD)</div>
+            <p class="entregable-desc">Planos editables en AutoCAD listos para ser usados por arquitectos, ingenieros o diseñadores de interiores en sus proyectos.</p>
+          </div>
+        </div>
+        <div class="entregable-item">
+          <div class="entregable-icon"><i class="fas fa-cube"></i></div>
+          <div>
+            <div class="entregable-title">Modelo 3D del espacio</div>
+            <p class="entregable-desc">Modelo tridimensional navegable del inmueble generado desde el escaneo. Incluye vistas dollhouse y recorrido virtual básico.</p>
+          </div>
+        </div>
+      </div>
+      <div class="reveal" style="transition-delay:.15s;">
+        <div class="entregable-item">
+          <div class="entregable-icon"><i class="fas fa-ruler-combined"></i></div>
+          <div>
+            <div class="entregable-title">Cuadro de áreas y metrajes</div>
+            <p class="entregable-desc">Tabla con el área de cada espacio y área total de construcción (aproximado cercano). No incluye área de terreno — aplica únicamente a lo construido.</p>
+          </div>
+        </div>
+        <div class="entregable-item">
+          <div class="entregable-icon"><i class="fas fa-camera"></i></div>
+          <div>
+            <div class="entregable-title">Fotografía profesional</div>
+            <p class="entregable-desc">Set de fotografías de alta resolución de los espacios principales del inmueble. Entregadas en formato JPG listo para uso inmediato.</p>
+          </div>
+        </div>
+        <div class="entregable-item">
+          <div class="entregable-icon"><i class="fas fa-headset"></i></div>
+          <div>
+            <div class="entregable-title">Soporte post-entrega</div>
+            <p class="entregable-desc">Atención por WhatsApp durante 15 días calendario para resolver dudas técnicas sobre los archivos entregados o solicitar ajustes menores.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta-ab" class="section-pad">
+  <div class="container">
+    <div class="cta-box reveal">
+      <span class="label">¿Listo para empezar?</span>
+      <div class="divider center"></div>
+      <h2>Documenta tu propiedad hoy</h2>
+      <p>Solicita tu cotización AS BUILT sin compromiso. Respondemos en menos de 24 horas.</p>
+      <div class="cta-btns">
+        <a href="index.html#cotizador" class="btn btn-gold"><i class="fas fa-calculator"></i> Cotizar proyecto</a>
+        <a href="https://wa.me/50239902399?text=Hola%2C%20quiero%20información%20sobre%20AS%20BUILT" target="_blank" class="btn btn-outline"><i class="fab fa-whatsapp"></i> WhatsApp directo</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© 2026 Virtual Estate Guatemala. Todos los derechos reservados.</span>
+      <span>Paramétrica S.A.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+const nav = document.getElementById('nav');
+window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',window.scrollY>60));
+const obs = new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
