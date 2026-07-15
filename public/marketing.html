@@ -1704,6 +1704,7 @@ async function getFFmpegWasm() {
   await loadScript('/vendor/ffmpeg/ffmpeg.min.js');
   _ffmpegInst = FFmpeg.createFFmpeg({
     log:      false,
+    mainName: 'main',
     corePath: new URL('/vendor/ffmpeg/ffmpeg-core.js', location.origin).href
   });
   await _ffmpegInst.load();
