@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const supabase = require('../config/supabase');
 const jwt = require('jsonwebtoken');
 const authMiddleware = require('../middleware/auth');
@@ -13,12 +14,12 @@ const JWT_EXPIRES = '8h';
 const RL_MAX_ATTEMPTS  = 5;
 const RL_WINDOW_MS     = 15 * 60 * 1000; // 15 minutes
 
-async function checkRateLimit(ip) {
+async function checkRateLimit(ip, endpoint = 'login') {
   try {
     const { data } = await supabase
       .from('rate_limit_intentos')
       .select('id, intentos, ventana_inicio')
-      .eq('ip', ip).eq('endpoint', 'login')
+      .eq('ip', ip).eq('endpoint', endpoint)
       .maybeSingle();
     if (!data) return { blocked: false };
     const windowExpired = (Date.now() - new Date(data.ventana_inicio).getTime()) > RL_WINDOW_MS;
@@ -27,18 +28,18 @@ async function checkRateLimit(ip) {
   } catch { return { blocked: false }; } // fail open — don't lock out on DB errors
 }
 
-async function recordFailedAttempt(ip) {
+async function recordFailedAttempt(ip, endpoint = 'login') {
   try {
     const { data } = await supabase
       .from('rate_limit_intentos')
       .select('id, intentos, ventana_inicio')
-      .eq('ip', ip).eq('endpoint', 'login')
+      .eq('ip', ip).eq('endpoint', endpoint)
       .maybeSingle();
     const now = new Date().toISOString();
     const windowExpired = !data || (Date.now() - new Date(data.ventana_inicio).getTime()) > RL_WINDOW_MS;
     if (!data) {
       await supabase.from('rate_limit_intentos')
-        .insert([{ ip, endpoint: 'login', intentos: 1, ventana_inicio: now, updated_at: now }]);
+        .insert([{ ip, endpoint, intentos: 1, ventana_inicio: now, updated_at: now }]);
     } else if (windowExpired) {
       await supabase.from('rate_limit_intentos')
         .update({ intentos: 1, ventana_inicio: now, updated_at: now }).eq('id', data.id);
@@ -49,11 +50,11 @@ async function recordFailedAttempt(ip) {
   } catch (e) { console.error('[RateLimit] recordFailedAttempt error:', e.message); }
 }
 
-async function resetRateLimit(ip) {
+async function resetRateLimit(ip, endpoint = 'login') {
   try {
     await supabase.from('rate_limit_intentos')
       .update({ intentos: 0, updated_at: new Date().toISOString() })
-      .eq('ip', ip).eq('endpoint', 'login');
+      .eq('ip', ip).eq('endpoint', endpoint);
   } catch { /* non-critical */ }
 }
 
@@ -336,6 +337,127 @@ router.get('/verify', async (req, res) => {
     res.json({ valid: true, usuario });
   } catch {
     res.status(401).json({ error: 'Token inválido o expirado' });
+  }
+});
+
+// ── CAMBIAR PASSWORD (autenticado — staff y cliente) ──────────────────────────
+router.post('/cambiar-password', authMiddleware, async (req, res) => {
+  const { password_actual, password_nueva } = req.body;
+  if (!password_actual || !password_nueva)
+    return res.status(400).json({ error: 'Datos inválidos' });
+  if (password_nueva.length < 8)
+    return res.status(400).json({ error: 'La contraseña nueva debe tener al menos 8 caracteres' });
+
+  try {
+    const { data: usuario, error } = await supabase
+      .from('usuarios').select('id, password').eq('id', req.user.id).single();
+    if (error || !usuario) return res.status(401).json({ error: 'Usuario no encontrado' });
+
+    const ok = await verificarPassword(password_actual, usuario.password, usuario.id);
+    if (!ok) return res.status(401).json({ error: 'Contraseña actual incorrecta' });
+
+    const nuevoHash = await hashPassword(password_nueva);
+    const { error: updErr } = await supabase
+      .from('usuarios').update({ password: nuevoHash }).eq('id', usuario.id);
+    if (updErr) throw updErr;
+
+    res.json({ message: 'Contraseña actualizada correctamente' });
+  } catch (e) {
+    console.error('[cambiar-password]', e.message);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// ── RECUPERAR PASSWORD (público, rate-limited) ────────────────────────────────
+router.post('/recuperar', async (req, res) => {
+  const ip = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
+  const GENERIC_OK = { message: 'Si el correo existe, recibirás instrucciones para recuperar tu contraseña.' };
+
+  try {
+    const rl = await checkRateLimit(ip, 'recuperar');
+    if (rl.blocked)
+      return res.status(429).json({ error: 'Demasiadas solicitudes. Espera 15 minutos.' });
+
+    await recordFailedAttempt(ip, 'recuperar');
+
+    const { email } = req.body;
+    if (!email) return res.status(200).json(GENERIC_OK);
+
+    const { data: usuario } = await supabase
+      .from('usuarios').select('id, nombre, email').eq('email', email).maybeSingle();
+
+    if (!usuario) return res.status(200).json(GENERIC_OK);
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expira_en = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // +1h
+
+    await supabase.from('password_resets').insert([{
+      usuario_id: usuario.id,
+      email:      usuario.email,
+      token,
+      expira_en,
+    }]);
+
+    const { enviarEmail, buildEmailBase } = require('../utils/email');
+    const resetLink = `https://virtualestategt.com/portal.html?reset=${token}`;
+    const cuerpoHtml = `
+      <p style="font-size:15px;color:#F5F0E8;margin:0 0 10px;">Hola ${usuario.nombre},</p>
+      <p style="font-size:13px;color:#8A9990;line-height:1.65;margin:0 0 18px;">
+        Recibimos una solicitud para restablecer la contraseña de tu cuenta en Virtual Estate GT.
+        Si no fuiste tú, puedes ignorar este correo.
+      </p>
+      <p style="font-size:12px;color:#8A9990;margin:0;">Este enlace expira en 1 hora.</p>`;
+    const html = buildEmailBase({
+      titulo:    'Recuperación de contraseña',
+      subtitulo: 'Restablece el acceso a tu portal',
+      cuerpoHtml,
+      ctaTexto:  'Restablecer contraseña',
+      ctaLink:   resetLink,
+    });
+    try {
+      await enviarEmail({ to: usuario.email, subject: 'Recupera tu contraseña — Virtual Estate GT', html, label: 'recuperar' });
+    } catch (emailErr) {
+      console.error('[recuperar] email error:', emailErr.message);
+    }
+
+    res.status(200).json(GENERIC_OK);
+  } catch (e) {
+    console.error('[recuperar]', e.message);
+    res.status(200).json(GENERIC_OK); // nunca revelar errores internos
+  }
+});
+
+// ── RESET PASSWORD (público) ──────────────────────────────────────────────────
+router.post('/reset', async (req, res) => {
+  const GENERIC_ERR = { error: 'El enlace no es válido o ya expiró.' };
+  try {
+    const { token, password_nueva } = req.body;
+    if (!token || !password_nueva)
+      return res.status(400).json(GENERIC_ERR);
+    if (password_nueva.length < 8)
+      return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
+
+    const { data: reset, error } = await supabase
+      .from('password_resets')
+      .select('id, usuario_id, usado, expira_en')
+      .eq('token', token)
+      .maybeSingle();
+
+    if (error || !reset || reset.usado || new Date(reset.expira_en) < new Date())
+      return res.status(400).json(GENERIC_ERR);
+
+    const nuevoHash = await hashPassword(password_nueva);
+
+    const { error: updErr } = await supabase
+      .from('usuarios').update({ password: nuevoHash }).eq('id', reset.usuario_id);
+    if (updErr) throw updErr;
+
+    await supabase.from('password_resets').update({ usado: true }).eq('id', reset.id);
+
+    res.json({ message: 'Contraseña restablecida correctamente. Ya puedes iniciar sesión.' });
+  } catch (e) {
+    console.error('[reset]', e.message);
+    res.status(400).json(GENERIC_ERR);
   }
 });
 
