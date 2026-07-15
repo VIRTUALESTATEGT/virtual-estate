@@ -352,20 +352,20 @@
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Nombre *</label>
-          <input type="text" class="form-control" placeholder="Tu nombre"/>
+          <input type="text" class="form-control" id="r-nombre" placeholder="Tu nombre"/>
         </div>
         <div class="form-group">
           <label class="form-label">Apellido *</label>
-          <input type="text" class="form-control" placeholder="Tu apellido"/>
+          <input type="text" class="form-control" id="r-apellido" placeholder="Tu apellido"/>
         </div>
       </div>
       <div class="form-group">
         <label class="form-label">Correo electrónico *</label>
-        <input type="email" class="form-control" placeholder="tu@correo.com"/>
+        <input type="email" class="form-control" id="r-email" placeholder="tu@correo.com"/>
       </div>
       <div class="form-group">
         <label class="form-label">Teléfono / WhatsApp</label>
-        <input type="tel" class="form-control" placeholder="+502 0000-0000"/>
+        <input type="tel" class="form-control" id="r-telefono" placeholder="+502 0000-0000"/>
       </div>
       <div class="form-group">
         <label class="form-label">Contraseña *</label>
@@ -615,31 +615,14 @@
             <thead>
               <tr>
                 <th>Código</th>
-                <th>Servicios solicitados</th>
-                <th>Fecha solicitud</th>
+                <th>Concepto</th>
+                <th>Monto</th>
                 <th>Estado</th>
-                <th>Respuesta</th>
+                <th>Anticipo</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td style="color:var(--gold);font-weight:600;font-size:.75rem;">COT-26-0003</td>
-                <td>Tour Virtual 3D + Fotografía Profesional + Video Drone</td>
-                <td style="color:var(--gray);">20 Abr 2026</td>
-                <td><span class="badge badge-pending">Pendiente</span></td>
-                <td style="color:var(--gray);font-size:.75rem;">En revisión — 1-2 días hábiles</td>
-              </tr>
-              <tr>
-                <td style="color:var(--gold);font-weight:600;font-size:.75rem;">COT-26-0001</td>
-                <td>Paquete PREMIUM</td>
-                <td style="color:var(--gray);">18 Abr 2026</td>
-                <td><span class="badge badge-approved">Enviada</span></td>
-                <td>
-                  <button onclick="showToast('Descargando cotización COT-26-0001...')" style="background:none;border:none;color:var(--gold);font-size:.72rem;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;font-weight:600;display:flex;align-items:center;gap:.3rem;">
-                    <i class="fas fa-download"></i> Ver detalle
-                  </button>
-                </td>
-              </tr>
+            <tbody id="mis-cotizaciones-tbody">
+              <tr><td colspan="5" style="text-align:center;color:var(--gray);padding:2rem;">Inicia sesión para ver tus cotizaciones.</td></tr>
             </tbody>
           </table>
         </div>
@@ -1170,8 +1153,8 @@
       <div class="profile-grid">
         <div class="profile-card" style="text-align:center;">
           <div class="profile-avatar-lg" id="p-avatar-lg">AG</div>
-          <div class="profile-name-lg" id="p-name-lg">Ana García</div>
-          <div class="profile-code-lg">CLI-26-0001</div>
+          <div class="profile-name-lg" id="p-name-lg">—</div>
+          <div class="profile-code-lg" id="p-code-lg">—</div>
           <div class="profile-items" style="text-align:left;">
             <div class="profile-item"><i class="fas fa-envelope"></i> ana@correo.com</div>
             <div class="profile-item"><i class="fab fa-whatsapp"></i> +502 5000-0001</div>
@@ -1227,26 +1210,26 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Nombre</label>
-              <input type="text" class="form-control" value="Ana"/>
+              <input type="text" class="form-control" id="prof-nombre" value=""/>
             </div>
             <div class="form-group">
               <label class="form-label">Apellido</label>
-              <input type="text" class="form-control" value="García"/>
+              <input type="text" class="form-control" id="prof-apellido" value=""/>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">Correo electrónico</label>
-            <input type="email" class="form-control" value="ana@correo.com"/>
+            <input type="email" class="form-control" id="prof-email" value="" readonly style="opacity:.6;cursor:not-allowed;"/>
           </div>
           <div class="form-group">
             <label class="form-label">Teléfono / WhatsApp</label>
-            <input type="tel" class="form-control" value="+502 5000-0001"/>
+            <input type="tel" class="form-control" id="prof-telefono" value=""/>
           </div>
           <div class="form-group">
             <label class="form-label">Empresa (opcional)</label>
-            <input type="text" class="form-control" placeholder="Nombre de empresa"/>
+            <input type="text" class="form-control" id="prof-empresa" placeholder="Nombre de empresa"/>
           </div>
-          <button class="w-btn w-btn-gold" style="margin-top:.5rem;" onclick="showToast('✅ Información actualizada')">
+          <button class="w-btn w-btn-gold" style="margin-top:.5rem;" onclick="savePerfil()">
             <i class="fas fa-save"></i> Guardar cambios
           </button>
           <div style="margin-top:2rem;padding-top:1.4rem;border-top:1px solid var(--border);">
@@ -1317,7 +1300,7 @@
         <button onclick="window.open('index.html#cotizador','_blank')" class="w-btn w-btn-out">
           <i class="fas fa-file-invoice-dollar"></i> Solicitar cotización
         </button>
-        <button onclick="removeFav(document.getElementById('pmod-code').textContent);closePropModal()" style="background:none;border:none;color:var(--gray);font-size:.72rem;cursor:pointer;display:flex;align-items:center;gap:.3rem;padding:.5rem;transition:.2s;" onmouseover="this.style.color='#E08080'" onmouseout="this.style.color='var(--gray)'">
+        <button onclick="removeFav(modalPropId);closePropModal()" style="background:none;border:none;color:var(--gray);font-size:.72rem;cursor:pointer;display:flex;align-items:center;gap:.3rem;padding:.5rem;transition:.2s;" onmouseover="this.style.color='#E08080'" onmouseout="this.style.color='var(--gray)'">
           <i class="fas fa-heart-broken"></i> Quitar de favoritos
         </button>
       </div>
@@ -1326,454 +1309,508 @@
 </div>
 
 <script>
-/* ── DATA ───────────────────────────────────────────────── */
-// Simulación de favoritos guardados por el usuario
-let savedProps = [
-  {code:'PRO-26-0001', name:'Apartamento Zona 14', price:'$185,000', icon:'fa-building', badge:'Venta', loc:'Zona 14, Guatemala',
-   slides:['linear-gradient(135deg,#1a2f22 0%,#2a4a36 100%)','linear-gradient(135deg,#1e3828 0%,#243020 100%)','linear-gradient(135deg,#0f1e16 0%,#1a3228 100%)']},
-  {code:'PRO-26-0002', name:'Casa Colonia Oakland', price:'$320,000', icon:'fa-home', badge:'Venta', loc:'Villa Nueva, Guatemala',
-   slides:['linear-gradient(135deg,#1a2820 0%,#2c3c28 100%)','linear-gradient(135deg,#0e1a14 0%,#1e2e1e 100%)','linear-gradient(135deg,#162818 0%,#243820 100%)','linear-gradient(135deg,#1a3022 0%,#283018 100%)']},
-  {code:'PRO-26-0004', name:'Penthouse Zona 15', price:'$480,000', icon:'fa-city', badge:'Venta', loc:'Zona 15, Guatemala',
-   slides:['linear-gradient(135deg,#1c2a1e 0%,#304430 100%)','linear-gradient(135deg,#0d1a12 0%,#1e3228 100%)']},
-];
-// Slider state: { [code]: currentIndex }
-const sliderIdx = {};
+/* ── API ────────────────────────────────────────────────── */
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3000' : '';
+let currentUser = null;
+let clienteData = null;
 
-function removeFav(code){
-  savedProps = savedProps.filter(p=>p.code!==code);
+function getToken() { return localStorage.getItem('ve_portal_token'); }
+function setToken(t) { localStorage.setItem('ve_portal_token', t); }
+function clearToken() { localStorage.removeItem('ve_portal_token'); }
+
+async function apiFetch(path, opts = {}) {
+  const res = await fetch(API_URL + path, { ...opts, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken(), ...(opts.headers || {}) } });
+  if (res.status === 401) { doLogout(); throw new Error('Sesión expirada'); }
+  if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || res.statusText); }
+  return res.json();
+}
+
+/* ── FAVORITES (localStorage) ──────────────────────────── */
+function getLocalFavs() { try { return JSON.parse(localStorage.getItem('ve_favs') || '[]'); } catch { return []; } }
+function saveLocalFavs(f) { localStorage.setItem('ve_favs', JSON.stringify(f)); }
+
+function removeFav(id) {
+  saveLocalFavs(getLocalFavs().filter(p => String(p.id) !== String(id)));
   renderFavs('favs-grid');
   renderFavs('resumen-props', 3);
   updateFavCount();
   showToast('Propiedad removida de tu lista');
 }
 
-function updateFavCount(){
-  const el=document.getElementById('favs-num');
-  const empty=document.getElementById('favs-empty');
-  const grid=document.getElementById('favs-grid');
-  if(el) el.textContent=savedProps.length;
-  if(empty&&grid){
-    empty.style.display=savedProps.length===0?'block':'none';
-    grid.style.display=savedProps.length===0?'none':'grid';
-  }
+function updateFavCount() {
+  const n = getLocalFavs().length;
+  const el = document.getElementById('favs-num'); if (el) el.textContent = n;
+  const badge = document.getElementById('fav-badge'); if (badge) badge.textContent = n;
+  const empty = document.getElementById('favs-empty');
+  const grid = document.getElementById('favs-grid');
+  if (empty && grid) { empty.style.display = n === 0 ? 'block' : 'none'; grid.style.display = n === 0 ? 'none' : 'grid'; }
 }
 
-/* ── RENDER FAVORITES ───────────────────────────────────── */
-function slideChange(code, dir, event){
-  if(event) event.stopPropagation();
-  const prop = savedProps.find(p=>p.code===code);
-  if(!prop||!prop.slides) return;
-  if(!sliderIdx[code]) sliderIdx[code]=0;
-  sliderIdx[code] = (sliderIdx[code]+dir+prop.slides.length) % prop.slides.length;
-  const slide = document.getElementById('slide-'+code);
-  const dots = document.querySelectorAll(`.slide-dot[data-code="${code}"]`);
-  if(slide) slide.style.background = prop.slides[sliderIdx[code]];
-  dots.forEach((d,i)=>{d.style.opacity=i===sliderIdx[code]?'1':'.35';});
-}
+const tipoIcon = { Apartamento: 'fa-building', Casa: 'fa-home', Terreno: 'fa-map', Local: 'fa-store', Oficina: 'fa-briefcase', Penthouse: 'fa-city', Bodega: 'fa-warehouse' };
 
-function renderFavs(containerId, limit){
-  const data = limit ? savedProps.slice(0,limit) : savedProps;
-  const container = document.getElementById(containerId);
-  if(!container) return;
-  if(data.length===0 && !limit){updateFavCount();return;}
-  container.innerHTML = data.map(p=>{
-    const firstSlide = p.slides ? p.slides[0] : '';
-    const slideCount = p.slides ? p.slides.length : 0;
-    const dotsHtml = slideCount>1 ? p.slides.map((_,i)=>`<span class="slide-dot" data-code="${p.code}" style="display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--gold);opacity:${i===0?'1':'.35'};transition:.2s;"></span>`).join('') : '';
-    const arrowsHtml = slideCount>1 ? `
-      <button onclick="slideChange('${p.code}',-1,event)" style="position:absolute;left:.4rem;top:50%;transform:translateY(-50%);background:rgba(13,26,20,.7);border:none;color:var(--white);width:24px;height:24px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.6rem;z-index:2;transition:.2s;" onmouseover="this.style.background='rgba(193,146,89,.8)'" onmouseout="this.style.background='rgba(13,26,20,.7)'"><i class="fas fa-chevron-left"></i></button>
-      <button onclick="slideChange('${p.code}',1,event)" style="position:absolute;right:.4rem;top:50%;transform:translateY(-50%);background:rgba(13,26,20,.7);border:none;color:var(--white);width:24px;height:24px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.6rem;z-index:2;transition:.2s;" onmouseover="this.style.background='rgba(193,146,89,.8)'" onmouseout="this.style.background='rgba(13,26,20,.7)'"><i class="fas fa-chevron-right"></i></button>
-      <div style="position:absolute;bottom:.5rem;left:50%;transform:translateX(-50%);display:flex;gap:.35rem;z-index:2;">${dotsHtml}</div>` : '';
-    return `
-    <div class="prop-mini" style="cursor:pointer;" onclick="openPropModal('${p.code}')">
-      <div class="prop-mini-img" id="slide-${p.code}" style="${firstSlide?'background:'+firstSlide+';':''} position:relative;">
-        <i class="fas ${p.icon}" style="position:relative;z-index:1;"></i>
-        <span style="position:absolute;top:.5rem;left:.5rem;background:rgba(193,146,89,.9);color:#0D1A14;font-size:.5rem;padding:.15rem .45rem;border-radius:2px;letter-spacing:.08em;font-weight:700;text-transform:uppercase;z-index:2;">${p.badge}</span>
-        ${arrowsHtml}
+function renderFavs(containerId, limit) {
+  let favs = getLocalFavs();
+  if (limit) favs = favs.slice(0, limit);
+  const c = document.getElementById(containerId); if (!c) return;
+  if (!favs.length) { if (!limit) updateFavCount(); return; }
+  c.innerHTML = favs.map(p => {
+    const icon = tipoIcon[p.tipo] || 'fa-home';
+    const precio = p.precio ? '$' + Number(p.precio).toLocaleString() : '—';
+    return `<div class="prop-mini">
+      <div class="prop-mini-img" style="background:linear-gradient(135deg,#1a2f22,#2a4a36);position:relative;">
+        <i class="fas ${icon}"></i>
+        <span style="position:absolute;top:.5rem;left:.5rem;background:rgba(193,146,89,.9);color:#0D1A14;font-size:.5rem;padding:.15rem .45rem;border-radius:2px;letter-spacing:.08em;font-weight:700;text-transform:uppercase;">${p.modalidad || 'Venta'}</span>
       </div>
       <div class="prop-mini-body">
-        <div class="prop-mini-code">${p.code}</div>
-        <div class="prop-mini-name">${p.name}</div>
-        <div style="font-size:.65rem;color:var(--gray);margin-bottom:.3rem;"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.55rem;margin-right:.25rem;"></i>${p.loc}</div>
-        <div class="prop-mini-price">${p.price}</div>
+        <div class="prop-mini-code">${p.tipo || ''} · ${p.zona || ''}</div>
+        <div class="prop-mini-name">${p.nombre}</div>
+        ${p.m2 ? `<div style="font-size:.65rem;color:var(--gray);margin-bottom:.3rem;"><i class="fas fa-ruler-combined" style="color:var(--gold);font-size:.55rem;margin-right:.25rem;"></i>${p.m2} m²</div>` : ''}
+        <div class="prop-mini-price">${precio}</div>
       </div>
       <div class="prop-mini-foot">
         <div style="display:flex;flex-direction:column;gap:.4rem;width:100%;">
-          <button onclick="event.stopPropagation();openPropModal('${p.code}')" style="width:100%;padding:.5rem;background:rgba(193,146,89,.1);border:none;border-radius:3px;color:var(--gold);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.35rem;">
-            <i class="fas fa-info-circle"></i> Ver detalles
-          </button>
-          <button onclick="event.stopPropagation();agendarTour('${p.code}')" style="width:100%;padding:.45rem;background:transparent;border:1px solid var(--border);border-radius:3px;color:var(--gray);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.35rem;">
-            <i class="fas fa-lock" style="font-size:.55rem;color:var(--gold);"></i> Tour 3D — Agendar
-          </button>
+          <button onclick="openPropModal(${p.id})" style="width:100%;padding:.5rem;background:rgba(193,146,89,.1);border:none;border-radius:3px;color:var(--gold);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.35rem;"><i class="fas fa-info-circle"></i> Ver detalles</button>
+          ${p.linktour3d ? `<a href="${p.linktour3d}" target="_blank" style="width:100%;padding:.45rem;background:transparent;border:1px solid var(--border);border-radius:3px;color:var(--gold);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.35rem;text-decoration:none;"><i class="fas fa-vr-cardboard"></i> Tour 3D</a>` : `<button style="width:100%;padding:.45rem;background:transparent;border:1px solid var(--border);border-radius:3px;color:var(--gray);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:default;display:flex;align-items:center;justify-content:center;gap:.35rem;"><i class="fas fa-lock" style="font-size:.55rem;color:var(--gold);"></i> Tour 3D — Agendar</button>`}
         </div>
-        <i class="fas fa-heart remove-fav" title="Quitar de favoritos" style="color:var(--gold);cursor:pointer;flex-shrink:0;" onclick="event.stopPropagation();removeFav('${p.code}')"></i>
+        <i class="fas fa-heart remove-fav" title="Quitar de favoritos" style="color:var(--gold);cursor:pointer;flex-shrink:0;" onclick="removeFav(${p.id})"></i>
       </div>
     </div>`;
   }).join('');
   updateFavCount();
 }
 
-function agendarTour(code){
-  showToast(`Redirigiendo para agendar acceso al tour 3D de ${code}...`);
-  setTimeout(()=>window.open('index.html#contacto','_blank'),800);
+/* ── PROP MODAL ─────────────────────────────────────────── */
+let modalPropId = null;
+
+function openPropModal(id) {
+  const p = getLocalFavs().find(f => String(f.id) === String(id));
+  if (!p) return;
+  modalPropId = p.id;
+  document.getElementById('pmod-code').textContent = `PROP-${String(p.id).padStart(5,'0')}`;
+  document.getElementById('pmod-name').textContent = p.nombre;
+  document.getElementById('pmod-loc').innerHTML = `<i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.65rem;"></i> ${p.zona || '—'}`;
+  document.getElementById('pmod-price').textContent = p.precio ? '$' + Number(p.precio).toLocaleString() : '—';
+  document.getElementById('pmod-badge').textContent = p.modalidad || 'Venta';
+  document.getElementById('pmod-icon').className = 'fas ' + (tipoIcon[p.tipo] || 'fa-home');
+  document.getElementById('pmod-area').textContent = p.m2 ? p.m2 + ' m²' : 'Consultar';
+  document.getElementById('pmod-rooms').textContent = p.tipo || 'Consultar';
+  document.getElementById('pmod-year').textContent = 'Consultar';
+  document.getElementById('pmod-desc').textContent = 'Para información completa y fotos de esta propiedad, contáctanos o agenda una reunión con nuestro equipo.';
+  document.getElementById('prop-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePropModal() {
+  document.getElementById('prop-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 /* ── TABS ───────────────────────────────────────────────── */
-function setTab(tab){
-  ['inicio','favoritos','cotizaciones','agente','pagos','perfil'].forEach(t=>{
-    document.getElementById(`ptab-${t}`)?.classList.toggle('active', t===tab);
-    document.getElementById(`panel-${t}`)?.classList.toggle('active', t===tab);
+function setTab(tab) {
+  ['inicio','favoritos','cotizaciones','agente','pagos','perfil'].forEach(t => {
+    document.getElementById(`ptab-${t}`)?.classList.toggle('active', t === tab);
+    document.getElementById(`panel-${t}`)?.classList.toggle('active', t === tab);
   });
-  if(tab==='favoritos') renderFavs('favs-grid');
-  if(tab==='inicio') renderFavs('resumen-props', 3);
-}
-
-/* ── AGENTE ─────────────────────────────────────────────── */
-// States: 'none' | 'pending' | 'active'
-let agenteState = 'none';
-
-// Store bank data entered during request
-let savedBankData = null;
-
-function solicitarCodigo(){
-  // Validate bank fields (mandatory)
-  const banco = document.getElementById('req-bank-nombre').value;
-  const tipo = document.getElementById('req-bank-tipo').value;
-  const cuenta = document.getElementById('req-bank-cuenta').value.trim();
-  const titular = document.getElementById('req-bank-titular').value.trim();
-  if(!banco || !tipo || !cuenta || !titular){
-    showToast('⚠️ Completa los datos bancarios — son obligatorios para recibir comisiones');
-    document.getElementById('req-bank-nombre').focus();
-    return;
-  }
-  // Save bank data for profile display
-  savedBankData = {banco, tipo, cuenta, titular};
-  renderPerfilBanco();
-  // Generate code
-  const num = String(Math.floor(Math.random() * 9000) + 1000);
-  const code = 'AGT-' + num;
-  agenteState = 'pending';
-  document.getElementById('pending-code-display').textContent = code;
-  document.getElementById('agente-state-none').style.display='none';
-  document.getElementById('agente-state-pending').style.display='block';
-  document.getElementById('agente-state-active').style.display='none';
-  showToast(`✅ Solicitud enviada — Código provisional: ${code}`);
-}
-
-// Demo: activate code (called internally to simulate approval)
-function activarCodigo(code){
-  agenteState = 'active';
-  document.getElementById('active-code-display').textContent = code || 'AGT-0003';
-  document.getElementById('agente-state-none').style.display='none';
-  document.getElementById('agente-state-pending').style.display='none';
-  document.getElementById('agente-state-active').style.display='block';
-}
-
-// Check URL hash on load to open agente tab
-if(window.location.hash === '#agente'){
-  document.addEventListener('DOMContentLoaded', ()=>{
-    // show dashboard first then tab
-    showView('dashboard-view');
-    renderFavs('resumen-props', 3);
-    setTab('agente');
-  });
+  if (tab === 'favoritos') renderFavs('favs-grid');
+  if (tab === 'inicio') renderFavs('resumen-props', 3);
 }
 
 /* ── AUTH TABS ──────────────────────────────────────────── */
-function switchTab(tab){
-  document.getElementById('tab-login').classList.toggle('active', tab==='login');
-  document.getElementById('tab-register').classList.toggle('active', tab==='register');
-  document.getElementById('form-login').style.display = tab==='login' ? 'block' : 'none';
-  document.getElementById('form-register').style.display = tab==='register' ? 'block' : 'none';
+function switchTab(tab) {
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('form-login').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
 }
 
 /* ── LOGIN ──────────────────────────────────────────────── */
-function doLogin(){
-  const em = document.getElementById('l-email').value;
+async function doLogin() {
+  const em = document.getElementById('l-email').value.trim();
   const pw = document.getElementById('l-pass').value;
-  if(!em || !pw){ showToast('Por favor completa todos los campos'); return; }
-  // Simulate login — in production, connect to backend API
-  showView('dashboard-view');
-  renderFavs('resumen-props', 3);
+  if (!em || !pw) { showToast('Por favor completa todos los campos'); return; }
+  const btn = document.querySelector('#form-login .btn-auth');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ingresando...';
+  btn.disabled = true;
+  try {
+    const r = await fetch(API_URL + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: em, password: pw }) });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Error al iniciar sesión');
+    setToken(data.token);
+    currentUser = data.usuario;
+    window.location.href = '/portal-cliente.html' + (window.location.hash || '');
+  } catch (e) { showToast('⚠️ ' + e.message); }
+  finally { btn.innerHTML = orig; btn.disabled = false; }
 }
 
 /* ── REGISTER ───────────────────────────────────────────── */
-function doRegister(){
-  showToast('✅ Cuenta creada. Revisa tu correo para confirmar. Código asignado: CLI-26-0002');
-  setTimeout(()=>switchTab('login'), 2000);
+async function doRegister() {
+  const nombre = document.getElementById('r-nombre')?.value.trim() || '';
+  const apellido = document.getElementById('r-apellido')?.value.trim() || '';
+  const email = document.getElementById('r-email')?.value.trim() || '';
+  const telefono = document.getElementById('r-telefono')?.value.trim() || '';
+  const pw = document.getElementById('r-pass').value;
+  if (!nombre || !email || !pw) { showToast('Completa nombre, correo y contraseña'); return; }
+  if (pw.length < 8) { showToast('La contraseña debe tener al menos 8 caracteres'); return; }
+  if (!document.getElementById('reg-tyc').checked) { showToast('Acepta los términos y condiciones'); return; }
+  const btn = document.querySelector('#form-register .btn-auth');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando cuenta...';
+  btn.disabled = true;
+  try {
+    const r = await fetch(API_URL + '/api/auth/registro-cliente', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre: (nombre + ' ' + apellido).trim(), email, password: pw, telefono })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Error al crear cuenta');
+    setToken(data.token);
+    currentUser = data.usuario;
+    showToast('✅ ¡Cuenta creada! Bienvenido/a a Virtual Estate.');
+    setTimeout(() => { window.location.href = '/portal-cliente.html'; }, 800);
+  } catch (e) { showToast('⚠️ ' + e.message); }
+  finally { btn.innerHTML = orig; btn.disabled = false; }
 }
 
 /* ── LOGOUT ─────────────────────────────────────────────── */
-function doLogout(){
+function doLogout() {
+  clearToken(); currentUser = null; clienteData = null;
   showView('auth-view');
   document.getElementById('l-email').value = '';
   document.getElementById('l-pass').value = '';
 }
 
 /* ── VIEWS ──────────────────────────────────────────────── */
-function showView(id){
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-/* ── PASSWORD TOGGLE ────────────────────────────────────── */
-function togglePw(inputId, btn){
-  const input = document.getElementById(inputId);
-  const isPass = input.type === 'password';
-  input.type = isPass ? 'text' : 'password';
-  btn.querySelector('i').className = isPass ? 'fas fa-eye-slash' : 'fas fa-eye';
-}
-
-/* ── TOAST ──────────────────────────────────────────────── */
-function showToast(m){
-  const t=document.getElementById('toast');
-  t.textContent=m;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3300);
-}
-
-/* ── VER DEMO (sin login) ───────────────────────────────── */
-function verDemo(){
-  document.getElementById('auth-view').classList.remove('active');
-  document.getElementById('dashboard-view').classList.add('active');
-  // Mostrar banner de demo
-  const banner = document.createElement('div');
-  banner.id = 'demo-banner';
-  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2000;background:rgba(193,146,89,.95);color:#0D1A14;text-align:center;padding:.55rem 1rem;font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:1rem;';
-  banner.innerHTML = '<i class="fas fa-eye"></i> Modo Preview — Sin cuenta · Solo visualización <button onclick="salirDemo()" style="background:rgba(13,26,20,.2);border:none;color:#0D1A14;padding:.2rem .8rem;border-radius:3px;font-size:.65rem;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;letter-spacing:.1em;">Salir</button>';
-  document.body.prepend(banner);
+/* ── LOAD PORTAL DATA ───────────────────────────────────── */
+async function loadPortalData() {
+  try { clienteData = await apiFetch('/api/clientes/me'); } catch { clienteData = null; }
+  fillUserUI();
   renderFavs('resumen-props', 3);
   renderFavs('favs-grid');
+  try {
+    const cots = await apiFetch('/api/clientes/me/cotizaciones');
+    renderCotizaciones(cots);
+    const kpiCot = document.querySelectorAll('.kpi-card .kpi-val')[1];
+    if (kpiCot) { kpiCot.textContent = cots.length; kpiCot.parentElement.querySelector('.kpi-sub').textContent = cots.filter(c => (c.estado||'').toLowerCase() === 'pendiente').length + ' pendiente(s)'; }
+  } catch {}
 }
 
-function salirDemo(){
-  const banner = document.getElementById('demo-banner');
-  if(banner) banner.remove();
-  document.getElementById('dashboard-view').classList.remove('active');
-  document.getElementById('auth-view').classList.add('active');
+function fillUserUI() {
+  const u = currentUser; if (!u) return;
+  const initials = (u.nombre || u.email).split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase();
+  const el = id => document.getElementById(id);
+  if (el('portal-avatar')) el('portal-avatar').textContent = initials;
+  if (el('portal-username')) el('portal-username').textContent = u.nombre || u.email;
+  if (el('portal-code')) el('portal-code').textContent = u.email;
+  if (el('welcome-name')) el('welcome-name').textContent = 'Bienvenido/a, ' + (u.nombre ? u.nombre.split(' ')[0] : '');
+  if (el('welcome-code')) el('welcome-code').textContent = 'Portal Virtual Estate';
+  if (el('p-avatar-lg')) el('p-avatar-lg').textContent = initials;
+  if (el('p-name-lg')) el('p-name-lg').textContent = u.nombre || '—';
+  if (clienteData) {
+    const code = `CLI-${String(clienteData.id).padStart(5,'0')}`;
+    if (el('portal-code')) el('portal-code').textContent = code;
+    if (el('welcome-code')) el('welcome-code').textContent = 'Código de cliente: ' + code;
+    if (el('p-name-lg')) el('p-name-lg').textContent = clienteData.nombre || u.nombre;
+    if (el('p-code-lg')) el('p-code-lg').textContent = code;
+    const kpiCode = document.querySelectorAll('.kpi-card .kpi-val')[2];
+    if (kpiCode) { kpiCode.textContent = code; kpiCode.parentElement.querySelector('.kpi-sub').textContent = 'Identificación única'; }
+    // Profile form
+    const parts = (clienteData.nombre || '').split(' ');
+    if (el('prof-nombre')) el('prof-nombre').value = parts[0] || '';
+    if (el('prof-apellido')) el('prof-apellido').value = parts.slice(1).join(' ') || '';
+    if (el('prof-email')) el('prof-email').value = clienteData.email || u.email;
+    if (el('prof-telefono')) el('prof-telefono').value = clienteData.telefono || '';
+    if (el('prof-empresa')) el('prof-empresa').value = clienteData.empresa || '';
+    // Profile sidebar items
+    const piEls = document.querySelectorAll('.profile-item');
+    if (piEls[0]) piEls[0].innerHTML = `<i class="fas fa-envelope"></i> ${clienteData.email || u.email}`;
+    if (piEls[1] && clienteData.telefono) piEls[1].innerHTML = `<i class="fab fa-whatsapp"></i> ${clienteData.telefono}`;
+  }
+  const kpiFavs = document.querySelectorAll('.kpi-card .kpi-val')[0];
+  if (kpiFavs) kpiFavs.textContent = getLocalFavs().length;
 }
 
-/* ── PROPERTY MODAL (#8) ────────────────────────────────── */
-// Extended property data for modal
-const propDetailData = {
-  'PRO-26-0001': {area:'120 m²', rooms:'3 hab / 2 baños', year:'2021', desc:'Apartamento moderno en Zona 14 con acabados de lujo, cocina abierta, balcón y vistas panorámicas. Incluye parqueo doble y bodega. Edificio con seguridad 24/7, piscina y gimnasio.'},
-  'PRO-26-0002': {area:'280 m²', rooms:'4 hab / 3 baños', year:'2018', desc:'Casa con amplio jardín en Colonia Oakland, Villa Nueva. Sala-comedor con doble altura, cocina americana, cuarto de servicio y patio trasero. Vecindario tranquilo con seguridad privada.'},
-  'PRO-26-0004': {area:'210 m²', rooms:'3 hab / 3.5 baños', year:'2023', desc:'Penthouse en último piso con terraza privada de 60 m² y vistas espectaculares de la ciudad. Acabados premium, cocina tipo chef y sala con chimenea. Proyecto completamente nuevo.'},
-};
-
-function openPropModal(code){
-  const prop = savedProps.find(p=>p.code===code);
-  if(!prop) return;
-  const detail = propDetailData[code] || {area:'Consultar', rooms:'Consultar', year:'Consultar', desc:'Contáctanos para obtener información completa sobre esta propiedad.'};
-  document.getElementById('pmod-code').textContent = prop.code;
-  document.getElementById('pmod-name').textContent = prop.name;
-  document.getElementById('pmod-loc').innerHTML = `<i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.65rem;"></i> ${prop.loc}`;
-  document.getElementById('pmod-price').textContent = prop.price;
-  document.getElementById('pmod-badge').textContent = prop.badge;
-  document.getElementById('pmod-icon').className = 'fas ' + prop.icon;
-  document.getElementById('pmod-area').textContent = detail.area;
-  document.getElementById('pmod-rooms').textContent = detail.rooms;
-  document.getElementById('pmod-year').textContent = detail.year;
-  document.getElementById('pmod-desc').textContent = detail.desc;
-  document.getElementById('prop-modal-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+function renderCotizaciones(cots) {
+  const tbody = document.getElementById('mis-cotizaciones-tbody');
+  if (!tbody) return;
+  if (!cots.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--gray);padding:2rem;">No tienes cotizaciones registradas aún.</td></tr>'; return; }
+  const badgeMap = { pendiente: 'badge-pending', aprobada: 'badge-sent', enviada: 'badge-sent', confirmada: 'badge-approved', activa: 'badge-approved' };
+  tbody.innerHTML = cots.map(c => {
+    const badge = badgeMap[(c.estado||'').toLowerCase()] || 'badge-pending';
+    const monto = c.monto ? '$' + Number(c.monto).toLocaleString() : '—';
+    return `<tr>
+      <td style="color:var(--gold);font-weight:600;font-size:.75rem;">COT-${String(c.id).padStart(5,'0')}</td>
+      <td>Proyecto #${c.proyecto_id || '—'}</td>
+      <td style="color:var(--gray);">${monto}</td>
+      <td><span class="badge ${badge}">${c.estado || 'Pendiente'}</span></td>
+      <td style="color:var(--gray);font-size:.75rem;">${c.anticipo ? '$' + Number(c.anticipo).toLocaleString() : '—'}</td>
+    </tr>`;
+  }).join('');
 }
 
-function closePropModal(){
-  document.getElementById('prop-modal-overlay').classList.remove('open');
-  document.body.style.overflow = '';
+/* ── SAVE PROFILE ───────────────────────────────────────── */
+async function savePerfil() {
+  const nombre = [document.getElementById('prof-nombre')?.value.trim(), document.getElementById('prof-apellido')?.value.trim()].filter(Boolean).join(' ');
+  const telefono = document.getElementById('prof-telefono')?.value.trim() || '';
+  const empresa = document.getElementById('prof-empresa')?.value.trim() || '';
+  if (!nombre) { showToast('El nombre es obligatorio'); return; }
+  try {
+    const updated = await apiFetch('/api/clientes/me', { method: 'PUT', body: JSON.stringify({ nombre, telefono, empresa }) });
+    if (updated) clienteData = updated;
+    showToast('✅ Información actualizada');
+    fillUserUI();
+  } catch (e) { showToast('⚠️ ' + e.message); }
 }
 
-/* ── PAGO CON TARJETA (#17) ─────────────────────────────── */
-// Agent commission rate (% of project price that goes to agent)
-const AGENT_COMMISSION_RATE = 0.08; // 8% default
+/* ── AGENTE ─────────────────────────────────────────────── */
+let agenteState = 'none';
+let savedBankData = null;
 
-function actualizarMontoPago(){
+function solicitarCodigo() {
+  const banco = document.getElementById('req-bank-nombre').value;
+  const tipo = document.getElementById('req-bank-tipo').value;
+  const cuenta = document.getElementById('req-bank-cuenta').value.trim();
+  const titular = document.getElementById('req-bank-titular').value.trim();
+  if (!banco || !tipo || !cuenta || !titular) { showToast('⚠️ Completa los datos bancarios — son obligatorios para recibir comisiones'); document.getElementById('req-bank-nombre').focus(); return; }
+  savedBankData = { banco, tipo, cuenta, titular };
+  renderPerfilBanco();
+  const code = 'AGT-' + String(Math.floor(Math.random() * 9000) + 1000);
+  agenteState = 'pending';
+  document.getElementById('pending-code-display').textContent = code;
+  document.getElementById('agente-state-none').style.display = 'none';
+  document.getElementById('agente-state-pending').style.display = 'block';
+  document.getElementById('agente-state-active').style.display = 'none';
+  showToast(`✅ Solicitud enviada — Código provisional: ${code}`);
+}
+
+function activarCodigo(code) {
+  agenteState = 'active';
+  document.getElementById('active-code-display').textContent = code || 'AGT-0003';
+  document.getElementById('agente-state-none').style.display = 'none';
+  document.getElementById('agente-state-pending').style.display = 'none';
+  document.getElementById('agente-state-active').style.display = 'block';
+}
+
+/* ── VINCULAR COTIZACIÓN ────────────────────────────────── */
+let vincCotCode = '';
+
+function vincularPaso1() {
+  const cot = document.getElementById('vinc-cot-input').value.trim().toUpperCase();
+  if (!cot || !cot.startsWith('COT-')) { showToast('Ingresa un código COT válido (ej: COT-26-0000)'); return; }
+  vincCotCode = cot;
+  document.getElementById('vinc-cot-confirm').textContent = cot;
+  document.getElementById('vincular-paso1').style.display = 'none';
+  document.getElementById('vincular-paso2').style.display = 'block';
+  document.getElementById('vincular-resultado').style.display = 'none';
+}
+
+function vincularPaso2() {
+  const agtIngresado = document.getElementById('vinc-agt-input').value.trim().toUpperCase();
+  const miCodigo = (document.getElementById('active-code-display')?.textContent || 'AGT-0003').trim().toUpperCase();
+  const resultado = document.getElementById('vincular-resultado');
+  if (!agtIngresado) { showToast('El código AGT no puede estar vacío'); return; }
+  if (agtIngresado === miCodigo) {
+    const tbody = document.getElementById('vinculadas-tbody');
+    const today = new Date().toLocaleDateString('es-GT',{day:'2-digit',month:'short',year:'numeric'});
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="color:var(--gold);font-weight:600;font-size:.75rem;">${vincCotCode}</td><td style="font-size:.75rem;color:var(--gray);">Vinculada — pendiente de confirmar con VE</td><td style="color:var(--gray);font-size:.75rem;">${today}</td><td style="color:var(--gray);">—</td><td><span class="badge badge-pending">Vinculada</span></td>`;
+    if (tbody) tbody.prepend(tr);
+    resultado.style.cssText = 'display:block;background:rgba(90,224,138,.08);border:1px solid rgba(90,224,138,.25);border-radius:4px;padding:1rem;margin-top:.8rem;text-align:center;';
+    resultado.innerHTML = `<i class="fas fa-check-circle" style="color:#5AE08A;font-size:1.3rem;margin-bottom:.4rem;display:block;"></i><div style="font-size:.82rem;font-weight:700;color:#5AE08A;margin-bottom:.3rem;">¡Vinculación confirmada!</div><div style="font-size:.72rem;color:var(--gray);">${vincCotCode} vinculada a ${miCodigo}. El equipo de VE revisará y registrará tu comisión.</div>`;
+    document.getElementById('vincular-paso2').style.display = 'none';
+    showToast(`✅ ${vincCotCode} vinculada exitosamente a ${miCodigo}`);
+  } else {
+    resultado.style.cssText = 'display:block;background:rgba(224,96,96,.08);border:1px solid rgba(224,96,96,.25);border-radius:4px;padding:1rem;margin-top:.8rem;text-align:center;';
+    resultado.innerHTML = `<i class="fas fa-times-circle" style="color:#E08080;font-size:1.3rem;margin-bottom:.4rem;display:block;"></i><div style="font-size:.82rem;font-weight:700;color:#E08080;margin-bottom:.3rem;">Código incorrecto</div><div style="font-size:.72rem;color:var(--gray);">El código AGT no coincide. El cliente debe ingresar exactamente <strong style="color:var(--white);">${miCodigo}</strong>.</div>`;
+    showToast('⚠️ El código AGT no coincide');
+  }
+}
+
+function cancelarVinculacion() {
+  vincCotCode = '';
+  document.getElementById('vinc-cot-input').value = '';
+  document.getElementById('vinc-agt-input').value = '';
+  document.getElementById('vincular-paso1').style.display = 'block';
+  document.getElementById('vincular-paso2').style.display = 'none';
+  document.getElementById('vincular-resultado').style.display = 'none';
+}
+
+/* ── BANK ACCOUNT ───────────────────────────────────────── */
+function renderPerfilBanco() {
+  if (!savedBankData) return;
+  const { banco, tipo, cuenta, titular } = savedBankData;
+  document.getElementById('perfil-banco-vacio').style.display = 'none';
+  document.getElementById('perfil-banco-info').style.display = 'block';
+  document.getElementById('pb-banco').textContent = banco;
+  document.getElementById('pb-tipo').textContent = tipo;
+  document.getElementById('pb-cuenta').textContent = cuenta;
+  document.getElementById('pb-titular').textContent = titular;
+  const s = document.getElementById('active-bank-summary'); if (s) s.textContent = `${banco} · ${tipo} · ${cuenta}`;
+}
+
+/* ── PAYMENT ────────────────────────────────────────────── */
+const AGENT_COMMISSION_RATE = 0.08;
+
+function actualizarMontoPago() {
   const sel = document.getElementById('pago-cotizacion');
   const resumen = document.getElementById('pago-resumen');
-  if(!sel.value){ resumen.style.display='none'; return; }
-  const [code, monto] = sel.value.split('|');
+  if (!sel.value) { resumen.style.display = 'none'; return; }
+  const [, monto] = sel.value.split('|');
   const sub = parseFloat(monto);
   const iva = sub * 0.12;
-  const total = sub + iva;
   const agtCode = document.getElementById('pago-agente-code')?.value.trim();
   const comisionRow = document.getElementById('pr-comision-row');
   document.getElementById('pr-subtotal').textContent = '$' + sub.toFixed(2);
   document.getElementById('pr-iva').textContent = '$' + iva.toFixed(2);
-  if(agtCode && agtCode.toUpperCase().startsWith('AGT-')){
-    const comision = sub * AGENT_COMMISSION_RATE;
-    document.getElementById('pr-comision').textContent = '$' + comision.toFixed(2);
-    comisionRow.style.display = 'flex';
-  } else {
-    comisionRow.style.display = 'none';
-  }
-  document.getElementById('pr-total').textContent = '$' + total.toFixed(2);
+  if (agtCode && agtCode.toUpperCase().startsWith('AGT-')) { document.getElementById('pr-comision').textContent = '$' + (sub * AGENT_COMMISSION_RATE).toFixed(2); comisionRow.style.display = 'flex'; }
+  else comisionRow.style.display = 'none';
+  document.getElementById('pr-total').textContent = '$' + (sub + iva).toFixed(2);
   resumen.style.display = 'block';
 }
 
-function formatCardNumber(input){
+function formatCardNumber(input) {
   let v = input.value.replace(/\D/g,'').slice(0,16);
   input.value = v.replace(/(.{4})/g,'$1 ').trim();
   const icon = document.getElementById('card-brand-icon');
-  if(v.startsWith('4')) icon.className='fab fa-cc-visa';
-  else if(v.startsWith('5')) icon.className='fab fa-cc-mastercard';
-  else if(v.startsWith('3')) icon.className='fab fa-cc-amex';
+  if (v.startsWith('4')) icon.className='fab fa-cc-visa';
+  else if (v.startsWith('5')) icon.className='fab fa-cc-mastercard';
+  else if (v.startsWith('3')) icon.className='fab fa-cc-amex';
   else icon.className='fas fa-credit-card';
 }
 
-function formatExpiry(input){
+function formatExpiry(input) {
   let v = input.value.replace(/\D/g,'').slice(0,4);
-  if(v.length>=2) v = v.slice(0,2) + ' / ' + v.slice(2);
+  if (v.length >= 2) v = v.slice(0,2) + ' / ' + v.slice(2);
   input.value = v;
 }
 
-function procesarPago(){
+function procesarPago() {
   const cotizacion = document.getElementById('pago-cotizacion').value;
   const nombre = document.getElementById('card-name').value.trim();
   const numero = document.getElementById('card-number').value.trim();
   const expiry = document.getElementById('card-expiry').value.trim();
   const cvv = document.getElementById('card-cvv').value.trim();
   const agtCode = document.getElementById('pago-agente-code')?.value.trim();
-  if(!cotizacion){ showToast('Selecciona una cotización a pagar'); return; }
-  if(!nombre||!numero||!expiry||!cvv){ showToast('Completa todos los datos de la tarjeta'); return; }
-  if(numero.replace(/\s/g,'').length < 16){ showToast('Número de tarjeta inválido'); return; }
-  const [cotCode, monto] = cotizacion.split('|');
+  if (!cotizacion) { showToast('Selecciona una cotización a pagar'); return; }
+  if (!nombre||!numero||!expiry||!cvv) { showToast('Completa todos los datos de la tarjeta'); return; }
+  if (numero.replace(/\s/g,'').length < 16) { showToast('Número de tarjeta inválido'); return; }
+  const [, monto] = cotizacion.split('|');
   const sub = parseFloat(monto);
   const btn = event.currentTarget;
   const original = btn.innerHTML;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
-  btn.disabled = true;
-  setTimeout(()=>{
-    btn.innerHTML = '<i class="fas fa-check"></i> ¡Pago exitoso!';
-    btn.style.background = '#1A6B35';
-    if(agtCode && agtCode.toUpperCase().startsWith('AGT-')){
-      const comision = (sub * AGENT_COMMISSION_RATE).toFixed(2);
-      const ve = (sub * (1 - AGENT_COMMISSION_RATE)).toFixed(2);
-      showToast(`✓ Pago registrado. VE: $${ve} | Comisión ${agtCode}: $${comision} — procesada automáticamente.`);
-    } else {
-      showToast('✓ Pago registrado. Recibirás confirmación por correo.');
-    }
-    setTimeout(()=>{ btn.innerHTML = original; btn.disabled = false; btn.style.background = 'var(--gold)'; }, 3500);
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...'; btn.disabled = true;
+  setTimeout(() => {
+    btn.innerHTML = '<i class="fas fa-check"></i> ¡Pago exitoso!'; btn.style.background = '#1A6B35';
+    if (agtCode && agtCode.toUpperCase().startsWith('AGT-')) { showToast(`✓ Pago registrado. Comisión ${agtCode}: $${(sub * AGENT_COMMISSION_RATE).toFixed(2)} — procesada.`); }
+    else showToast('✓ Pago registrado. Recibirás confirmación por correo.');
+    setTimeout(() => { btn.innerHTML = original; btn.disabled = false; btn.style.background = 'var(--gold)'; }, 3500);
   }, 2200);
 }
 
-/* ── PROMO CODES (#12) ──────────────────────────────────── */
+/* ── PROMO CODES ────────────────────────────────────────── */
 let agentPromos = [];
-const AGENT_COMMISSION_PCT = 8; // % of project price
+const AGENT_COMMISSION_PCT = 8;
 
-function calcPromoImpact(){
+function calcPromoImpact() {
   const pct = parseFloat(document.getElementById('promo-pct').value) || 0;
   const impactEl = document.getElementById('promo-impact');
-  if(!pct || pct <= 0){ impactEl.style.display='none'; return; }
-  if(pct > AGENT_COMMISSION_PCT){
-    impactEl.innerHTML = `<span style="color:#E08080;"><i class="fas fa-exclamation-triangle"></i> El descuento (${pct}%) supera tu comisión (${AGENT_COMMISSION_PCT}%). Máximo permitido: ${AGENT_COMMISSION_PCT}%.</span>`;
-    impactEl.style.display='block'; return;
-  }
-  const ejemplo = 1000;
-  const descuento = (ejemplo * pct / 100).toFixed(0);
-  const tuComision = (ejemplo * AGENT_COMMISSION_PCT / 100).toFixed(0);
-  const tuNeto = (tuComision - descuento).toFixed(0);
-  impactEl.innerHTML = `Ejemplo con proyecto de $${ejemplo}: cliente ahorra <strong style="color:var(--gold);">$${descuento}</strong> · Tu comisión pasa de <strong>$${tuComision}</strong> a <strong style="color:var(--white);">$${tuNeto}</strong>.`;
-  impactEl.style.display='block';
+  if (!pct || pct <= 0) { impactEl.style.display = 'none'; return; }
+  if (pct > AGENT_COMMISSION_PCT) { impactEl.innerHTML = `<span style="color:#E08080;"><i class="fas fa-exclamation-triangle"></i> Descuento (${pct}%) supera tu comisión (${AGENT_COMMISSION_PCT}%). Máximo: ${AGENT_COMMISSION_PCT}%.</span>`; impactEl.style.display = 'block'; return; }
+  const desc = (1000 * pct / 100).toFixed(0);
+  const com = (1000 * AGENT_COMMISSION_PCT / 100).toFixed(0);
+  impactEl.innerHTML = `Ejemplo $1,000: cliente ahorra <strong style="color:var(--gold);">$${desc}</strong> · Tu comisión: $${com} → <strong style="color:var(--white);">$${(com - desc).toFixed(0)}</strong>`;
+  impactEl.style.display = 'block';
 }
 
-function generarPromo(){
+function generarPromo() {
   const nombre = document.getElementById('promo-name').value.trim().toUpperCase();
   const pct = parseFloat(document.getElementById('promo-pct').value) || 0;
-  if(!nombre){ showToast('Ingresa un nombre para el código'); return; }
-  if(!pct || pct <= 0){ showToast('Ingresa un porcentaje de descuento'); return; }
-  if(pct > AGENT_COMMISSION_PCT){ showToast(`Descuento máximo: ${AGENT_COMMISSION_PCT}% (tu comisión)`); return; }
-  const promo = {code: nombre, pct, active: true};
-  agentPromos.push(promo);
+  if (!nombre) { showToast('Ingresa un nombre para el código'); return; }
+  if (!pct || pct <= 0) { showToast('Ingresa un porcentaje de descuento'); return; }
+  if (pct > AGENT_COMMISSION_PCT) { showToast(`Descuento máximo: ${AGENT_COMMISSION_PCT}%`); return; }
+  agentPromos.push({ code: nombre, pct });
   renderPromos();
-  document.getElementById('promo-name').value = '';
-  document.getElementById('promo-pct').value = '';
-  document.getElementById('promo-impact').style.display='none';
+  document.getElementById('promo-name').value = ''; document.getElementById('promo-pct').value = ''; document.getElementById('promo-impact').style.display = 'none';
   showToast(`✅ Código ${nombre} creado — ${pct}% de descuento`);
 }
 
-function renderPromos(){
-  const el = document.getElementById('promo-list');
-  if(!el) return;
-  if(agentPromos.length === 0){ el.innerHTML = '<span style="font-size:.72rem;color:var(--gray);">Aún no has creado códigos promo.</span>'; return; }
-  el.innerHTML = agentPromos.map((p,i)=>`
-    <div class="promo-code-tag" style="flex-direction:column;align-items:flex-start;gap:.2rem;">
-      <span>${p.code} — ${p.pct}% OFF</span>
-      <span style="font-size:.6rem;color:var(--gray);font-family:'Montserrat',sans-serif;font-weight:400;">Descuenta de tu comisión</span>
-    </div>
-  `).join('');
+function renderPromos() {
+  const el = document.getElementById('promo-list'); if (!el) return;
+  if (!agentPromos.length) { el.innerHTML = '<span style="font-size:.72rem;color:var(--gray);">Aún no has creado códigos promo.</span>'; return; }
+  el.innerHTML = agentPromos.map(p => `<div class="promo-code-tag" style="flex-direction:column;align-items:flex-start;gap:.2rem;"><span>${p.code} — ${p.pct}% OFF</span><span style="font-size:.6rem;color:var(--gray);font-family:'Montserrat',sans-serif;font-weight:400;">Descuenta de tu comisión</span></div>`).join('');
 }
 
-/* ── VINCULAR COTIZACIÓN — dos pasos (#10) ─────────────── */
-let vincCotCode = '';
-const AGT_MY_CODE = document.getElementById('active-code-display') ? document.getElementById('active-code-display').textContent : 'AGT-0003';
+/* ── MISC ───────────────────────────────────────────────── */
+function agendarTour(name) { showToast('Redirigiendo para agendar acceso al tour 3D...'); setTimeout(() => window.open('index.html#contacto','_blank'), 800); }
 
-function vincularPaso1(){
-  const cot = document.getElementById('vinc-cot-input').value.trim().toUpperCase();
-  if(!cot || !cot.startsWith('COT-')){ showToast('Ingresa un código COT válido (ej: COT-26-0000)'); return; }
-  vincCotCode = cot;
-  document.getElementById('vinc-cot-confirm').textContent = cot;
-  document.getElementById('vincular-paso1').style.display='none';
-  document.getElementById('vincular-paso2').style.display='block';
-  document.getElementById('vincular-resultado').style.display='none';
+function togglePw(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const isPass = input.type === 'password';
+  input.type = isPass ? 'text' : 'password';
+  btn.querySelector('i').className = isPass ? 'fas fa-eye-slash' : 'fas fa-eye';
 }
 
-function vincularPaso2(){
-  const agtIngresado = document.getElementById('vinc-agt-input').value.trim().toUpperCase();
-  const miCodigo = (document.getElementById('active-code-display')?.textContent || 'AGT-0003').trim().toUpperCase();
-  const resultado = document.getElementById('vincular-resultado');
-  if(!agtIngresado){ showToast('El código AGT no puede estar vacío'); return; }
-  if(agtIngresado === miCodigo){
-    // Éxito: agregar a la tabla
-    const tbody = document.getElementById('vinculadas-tbody');
-    const today = new Date().toLocaleDateString('es-GT',{day:'2-digit',month:'short',year:'numeric'});
-    const tr = document.createElement('tr');
-    tr.innerHTML=`
-      <td style="color:var(--gold);font-weight:600;font-size:.75rem;">${vincCotCode}</td>
-      <td style="font-size:.75rem;color:var(--gray);">Vinculada — pendiente de confirmar con VE</td>
-      <td style="color:var(--gray);font-size:.75rem;">${today}</td>
-      <td style="color:var(--gray);">—</td>
-      <td><span class="badge badge-pending">Vinculada</span></td>`;
-    if(tbody) tbody.prepend(tr);
-    resultado.style.cssText='display:block;background:rgba(90,224,138,.08);border:1px solid rgba(90,224,138,.25);';
-    resultado.innerHTML=`<i class="fas fa-check-circle" style="color:#5AE08A;font-size:1.3rem;margin-bottom:.4rem;display:block;"></i><div style="font-size:.82rem;font-weight:700;color:#5AE08A;margin-bottom:.3rem;">¡Vinculación confirmada!</div><div style="font-size:.72rem;color:var(--gray);">${vincCotCode} ha sido vinculada a tu código ${miCodigo}. El equipo de VE revisará y registrará tu comisión.</div>`;
-    document.getElementById('vincular-paso2').style.display='none';
-    showToast(`✅ ${vincCotCode} vinculada exitosamente a ${miCodigo}`);
-  } else {
-    resultado.style.cssText='display:block;background:rgba(224,96,96,.08);border:1px solid rgba(224,96,96,.25);';
-    resultado.innerHTML=`<i class="fas fa-times-circle" style="color:#E08080;font-size:1.3rem;margin-bottom:.4rem;display:block;"></i><div style="font-size:.82rem;font-weight:700;color:#E08080;margin-bottom:.3rem;">Código incorrecto</div><div style="font-size:.72rem;color:var(--gray);">El código AGT ingresado por el cliente no coincide con el tuyo. Verifica que el cliente ingrese exactamente <strong style="color:var(--white);">${miCodigo}</strong>.</div>`;
-    showToast('⚠️ El código AGT no coincide — verificación fallida');
+function showToast(m) {
+  const t = document.getElementById('toast');
+  t.textContent = m; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3300);
+}
+
+function verDemo() {
+  showView('dashboard-view');
+  const banner = document.createElement('div');
+  banner.id = 'demo-banner';
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:2000;background:rgba(193,146,89,.95);color:#0D1A14;text-align:center;padding:.55rem 1rem;font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;gap:1rem;';
+  banner.innerHTML = '<i class="fas fa-eye"></i> Modo Preview — Solo visualización <button onclick="salirDemo()" style="background:rgba(13,26,20,.2);border:none;color:#0D1A14;padding:.2rem .8rem;border-radius:3px;font-size:.65rem;font-weight:700;cursor:pointer;font-family:Montserrat,sans-serif;letter-spacing:.1em;">Salir</button>';
+  document.body.prepend(banner);
+  renderFavs('resumen-props', 3);
+  renderFavs('favs-grid');
+}
+
+function salirDemo() {
+  const banner = document.getElementById('demo-banner'); if (banner) banner.remove();
+  showView('auth-view');
+}
+
+/* ── INIT ───────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', async () => {
+  // Public cotización confirmation — no login required
+  const _cotParam = new URLSearchParams(window.location.search).get('cot');
+  if (_cotParam) {
+    window.location.replace('/portal/cotizacion.html?cot=' + encodeURIComponent(_cotParam));
+    return;
   }
-}
 
-function cancelarVinculacion(){
-  vincCotCode='';
-  document.getElementById('vinc-cot-input').value='';
-  document.getElementById('vinc-agt-input').value='';
-  document.getElementById('vincular-paso1').style.display='block';
-  document.getElementById('vincular-paso2').style.display='none';
-  document.getElementById('vincular-resultado').style.display='none';
-}
+  const token = getToken();
+  if (token) {
+    try {
+      const r = await fetch(API_URL + '/api/auth/verify', { headers: { 'Authorization': 'Bearer ' + token } });
+      const data = await r.json();
+      if (data.valid) {
+        currentUser = data.usuario;
+        await loadPortalData();
+        showView('dashboard-view');
+        if (window.location.hash === '#agente') setTab('agente');
+        return;
+      }
+    } catch {}
+    clearToken();
+  }
+  updateFavCount();
+});
 
-/* ── BANK ACCOUNT — render in profile (#8) ─────────────── */
-function renderPerfilBanco(){
-  if(!savedBankData) return;
-  const {banco, tipo, cuenta, titular} = savedBankData;
-  const vacio = document.getElementById('perfil-banco-vacio');
-  const info = document.getElementById('perfil-banco-info');
-  if(vacio) vacio.style.display='none';
-  if(info) info.style.display='block';
-  const pbBanco = document.getElementById('pb-banco');
-  const pbTipo = document.getElementById('pb-tipo');
-  const pbCuenta = document.getElementById('pb-cuenta');
-  const pbTitular = document.getElementById('pb-titular');
-  if(pbBanco) pbBanco.textContent = banco;
-  if(pbTipo) pbTipo.textContent = tipo;
-  if(pbCuenta) pbCuenta.textContent = cuenta;
-  if(pbTitular) pbTitular.textContent = titular;
-  // Update summary in active agent panel
-  const summary = document.getElementById('active-bank-summary');
-  if(summary) summary.textContent = `${banco} · ${tipo} · ${cuenta}`;
-}
+// Legacy: keep these unused vars so data- references in HTML don't throw
+const sliderIdx = {};
+function slideChange(){}
+
+/* ── END ─────────────────────────────────────────────────── */
+
 </script>
 </body>
 </html>
