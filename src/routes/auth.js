@@ -350,7 +350,7 @@ router.post('/cambiar-password', authMiddleware, async (req, res) => {
 
   try {
     const { data: usuario, error } = await supabase
-      .from('usuarios').select('id, password').eq('id', req.user.id).single();
+      .from('usuarios').select('id, password').eq('id', req.usuario.id).single();
     if (error || !usuario) return res.status(401).json({ error: 'Usuario no encontrado' });
 
     const ok = await verificarPassword(password_actual, usuario.password, usuario.id);
