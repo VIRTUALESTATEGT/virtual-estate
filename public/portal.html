@@ -338,9 +338,7 @@
       </div>
 
       <div class="auth-forgot">
-        <a href="#" onclick="showToast('Te enviaremos un correo de recuperación a tu dirección registrada.')">
-          ¿Olvidaste tu contraseña?
-        </a>
+        <a href="#" onclick="showRecuperar(event)">¿Olvidaste tu contraseña?</a>
       </div>
     </div>
 
@@ -406,6 +404,42 @@
         </p>
       </div>
     </div>
+
+    <!-- RECUPERAR CONTRASEÑA -->
+    <div id="form-recuperar" style="display:none;">
+      <div class="auth-title">Recuperar contraseña</div>
+      <p class="auth-sub">Ingresá tu correo y te enviaremos instrucciones para recuperar el acceso.</p>
+      <div class="form-group">
+        <label class="form-label">Correo electrónico</label>
+        <input type="email" class="form-control" id="rec-email" placeholder="tu@correo.com"/>
+      </div>
+      <div id="rec-msg" style="display:none;margin:.8rem 0;padding:.65rem .9rem;border-radius:4px;font-size:.75rem;background:rgba(193,146,89,.08);border:1px solid rgba(193,146,89,.2);color:var(--gold);text-align:center;line-height:1.5;"></div>
+      <button class="btn-auth" id="rec-btn" onclick="doRecuperar()">
+        <i class="fas fa-paper-plane"></i> Enviar instrucciones
+      </button>
+      <div class="auth-forgot" style="margin-top:.8rem;">
+        <a href="#" onclick="showAuthForm('login',event)">← Volver al inicio de sesión</a>
+      </div>
+    </div>
+
+    <!-- RESTABLECER CONTRASEÑA (desde link ?reset=TOKEN) -->
+    <div id="form-reset" style="display:none;">
+      <div class="auth-title">Nueva contraseña</div>
+      <p class="auth-sub">Elegí una contraseña segura de al menos 8 caracteres.</p>
+      <div id="reset-msg" style="display:none;margin-bottom:.8rem;padding:.65rem .9rem;border-radius:4px;font-size:.75rem;text-align:center;line-height:1.5;"></div>
+      <div class="form-group">
+        <label class="form-label">Nueva contraseña</label>
+        <input type="password" class="form-control" id="reset-nueva" placeholder="••••••••"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirmar nueva contraseña</label>
+        <input type="password" class="form-control" id="reset-confirmar" placeholder="••••••••"/>
+      </div>
+      <button class="btn-auth" id="reset-btn" onclick="doReset()">
+        <i class="fas fa-key"></i> Establecer nueva contraseña
+      </button>
+    </div>
+
   </div>
 
   <div style="margin-top:1.4rem;font-size:.7rem;color:var(--gray);display:flex;align-items:center;gap:.5rem;">
@@ -1234,15 +1268,20 @@
           </button>
           <div style="margin-top:2rem;padding-top:1.4rem;border-top:1px solid var(--border);">
             <div class="profile-form-title">Cambiar contraseña</div>
+            <div id="cp-msg" style="display:none;margin-bottom:.8rem;padding:.65rem .9rem;border-radius:4px;font-size:.75rem;line-height:1.5;"></div>
             <div class="form-group">
               <label class="form-label">Contraseña actual</label>
-              <input type="password" class="form-control" placeholder="••••••••"/>
+              <input type="password" class="form-control" id="cp-actual" placeholder="••••••••"/>
             </div>
             <div class="form-group">
               <label class="form-label">Nueva contraseña</label>
-              <input type="password" class="form-control" placeholder="••••••••"/>
+              <input type="password" class="form-control" id="cp-nueva" placeholder="••••••••"/>
             </div>
-            <button class="w-btn w-btn-out" onclick="showToast('✅ Contraseña actualizada')">
+            <div class="form-group">
+              <label class="form-label">Confirmar nueva contraseña</label>
+              <input type="password" class="form-control" id="cp-confirmar" placeholder="••••••••"/>
+            </div>
+            <button class="w-btn w-btn-out" id="cp-btn" onclick="doCambiarPassword()">
               <i class="fas fa-lock"></i> Cambiar contraseña
             </button>
           </div>
@@ -1313,6 +1352,7 @@
 const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3000' : '';
 let currentUser = null;
 let clienteData = null;
+let _resetToken = null;
 
 function getToken() { return localStorage.getItem('ve_portal_token'); }
 function setToken(t) { localStorage.setItem('ve_portal_token', t); }
@@ -1779,11 +1819,160 @@ function salirDemo() {
 }
 
 /* ── INIT ───────────────────────────────────────────────── */
+/* ── AUTH FORM SWITCHER ─────────────────────────────────── */
+function showAuthForm(name, e) {
+  if (e) e.preventDefault();
+  ['form-login','form-register','form-recuperar','form-reset'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  const tabs = document.querySelector('.auth-tabs');
+  if (tabs) tabs.style.display = (name === 'login' || name === 'register') ? '' : 'none';
+  if (name === 'login') {
+    document.getElementById('tab-login')?.classList.add('active');
+    document.getElementById('tab-register')?.classList.remove('active');
+  }
+  const target = document.getElementById('form-' + name);
+  if (target) target.style.display = '';
+}
+
+/* ── RECUPERAR PASSWORD ─────────────────────────────────── */
+function showRecuperar(e) {
+  if (e) e.preventDefault();
+  const emailVal = document.getElementById('l-email')?.value.trim() || '';
+  showAuthForm('recuperar');
+  const recEmail = document.getElementById('rec-email');
+  if (recEmail && emailVal) recEmail.value = emailVal;
+  const msg = document.getElementById('rec-msg');
+  if (msg) msg.style.display = 'none';
+}
+
+async function doRecuperar() {
+  const email = document.getElementById('rec-email')?.value.trim() || '';
+  const btn = document.getElementById('rec-btn');
+  const msg = document.getElementById('rec-msg');
+  if (!email) { showToast('Ingresá tu correo electrónico'); return; }
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+  btn.disabled = true;
+  try {
+    await fetch(API_URL + '/api/auth/recuperar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+  } catch {}
+  if (msg) {
+    msg.textContent = 'Si el correo existe, recibirás instrucciones en unos minutos.';
+    msg.style.display = 'block';
+  }
+  btn.innerHTML = orig;
+  btn.disabled = false;
+}
+
+/* ── RESET PASSWORD ─────────────────────────────────────── */
+async function doReset() {
+  const nueva = document.getElementById('reset-nueva')?.value || '';
+  const confirmar = document.getElementById('reset-confirmar')?.value || '';
+  const msg = document.getElementById('reset-msg');
+  const btn = document.getElementById('reset-btn');
+
+  const showMsg = (text, ok) => {
+    msg.textContent = text;
+    msg.style.display = 'block';
+    msg.style.background = ok ? 'rgba(193,146,89,.08)' : 'rgba(220,38,38,.08)';
+    msg.style.border = ok ? '1px solid rgba(193,146,89,.2)' : '1px solid rgba(220,38,38,.2)';
+    msg.style.color = ok ? 'var(--gold)' : '#ef4444';
+  };
+
+  if (nueva.length < 8) { showMsg('La contraseña debe tener al menos 8 caracteres.', false); return; }
+  if (nueva !== confirmar) { showMsg('Las contraseñas no coinciden.', false); return; }
+
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+  btn.disabled = true;
+  try {
+    const r = await fetch(API_URL + '/api/auth/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: _resetToken, password_nueva: nueva })
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error);
+    showMsg('✅ ' + data.message, true);
+    setTimeout(() => {
+      history.replaceState(null, '', window.location.pathname);
+      showAuthForm('login');
+    }, 2200);
+  } catch {
+    showMsg('El enlace no es válido o ya expiró. Solicitá uno nuevo.', false);
+    setTimeout(() => showAuthForm('recuperar'), 2500);
+  } finally {
+    btn.innerHTML = orig;
+    btn.disabled = false;
+  }
+}
+
+/* ── CAMBIAR PASSWORD (logueado) ────────────────────────── */
+async function doCambiarPassword() {
+  const actual = document.getElementById('cp-actual')?.value || '';
+  const nueva = document.getElementById('cp-nueva')?.value || '';
+  const confirmar = document.getElementById('cp-confirmar')?.value || '';
+  const msgEl = document.getElementById('cp-msg');
+  const btn = document.getElementById('cp-btn');
+
+  const showMsg = (text, ok) => {
+    if (!msgEl) return;
+    msgEl.textContent = text;
+    msgEl.style.display = 'block';
+    msgEl.style.background = ok ? 'rgba(193,146,89,.08)' : 'rgba(220,38,38,.08)';
+    msgEl.style.border = ok ? '1px solid rgba(193,146,89,.2)' : '1px solid rgba(220,38,38,.2)';
+    msgEl.style.color = ok ? 'var(--gold)' : '#ef4444';
+  };
+
+  if (!actual) { showMsg('Ingresá tu contraseña actual.', false); return; }
+  if (nueva.length < 8) { showMsg('La contraseña nueva debe tener al menos 8 caracteres.', false); return; }
+  if (nueva !== confirmar) { showMsg('Las contraseñas nuevas no coinciden.', false); return; }
+
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+  btn.disabled = true;
+  try {
+    const r = await fetch(API_URL + '/api/auth/cambiar-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+      body: JSON.stringify({ password_actual: actual, password_nueva: nueva })
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      if (r.status === 401) { showMsg('La contraseña actual es incorrecta.', false); return; }
+      throw new Error(data.error || 'Error');
+    }
+    showMsg('✅ Contraseña actualizada correctamente.', true);
+    document.getElementById('cp-actual').value = '';
+    document.getElementById('cp-nueva').value = '';
+    document.getElementById('cp-confirmar').value = '';
+  } catch (e) {
+    showMsg(e.message || 'Error al cambiar la contraseña.', false);
+  } finally {
+    btn.innerHTML = orig;
+    btn.disabled = false;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   // Public cotización confirmation — no login required
   const _cotParam = new URLSearchParams(window.location.search).get('cot');
   if (_cotParam) {
     window.location.replace('/portal/cotizacion.html?cot=' + encodeURIComponent(_cotParam));
+    return;
+  }
+
+  // Password reset link
+  const _resetParam = new URLSearchParams(window.location.search).get('reset');
+  if (_resetParam) {
+    _resetToken = _resetParam;
+    showAuthForm('reset');
     return;
   }
 
