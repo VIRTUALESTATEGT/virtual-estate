@@ -1304,6 +1304,27 @@
           </button>
         </div>
 
+        <!-- Seguridad de la cuenta -->
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;">
+          <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem;"><i class="fas fa-shield-alt"></i> Seguridad de la cuenta</div>
+          <div id="cp-adm-msg" style="display:none;margin-bottom:.9rem;padding:.6rem .85rem;border-radius:var(--r);font-size:.73rem;line-height:1.5;"></div>
+          <div class="form-group">
+            <label class="form-label">Contraseña actual</label>
+            <input type="password" class="form-control" id="cp-adm-actual" placeholder="••••••••"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nueva contraseña</label>
+            <input type="password" class="form-control" id="cp-adm-nueva" placeholder="••••••••"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirmar nueva contraseña</label>
+            <input type="password" class="form-control" id="cp-adm-confirmar" placeholder="••••••••"/>
+          </div>
+          <button id="cp-adm-btn" onclick="doCambiarPasswordAdmin()" style="width:100%;padding:.65rem;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:.2s;" onmouseover="this.style.background='var(--gold-lt)'" onmouseout="this.style.background='var(--gold)'">
+            <i class="fas fa-lock" style="margin-right:.4rem;"></i> Cambiar contraseña
+          </button>
+        </div>
+
         <!-- Integraciones -->
         <div style="grid-column:1/-1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;">
           <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem;"><i class="fas fa-plug"></i> Integraciones</div>
@@ -2748,6 +2769,52 @@
       if(el){ el.value = saved; actualizarEjemploComision(); }
     }
   })();
+
+  /* ── SEGURIDAD DE LA CUENTA ─────────────────────────── */
+  async function doCambiarPasswordAdmin() {
+    const actual    = document.getElementById('cp-adm-actual')?.value || '';
+    const nueva     = document.getElementById('cp-adm-nueva')?.value || '';
+    const confirmar = document.getElementById('cp-adm-confirmar')?.value || '';
+    const msgEl = document.getElementById('cp-adm-msg');
+    const btn   = document.getElementById('cp-adm-btn');
+
+    const showMsg = (text, ok) => {
+      msgEl.textContent = text;
+      msgEl.style.display = 'block';
+      msgEl.style.background = ok ? 'rgba(193,146,89,.1)'  : 'rgba(220,38,38,.1)';
+      msgEl.style.border     = ok ? '1px solid rgba(193,146,89,.25)' : '1px solid rgba(220,38,38,.25)';
+      msgEl.style.color      = ok ? 'var(--gold)' : '#ef4444';
+    };
+
+    if (!actual)           { showMsg('Ingresá tu contraseña actual.', false); return; }
+    if (nueva.length < 8)  { showMsg('La contraseña nueva debe tener al menos 8 caracteres.', false); return; }
+    if (nueva !== confirmar){ showMsg('Las contraseñas nuevas no coinciden.', false); return; }
+
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:.4rem;"></i> Guardando...';
+    btn.disabled = true;
+    try {
+      const r = await fetch('/api/auth/cambiar-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+        body: JSON.stringify({ password_actual: actual, password_nueva: nueva })
+      });
+      const data = await r.json();
+      if (!r.ok) {
+        if (r.status === 401) { showMsg('La contraseña actual es incorrecta.', false); return; }
+        throw new Error(data.error || 'Error');
+      }
+      showMsg('✅ Contraseña actualizada correctamente.', true);
+      document.getElementById('cp-adm-actual').value    = '';
+      document.getElementById('cp-adm-nueva').value     = '';
+      document.getElementById('cp-adm-confirmar').value = '';
+    } catch(e) {
+      showMsg(e.message || 'Error al cambiar la contraseña.', false);
+    } finally {
+      btn.innerHTML = orig;
+      btn.disabled  = false;
+    }
+  }
 
   /* ── REPORTES (#3) ───────────────────────────────────── */
   let rptPeriodo = 'week';
