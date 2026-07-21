@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 const authMiddleware = require('./src/middleware/auth');
@@ -439,6 +440,20 @@ function _waWebhookVerify(req, res) {
 
 // POST — recibir mensajes entrantes
 const WA_OWNER_NUMBERS = ['50239902399', '50250175832'];
+const WA_SIG_ENFORCE   = process.env.WA_SIGNATURE_ENFORCE === 'true';
+
+function validateWASignature(req) {
+  const secret = process.env.WHATSAPP_APP_SECRET;
+  if (!secret) return { valid: true, reason: 'no_secret_configured' };
+  const sig = req.headers['x-hub-signature-256'];
+  if (!sig) return { valid: false, reason: 'missing_header' };
+  const expected = 'sha256=' + crypto
+    .createHmac('sha256', secret)
+    .update(req.rawBody || '')
+    .digest('hex');
+  const valid = crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
+  return { valid, received: sig, expected };
+}
 
 // Normaliza un número de teléfono al formato canónico usado en whatsapp_contacts.
 // Meta envía sin '+' ni guiones ('50239902399'), pero el owner puede escribir
@@ -547,6 +562,17 @@ async function clasificarMensajeIA(texto, mensajesPrevios = []) {
 }
 
 async function _waWebhookPost(req, res) {
+  const sigResult = validateWASignature(req);
+  if (sigResult.valid) {
+    if (process.env.WHATSAPP_APP_SECRET) console.log('[WA] Signature valid ✅');
+  } else {
+    console.warn('[WA] Signature mismatch — enforce:', WA_SIG_ENFORCE,
+      '| reason:', sigResult.reason,
+      '| received:', sigResult.received,
+      '| expected:', sigResult.expected);
+    if (WA_SIG_ENFORCE) return res.sendStatus(403);
+  }
+
   console.log('[WA] 1. Webhook recibido:', JSON.stringify(req.body, null, 2));
 
   try {
