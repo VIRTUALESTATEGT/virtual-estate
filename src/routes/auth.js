@@ -7,7 +7,8 @@ const authMiddleware = require('../middleware/auth');
 const { requireSuperadmin } = require('../middleware/roles');
 const { hashPassword, verificarPassword } = require('../utils/passwords');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'virtual-estate-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) throw new Error('JWT_SECRET no está configurada — la app no puede iniciar de forma segura');
 const JWT_EXPIRES = '8h';
 
 // ── Rate limiting (Supabase-backed — works across serverless instances) ───────
