@@ -585,6 +585,23 @@ async function _waWebhookPost(req, res) {
     const configuredId    = process.env.WHATSAPP_PHONE_NUMBER_ID;
     console.log('[WA] 2.7 WHATSAPP_PHONE_NUMBER_ID — incoming:', incomingPhoneId, '— configured:', configuredId, '— match:', incomingPhoneId === configuredId);
 
+    // ── Status events (sent / delivered / read / failed) ─────────────────────
+    const statuses = changes?.statuses;
+    if (statuses?.length) {
+      statuses.forEach(s => {
+        const base = `[WA-STATUS] id:${s.id} | status:${s.status} | to:${s.recipient_id}`;
+        if (s.status === 'failed') {
+          console.error(base, '| errors:', JSON.stringify(s.errors));
+        } else {
+          console.log(base);
+        }
+      });
+      if (!changes?.messages?.length) {
+        res.sendStatus(200);
+        return;
+      }
+    }
+
     if (!msg || msg.type !== 'text') {
       console.log('[WA] Sin mensaje de texto — abortando');
       res.sendStatus(200);
