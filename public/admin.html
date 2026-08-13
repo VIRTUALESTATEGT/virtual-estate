@@ -3139,7 +3139,7 @@
       // Open send modal for this cotizacion
       const c=_cotizacionesCache[id];
       if(c){
-        const portalLink=`${window.location.origin}/portal/cotizacion/${id}`;
+        const portalLink=`${window.location.origin}/portal/cotizacion/${c.confirm_token}`;
         await editCotizacion(id);
         mostrarEnvioModal(id, portalLink);
       }
@@ -3160,7 +3160,7 @@
 
   function reenviarCotizacion(id){
     const c=_cotizacionesCache[id]; if(!c)return showToast('Cotización no encontrada en caché');
-    const portalLink=`${window.location.origin}/portal/cotizacion/${id}`;
+    const portalLink=`${window.location.origin}/portal/cotizacion/${c.confirm_token}`;
     let nombre='',tel='',email='';
     if(c.clientes){ nombre=capitalizarNombre([c.clientes.nombre,c.clientes.apellido].filter(Boolean).join(' '))||''; tel=c.clientes.telefono||''; email=c.clientes.email||''; }
     else if(c.leads){ nombre=capitalizarNombre([c.leads.nombre,c.leads.apellido].filter(Boolean).join(' '))||''; tel=c.leads.telefono||''; email=c.leads.email||''; }
@@ -3623,7 +3623,7 @@
         result=await apiFetch('/api/cotizaciones',{method:'POST',body:JSON.stringify(payload)});
         showToast('✅ Cotización creada');
         loadCotizaciones();
-        const portalLink=`${window.location.origin}/portal/cotizacion/${result.id}`;
+        const portalLink=`${window.location.origin}/portal/cotizacion/${result.confirm_token}`;
         mostrarEnvioModal(result.id, portalLink);
       }
     }catch(e){
@@ -3633,8 +3633,7 @@
   }
 
   function mostrarExitoCotizacion(cotId, link){
-    if(!link){ const base=window.location.origin; link=`${base}/portal/cotizacion/${cotId}`; }
-    document.getElementById('cot-link-texto').textContent=link;
+    document.getElementById('cot-link-texto').textContent=link||'';
     document.getElementById('cot-form-body').style.display='none';
     document.getElementById('cot-success-panel').style.display='';
   }

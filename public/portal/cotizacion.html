@@ -238,17 +238,17 @@ const SERV_NOMBRES = {
 };
 
 let _cotData = null;
-let _cotizacionId = null;
+let _cotToken = null;
 let _leadId = null;
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function getIdFromUrl() {
-  // ?cot=35 format (canonical)
   const cot = new URLSearchParams(window.location.search).get('cot');
-  if (cot) return cot;
-  // legacy /portal/cotizacion/35 path format
+  if (cot) return UUID_RE.test(cot) ? cot : null;
   const parts = window.location.pathname.split('/').filter(Boolean);
   const last = parts[parts.length - 1];
-  return isNaN(Number(last)) ? null : last;
+  return UUID_RE.test(last) ? last : null;
 }
 
 function show(id) {
@@ -270,8 +270,8 @@ function capitalizarNombre(nombre) {
 }
 
 async function cargarCotizacion() {
-  _cotizacionId = getIdFromUrl();
-  if (!_cotizacionId || isNaN(Number(_cotizacionId))) {
+  _cotToken = getIdFromUrl();
+  if (!_cotToken) {
     show('state-error');
     document.getElementById('error-msg').textContent = 'URL inválida. Verifica el enlace recibido.';
     return;
@@ -279,7 +279,7 @@ async function cargarCotizacion() {
 
   show('state-loading');
   try {
-    const res = await fetch(`/api/confirmacion/cotizacion/${_cotizacionId}`);
+    const res = await fetch(`/api/confirmacion/cotizacion/${_cotToken}`);
     const data = await res.json();
 
     if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
@@ -294,8 +294,7 @@ async function cargarCotizacion() {
     _leadId = data.lead_id || null;
 
     // Header
-    const yr = new Date(data.created_at || Date.now()).getFullYear().toString().slice(-2);
-    document.getElementById('cot-nro').textContent = `COT-${yr}-${String(data.cotizacion_id).padStart(5, '0')}`;
+    document.getElementById('cot-nro').textContent = data.codigo_cotizacion;
     document.getElementById('cliente-nombre').textContent = capitalizarNombre(data.cliente_nombre) || '—';
 
     const det = data.detalles_json || {};
@@ -386,7 +385,7 @@ async function confirmar() {
 
     const det = _cotData.detalles_json || {};
     const body = {
-      cotizacion_id:        _cotizacionId,
+      confirm_token:        _cotToken,
       anticipo_confirmado:  _cotData.anticipo_monto,
       ip,
       version_terminos:     '1.0',
@@ -413,8 +412,7 @@ async function confirmar() {
 
     show('state-success');
     document.getElementById('success-codigo').textContent = data.codigo_cliente || '—';
-    const _yr = String(new Date().getFullYear()).slice(-2);
-    document.getElementById('success-cot').textContent = `COT-${_yr}-${String(data.cotizacion_id).padStart(5,'0')}`;
+    document.getElementById('success-cot').textContent = data.codigo_cotizacion || '—';
   } catch (e) {
     spinner.style.display = 'none';
     txt.textContent = 'Confirmar Cotización';

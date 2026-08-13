@@ -256,22 +256,26 @@ async function generarCodigoCliente() {
   return `CLI-${year}-${String(numero).padStart(5, '0')}`;
 }
 
-// ── GET /api/confirmacion/cotizacion/:id ──────────────────────────────────────
-// Devuelve datos de cotización para el portal de confirmación (público)
-router.get('/cotizacion/:id', async (req, res) => {
+// ── GET /api/confirmacion/cotizacion/:token ───────────────────────────────────
+// Devuelve datos de cotización para el portal de confirmación (público).
+// El identificador público es confirm_token UUID — el id secuencial nunca sale al cliente.
+router.get('/cotizacion/:token', async (req, res) => {
   try {
-    const { id } = req.params;
+    const { token } = req.params;
     const { data: cot, error } = await supabase
       .from('cotizaciones')
       .select('*, clientes(id, nombre, apellido, email), leads(id, nombre, apellido, email, telefono)')
-      .eq('id', id)
+      .eq('confirm_token', token)
       .maybeSingle();
 
-    if (error) throw error;
-    if (!cot) return res.status(404).json({ error: 'Cotización no encontrada' });
+    // Postgres UUID-format errors y not-found devuelven el mismo 404 genérico
+    if (error || !cot) return res.status(404).json({ error: 'Cotización no encontrada' });
     if (cot.estado_confirmacion === 'confirmado') {
-      return res.json({ ya_confirmada: true, cotizacion_id: cot.id, codigo_cliente: cot.clientes?.codigo_cliente || null });
+      return res.json({ ya_confirmada: true, codigo_cliente: cot.clientes?.codigo_cliente || null });
     }
+
+    const yr2 = String(new Date(cot.created_at || Date.now()).getFullYear()).slice(-2);
+    const codigo_cotizacion = `COT-${yr2}-${String(cot.id).padStart(5, '0')}`;
 
     const nombre   = cot.clientes?.nombre || cot.leads?.nombre || 'Cliente';
     const apellido = cot.clientes?.apellido || cot.leads?.apellido || '';
@@ -279,7 +283,7 @@ router.get('/cotizacion/:id', async (req, res) => {
     const anticipo_monto = cot.anticipo || Math.round((Number(cot.monto) * 0.5) * 100) / 100;
 
     res.json({
-      cotizacion_id:       cot.id,
+      codigo_cotizacion,
       cliente_nombre,
       monto_total:         Number(cot.monto) || 0,
       anticipo_porcentaje: 50,
@@ -300,14 +304,14 @@ router.get('/cotizacion/:id', async (req, res) => {
 });
 
 // ── POST /api/confirmacion/cotizacion/confirmar ───────────────────────────────
-// Confirmación directa desde CRM/admin
+// Confirmación desde portal público — cotización identificada por token UUID
 router.post('/cotizacion/confirmar', async (req, res) => {
   try {
-    const { cotizacion_id, lead_id, anticipo_confirmado, ip, version_terminos = '1.0',
+    const { confirm_token, lead_id, anticipo_confirmado, ip, version_terminos = '1.0',
             servicios_json, tamano_propiedad_m2, zona, ubicacion_completa, user_agent } = req.body;
-    if (!cotizacion_id) return res.status(400).json({ error: 'cotizacion_id requerido' });
+    if (!confirm_token) return res.status(400).json({ error: 'confirm_token requerido' });
     const resultado = await procesarConfirmacion({
-      cotizacion_id, lead_id, anticipo_confirmado, ip, version_terminos,
+      confirm_token, lead_id, anticipo_confirmado, ip, version_terminos,
       servicios_json, tamano_propiedad_m2, zona, ubicacion_completa, user_agent,
     });
     res.json(resultado);
@@ -322,11 +326,11 @@ router.post('/cotizacion/confirmar', async (req, res) => {
 router.post('/lead/:id/terminos', async (req, res) => {
   try {
     const lead_id = Number(req.params.id);
-    const { cotizacion_id, anticipo_confirmado, ip, version_terminos = '1.0',
+    const { confirm_token, anticipo_confirmado, ip, version_terminos = '1.0',
             servicios_json, tamano_propiedad_m2, zona, ubicacion_completa, user_agent } = req.body;
-    if (!cotizacion_id) return res.status(400).json({ error: 'cotizacion_id requerido' });
+    if (!confirm_token) return res.status(400).json({ error: 'confirm_token requerido' });
     const resultado = await procesarConfirmacion({
-      cotizacion_id, lead_id, anticipo_confirmado, ip, version_terminos,
+      confirm_token, lead_id, anticipo_confirmado, ip, version_terminos,
       servicios_json, tamano_propiedad_m2, zona, ubicacion_completa, user_agent,
     });
     res.json({ success: true, ...resultado, mensaje: 'Confirmación registrada. Te enviaremos email de confirmación.' });
@@ -337,17 +341,18 @@ router.post('/lead/:id/terminos', async (req, res) => {
 });
 
 // ── Core confirmation logic ───────────────────────────────────────────────────
-async function procesarConfirmacion({ cotizacion_id, lead_id, anticipo_confirmado, ip, version_terminos,
+async function procesarConfirmacion({ confirm_token, lead_id, anticipo_confirmado, ip, version_terminos,
   servicios_json, tamano_propiedad_m2, zona, ubicacion_completa, user_agent }) {
-  // 1. Load cotizacion
+  // 1. Load cotizacion by token — el id entero se resuelve aquí y nunca sale al cliente
   const { data: cot, error: cotErr } = await supabase
     .from('cotizaciones')
     .select('*')
-    .eq('id', cotizacion_id)
+    .eq('confirm_token', confirm_token)
     .maybeSingle();
   if (cotErr) throw cotErr;
   if (!cot) throw new Error('Cotización no encontrada');
   if (cot.estado_confirmacion === 'confirmado') throw new Error('Esta cotización ya fue confirmada');
+  const cotizacion_id = cot.id;
 
   // 2. Resolve lead (from param or from cotizacion)
   const resolvedLeadId = lead_id || cot.lead_id || null;
@@ -483,10 +488,12 @@ async function procesarConfirmacion({ cotizacion_id, lead_id, anticipo_confirmad
     console.warn('[CONFIRM-EMAIL] ✗ Sin email — cliente no tiene dirección registrada');
   }
 
+  const yr2 = String(new Date().getFullYear()).slice(-2);
+  const codigo_cotizacion = `COT-${yr2}-${String(cotizacion_id).padStart(5, '0')}`;
   return {
     cliente_id:     cliente.id,
     codigo_cliente,
-    cotizacion_id,
+    codigo_cotizacion,
     monto:          cot.monto,
     anticipo:       montoAnticipo,
   };
