@@ -3131,19 +3131,13 @@
   let _cotizacionesCache={}, _editCotizacionId=null, _cotizacionesServiciosLineas=[], _cotPreciosCache=[];
   let _cotCliList=[], _cotLeadList=[], _cotMonedaAnterior='USD';
 
-  async function aprobarCotizacion(id){
-    try{
-      await apiFetch('/api/cotizaciones/'+id,{method:'PUT',body:JSON.stringify({estado:'enviada'})});
-      showToast('✅ Cotización enviada');
-      await loadCotizaciones();
-      // Open send modal for this cotizacion
-      const c=_cotizacionesCache[id];
-      if(c){
-        const portalLink=`${window.location.origin}/portal/cotizacion/${c.confirm_token}`;
-        await editCotizacion(id);
-        mostrarEnvioModal(id, portalLink);
-      }
-    }catch(e){showToast('Error: '+e.message);}
+  function enviarCotizacion(id){
+    const c=_cotizacionesCache[id]; if(!c)return showToast('Cotización no encontrada en caché');
+    const portalLink=`${window.location.origin}/portal/cotizacion/${c.confirm_token}`;
+    let nombre='',tel='',email='';
+    if(c.clientes){ nombre=capitalizarNombre([c.clientes.nombre,c.clientes.apellido].filter(Boolean).join(' '))||''; tel=c.clientes.telefono||''; email=c.clientes.email||''; }
+    else if(c.leads){ nombre=capitalizarNombre([c.leads.nombre,c.leads.apellido].filter(Boolean).join(' '))||''; tel=c.leads.telefono||''; email=c.leads.email||''; }
+    mostrarEnvioModal(id, portalLink, {nombre, tel, email});
   }
 
   async function desaprobarCotizacion(id){
@@ -3158,14 +3152,7 @@
     }catch(e){showToast('Error: '+e.message);}
   }
 
-  function reenviarCotizacion(id){
-    const c=_cotizacionesCache[id]; if(!c)return showToast('Cotización no encontrada en caché');
-    const portalLink=`${window.location.origin}/portal/cotizacion/${c.confirm_token}`;
-    let nombre='',tel='',email='';
-    if(c.clientes){ nombre=capitalizarNombre([c.clientes.nombre,c.clientes.apellido].filter(Boolean).join(' '))||''; tel=c.clientes.telefono||''; email=c.clientes.email||''; }
-    else if(c.leads){ nombre=capitalizarNombre([c.leads.nombre,c.leads.apellido].filter(Boolean).join(' '))||''; tel=c.leads.telefono||''; email=c.leads.email||''; }
-    mostrarEnvioModal(id, portalLink, {nombre, tel, email});
-  }
+
 
   async function loadCotizaciones(){
     const tbody=document.getElementById('cotizaciones-tbody');
@@ -3203,8 +3190,7 @@
         <td><div class="action-btns">
           <button class="act-btn" title="Detalle" onclick="verDetalleCotizacion(${c.id})"><i class="fas fa-eye"></i></button>
           <button class="act-btn" title="Editar" onclick="editCotizacion(${c.id})"><i class="fas fa-pencil-alt"></i></button>
-          ${c.estado!=='enviada'&&c.estado!=='confirmada'?`<button class="act-btn" title="Aprobar" style="color:#3ECF8E;" onclick="aprobarCotizacion(${c.id})"><i class="fas fa-check"></i></button>`:''}
-          ${(c.estado==='enviada'||c.estado==='confirmada')?`<button class="act-btn" title="Reenviar" onclick="reenviarCotizacion(${c.id})"><i class="fas fa-redo"></i></button>`:''}
+          <button class="act-btn" title="${(c.estado==='enviada'||c.estado==='confirmada')?'Reenviar':'Enviar'}" style="color:#3ECF8E;" onclick="enviarCotizacion(${c.id})"><i class="fas fa-${(c.estado==='enviada'||c.estado==='confirmada')?'redo':'paper-plane'}"></i></button>
           ${c.estado!=='rechazada'?`<button class="act-btn" title="Rechazar" style="color:#E08080;" onclick="desaprobarCotizacion(${c.id})"><i class="fas fa-times"></i></button>`:''}
           <button class="act-btn danger" onclick="deleteCotizacion(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
         </div></td>
@@ -4578,6 +4564,7 @@
   function cerrarEnvioModal(){
     document.getElementById('envioCotizacionModal').classList.remove('open');
     mostrarExitoCotizacion(_envioCotId, _envioLink);
+    loadCotizaciones();
   }
 
   async function confirmarEnvioCotizacion(){
@@ -4604,7 +4591,13 @@
       const results=await Promise.all(envios);
       const ok=results.filter(r=>r.ok).map(r=>r.canal).join(', ');
       const fail=results.filter(r=>!r.ok&&!r.skip).map(r=>`${r.canal}: ${r.error}`).join('; ');
-      if(ok) {resultEl.textContent='✅ Enviado por: '+ok; resultEl.style.color='var(--gold)';}
+      if(ok) {
+        resultEl.textContent='✅ Enviado por: '+ok; resultEl.style.color='var(--gold)';
+        const cachedCot=_cotizacionesCache[_envioCotId];
+        if(cachedCot&&cachedCot.estado!=='enviada'&&cachedCot.estado!=='confirmada'){
+          apiFetch('/api/cotizaciones/'+_envioCotId,{method:'PUT',body:JSON.stringify({estado:'enviada'})}).catch(e=>console.error('[envio] PUT estado=enviada failed:',e.message));
+        }
+      }
       if(fail){resultEl.textContent+=(ok?'\n':'')+'⚠️ Error en: '+fail; resultEl.style.color='#E08080';}
       if(ok) setTimeout(()=>cerrarEnvioModal(),2000);
       else {btn.disabled=false; btn.innerHTML='<i class="fas fa-paper-plane"></i> Reintentar';}
