@@ -794,9 +794,9 @@
         </div>
         <p style="font-size:.73rem;color:var(--gray);line-height:1.6;margin:.2rem 1.2rem .8rem;font-weight:400;">Precios en USD. Fórmula: <code style="background:var(--bg3);padding:.1rem .4rem;border-radius:3px;">max(mínimo, base + (m² × precio_m2))</code></p>
         <table>
-          <thead><tr><th>Código</th><th>Categoría</th><th>Servicio / Descripción</th><th>Tipo</th><th>Tarifa</th><th>Mínimo</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>Código</th><th>Categoría</th><th>Servicio / Descripción</th><th>Tipo</th><th>Tarifa</th><th>Mínimo</th><th>Estado</th><th>IA Auto</th><th>Acciones</th></tr></thead>
           <tbody id="precios-tbody">
-            <tr><td colspan="8" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
+            <tr><td colspan="9" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -4422,7 +4422,7 @@
     try {
       const items = await apiFetch('/api/cotizacion/precios');
       _preciosCache = {}; items.forEach(p => _preciosCache[p.id] = p);
-      if (!items.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem;">Sin precios. Usa "+ Nuevo Servicio".</td></tr>'; return; }
+      if (!items.length) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">Sin precios. Usa "+ Nuevo Servicio".</td></tr>'; return; }
       const TIPO_LABEL = { fijo:'Fijo', por_m2:'Por m²', rango_m2:'Rango m²', cotizar:'A cotizar' };
       tbody.innerHTML = items.map(p => {
         const tarifa = p.tipo_precio === 'fijo' ? ('$'+(p.precio_minimo||0)) :
@@ -4437,6 +4437,7 @@
           <td class="td-gold" style="font-size:.75rem;">${tarifa}</td>
           <td style="color:var(--gray);font-size:.72rem;">${min}</td>
           <td><span class="badge ${p.activo?'badge-active':'badge-lost'}" style="cursor:pointer;" onclick="togglePrecioActivo(${p.id})">${p.activo?'Activo':'Inactivo'}</span></td>
+          <td style="text-align:center;">${p.cotizable_auto?'<span class="badge badge-won" style="font-size:.6rem;padding:.15rem .45rem;">IA</span>':'<span style="color:var(--gray);font-size:.7rem;">—</span>'}</td>
           <td><div class="action-btns">
             <button class="act-btn" title="Editar" onclick="abrirEditarPrecio(${p.id})"><i class="fas fa-pencil-alt"></i></button>
             <button class="act-btn danger" title="Eliminar" onclick="eliminarPrecio(${p.id})"><i class="fas fa-trash"></i></button>
@@ -4461,6 +4462,7 @@
     document.getElementById('ep-precio-minimo').value = p.precio_minimo || 0;
     document.getElementById('ep-notas').value = p.notas || '';
     document.getElementById('ep-activo').checked = p.activo !== false;
+    document.getElementById('ep-cotizable-auto').checked = p.cotizable_auto === true;
     actualizarCamposEP();
     document.getElementById('editarPrecioModal').classList.add('open');
   }
@@ -4489,6 +4491,7 @@
       precio_minimo: document.getElementById('ep-precio-minimo').value || null,
       notas: document.getElementById('ep-notas').value || null,
       activo: document.getElementById('ep-activo').checked,
+      cotizable_auto: document.getElementById('ep-cotizable-auto').checked,
     };
     try {
       if (id) {
@@ -4521,6 +4524,7 @@
     ['ep-id','ep-codigo','ep-categoria','ep-servicio','ep-descripcion','ep-precio-fijo','ep-precio-m2','ep-rango-min','ep-rango-max','ep-precio-minimo','ep-notas'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     document.getElementById('ep-tipo').value = 'fijo';
     document.getElementById('ep-activo').checked = true;
+    document.getElementById('ep-cotizable-auto').checked = false;
     actualizarCamposEP();
     document.getElementById('editarPrecioModal').classList.add('open');
   }
@@ -4648,6 +4652,10 @@
     <div class="form-group" style="display:flex;align-items:center;gap:.6rem;margin-top:.3rem;">
       <input type="checkbox" id="ep-activo" checked style="accent-color:var(--gold);width:16px;height:16px;"/>
       <label for="ep-activo" class="form-label" style="margin:0;">Servicio activo (visible en cotizaciones)</label>
+    </div>
+    <div class="form-group" style="display:flex;align-items:center;gap:.6rem;margin-top:.3rem;">
+      <input type="checkbox" id="ep-cotizable-auto" style="accent-color:var(--gold);width:16px;height:16px;"/>
+      <label for="ep-cotizable-auto" class="form-label" style="margin:0;">Cotizable automáticamente por el agente IA</label>
     </div>
     <div style="display:flex;gap:.6rem;margin-top:1.2rem;">
       <button class="topbar-btn btn-primary" onclick="guardarPrecioModal()" style="flex:2;justify-content:center;"><i class="fas fa-save"></i> Guardar</button>

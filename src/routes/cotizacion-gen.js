@@ -57,7 +57,7 @@ router.put('/precios/:id', async (req, res) => {
     const {
       codigo, categoria, servicio, descripcion, tipo_precio,
       precio_fijo, precio_por_m2, rango_m2_min, rango_m2_max,
-      precio_en_rango, precio_minimo, notas, activo, orden
+      precio_en_rango, precio_minimo, notas, activo, orden, cotizable_auto
     } = req.body;
     const update = {
       updated_at: new Date().toISOString(),
@@ -76,6 +76,7 @@ router.put('/precios/:id', async (req, res) => {
     if (notas       !== undefined) update.notas        = notas;
     if (activo      !== undefined) update.activo       = activo !== false && activo !== 'false';
     if (orden       !== undefined) update.orden        = orden ? Number(orden) : null;
+    if (cotizable_auto !== undefined) update.cotizable_auto = cotizable_auto === true || cotizable_auto === 'true';
 
     const { data, error } = await supabase
       .from('precios_servicios')
@@ -94,7 +95,7 @@ router.post('/precios', async (req, res) => {
     const {
       codigo, categoria, servicio, descripcion, tipo_precio,
       precio_fijo, precio_por_m2, rango_m2_min, rango_m2_max,
-      precio_en_rango, precio_minimo, notas, orden
+      precio_en_rango, precio_minimo, notas, orden, cotizable_auto
     } = req.body;
     if (!codigo || !servicio) return res.status(400).json({ error: 'codigo y servicio son requeridos.' });
     const { data, error } = await supabase
@@ -113,6 +114,7 @@ router.post('/precios', async (req, res) => {
         precio_minimo:   precio_minimo   ? Number(precio_minimo)   : null,
         notas: notas || null,
         activo: true,
+        cotizable_auto: cotizable_auto === true || cotizable_auto === 'true',
         orden: orden ? Number(orden) : null,
       }])
       .select()
