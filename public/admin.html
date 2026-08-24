@@ -3326,18 +3326,42 @@
     const symP=mon==='GTQ'?'Q':'$';
     const fmtP=n=>symP+(convertirMoneda(Number(n)||0,'USD',mon)).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
     const preciosOptsFn=sid=>Object.entries(cats).map(([cat,ps])=>`<optgroup label="${cat}">${ps.map(p=>{
-      const ph=p.tipo_precio==='fijo'?(symP+fmtP(p.precio_minimo||0).slice(1)):p.tipo_precio==='por_m2'?(symP+(convertirMoneda(p.precio_por_m2||0,'USD',mon)).toFixed(2)+'/m²'):'cotizar';
+      const ph=p.tipo_precio==='fijo'?(symP+fmtP(p.precio_minimo||0).slice(1)):p.tipo_precio==='por_m2'?(symP+(convertirMoneda(p.precio_por_m2||0,'USD',mon)).toFixed(2)+'/m²'):p.tipo_precio==='paquete'?('paquete −'+(Number(p.descuento_paquete_pct)||0)+'%'):'cotizar';
       return `<option value="${p.id}"${String(p.id)===String(sid)?' selected':''}>${p.servicio}${p.descripcion?' — '+p.descripcion:''} (${ph})</option>`;
     }).join('')}</optgroup>`).join('');
     tbody.innerHTML=_cotizacionesServiciosLineas.map((s,i)=>{
       const esPorM2=s.tipo_precio==='por_m2'||s.tipo_precio==='rango_m2';
       const esCotizar=s.tipo_precio==='cotizar';
-      const precioRO=esPorM2?'readonly style="'+inp+';opacity:.55;cursor:not-allowed;"':'style="'+inp+'"';
-      const cantLabel=esPorM2?'m²':'Cant.';
+      const esPaquete=s.tipo_precio==='paquete';
+      const precioRO=(esPorM2||esPaquete)?'readonly style="'+inp+';opacity:.55;cursor:not-allowed;"':'style="'+inp+'"';
+      const cantLabel=(esPorM2||esPaquete)?'m²':'Cant.';
+      const precioLabel=esPorM2?'P/m²':esPaquete?'Total':'Precio';
       const rangoNota=esPorM2&&s.rango_m2_max?`<div style="font-size:.6rem;color:var(--gray);margin-top:.2rem;">Rango: ${s.rango_m2_min||0}–${s.rango_m2_max} m²</div>`:'';
       const minNota=esPorM2&&s.precio_minimo>0?`<div style="font-size:.6rem;color:var(--gold);margin-top:.2rem;">Mín: ${fmtP(s.precio_minimo)}</div>`:'';
       const cotNota=esCotizar?`<div style="font-size:.6rem;color:var(--gold);margin-top:.2rem;">Cotización personalizada</div>`:'';
-      const pUnitDisplay=convertirMoneda(s.precio_unitario||0,'USD',mon);
+      const pUnitDisplay=esPaquete?convertirMoneda(s.subtotal||0,'USD',mon):convertirMoneda(s.precio_unitario||0,'USD',mon);
+      let breakdownRow='';
+      if(esPaquete){
+        if(!s.cantidad||s.cantidad<=0){
+          breakdownRow=`<tr><td colspan="5" style="padding:.15rem .6rem .4rem 1.4rem;font-size:.68rem;color:var(--gray);border-top:none;">Ingresá los m² para calcular el precio del paquete.</td></tr>`;
+        } else if(s._paqueteCalc&&s._paqueteCalc.ok){
+          const calc=s._paqueteCalc;
+          const descMonto=calc.sumaComponentes-calc.conDescuento;
+          const rows=calc.desglose.map(d=>`<span style="display:block">• ${d.nombre}: ${fmtP(d.subtotal)} <span style="color:var(--gray);font-size:.65rem;">(${d.nota})</span></span>`).join('');
+          const pisoNote=calc.piso>calc.conDescuento?` → piso: ${fmtP(calc.piso)}`:'';
+          breakdownRow=`<tr style="background:rgba(0,0,0,.15);"><td colspan="5" style="padding:.3rem .6rem .5rem 1.4rem;border-top:none;">
+            <details open style="font-size:.68rem;">
+              <summary style="cursor:pointer;color:var(--gold);font-weight:600;margin-bottom:.3rem;list-style:none;outline:none;">▸ Desglose — ahorrás ${fmtP(descMonto)} (${calc.descuentoPct}% paquete)</summary>
+              <div style="color:var(--gray);line-height:1.65;">${rows}</div>
+              <div style="margin-top:.3rem;border-top:1px solid var(--border);padding-top:.25rem;color:var(--gray);">
+                Suma: ${fmtP(calc.sumaComponentes)} − ${calc.descuentoPct}% = ${fmtP(calc.conDescuento)}${pisoNote} → <strong style="color:var(--gold);">${fmtP(calc.total)}</strong>
+              </div>
+            </details>
+          </td></tr>`;
+        } else if(s._paqueteCalc&&!s._paqueteCalc.ok){
+          breakdownRow=`<tr><td colspan="5" style="padding:.15rem .6rem .4rem 1.4rem;font-size:.68rem;color:#E08080;border-top:none;">⚠ ${s._paqueteCalc.razon}</td></tr>`;
+        }
+      }
       return `<tr>
         <td style="min-width:200px;">
           <select onchange="onServicioSelect(${i},this)" style="width:100%;${inp}">
@@ -3356,7 +3380,7 @@
             style="width:68px;${inp}"/>
         </td>
         <td>
-          <div style="font-size:.6rem;color:var(--gray);margin-bottom:.2rem;">${esPorM2?'P/m²':'Precio'}</div>
+          <div style="font-size:.6rem;color:var(--gray);margin-bottom:.2rem;">${precioLabel}</div>
           <input type="number" value="${pUnitDisplay.toFixed(2)}" min="0" step="0.01"
             onchange="onRowInputChange(${i},'precio',this.value)"
             ${precioRO}
@@ -3364,7 +3388,7 @@
         </td>
         <td style="text-align:right;font-family:monospace;font-size:.8rem;color:var(--gold);" id="svc-sub-${i}">${fmtCot(s.subtotal||0)}</td>
         <td style="text-align:center;"><button onclick="eliminarServicioFila(${i})" style="background:none;border:none;color:#E08080;cursor:pointer;font-size:.85rem;"><i class="fas fa-times"></i></button></td>
-      </tr>`;
+      </tr>${breakdownRow}`;
     }).join('');
   }
 
@@ -3406,6 +3430,13 @@
         }
       } else if(s.tipo_precio==='rango_m2'){
         s.subtotal=m2>0?s.precio_en_rango||s.precio_unitario||0:0;
+      } else if(s.tipo_precio==='paquete'){
+        const calc=calcularPrecioPaquete(s,m2);
+        s._paqueteCalc=calc;
+        s.subtotal=calc.ok?calc.total:0;
+        renderServiciosTabla();
+        recalcularTotalesCot();
+        return;
       } else {
         s.subtotal=m2*(s.precio_unitario||0);
       }
@@ -3442,11 +3473,63 @@
       s.cantidad=s.cantidad||0;
       s.precio_unitario=Number(p.precio_en_rango)||0;
       s.subtotal=0;
+    } else if(s.tipo_precio==='paquete'){
+      s.cantidad=s.cantidad||0;
+      s.componentes_ids=Array.isArray(p.componentes_ids)?p.componentes_ids:[];
+      s.descuento_paquete_pct=Number(p.descuento_paquete_pct)||0;
+      s.precio_unitario=0;
+      s._paqueteCalc=null;
+      s.subtotal=0;
     } else {
       s.cantidad=1;
       s.precio_unitario=0;
       s.subtotal=0;
     }
+  }
+
+  function calcularPrecioPaquete(s, m2){
+    const ids=s.componentes_ids||[];
+    if(!ids.length) return {ok:false, razon:'Paquete sin componentes definidos'};
+    if(!m2||m2<=0) return {ok:false, razon:'Ingresá los m² para calcular el precio del paquete'};
+    const desglose=[];
+    let suma=0;
+    for(const cid of ids){
+      const comp=_cotPreciosCache.find(x=>Number(x.id)===Number(cid));
+      if(!comp) continue;
+      if(comp.tipo_precio==='por_m2'){
+        const minR=Number(comp.rango_m2_min)||0;
+        const maxR=comp.rango_m2_max?Number(comp.rango_m2_max):null;
+        if(maxR!==null){
+          // Tramo con rango: solo incluir si m² cae dentro del rango
+          if(m2>=minR&&m2<=maxR){
+            const raw=m2*(Number(comp.precio_por_m2)||0);
+            const sub=(Number(comp.precio_minimo)||0)>0?Math.max(Number(comp.precio_minimo),raw):raw;
+            desglose.push({nombre:comp.servicio,subtotal:sub,nota:`${m2} m² × $${Number(comp.precio_por_m2).toFixed(2)}/m²`});
+            suma+=sub;
+          }
+          // else: otro tramo del mismo servicio cubrirá el rango
+        } else {
+          // Sin rango_m2_max: incluir solo si m² >= rango_m2_min (cubre tramos sin límite superior)
+          if(m2>=minR){
+            const raw=m2*(Number(comp.precio_por_m2)||0);
+            const sub=(Number(comp.precio_minimo)||0)>0?Math.max(Number(comp.precio_minimo),raw):raw;
+            desglose.push({nombre:comp.servicio,subtotal:sub,nota:`${m2} m² × $${Number(comp.precio_por_m2).toFixed(2)}/m²`});
+            suma+=sub;
+          }
+        }
+      } else if(comp.tipo_precio==='fijo'){
+        const sub=Number(comp.precio_minimo)||Number(comp.precio_fijo)||0;
+        desglose.push({nombre:comp.servicio,subtotal:sub,nota:'precio fijo'});
+        suma+=sub;
+      }
+      // cotizar / paquete / rango_m2 dentro de componentes: se omiten
+    }
+    if(!desglose.length) return {ok:false, razon:'No se pudo calcular: componentes sin precio válido'};
+    const desc=Number(s.descuento_paquete_pct)||0;
+    const conDescuento=suma*(1-desc/100);
+    const piso=Number(s.precio_minimo)||0;
+    const total=Math.max(piso,conDescuento);
+    return {ok:true, desglose, sumaComponentes:suma, descuentoPct:desc, conDescuento, piso, total};
   }
 
   function onServicioSelect(i,sel){
