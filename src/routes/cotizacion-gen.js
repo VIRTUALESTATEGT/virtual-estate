@@ -59,7 +59,7 @@ async function calcularMonto(tipo_servicio, m2 = 0) {
       const sub = (Number(tier.precio_minimo) || 0) > 0 ? Math.max(Number(tier.precio_minimo), raw) : raw;
       const subR = Math.round(sub * 100) / 100;
       console.log(`[COT-PRECIO] tour_virtual | tramo=${tier.codigo} id=${tier.id} | ${m2Num}m² × $${tier.precio_por_m2} = $${raw.toFixed(2)} → subtotal=$${subR}`);
-      return subR;
+      return { total: subR };
     }
 
     const codigoBuscar = ENUM_A_CODIGO[tipo_servicio] ?? tipo_servicio;
@@ -84,7 +84,7 @@ async function calcularMonto(tipo_servicio, m2 = 0) {
     if (precio.tipo_precio === 'fijo') {
       const sub = Number(precio.precio_minimo) || 0;
       console.log(`[COT-PRECIO] fijo | id=${precio.id} codigo=${precio.codigo} | subtotal=$${sub}`);
-      return sub;
+      return { total: sub };
     }
 
     if (precio.tipo_precio === 'por_m2') {
@@ -108,7 +108,7 @@ async function calcularMonto(tipo_servicio, m2 = 0) {
         : raw;
       const subR = Math.round(sub * 100) / 100;
       console.log(`[COT-PRECIO] por_m2 | id=${precio.id} codigo=${precio.codigo} | ${m2Num}m² × $${precio.precio_por_m2} = $${raw.toFixed(2)} → subtotal=$${subR}`);
-      return subR;
+      return { total: subR };
     }
 
     if (precio.tipo_precio === 'paquete') {
@@ -154,13 +154,13 @@ async function calcularMonto(tipo_servicio, m2 = 0) {
             const sub = (Number(comp.precio_minimo) || 0) > 0
               ? Math.max(Number(comp.precio_minimo), raw)
               : raw;
-            desglose.push({ codigo: comp.codigo, servicio: comp.servicio, sub: Math.round(sub * 100) / 100 });
+            desglose.push({ codigo: comp.codigo, servicio: comp.servicio, sub: Math.round(sub * 100) / 100, nota: `${m2Num} m² × $${Number(comp.precio_por_m2).toFixed(2)}/m²` });
             suma += sub;
           }
           // else: otro tramo del mismo servicio cubre este m² (tour virtual)
         } else if (comp.tipo_precio === 'fijo') {
           const sub = Number(comp.precio_minimo) || Number(comp.precio_fijo) || 0;
-          desglose.push({ codigo: comp.codigo, servicio: comp.servicio, sub });
+          desglose.push({ codigo: comp.codigo, servicio: comp.servicio, sub, nota: 'precio fijo' });
           suma += sub;
         }
         // cotizar / paquete / rango_m2 dentro de componentes: omitir
@@ -180,7 +180,11 @@ async function calcularMonto(tipo_servicio, m2 = 0) {
         `[COT-PRECIO] paquete | id=${precio.id} codigo=${precio.codigo} | ` +
         `${desgloseTxt} | suma=$${suma.toFixed(2)} −${desc}% → $${conDesc.toFixed(2)} ≥ piso $${piso} → total=$${total}`
       );
-      return total;
+      return {
+        total,
+        componentes: desglose.map(d => ({ nombre: d.servicio, subtotal: d.sub, nota: d.nota })),
+        descuentoPct: desc,
+      };
     }
 
     // cotizar / rango_m2 — no aptos para auto-cotización
@@ -337,8 +341,9 @@ async function crearCotizacionBorradorCore({
   const m2Num = Number(m2) || 0;
   // calcularMonto devuelve null si el precio no puede resolverse automáticamente.
   // null (sin precio) es distinto de 0 (precio cero) — no usar || 0.
-  const montoBase = await calcularMonto(tipo_servicio, m2Num);
-  if (montoBase === null) {
+  // Retorna { total, componentes?, descuentoPct? } en caso de éxito.
+  const montoResult = await calcularMonto(tipo_servicio, m2Num);
+  if (montoResult === null) {
     const motivo = `precio_no_resuelto | servicio=${tipo_servicio} m2=${m2Num || '?'}`;
     console.log(`[COT-PRECIO] ${motivo} — escalando a admin sin crear cotización`);
     await notifyAdmin(
@@ -360,8 +365,9 @@ async function crearCotizacionBorradorCore({
   }
 
   // montoBase es pre-IVA, igual que servicios[i].subtotal en el CRM manual.
-  const ivaMonto = Math.round(montoBase * 0.12 * 100) / 100;
-  const total    = Math.round((montoBase + ivaMonto) * 100) / 100;
+  const montoBase = montoResult.total;
+  const ivaMonto  = Math.round(montoBase * 0.12 * 100) / 100;
+  const total     = Math.round((montoBase + ivaMonto) * 100) / 100;
 
   const NOMBRES_SERVICIO = {
     'tour_virtual':           'Tour Virtual',
@@ -379,7 +385,7 @@ async function crearCotizacionBorradorCore({
     'construccion':           'Servicios de Construcción',
   };
   const descServicio = NOMBRES_SERVICIO[tipo_servicio] || tipo_servicio;
-  const tipoPrecio   = m2Num > 0 ? 'por_m2' : 'fijo';
+  const tipoPrecio   = montoResult.componentes ? 'paquete' : (m2Num > 0 ? 'por_m2' : 'fijo');
   const precioUnit   = m2Num > 0 ? Math.round(montoBase / m2Num * 100) / 100 : montoBase;
 
   let { data: cliente } = await supabase
@@ -395,14 +401,19 @@ async function crearCotizacionBorradorCore({
   // Formato rico — idéntico al que produce saveCotizacion() del CRM manual:
   // servicios[i].subtotal = pre-IVA; iva_monto y total calculados encima.
   // monto en cotizaciones = total con IVA (igual que en cotizaciones manuales).
+  const lineaServicio = {
+    descripcion:     `${descServicio}${m2Num > 0 ? ` — ${m2Num} m²` : ''}`,
+    tipo_precio:     tipoPrecio,
+    cantidad:        m2Num > 0 ? m2Num : 1,
+    precio_unitario: precioUnit,
+    subtotal:        montoBase,
+    ...(montoResult.componentes ? {
+      componentes:          montoResult.componentes,
+      descuento_paquete_pct: montoResult.descuentoPct,
+    } : {}),
+  };
   const detalles = {
-    servicios: [{
-      descripcion:     `${descServicio}${m2Num > 0 ? ` — ${m2Num} m²` : ''}`,
-      tipo_precio:     tipoPrecio,
-      cantidad:        m2Num > 0 ? m2Num : 1,
-      precio_unitario: precioUnit,
-      subtotal:        montoBase,
-    }],
+    servicios: [lineaServicio],
     subtotal:        montoBase,
     descuento_tipo:  'porcentaje',
     descuento_valor: 0,

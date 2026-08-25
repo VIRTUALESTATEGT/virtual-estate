@@ -3656,8 +3656,22 @@
     const ubZona=document.getElementById('cot-ubic-zona')?.value||'';
     const ubCiudad=document.getElementById('cot-ubic-ciudad')?.value||'Guatemala';
     const ubCompleta=[ubCalle,ubZona,ubCiudad].filter(Boolean).join(', ');
+    const serviciosLimpios=lineas.map(s=>{
+      const base={
+        descripcion:s.descripcion||'—',
+        tipo_precio:s.tipo_precio||'fijo',
+        cantidad:s.cantidad||1,
+        precio_unitario:s.precio_unitario||0,
+        subtotal:s.subtotal||0,
+      };
+      if(s.tipo_precio==='paquete'&&s._paqueteCalc?.ok){
+        base.componentes=s._paqueteCalc.desglose.map(d=>({nombre:d.nombre,subtotal:d.subtotal,nota:d.nota}));
+        base.descuento_paquete_pct=s._paqueteCalc.descuentoPct;
+      }
+      return base;
+    });
     const detalles_json={
-      servicios:lineas,
+      servicios:serviciosLimpios,
       descuento_tipo:descTipo,
       descuento_valor:descValor,
       descuento_monto:descMonto,

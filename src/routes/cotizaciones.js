@@ -124,7 +124,10 @@ router.put('/:id', async (req, res) => {
     if (tipo_servicio      !== undefined) update.tipo_servicio      = tipo_servicio;
     if (canal              !== undefined) update.canal              = canal;
     if (moneda             !== undefined) update.moneda             = moneda;
-    if (detalles_json      !== undefined) update.detalles_json      = detalles_json;
+    if (detalles_json      !== undefined) {
+      update.detalles_json  = detalles_json;
+      update.documento_url  = null;   // force PDF regeneration on next send
+    }
     if (ubicacion_calle    !== undefined) update.ubicacion_calle    = ubicacion_calle;
     if (ubicacion_zona     !== undefined) update.ubicacion_zona     = ubicacion_zona;
     if (ubicacion_ciudad   !== undefined) update.ubicacion_ciudad   = ubicacion_ciudad;

@@ -37,7 +37,32 @@ function buildCotizacionHTML(cot) {
   const svcRows = servicios.map(s => {
     const unit = s.tipo_precio === 'por_m2' ? (s.cantidad || 0) + ' m²'
                : s.tipo_precio === 'cotizar' ? 'A cotizar' : '1 unidad';
-    return `<tr><td>${s.descripcion || '—'}</td><td style="text-align:center">${unit}</td><td class="r">${fmt(s.subtotal || 0)}</td></tr>`;
+    const mainRow = `<tr><td>${s.descripcion || '—'}</td><td style="text-align:center">${unit}</td><td class="r">${fmt(s.subtotal || 0)}</td></tr>`;
+
+    const comps = Array.isArray(s.componentes) ? s.componentes : [];
+    if (!comps.length) return mainRow;
+
+    const tdComp = (extra = '') =>
+      `style="background:#F7F5EE;padding:4px 11px;color:#888;font-size:7px;border-bottom:0.5px solid #EDE9DA;${extra}"`;
+    const compRows = comps.map(c =>
+      `<tr>` +
+        `<td ${tdComp('padding-left:22px;')}>↳ ${c.nombre || '—'}</td>` +
+        `<td ${tdComp()}></td>` +
+        `<td ${tdComp('text-align:right;font-weight:500;')}>${fmt(c.subtotal || 0)}</td>` +
+      `</tr>`
+    ).join('');
+
+    const descPct = Number(s.descuento_paquete_pct) || 0;
+    const sumaComp = comps.reduce((acc, c) => acc + (Number(c.subtotal) || 0), 0);
+    const discRow = descPct > 0
+      ? `<tr>` +
+          `<td ${tdComp('padding-left:22px;color:#c07070;')}>↳ Descuento paquete (${descPct}%)</td>` +
+          `<td ${tdComp()}></td>` +
+          `<td ${tdComp('text-align:right;font-weight:500;color:#c07070;')}>−${fmt(sumaComp * descPct / 100)}</td>` +
+        `</tr>`
+      : '';
+
+    return mainRow + compRows + discRow;
   }).join('');
 
   const discRow  = descMonto > 0 ? `<tr class="sub"><td colspan="2">${descTipo === 'porcentaje' ? `Descuento (${descValor}%)` : 'Descuento'}</td><td class="r">-${fmt(descMonto)}</td></tr>` : '';
@@ -218,6 +243,27 @@ async function generarCotizacionPDFFallback(cot) {
         doc.text(fmt(s.precio_unitario), X+W[0]+W[1], ry+2, { width: W[2], align: 'right' });
         doc.text(fmt(s.subtotal), X+W[0]+W[1]+W[2], ry+2, { width: W[3]-4, align: 'right' });
         doc.moveDown(0.5);
+
+        const comps = Array.isArray(s.componentes) ? s.componentes : [];
+        if (comps.length) {
+          doc.font('Helvetica').fontSize(7).fillColor('#888888');
+          comps.forEach(c => {
+            const cy = doc.y;
+            doc.text(`  ↳ ${c.nombre || '—'}`, X+8, cy+1, { width: W[0]+W[1]+W[2]-8 });
+            doc.text(fmt(c.subtotal || 0), X+W[0]+W[1]+W[2], cy+1, { width: W[3]-4, align: 'right' });
+            doc.moveDown(0.35);
+          });
+          const descPct = Number(s.descuento_paquete_pct) || 0;
+          if (descPct > 0) {
+            const sumaComp = comps.reduce((acc, c) => acc + (Number(c.subtotal) || 0), 0);
+            const cy = doc.y;
+            doc.fillColor('#c07070');
+            doc.text(`  ↳ Descuento paquete (${descPct}%)`, X+8, cy+1, { width: W[0]+W[1]+W[2]-8 });
+            doc.text('−' + fmt(sumaComp * descPct / 100), X+W[0]+W[1]+W[2], cy+1, { width: W[3]-4, align: 'right' });
+            doc.moveDown(0.35);
+          }
+          doc.font('Helvetica').fontSize(8).fillColor('#1a1a1a');
+        }
       });
       doc.moveDown(0.3);
     }
