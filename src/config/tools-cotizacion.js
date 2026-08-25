@@ -22,8 +22,24 @@ const TOOL_CREAR_COTIZACION = {
       },
       tipo_servicio: {
         type: 'string',
-        enum: ['escaneo_3d', 'as_built', 'real_estate', 'construccion'],
-        description: 'Tipo de servicio solicitado.',
+        enum: [
+          'tour_virtual',
+          'paquete_basico', 'paquete_intermedio', 'paquete_premium',
+          'asbuilt_remodelacion', 'asbuilt_levantamiento', 'asbuilt_avaluo',
+          'fotografia_360', 'video_recorrido', 'gemelo_digital',
+          'fotografia_profesional', 'video_drone',
+          'construccion',
+        ],
+        description:
+          'Servicio solicitado por el cliente. ' +
+          'Usa "tour_virtual" para tours virtuales (precio por m², requiere m2). ' +
+          'Usa "paquete_basico/intermedio/premium" para paquetes inmobiliarios (requieren m2). ' +
+          'Para AS-BUILT usa: "asbuilt_remodelacion" (obra/remodelación — no requiere m2), ' +
+          '"asbuilt_levantamiento" (documentación completa — requiere m2), ' +
+          '"asbuilt_avaluo" (avalúo o trámite — no requiere m2). ' +
+          'Para servicios individuales usa: "fotografia_360", "video_recorrido", ' +
+          '"gemelo_digital", "fotografia_profesional" o "video_drone". ' +
+          'Usa "construccion" para presupuestos de obra — siempre requiere proceso manual (el equipo contacta al cliente).',
       },
       telefono: {
         type: 'string',
@@ -110,6 +126,13 @@ async function ejecutarCrearCotizacion(input, conversacion_id = null) {
       return {
         exito: false,
         error: 'La zona requiere revisión manual. El equipo fue notificado y se pondrá en contacto.',
+      };
+    }
+
+    if (result._sinPrecio) {
+      return {
+        exito: false,
+        error: 'precio_no_resuelto',
       };
     }
 

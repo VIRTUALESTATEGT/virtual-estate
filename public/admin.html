@@ -3487,6 +3487,9 @@
     }
   }
 
+  // NOTA: lógica replicada en src/routes/cotizacion-gen.js:calcularMonto (rama 'paquete').
+  // Frontend y backend no comparten módulo (browser vs Node, sin bundler).
+  // Si cambias la lógica aquí, actualizá también cotizacion-gen.js:calcularMonto.
   function calcularPrecioPaquete(s, m2){
     const ids=s.componentes_ids||[];
     if(!ids.length) return {ok:false, razon:'Paquete sin componentes definidos'};

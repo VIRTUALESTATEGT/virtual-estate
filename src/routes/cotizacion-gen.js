@@ -4,30 +4,193 @@ const supabase = require('../config/supabase');
 const { notifyAdmin, sendWhatsAppMessage } = require('../utils/whatsapp');
 const { TASA_GTQ } = require('../config/constants');
 
-// Fallback pricing (used if DB table doesn't exist yet)
-const PRICING_FALLBACK = {
-  'escaneo_3d':  { base: 150, per_m2: 0.8,  min: 150  },
-  'as_built':    { base: 400, per_m2: 1.2,  min: 400  },
-  'real_estate': { base: 200, per_m2: 0.5,  min: 200  },
-  'construccion':{ base: 300, per_m2: 0.9,  min: 300  },
-};
-
+// calcularMonto: resuelve precio desde precios_servicios (activo=true AND cotizable_auto=true).
+// Devuelve null cuando el precio no puede calcularse — el caller debe escalar sin crear cotización.
+// NOTA: la lógica de cálculo replica public/admin.html:calcularPrecioPaquete.
+// Frontend y backend no pueden compartir un módulo (browser vs Node, sin bundler).
+// Si cambias la lógica aquí, actualizá también admin.html:calcularPrecioPaquete.
 async function calcularMonto(tipo_servicio, m2 = 0) {
   try {
-    const { data, error } = await supabase
-      .from('precios_servicios')
-      .select('precio_base, precio_por_m2, precio_minimo')
-      .eq('codigo', tipo_servicio)
-      .eq('activo', true)
-      .maybeSingle();
-    if (!error && data) {
-      return Math.max(data.precio_minimo, Math.round(data.precio_base + (data.precio_por_m2 * Number(m2))));
+    const m2Num = Number(m2) || 0;
+
+    // Mapeo enum del tool → código de precios_servicios.
+    // 'tour_virtual' es especial: se resuelve buscando por categoría + rango de m².
+    const ENUM_A_CODIGO = {
+      'paquete_basico':         '2.1',
+      'paquete_intermedio':     '2.2',
+      'paquete_premium':        '2.3',
+      'asbuilt_remodelacion':   '5.1',
+      'asbuilt_levantamiento':  '5.2',
+      'asbuilt_avaluo':         '5.3',
+      'fotografia_360':         '3.11',
+      'video_recorrido':        '3.10',
+      'gemelo_digital':         '3.6',
+      'fotografia_profesional': '4.1',
+      'video_drone':            '4.2',
+      // 'construccion' no tiene fila en DB — devuelve null → _sinPrecio → notifyAdmin
+    };
+
+    if (tipo_servicio === 'tour_virtual') {
+      if (m2Num <= 0) {
+        console.log('[COT-PRECIO] tour_virtual: m2 requerido pero es 0');
+        return null;
+      }
+      const { data: tiers, error: errT } = await supabase
+        .from('precios_servicios')
+        .select('*')
+        .eq('categoria', 'Tours Virtuales')
+        .eq('tipo_precio', 'por_m2')
+        .eq('activo', true)
+        .eq('cotizable_auto', true);
+      if (errT || !tiers?.length) {
+        console.log('[COT-PRECIO] tour_virtual: no se encontraron tramos activos');
+        return null;
+      }
+      const tier = tiers.find(t => {
+        const minR = Number(t.rango_m2_min) || 0;
+        const maxR = t.rango_m2_max ? Number(t.rango_m2_max) : null;
+        return maxR !== null ? (m2Num >= minR && m2Num <= maxR) : (m2Num >= minR);
+      });
+      if (!tier) {
+        console.log(`[COT-PRECIO] tour_virtual: ningún tramo cubre m2=${m2Num}`);
+        return null;
+      }
+      const raw = m2Num * (Number(tier.precio_por_m2) || 0);
+      const sub = (Number(tier.precio_minimo) || 0) > 0 ? Math.max(Number(tier.precio_minimo), raw) : raw;
+      const subR = Math.round(sub * 100) / 100;
+      console.log(`[COT-PRECIO] tour_virtual | tramo=${tier.codigo} id=${tier.id} | ${m2Num}m² × $${tier.precio_por_m2} = $${raw.toFixed(2)} → subtotal=$${subR}`);
+      return subR;
     }
-  } catch {}
-  // Fallback to hardcoded
-  const p = PRICING_FALLBACK[tipo_servicio];
-  if (!p) return null;
-  return Math.max(p.min, Math.round(p.base + (p.per_m2 * Number(m2))));
+
+    const codigoBuscar = ENUM_A_CODIGO[tipo_servicio] ?? tipo_servicio;
+    const { data: precio, error } = await supabase
+      .from('precios_servicios')
+      .select('*')
+      .eq('codigo', codigoBuscar)
+      .eq('activo', true)
+      .eq('cotizable_auto', true)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[COT-PRECIO] Error consultando precios_servicios:', error.message);
+      return null;
+    }
+    if (!precio) {
+      console.log(`[COT-PRECIO] Sin fila para codigo="${codigoBuscar}" (no existe, inactivo o no cotizable_auto)`);
+      return null;
+    }
+
+
+    if (precio.tipo_precio === 'fijo') {
+      const sub = Number(precio.precio_minimo) || 0;
+      console.log(`[COT-PRECIO] fijo | id=${precio.id} codigo=${precio.codigo} | subtotal=$${sub}`);
+      return sub;
+    }
+
+    if (precio.tipo_precio === 'por_m2') {
+      if (m2Num <= 0) {
+        console.log(`[COT-PRECIO] por_m2: m2 requerido pero es 0 | id=${precio.id} codigo=${precio.codigo}`);
+        return null;
+      }
+      const minR = Number(precio.rango_m2_min) || 0;
+      const maxR = precio.rango_m2_max ? Number(precio.rango_m2_max) : null;
+      if (maxR !== null && (m2Num < minR || m2Num > maxR)) {
+        console.log(`[COT-PRECIO] por_m2 m2=${m2Num} fuera de rango [${minR}–${maxR}] | id=${precio.id} codigo=${precio.codigo}`);
+        return null;
+      }
+      if (maxR === null && m2Num < minR) {
+        console.log(`[COT-PRECIO] por_m2 m2=${m2Num} < rango_min=${minR} | id=${precio.id} codigo=${precio.codigo}`);
+        return null;
+      }
+      const raw = m2Num * (Number(precio.precio_por_m2) || 0);
+      const sub = (Number(precio.precio_minimo) || 0) > 0
+        ? Math.max(Number(precio.precio_minimo), raw)
+        : raw;
+      const subR = Math.round(sub * 100) / 100;
+      console.log(`[COT-PRECIO] por_m2 | id=${precio.id} codigo=${precio.codigo} | ${m2Num}m² × $${precio.precio_por_m2} = $${raw.toFixed(2)} → subtotal=$${subR}`);
+      return subR;
+    }
+
+    if (precio.tipo_precio === 'paquete') {
+      const ids = Array.isArray(precio.componentes_ids) ? precio.componentes_ids : [];
+      if (!ids.length) {
+        console.log(`[COT-PRECIO] paquete sin componentes_ids | id=${precio.id} codigo=${precio.codigo}`);
+        return null;
+      }
+
+      const { data: comps, error: errC } = await supabase
+        .from('precios_servicios')
+        .select('*')
+        .in('id', ids)
+        .eq('activo', true);
+      if (errC) {
+        console.error('[COT-PRECIO] Error cargando componentes de paquete:', errC.message);
+        return null;
+      }
+
+      // Paquetes con componentes por_m2 requieren m2 (tours/paquetes inmobiliarios).
+      // Paquetes todo-fijo (combos AS-BUILT Remodelación/Avalúo) no lo necesitan.
+      const tieneM2 = (comps || []).some(c =>
+        ids.some(cid => Number(c.id) === Number(cid)) && c.tipo_precio === 'por_m2'
+      );
+      if (tieneM2 && m2Num <= 0) {
+        console.log(`[COT-PRECIO] paquete: componentes por_m2 requieren m2 | id=${precio.id} codigo=${precio.codigo}`);
+        return null;
+      }
+
+      const desglose = [];
+      let suma = 0;
+      for (const cid of ids) {
+        const comp = (comps || []).find(c => Number(c.id) === Number(cid));
+        if (!comp) continue;
+        if (comp.tipo_precio === 'por_m2') {
+          const minR = Number(comp.rango_m2_min) || 0;
+          const maxR = comp.rango_m2_max ? Number(comp.rango_m2_max) : null;
+          const enRango = maxR !== null
+            ? (m2Num >= minR && m2Num <= maxR)
+            : (m2Num >= minR);
+          if (enRango) {
+            const raw = m2Num * (Number(comp.precio_por_m2) || 0);
+            const sub = (Number(comp.precio_minimo) || 0) > 0
+              ? Math.max(Number(comp.precio_minimo), raw)
+              : raw;
+            desglose.push({ codigo: comp.codigo, servicio: comp.servicio, sub: Math.round(sub * 100) / 100 });
+            suma += sub;
+          }
+          // else: otro tramo del mismo servicio cubre este m² (tour virtual)
+        } else if (comp.tipo_precio === 'fijo') {
+          const sub = Number(comp.precio_minimo) || Number(comp.precio_fijo) || 0;
+          desglose.push({ codigo: comp.codigo, servicio: comp.servicio, sub });
+          suma += sub;
+        }
+        // cotizar / paquete / rango_m2 dentro de componentes: omitir
+      }
+
+      if (!desglose.length) {
+        console.log(`[COT-PRECIO] paquete sin componentes válidos para m2=${m2Num} | id=${precio.id} codigo=${precio.codigo}`);
+        return null;
+      }
+
+      const desc    = Number(precio.descuento_paquete_pct) || 0;
+      const conDesc = suma * (1 - desc / 100);
+      const piso    = Number(precio.precio_minimo) || 0;
+      const total   = Math.round(Math.max(piso, conDesc) * 100) / 100;
+      const desgloseTxt = desglose.map(d => `${d.codigo}=$${d.sub}`).join(' + ');
+      console.log(
+        `[COT-PRECIO] paquete | id=${precio.id} codigo=${precio.codigo} | ` +
+        `${desgloseTxt} | suma=$${suma.toFixed(2)} −${desc}% → $${conDesc.toFixed(2)} ≥ piso $${piso} → total=$${total}`
+      );
+      return total;
+    }
+
+    // cotizar / rango_m2 — no aptos para auto-cotización
+    console.log(`[COT-PRECIO] tipo_precio="${precio.tipo_precio}" no apto para auto-cotización | id=${precio.id}`);
+    return null;
+
+  } catch (e) {
+    console.error('[COT-PRECIO] Error inesperado en calcularMonto:', e.message);
+    return null;
+  }
 }
 
 // GET /api/cotizacion/precios — public: list all active services + prices
@@ -40,14 +203,9 @@ router.get('/precios', async (req, res) => {
       .order('id');
     if (error) throw error;
     res.json(data);
-  } catch {
-    // Table may not exist yet — return fallback list
-    res.json(Object.entries(PRICING_FALLBACK).map(([codigo, p], i) => ({
-      id: i + 1, codigo, categoria: 'General',
-      servicio: codigo.replace(/_/g, ' ').toUpperCase(),
-      descripcion: '', tipo_precio: 'por_m2',
-      precio_por_m2: p.per_m2, precio_minimo: p.min, activo: true
-    })));
+  } catch (e) {
+    console.error('[precios] Error cargando precios_servicios:', e.message);
+    res.json([]);
   }
 });
 
@@ -176,23 +334,53 @@ async function crearCotizacionBorradorCore({
     );
   }
 
-  // montoBase: pre-IVA service fee from pricing table / fallback.
-  // Matches how the CRM admin stores servicios[i].subtotal (pre-IVA),
-  // then adds IVA 12% on top — same as saveCotizacion() in admin.html.
-  const montoBase = (await calcularMonto(tipo_servicio, m2)) || 0;
-  const m2Num     = Number(m2) || 0;
-  const ivaMonto  = Math.round(montoBase * 0.12 * 100) / 100;
-  const total     = Math.round((montoBase + ivaMonto) * 100) / 100;
+  const m2Num = Number(m2) || 0;
+  // calcularMonto devuelve null si el precio no puede resolverse automáticamente.
+  // null (sin precio) es distinto de 0 (precio cero) — no usar || 0.
+  const montoBase = await calcularMonto(tipo_servicio, m2Num);
+  if (montoBase === null) {
+    const motivo = `precio_no_resuelto | servicio=${tipo_servicio} m2=${m2Num || '?'}`;
+    console.log(`[COT-PRECIO] ${motivo} — escalando a admin sin crear cotización`);
+    await notifyAdmin(
+      `⚪ *COTIZACIÓN SIN PRECIO AUTOMÁTICO*\n` +
+      `Servicio: ${tipo_servicio}\n` +
+      `Cliente: ${nombre} — ${telefono}\n` +
+      `Email: ${email}\n` +
+      `Metraje: ${m2Num || '?'} m²\n` +
+      `Zona: ${zona || '—'} [${nivelRiesgo}]\n` +
+      `Plazo: ${plazo || '—'}\n` +
+      `Detalles: ${detalles_adicionales || '—'}\n` +
+      `Canal: ${canal}`
+    );
+    await supabase.from('notificaciones_admin').insert([{
+      tipo:      'precio_no_resuelto',
+      contenido: `Sin precio: ${nombre} (${telefono}) — ${tipo_servicio}${m2Num ? ` — ${m2Num} m²` : ''}`,
+    }]);
+    return { _sinPrecio: true };
+  }
+
+  // montoBase es pre-IVA, igual que servicios[i].subtotal en el CRM manual.
+  const ivaMonto = Math.round(montoBase * 0.12 * 100) / 100;
+  const total    = Math.round((montoBase + ivaMonto) * 100) / 100;
 
   const NOMBRES_SERVICIO = {
-    'escaneo_3d':   'Escaneo 3D',
-    'as_built':     'Levantamiento As-Built',
-    'real_estate':  'Fotografía Inmobiliaria',
-    'construccion': 'Servicios de Construcción',
+    'tour_virtual':           'Tour Virtual',
+    'paquete_basico':         'Paquete BÁSICO',
+    'paquete_intermedio':     'Paquete INTERMEDIO',
+    'paquete_premium':        'Paquete PREMIUM',
+    'asbuilt_remodelacion':   'As-Built Remodelación',
+    'asbuilt_levantamiento':  'As-Built Levantamiento',
+    'asbuilt_avaluo':         'As-Built Avalúo/Trámite',
+    'fotografia_360':         'Fotografías 360°',
+    'video_recorrido':        'Video recorrido',
+    'gemelo_digital':         'Gemelo digital 3D',
+    'fotografia_profesional': 'Fotografía profesional',
+    'video_drone':            'Video aéreo con drone',
+    'construccion':           'Servicios de Construcción',
   };
-  const descServicio  = NOMBRES_SERVICIO[tipo_servicio] || tipo_servicio;
-  const tipoPrecio    = m2Num > 0 ? 'por_m2' : 'fijo';
-  const precioUnit    = m2Num > 0 ? Math.round(montoBase / m2Num * 100) / 100 : montoBase;
+  const descServicio = NOMBRES_SERVICIO[tipo_servicio] || tipo_servicio;
+  const tipoPrecio   = m2Num > 0 ? 'por_m2' : 'fijo';
+  const precioUnit   = m2Num > 0 ? Math.round(montoBase / m2Num * 100) / 100 : montoBase;
 
   let { data: cliente } = await supabase
     .from('clientes').select('id').eq('email', email).maybeSingle();
