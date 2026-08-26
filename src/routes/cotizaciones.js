@@ -133,13 +133,19 @@ router.put('/:id', async (req, res) => {
     if (ubicacion_ciudad   !== undefined) update.ubicacion_ciudad   = ubicacion_ciudad;
     if (ubicacion_completa !== undefined) update.ubicacion_completa = ubicacion_completa;
 
+    // [DIAG] Log para diagnosticar documento_url
+    console.log('[PUT cot] id:', req.params.id, '| detalles_json presente:', detalles_json !== undefined);
+    if (detalles_json !== undefined) console.log('[PUT cot] update.documento_url =>', update.documento_url);
+    console.log('[PUT cot] keys en update:', Object.keys(update));
+
     const { data, error } = await supabase
       .from('cotizaciones')
       .update(update)
       .eq('id', req.params.id)
       .select('*, clientes(telefono)');
-    if (error) throw error;
+    if (error) { console.error('[PUT cot] supabase error:', error); throw error; }
     const cot = data[0];
+    console.log('[PUT cot] documento_url en DB tras update:', cot?.documento_url);
 
     res.json(cot);
   } catch (e) {

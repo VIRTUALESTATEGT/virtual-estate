@@ -3618,7 +3618,37 @@
     document.getElementById('cot-canal').value=c.canal||'crm';
     const det=c.detalles_json||{};
     if(det.servicios&&det.servicios.length){
-      _cotizacionesServiciosLineas=det.servicios.map(s=>({descripcion:s.descripcion||'',cantidad:s.cantidad||1,precio_unitario:s.precio_unitario||0,subtotal:(s.cantidad||1)*(s.precio_unitario||0)}));
+      _cotizacionesServiciosLineas=det.servicios.map(s=>{
+        const line={
+          descripcion:           s.descripcion          ||'',
+          tipo_precio:           s.tipo_precio          ||'fijo',
+          cantidad:              s.cantidad             ||1,
+          precio_unitario:       s.precio_unitario      ||0,
+          subtotal:              s.subtotal             ||0,
+          precio_id:             s.precio_id            ||null,
+          precio_categoria:      s.precio_categoria     ||'',
+          precio_por_m2:         s.precio_por_m2        ||0,
+          precio_minimo:         s.precio_minimo        ||0,
+          rango_m2_min:          s.rango_m2_min         ||0,
+          rango_m2_max:          s.rango_m2_max         ||null,
+          precio_en_rango:       s.precio_en_rango      ||0,
+          componentes:           Array.isArray(s.componentes)?s.componentes:[],
+          descuento_paquete_pct: s.descuento_paquete_pct||0,
+          _custom:               !s.precio_id,
+        };
+        if(s.tipo_precio==='paquete'&&s.precio_id){
+          const cached=_cotPreciosCache.find(p=>Number(p.id)===Number(s.precio_id));
+          if(cached?.componentes_ids){
+            line.componentes_ids=cached.componentes_ids;
+            if(Array.isArray(s.componentes)&&s.componentes.length&&s.subtotal>0){
+              const suma=s.componentes.reduce((acc,c)=>acc+(c.subtotal||0),0);
+              const desc=s.descuento_paquete_pct||0;
+              line._paqueteCalc={ok:true,desglose:s.componentes.map(c=>({nombre:c.nombre,subtotal:c.subtotal,nota:c.nota})),sumaComponentes:suma,descuentoPct:desc,conDescuento:suma*(1-desc/100),piso:Number(cached.precio_minimo)||0,total:s.subtotal};
+            }
+          }
+        }
+        return line;
+      });
     }
     if(det.descuento_tipo) document.getElementById('cot-desc-tipo').value=det.descuento_tipo;
     if(det.descuento_valor!=null) document.getElementById('cot-desc-valor').value=det.descuento_valor;
@@ -3664,9 +3694,14 @@
         precio_unitario:s.precio_unitario||0,
         subtotal:s.subtotal||0,
       };
-      if(s.tipo_precio==='paquete'&&s._paqueteCalc?.ok){
-        base.componentes=s._paqueteCalc.desglose.map(d=>({nombre:d.nombre,subtotal:d.subtotal,nota:d.nota}));
-        base.descuento_paquete_pct=s._paqueteCalc.descuentoPct;
+      if(s.tipo_precio==='paquete'){
+        if(s._paqueteCalc?.ok){
+          base.componentes=s._paqueteCalc.desglose.map(d=>({nombre:d.nombre,subtotal:d.subtotal,nota:d.nota}));
+          base.descuento_paquete_pct=s._paqueteCalc.descuentoPct;
+        } else if(Array.isArray(s.componentes)&&s.componentes.length){
+          base.componentes=s.componentes;
+          base.descuento_paquete_pct=s.descuento_paquete_pct||0;
+        }
       }
       return base;
     });
