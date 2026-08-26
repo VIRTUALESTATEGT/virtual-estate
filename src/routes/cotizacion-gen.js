@@ -182,8 +182,10 @@ async function calcularMonto(tipo_servicio, m2 = 0) {
       );
       return {
         total,
-        componentes: desglose.map(d => ({ nombre: d.servicio, subtotal: d.sub, nota: d.nota })),
-        descuentoPct: desc,
+        componentes:      desglose.map(d => ({ nombre: d.servicio, subtotal: d.sub, nota: d.nota })),
+        descuentoPct:     desc,
+        componentes_ids:  ids,
+        precio_minimo:    piso || null,
       };
     }
 
@@ -410,6 +412,8 @@ async function crearCotizacionBorradorCore({
     ...(montoResult.componentes ? {
       componentes:          montoResult.componentes,
       descuento_paquete_pct: montoResult.descuentoPct,
+      componentes_ids:      montoResult.componentes_ids || [],
+      ...(montoResult.precio_minimo ? { precio_minimo: montoResult.precio_minimo } : {}),
     } : {}),
   };
   const detalles = {

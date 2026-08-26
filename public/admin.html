@@ -3492,7 +3492,7 @@
   // Si cambias la lógica aquí, actualizá también cotizacion-gen.js:calcularMonto.
   function calcularPrecioPaquete(s, m2){
     const ids=s.componentes_ids||[];
-    if(!ids.length) return {ok:false, razon:'Paquete sin componentes definidos'};
+    if(!ids.length) return {ok:false, razon:'Volvé a seleccionar el paquete en el desplegable para recalcular con los m² nuevos'};
     if(!m2||m2<=0) return {ok:false, razon:'Ingresá los m² para calcular el precio del paquete'};
     const desglose=[];
     let suma=0;
@@ -3636,16 +3636,21 @@
           descuento_paquete_pct: s.descuento_paquete_pct||0,
           _custom:               !s.precio_id,
         };
-        if(s.tipo_precio==='paquete'&&s.precio_id){
-          const cached=_cotPreciosCache.find(p=>Number(p.id)===Number(s.precio_id));
-          if(cached?.componentes_ids) line.componentes_ids=cached.componentes_ids;
+        if(s.tipo_precio==='paquete'){
+          // Restaurar componentes_ids: snapshot del JSON primero, cache como fallback legado
+          if(Array.isArray(s.componentes_ids)&&s.componentes_ids.length){
+            line.componentes_ids=s.componentes_ids;
+          } else if(s.precio_id){
+            const cached=_cotPreciosCache.find(p=>Number(p.id)===Number(s.precio_id));
+            if(cached?.componentes_ids) line.componentes_ids=cached.componentes_ids;
+          }
           if(Array.isArray(s.componentes)&&s.componentes.length){
             // Reconstruir subtotal desde componentes guardados — autoridad sobre valor en DB
             // (recupera subtotal=0 de cotizaciones corrompidas por código previo)
             const suma=s.componentes.reduce((acc,c)=>acc+(c.subtotal||0),0);
             const desc=s.descuento_paquete_pct||0;
             const conDescuento=suma*(1-desc/100);
-            const piso=cached?Number(cached.precio_minimo)||0:0;
+            const piso=Number(s.precio_minimo)||0;
             const totalCalc=Math.max(piso,conDescuento);
             line.subtotal=totalCalc||s.subtotal||0;
             line._paqueteCalc={ok:true,desglose:s.componentes.map(c=>({nombre:c.nombre,subtotal:c.subtotal,nota:c.nota})),sumaComponentes:suma,descuentoPct:desc,conDescuento,piso,total:line.subtotal};
@@ -3699,6 +3704,8 @@
         subtotal:s.subtotal||0,
       };
       if(s.tipo_precio==='paquete'){
+        if(Array.isArray(s.componentes_ids)&&s.componentes_ids.length) base.componentes_ids=s.componentes_ids;
+        if(s.precio_minimo>0) base.precio_minimo=s.precio_minimo;
         if(s._paqueteCalc?.ok){
           base.componentes=s._paqueteCalc.desglose.map(d=>({nombre:d.nombre,subtotal:d.subtotal,nota:d.nota}));
           base.descuento_paquete_pct=s._paqueteCalc.descuentoPct;
