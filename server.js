@@ -10,7 +10,26 @@ const authMiddleware = require('./src/middleware/auth');
 
 // Security headers — CSP disabled until admin.html JS is externalized
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(cors());
+
+// CORS — restrictive whitelist.
+// Requests without Origin (server-to-server: webhooks, curl, crons) are always allowed.
+// In production all browser calls are same-origin (API_URL=''), so CORS rarely fires at all.
+const _CORS_ORIGINS = [
+  'https://virtualestategt.com',
+  'https://www.virtualestategt.com',
+];
+app.use(cors({
+  origin(origin, cb) {
+    if (!origin) return cb(null, true);                                    // server-to-server
+    if (origin.endsWith('.vercel.app')) return cb(null, true);             // Vercel previews
+    if (process.env.NODE_ENV === 'development' &&
+        /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin))
+      return cb(null, true);                                               // dev local
+    if (_CORS_ORIGINS.includes(origin)) return cb(null, true);            // production
+    cb(Object.assign(new Error('CORS: origin not allowed'), { status: 403 }));
+  },
+  credentials: true,
+}));
 
 // Capture raw body via express.json verify — single stream read, available to all webhook
 // signature validators (WhatsApp uses req.rawBody as string; Instagram as Buffer — both work
