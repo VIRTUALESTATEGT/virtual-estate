@@ -308,6 +308,7 @@ app.get('/api/notificaciones', authMiddleware, requireMinRole('asistente'), asyn
 });
 
 // HTML estático → editar en public/. Express solo maneja rutas con lógica.
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/portal/cotizacion/:id', (req, res) => res.sendFile(path.join(__dirname, 'public', 'portal', 'cotizacion.html')));
 app.get('/privacy', (req, res) => res.sendFile(path.join(__dirname, 'public', 'privacy.html')));
 
