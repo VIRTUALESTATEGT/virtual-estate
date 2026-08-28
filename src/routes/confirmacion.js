@@ -2,6 +2,11 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
 const nodemailer = require('nodemailer');
+const { checkRateLimit: checkRL, recordAttempt } = require('../utils/rateLimit');
+
+const RL_TOKEN_GET  = { max: 20, windowMs: 15 * 60 * 1000 }; // 20 / 15 min
+const RL_CONFIRMAR  = { max: 10, windowMs: 30 * 60 * 1000 }; // 10 / 30 min
+const RL_TERMINOS   = { max: 10, windowMs: 30 * 60 * 1000 }; // 10 / 30 min
 const { TASA_GTQ } = require('../config/constants');
 
 // ── Email helper ──────────────────────────────────────────────────────────────
@@ -260,7 +265,13 @@ async function generarCodigoCliente() {
 // Devuelve datos de cotización para el portal de confirmación (público).
 // El identificador público es confirm_token UUID — el id secuencial nunca sale al cliente.
 router.get('/cotizacion/:token', async (req, res) => {
+  const ip = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
   try {
+    const rl = await checkRL(ip, 'confirmacion-token-get', RL_TOKEN_GET.max, RL_TOKEN_GET.windowMs);
+    if (rl.blocked)
+      return res.status(429).json({ error: 'Demasiadas solicitudes. Esperá unos minutos e intentá de nuevo.' });
+    await recordAttempt(ip, 'confirmacion-token-get', RL_TOKEN_GET.windowMs);
+
     const { token } = req.params;
     const { data: cot, error } = await supabase
       .from('cotizaciones')
@@ -306,12 +317,18 @@ router.get('/cotizacion/:token', async (req, res) => {
 // ── POST /api/confirmacion/cotizacion/confirmar ───────────────────────────────
 // Confirmación desde portal público — cotización identificada por token UUID
 router.post('/cotizacion/confirmar', async (req, res) => {
+  const ip = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
   try {
-    const { confirm_token, lead_id, anticipo_confirmado, ip, version_terminos = '1.0',
+    const rl = await checkRL(ip, 'confirmacion-confirmar', RL_CONFIRMAR.max, RL_CONFIRMAR.windowMs);
+    if (rl.blocked)
+      return res.status(429).json({ error: 'Demasiadas solicitudes. Esperá unos minutos e intentá de nuevo.' });
+    await recordAttempt(ip, 'confirmacion-confirmar', RL_CONFIRMAR.windowMs);
+
+    const { confirm_token, lead_id, anticipo_confirmado, ip: bodyIp, version_terminos = '1.0',
             servicios_json, tamano_propiedad_m2, zona, ubicacion_completa, user_agent } = req.body;
     if (!confirm_token) return res.status(400).json({ error: 'confirm_token requerido' });
     const resultado = await procesarConfirmacion({
-      confirm_token, lead_id, anticipo_confirmado, ip, version_terminos,
+      confirm_token, lead_id, anticipo_confirmado, ip: bodyIp, version_terminos,
       servicios_json, tamano_propiedad_m2, zona, ubicacion_completa, user_agent,
     });
     res.json(resultado);
@@ -324,13 +341,19 @@ router.post('/cotizacion/confirmar', async (req, res) => {
 // ── POST /api/confirmacion/lead/:id/terminos ──────────────────────────────────
 // Llamado desde el portal web del cliente
 router.post('/lead/:id/terminos', async (req, res) => {
+  const ip = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
   try {
+    const rl = await checkRL(ip, 'confirmacion-terminos', RL_TERMINOS.max, RL_TERMINOS.windowMs);
+    if (rl.blocked)
+      return res.status(429).json({ error: 'Demasiadas solicitudes. Esperá unos minutos e intentá de nuevo.' });
+    await recordAttempt(ip, 'confirmacion-terminos', RL_TERMINOS.windowMs);
+
     const lead_id = Number(req.params.id);
-    const { confirm_token, anticipo_confirmado, ip, version_terminos = '1.0',
+    const { confirm_token, anticipo_confirmado, ip: bodyIp, version_terminos = '1.0',
             servicios_json, tamano_propiedad_m2, zona, ubicacion_completa, user_agent } = req.body;
     if (!confirm_token) return res.status(400).json({ error: 'confirm_token requerido' });
     const resultado = await procesarConfirmacion({
-      confirm_token, lead_id, anticipo_confirmado, ip, version_terminos,
+      confirm_token, lead_id, anticipo_confirmado, ip: bodyIp, version_terminos,
       servicios_json, tamano_propiedad_m2, zona, ubicacion_completa, user_agent,
     });
     res.json({ success: true, ...resultado, mensaje: 'Confirmación registrada. Te enviaremos email de confirmación.' });

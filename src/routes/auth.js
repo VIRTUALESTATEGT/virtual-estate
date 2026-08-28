@@ -4,6 +4,9 @@ const crypto = require('crypto');
 const supabase = require('../config/supabase');
 const jwt = require('jsonwebtoken');
 const authMiddleware = require('../middleware/auth');
+const { checkRateLimit: checkRL, recordAttempt } = require('../utils/rateLimit');
+
+const RL_REGISTRO = { max: 5, windowMs: 60 * 60 * 1000 }; // 5 / hora
 const { requireSuperadmin } = require('../middleware/roles');
 const { hashPassword, verificarPassword } = require('../utils/passwords');
 
@@ -253,12 +256,19 @@ async function _enviarBienvenida(nombre, email, usuarioId) {
 
 // REGISTRO CLIENTE — creates usuarios (role:cliente) + clientes record, returns JWT
 router.post('/registro-cliente', async (req, res) => {
+  const ip = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
   try {
+    const rl = await checkRL(ip, 'registro-cliente', RL_REGISTRO.max, RL_REGISTRO.windowMs);
+    if (rl.blocked)
+      return res.status(429).json({ error: 'Demasiados intentos de registro. Esperá una hora e intentá de nuevo.' });
+
     const { nombre, email, password, telefono } = req.body;
     if (!nombre || !email || !password)
       return res.status(400).json({ error: 'Nombre, email y contraseña son requeridos' });
     if (password.length < 8)
       return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
+
+    await recordAttempt(ip, 'registro-cliente', RL_REGISTRO.windowMs);
 
     // Check duplicate email
     const { data: existing } = await supabase

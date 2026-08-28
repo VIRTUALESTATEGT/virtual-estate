@@ -7,6 +7,9 @@ const crypto = require('crypto');
 
 const app = express();
 const authMiddleware = require('./src/middleware/auth');
+const { checkRateLimit: checkRL, recordAttempt } = require('./src/utils/rateLimit');
+
+const RL_LEADS_PUBLIC = { max: 10, windowMs: 60 * 60 * 1000 }; // 10 / hora
 
 // Security headers — CSP disabled until admin.html JS is externalized
 app.use(helmet({ contentSecurityPolicy: false }));
@@ -94,9 +97,17 @@ app.get('/api/propiedades/public', async (req, res) => {
 });
 
 app.post('/api/leads/public', async (req, res) => {
+  const ip = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
   try {
+    const rl = await checkRL(ip, 'leads-public', RL_LEADS_PUBLIC.max, RL_LEADS_PUBLIC.windowMs);
+    if (rl.blocked)
+      return res.status(429).json({ error: 'Demasiados mensajes enviados. Esperá una hora e intentá de nuevo.' });
+
     const { nombre, email, telefono, empresa, mensaje } = req.body;
     if (!nombre || !email) return res.status(400).json({ error: 'Nombre y correo son requeridos' });
+
+    await recordAttempt(ip, 'leads-public', RL_LEADS_PUBLIC.windowMs);
+
     const { data, error } = await supabasePublic
       .from('leads')
       .insert([{ nombre, email, telefono, empresa: empresa || mensaje || '', estado: 'Nuevo' }])
