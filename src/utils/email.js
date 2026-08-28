@@ -3,6 +3,7 @@
 // ── Shared email utility — Virtual Estate GT ──────────────────────────────────
 // Provides: enviarEmail, registrarEmail, yaSeEnvio, buildEmailBase
 // Based on the smtpWithRetry pattern from confirmacion.js (Zoho-aware).
+const { maskEmail } = require('./mask');
 // The two existing email implementations (confirmacion.js, envio-cotizacion.js)
 // are NOT migrated here yet — they continue working as-is until a future step.
 
@@ -36,7 +37,7 @@ async function _smtpWithRetry(mailOpts, label, maxAttempts = 3, preDelay = 0) {
     const transport = _crearTransport();
     if (!transport) throw new Error('SMTP_NOT_CONFIGURED');
     try {
-      console.log(`[email] ${label} attempt ${attempt} → ${mailOpts.to} | html: ${(mailOpts.html || '').length}B`);
+      console.log(`[email] ${label} attempt ${attempt} → ${maskEmail(mailOpts.to)} | html: ${(mailOpts.html || '').length}B`);
       await transport.sendMail(mailOpts);
       transport.close();
       console.log(`[email] ${label} ✅ OK (attempt ${attempt})`);

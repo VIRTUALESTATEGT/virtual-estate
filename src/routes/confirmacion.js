@@ -3,6 +3,7 @@ const router = express.Router();
 const supabase = require('../config/supabase');
 const nodemailer = require('nodemailer');
 const { checkRateLimit: checkRL, recordAttempt } = require('../utils/rateLimit');
+const { maskEmail } = require('../utils/mask');
 
 const RL_TOKEN_GET  = { max: 20, windowMs: 15 * 60 * 1000 }; // 20 / 15 min
 const RL_CONFIRMAR  = { max: 10, windowMs: 30 * 60 * 1000 }; // 10 / 30 min
@@ -51,7 +52,7 @@ async function smtpWithRetry(buildMailOpts, label, maxAttempts = 3, preDelay = 0
 }
 
 async function enviarEmailConfirmacion({ email, nombre, apellido, cotizacion_id, monto, anticipo, codigo_cliente, timestamp, detalles_json, moneda }) {
-  console.log('[CONFIRM-EMAIL] enviarEmailConfirmacion ▶ destinatario:', email, '| SMTP_HOST set:', !!process.env.SMTP_HOST, '| SMTP_USER set:', !!process.env.SMTP_USER, '| SMTP_PASS set:', !!process.env.SMTP_PASS);
+  console.log('[CONFIRM-EMAIL] enviarEmailConfirmacion ▶ destinatario:', maskEmail(email), '| SMTP_HOST set:', !!process.env.SMTP_HOST, '| SMTP_USER set:', !!process.env.SMTP_USER, '| SMTP_PASS set:', !!process.env.SMTP_PASS);
   if (!crearTransportador()) {
     console.error('[CONFIRM-EMAIL] ✗ SMTP no configurado — agrega SMTP_HOST, SMTP_USER y SMTP_PASS en Vercel');
     return;
@@ -488,7 +489,7 @@ async function procesarConfirmacion({ confirm_token, lead_id, anticipo_confirmad
 
   // 7. Send confirmation email — awaited so it completes within the Vercel Lambda.
   //    Wrapped in try/catch: a mail failure NEVER rolls back the DB confirmation above.
-  console.log('[CONFIRM-EMAIL] cliente.email:', cliente.email || '(vacío)', '| cliente.id:', cliente.id, '| codigo_cliente:', codigo_cliente);
+  console.log('[CONFIRM-EMAIL] cliente.email:', maskEmail(cliente.email), '| cliente.id:', cliente.id, '| codigo_cliente:', codigo_cliente);
   if (cliente.email) {
     try {
       await enviarEmailConfirmacion({
@@ -503,9 +504,9 @@ async function procesarConfirmacion({ confirm_token, lead_id, anticipo_confirmad
         detalles_json: cot.detalles_json || null,
         moneda:        cot.moneda || 'USD',
       });
-      console.log('[CONFIRM-EMAIL] ✅ Enviado a:', cliente.email);
+      console.log('[CONFIRM-EMAIL] ✅ Enviado a:', maskEmail(cliente.email));
     } catch (e) {
-      console.error('[CONFIRM-EMAIL] ✗ FALLÓ para:', cliente.email, '| error:', e.message);
+      console.error('[CONFIRM-EMAIL] ✗ FALLÓ para:', maskEmail(cliente.email), '| error:', e.message);
     }
   } else {
     console.warn('[CONFIRM-EMAIL] ✗ Sin email — cliente no tiene dirección registrada');

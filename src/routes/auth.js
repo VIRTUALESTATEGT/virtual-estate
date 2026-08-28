@@ -5,6 +5,7 @@ const supabase = require('../config/supabase');
 const jwt = require('jsonwebtoken');
 const authMiddleware = require('../middleware/auth');
 const { checkRateLimit: checkRL, recordAttempt } = require('../utils/rateLimit');
+const { maskEmail } = require('../utils/mask');
 
 const RL_REGISTRO = { max: 5, windowMs: 60 * 60 * 1000 }; // 5 / hora
 const { requireSuperadmin } = require('../middleware/roles');
@@ -147,7 +148,7 @@ async function _enviarBienvenida(nombre, email, usuarioId) {
 
   // Deduplication: skip if already sent
   if (await yaSeEnvio({ destinatario: email, tipo_email: 'bienvenida', referencia_id: usuarioId })) {
-    console.log('[bienvenida] ya enviado a', email, '— omitiendo');
+    console.log('[bienvenida] ya enviado a', maskEmail(email), '— omitiendo');
     return;
   }
 

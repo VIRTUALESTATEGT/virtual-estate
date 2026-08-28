@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { maskPhone } = require('./mask');
 
 const WA_BASE = 'https://graph.facebook.com/v19.0';
 
@@ -13,7 +14,7 @@ async function sendWhatsAppMessage(to, text) {
 
   const phoneRaw = String(to);
   const phone = phoneRaw.replace(/\D/g, '');
-  console.log('[WA-MSG] sending — raw:', phoneRaw, '→ cleaned:', phone, '| text length:', text.length);
+  console.log('[WA-MSG] sending — phone:', maskPhone(phoneRaw), '| text length:', text.length);
   try {
     const { data } = await axios.post(
       `${WA_BASE}/${PHONE_ID}/messages`,
@@ -29,7 +30,7 @@ async function sendWhatsAppMessage(to, text) {
     const msg = metaErr
       ? `Meta API error ${metaErr.code}: ${metaErr.message}`
       : e.message;
-    console.error('[WA-MSG] error — phone:', phone, '| HTTP:', e.response?.status, '| body:', JSON.stringify(e.response?.data || e.message));
+    console.error('[WA-MSG] error — phone:', maskPhone(phone), '| HTTP:', e.response?.status, '| body:', JSON.stringify(e.response?.data || e.message));
     throw new Error(msg);
   }
 }
@@ -63,7 +64,7 @@ async function sendWhatsAppDocument(to, documentUrl, filename) {
 
   const phoneRaw = String(to);
   const phone = phoneRaw.replace(/\D/g, '');
-  console.log('[WA-DOC] sending — raw:', phoneRaw, '→ cleaned:', phone, '| filename:', filename, '| url:', documentUrl?.slice(0, 80));
+  console.log('[WA-DOC] sending — phone:', maskPhone(phoneRaw), '| filename:', filename, '| url:', documentUrl?.slice(0, 80));
   try {
     const { data } = await axios.post(
       `${WA_BASE}/${PHONE_ID}/messages`,
@@ -83,7 +84,7 @@ async function sendWhatsAppDocument(to, documentUrl, filename) {
     const msg = metaErr
       ? `Meta API error ${metaErr.code}: ${metaErr.message}`
       : e.message;
-    console.error('[WA-DOC] error — phone:', phone, '| HTTP:', e.response?.status, '| body:', JSON.stringify(e.response?.data || e.message));
+    console.error('[WA-DOC] error — phone:', maskPhone(phone), '| HTTP:', e.response?.status, '| body:', JSON.stringify(e.response?.data || e.message));
     throw new Error(msg);
   }
 }
@@ -106,7 +107,7 @@ async function sendWhatsAppTemplate(to, templateName, params, languageCode = 'es
     parameters: params.map(p => ({ type: 'text', text: String(p) })),
   }] : [];
 
-  console.log('[WA-TPL] sending template:', templateName, '| phone:', phone, '| params:', params);
+  console.log('[WA-TPL] sending template:', templateName, '| phone:', maskPhone(phone), '| params count:', params.length);
   try {
     const { data } = await axios.post(
       `${WA_BASE}/${PHONE_ID}/messages`,
@@ -124,7 +125,7 @@ async function sendWhatsAppTemplate(to, templateName, params, languageCode = 'es
   } catch (e) {
     const metaErr = e.response?.data?.error;
     const msg = metaErr ? `Meta API error ${metaErr.code}: ${metaErr.message}` : e.message;
-    console.error('[WA-TPL] error — phone:', phone, '| HTTP:', e.response?.status, '| body:', JSON.stringify(e.response?.data || e.message));
+    console.error('[WA-TPL] error — phone:', maskPhone(phone), '| HTTP:', e.response?.status, '| body:', JSON.stringify(e.response?.data || e.message));
     throw new Error(msg);
   }
 }

@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const app = express();
 const authMiddleware = require('./src/middleware/auth');
 const { checkRateLimit: checkRL, recordAttempt } = require('./src/utils/rateLimit');
+const { maskPhone } = require('./src/utils/mask');
 
 const RL_LEADS_PUBLIC = { max: 10, windowMs: 60 * 60 * 1000 }; // 10 / hora
 
@@ -644,7 +645,7 @@ async function _waWebhookPost(req, res) {
     const isOwner    = WA_OWNER_NUMBERS.includes(phone);
     const isCommand  = text.trim().startsWith('!');
 
-    console.log('[WA] from:', phone, '—', isOwner ? 'OWNER' : 'externo', '— isCommand:', isCommand, '— text:', text);
+    console.log('[WA] from:', maskPhone(phone), '—', isOwner ? 'OWNER' : 'externo', '— isCommand:', isCommand, '— msgLen:', text.length);
 
     // ── PASO 1: Verificar inactividad ANTES de insertar ──────────────────
     const { data: lastMsgs } = await _waSupabase
@@ -690,13 +691,13 @@ async function _waWebhookPost(req, res) {
     } else {
       await _waSupabase.from('prospect_tracking')
         .insert({ phone_number: phone, contact_count: 1, status: 'lead' });
-      console.log('[WA] prospect_tracking new lead:', phone);
+      console.log('[WA] prospect_tracking new lead:', maskPhone(phone));
     }
 
     // ── Comandos owner ! (existentes) ────────────────────────────────────
     if (isOwner && isCommand) {
       const cmd = text.trim().split(/\s+/)[0]?.toLowerCase();
-      console.log('[WA] from:', phone, '— OWNER detected — command:', cmd);
+      console.log('[WA] from:', maskPhone(phone), '— OWNER detected — command:', cmd);
       const reply = await _waHandleOwnerCommand(phone, text);
       await _waSendMessage(phone, reply);
       console.log('[WA] Owner command response sent:', reply);
@@ -742,7 +743,7 @@ async function _waWebhookPost(req, res) {
 
     // ── PASO 4: Verificar contact_type ───────────────────────────────────
     const phoneNorm = normalizarNumero(phone);
-    console.log('[WA] Consultando contact_type para:', phoneNorm, '...');
+    console.log('[WA] Consultando contact_type para:', maskPhone(phoneNorm), '...');
     const { data: contact, error: contactErr } = await _waSupabase
       .from('whatsapp_contacts')
       .select('contact_type, respond, name')
@@ -823,7 +824,7 @@ async function _waWebhookPost(req, res) {
     console.log('[WA] contact_type:', contactType, '— Decisión:', esPersonal ? 'NO responder' : 'responder SI');
 
     if (esPersonal) {
-      console.log('[WA] Número', phone, 'es personal — sin respuesta.');
+      console.log('[WA] Número', maskPhone(phone), 'es personal — sin respuesta.');
     } else {
       // ── PASO 5: Si es nuevo chat → enviar bienvenida primero ─────────
       if (esNuevoChat) {
@@ -852,7 +853,7 @@ async function _waWebhookPost(req, res) {
 
       console.log('[WA] 5. Enviando a WhatsApp...');
       await _waSendMessage(phone, reply);
-      console.log('[WA] 6. Éxito — mensaje enviado a', phone);
+      console.log('[WA] 6. Éxito — mensaje enviado a', maskPhone(phone));
     }
   } catch (error) {
     console.error('[WA] ERROR:', error.message);
