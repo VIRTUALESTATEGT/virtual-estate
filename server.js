@@ -103,14 +103,25 @@ app.post('/api/leads/public', async (req, res) => {
     if (rl.blocked)
       return res.status(429).json({ error: 'Demasiados mensajes enviados. Esperá una hora e intentá de nuevo.' });
 
-    const { nombre, email, telefono, empresa, mensaje } = req.body;
-    if (!nombre || !email) return res.status(400).json({ error: 'Nombre y correo son requeridos' });
+    const { nombre, apellido, email, telefono, empresa, servicio, fuente, seguimiento, mensaje } = req.body;
+    if (!nombre || (!email && !telefono))
+      return res.status(400).json({ error: 'Nombre y correo o teléfono son requeridos' });
 
     await recordAttempt(ip, 'leads-public', RL_LEADS_PUBLIC.windowMs);
 
     const { data, error } = await supabasePublic
       .from('leads')
-      .insert([{ nombre, email, telefono, empresa: empresa || mensaje || '', estado: 'Nuevo' }])
+      .insert([{
+        nombre,
+        apellido:   apellido   || null,
+        email:      email      || null,
+        telefono:   telefono   || null,
+        empresa:    empresa    || mensaje || null,
+        servicio:   servicio   || null,
+        fuente:     fuente     || 'web',
+        seguimiento: seguimiento || null,
+        estado: 'Nuevo',
+      }])
       .select();
     if (error) throw error;
     res.status(201).json(data[0]);

@@ -1731,14 +1731,55 @@ function buildCotMessage(){
   if(notas) msg+=`*Detalles:* ${notas}\n`;
   return msg;
 }
+function buildCotSeguimiento(){
+  const svcs=getSelectedServices();
+  const m2=parseFloat(document.getElementById('cot-m2').value)||null;
+  const nit=document.getElementById('cot-nit').value.trim();
+  const moneda=document.getElementById('btn-usd').classList.contains('active')?'USD':'GTQ';
+  const promo=document.getElementById('cot-promo').value.trim();
+  const notas=document.getElementById('cot-notas').value.trim();
+  const partes=[`Servicios: ${svcs.join(', ')}`];
+  if(m2)    partes.push(`Metraje: ${m2} m²`);
+  partes.push(`Moneda: ${moneda}`);
+  if(nit)   partes.push(`NIT: ${nit}`);
+  if(promo) partes.push(`Código promo: ${promo}`);
+  if(notas) partes.push(`Notas: ${notas}`);
+  return partes.join(' | ');
+}
+async function registrarLeadCotizador(){
+  const nombre=(document.getElementById('cot-nombre').value||'').trim();
+  const email =(document.getElementById('cot-email').value||'').trim();
+  const tel   =(document.getElementById('cot-tel').value||'').trim();
+  if(!nombre&&!email&&!tel)return;
+  try{
+    const res=await fetch('/api/leads/public',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      keepalive:true, // survives page unload (mailto: edge case on iOS Safari)
+      body:JSON.stringify({
+        nombre:      nombre||'(sin nombre)',
+        email:       email||null,
+        telefono:    tel||null,
+        fuente:      'web-cotizador',
+        seguimiento: buildCotSeguimiento(),
+      }),
+    });
+    if(res.status===429) console.warn('[cotizador] Rate limited al registrar lead');
+    else if(!res.ok)     console.warn('[cotizador] Lead no guardado:',res.status);
+  }catch(err){
+    console.error('[cotizador] Error registrando lead:',err);
+  }
+}
 function enviarCotWA(){
   const msg=buildCotMessage();
   if(!msg)return;
+  registrarLeadCotizador(); // fire-and-forget — no bloquea la apertura de WA
   window.open(`https://wa.me/50239902399?text=${encodeURIComponent(msg)}`,'_blank');
 }
 function enviarCotEmail(){
   const msg=buildCotMessage();
   if(!msg)return;
+  registrarLeadCotizador(); // fire-and-forget — no bloquea el mailto
   const email=document.getElementById('cot-email').value;
   const subj='Solicitud de Cotización — Virtual Estate';
   window.location.href=`mailto:info@virtualestategt.com?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(msg)}`;
@@ -1746,11 +1787,62 @@ function enviarCotEmail(){
 }
 
 /* ── CONTACT FORM ────────────────────────────────────── */
-function enviarContacto(e){
+async function enviarContacto(e){
   e.preventDefault();
-  const nombre=document.getElementById('f-nombre').value;
-  showToast(`✅ Mensaje enviado. Te contactamos pronto, ${nombre}.`);
-  e.target.reset();
+  if(!document.getElementById('f-tyc').checked){
+    showToast('Aceptá los términos y condiciones para continuar.');
+    return;
+  }
+  const btn=e.target.querySelector('[type="submit"]');
+  const btnOrig=btn.innerHTML;
+  btn.disabled=true;
+  btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Enviando...';
+
+  const tipoEl=document.getElementById('f-tipo');
+  const svcEl=document.getElementById('f-servicio');
+  const tipoLabel=tipoEl.selectedIndex>0?tipoEl.options[tipoEl.selectedIndex].text:'';
+  const svcLabel=svcEl.selectedIndex>0?svcEl.options[svcEl.selectedIndex].text:'';
+  const mensaje=document.getElementById('f-mensaje').value.trim();
+
+  const partes=[];
+  if(tipoLabel) partes.push(`Solicitud: ${tipoLabel}`);
+  if(svcLabel)  partes.push(`Servicio: ${svcLabel}`);
+  if(mensaje)   partes.push(`Mensaje: ${mensaje}`);
+
+  const payload={
+    nombre:      document.getElementById('f-nombre').value.trim(),
+    apellido:    document.getElementById('f-apellido').value.trim(),
+    email:       document.getElementById('f-email').value.trim(),
+    telefono:    document.getElementById('f-tel').value.trim()||null,
+    servicio:    svcLabel||null,
+    fuente:      'web',
+    seguimiento: partes.join(' | ')||null,
+  };
+
+  try{
+    const res=await fetch('/api/leads/public',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload),
+    });
+    if(res.status===429){
+      showToast('Demasiados intentos. Esperá unos minutos e intentá de nuevo.');
+      return;
+    }
+    if(!res.ok){
+      const err=await res.json().catch(()=>({}));
+      showToast(`No se pudo enviar: ${err.error||'Intentá de nuevo más tarde.'}`);
+      return;
+    }
+    showToast(`✅ Mensaje recibido. Te contactamos pronto, ${payload.nombre}.`);
+    e.target.reset();
+  }catch(err){
+    console.error('[contactForm]',err);
+    showToast('No se pudo conectar. Verificá tu conexión e intentá de nuevo.');
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML=btnOrig;
+  }
 }
 
 /* ── TOAST ───────────────────────────────────────────── */
