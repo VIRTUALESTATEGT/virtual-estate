@@ -1316,9 +1316,13 @@
           <button class="btn-wa" onclick="enviarCotWA()">
             <i class="fab fa-whatsapp"></i> Enviar por WhatsApp
           </button>
-          <button class="btn-mail" onclick="enviarCotEmail()">
-            <i class="fas fa-envelope"></i> Enviar por Correo
+          <button class="btn-mail" id="btn-solicitar-cot" onclick="enviarSolicitudCot()">
+            <i class="fas fa-paper-plane"></i> Solicitar cotización
           </button>
+        </div>
+        <div id="cot-confirmacion" style="display:none;margin-top:1rem;padding:1rem 1.2rem;background:rgba(212,175,55,0.08);border:1px solid var(--gold);border-radius:var(--r);font-size:.82rem;line-height:1.6;">
+          <i class="fas fa-check-circle" style="color:var(--gold);margin-right:.4rem;"></i>
+          <strong>Solicitud recibida.</strong> Te contactamos en 1–2 días hábiles para enviarte tu cotización personalizada.
         </div>
         <p class="cot-note">
           Al enviar, nuestro equipo preparará una cotización formal y detallada.<br/>
@@ -1776,14 +1780,53 @@ function enviarCotWA(){
   registrarLeadCotizador(); // fire-and-forget — no bloquea la apertura de WA
   window.open(`https://wa.me/50239902399?text=${encodeURIComponent(msg)}`,'_blank');
 }
-function enviarCotEmail(){
-  const msg=buildCotMessage();
-  if(!msg)return;
-  registrarLeadCotizador(); // fire-and-forget — no bloquea el mailto
-  const email=document.getElementById('cot-email').value;
-  const subj='Solicitud de Cotización — Virtual Estate';
-  window.location.href=`mailto:info@virtualestategt.com?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(msg)}`;
-  showToast('Abriendo cliente de correo...');
+async function enviarSolicitudCot(){
+  const svcs=getSelectedServices();
+  if(!svcs.length){showToast('Seleccioná al menos un servicio.');return;}
+  const nombre=(document.getElementById('cot-nombre').value||'').trim();
+  const email =(document.getElementById('cot-email').value||'').trim();
+  const tel   =(document.getElementById('cot-tel').value||'').trim();
+  if(!nombre){showToast('Ingresá tu nombre para continuar.');return;}
+  if(!email&&!tel){showToast('Ingresá tu correo o WhatsApp para poder contactarte.');return;}
+
+  const btn=document.getElementById('btn-solicitar-cot');
+  const btnOrig=btn.innerHTML;
+  btn.disabled=true;
+  btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Enviando...';
+  document.getElementById('cot-confirmacion').style.display='none';
+
+  try{
+    const res=await fetch('/api/leads/public',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        nombre:      nombre,
+        email:       email||null,
+        telefono:    tel||null,
+        fuente:      'web-cotizador',
+        seguimiento: buildCotSeguimiento(),
+      }),
+    });
+    if(res.status===429){
+      showToast('Demasiadas solicitudes. Esperá una hora e intentá de nuevo.');
+      btn.disabled=false;btn.innerHTML=btnOrig;
+      return;
+    }
+    if(!res.ok){
+      const err=await res.json().catch(()=>({}));
+      showToast(`No se pudo enviar: ${err.error||'Intentá de nuevo más tarde.'}`);
+      btn.disabled=false;btn.innerHTML=btnOrig;
+      return;
+    }
+    const conf=document.getElementById('cot-confirmacion');
+    conf.style.display='block';
+    conf.scrollIntoView({behavior:'smooth',block:'nearest'});
+    // botón queda deshabilitado para evitar doble envío
+  }catch(err){
+    console.error('[solicitudCot]',err);
+    showToast('No se pudo conectar. Verificá tu conexión e intentá de nuevo.');
+    btn.disabled=false;btn.innerHTML=btnOrig;
+  }
 }
 
 /* ── CONTACT FORM ────────────────────────────────────── */
