@@ -851,7 +851,7 @@
         <div class="kpi-card">
           <div>
             <div class="kpi-label">Solicitudes pendientes</div>
-            <div class="kpi-value" style="color:#F0C040;">2</div>
+            <div class="kpi-value" style="color:#F0C040;" id="kpi-agt-pendientes">—</div>
             <div class="kpi-sub">Por revisar</div>
           </div>
           <div class="kpi-icon" style="background:rgba(240,192,64,.1);color:#F0C040;"><i class="fas fa-clock"></i></div>
@@ -859,166 +859,38 @@
         <div class="kpi-card">
           <div>
             <div class="kpi-label">Agentes activos</div>
-            <div class="kpi-value">3</div>
+            <div class="kpi-value" id="kpi-agt-activos">—</div>
             <div class="kpi-sub">Con código autorizado</div>
           </div>
           <div class="kpi-icon" style="background:rgba(90,224,138,.1);color:#5AE08A;"><i class="fas fa-id-badge"></i></div>
         </div>
         <div class="kpi-card">
           <div>
-            <div class="kpi-label">Comisiones pendientes</div>
-            <div class="kpi-value" style="color:var(--gold);">$350</div>
-            <div class="kpi-sub">2 pagos por realizar</div>
+            <div class="kpi-label">Total agentes</div>
+            <div class="kpi-value" id="kpi-agt-total">—</div>
+            <div class="kpi-sub">Registrados</div>
           </div>
-          <div class="kpi-icon"><i class="fas fa-hand-holding-usd"></i></div>
+          <div class="kpi-icon" style="background:rgba(110,170,255,.1);color:#6EAAFF;"><i class="fas fa-users"></i></div>
         </div>
         <div class="kpi-card">
           <div>
-            <div class="kpi-label">Total pagado a agentes</div>
-            <div class="kpi-value" style="font-size:1.3rem;color:var(--white);">$800</div>
-            <div class="kpi-sub">Acumulado 2026</div>
+            <div class="kpi-label">Comisiones</div>
+            <div class="kpi-value" style="font-size:.75rem;color:var(--gray);line-height:1.4;padding-top:.25rem;">Módulo en<br>construcción</div>
           </div>
-          <div class="kpi-icon" style="background:rgba(110,170,255,.1);color:#6EAAFF;"><i class="fas fa-check-circle"></i></div>
+          <div class="kpi-icon" style="opacity:.35;"><i class="fas fa-hand-holding-usd"></i></div>
         </div>
       </div>
 
-      <!-- Solicitudes pendientes -->
-      <div class="table-wrap" style="margin-bottom:1.4rem;">
-        <div class="table-head">
-          <span class="table-head-title">Solicitudes de código de agente</span>
-          <span style="font-size:.68rem;color:var(--gray);">Pendientes de autorización</span>
-        </div>
-        <table id="agt-solicitudes-table">
-          <thead>
-            <tr><th>Fecha</th><th>Cliente</th><th>Código Solicitado</th><th>Tipo de Red</th><th>Estado</th><th>Acciones</th></tr>
-          </thead>
-          <tbody>
-            <tr id="agt-row-001">
-              <td style="color:var(--gray);">19 Abr 2026</td>
-              <td>
-                <div style="font-weight:500;">María López</div>
-                <div style="font-size:.68rem;color:var(--gray);">CLI-26-0005 · maria@correo.com</div>
-              </td>
-              <td style="color:var(--gold);font-weight:700;letter-spacing:.1em;">AGT-0001</td>
-              <td style="color:var(--gray);font-size:.78rem;">Agentes inmobiliarios</td>
-              <td><span class="badge" style="background:rgba(240,192,64,.12);color:#F0C040;">● Pendiente</span></td>
-              <td>
-                <div class="action-btns">
-                  <button class="act-btn" title="Autorizar" style="color:#5AE08A;" onclick="autorizarAgente('agt-row-001','AGT-0001','María López')">
-                    <i class="fas fa-check"></i>
-                  </button>
-                  <button class="act-btn danger" title="Rechazar" onclick="rechazarAgente('agt-row-001')">
-                    <i class="fas fa-times"></i>
-                  </button>
-                  <button class="act-btn" title="WhatsApp" onclick="window.open('https://wa.me/50200000001','_blank')">
-                    <i class="fab fa-whatsapp"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr id="agt-row-002">
-              <td style="color:var(--gray);">20 Abr 2026</td>
-              <td>
-                <div style="font-weight:500;">Carlos Morales</div>
-                <div style="font-size:.68rem;color:var(--gray);">CLI-26-0008 · carlos@correo.com</div>
-              </td>
-              <td style="color:var(--gold);font-weight:700;letter-spacing:.1em;">AGT-0002</td>
-              <td style="color:var(--gray);font-size:.78rem;">Arquitectos / Constructores</td>
-              <td><span class="badge" style="background:rgba(240,192,64,.12);color:#F0C040;">● Pendiente</span></td>
-              <td>
-                <div class="action-btns">
-                  <button class="act-btn" title="Autorizar" style="color:#5AE08A;" onclick="autorizarAgente('agt-row-002','AGT-0002','Carlos Morales')">
-                    <i class="fas fa-check"></i>
-                  </button>
-                  <button class="act-btn danger" title="Rechazar" onclick="rechazarAgente('agt-row-002')">
-                    <i class="fas fa-times"></i>
-                  </button>
-                  <button class="act-btn" title="WhatsApp" onclick="window.open('https://wa.me/50200000002','_blank')">
-                    <i class="fab fa-whatsapp"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Agentes activos y comisiones -->
+      <!-- Comisiones de agentes -->
       <div class="table-wrap">
         <div class="table-head">
-          <span class="table-head-title">Agentes Activos — Comisiones</span>
-          <button onclick="exportarComisiones()" class="topbar-btn btn-sec" style="padding:.4rem .9rem;font-size:.65rem;">
-            <i class="fas fa-download"></i> Exportar
-          </button>
+          <span class="table-head-title">Comisiones de Agentes</span>
         </div>
-        <table id="agt-comisiones-table">
-          <thead>
-            <tr><th>Agente</th><th>Código</th><th>Referidos</th><th>Cerrados</th><th>Comisión Total</th><th>Pendiente</th><th>Estado pago</th><th>Acción</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <div style="font-weight:500;">Roberto Vásquez</div>
-                <div style="font-size:.68rem;color:var(--gray);">roberto@correo.com</div>
-              </td>
-              <td style="color:var(--gold);font-weight:700;letter-spacing:.1em;">AGT-0003</td>
-              <td style="text-align:center;">6</td>
-              <td style="text-align:center;color:#5AE08A;font-weight:600;">3</td>
-              <td class="td-gold">$450</td>
-              <td style="color:#F0C040;font-weight:600;">$0</td>
-              <td><span class="badge badge-active" style="background:rgba(90,224,138,.1);color:#5AE08A;">Al día</span></td>
-              <td><button class="act-btn" onclick="showToast('Contactando a Roberto Vásquez...')"><i class="fab fa-whatsapp"></i></button></td>
-            </tr>
-            <tr>
-              <td>
-                <div style="font-weight:500;">Sofía Herrera</div>
-                <div style="font-size:.68rem;color:var(--gray);">sofia@correo.com</div>
-              </td>
-              <td style="color:var(--gold);font-weight:700;letter-spacing:.1em;">AGT-0004</td>
-              <td style="text-align:center;">4</td>
-              <td style="text-align:center;color:#5AE08A;font-weight:600;">2</td>
-              <td class="td-gold">$350</td>
-              <td style="color:#E08080;font-weight:600;">$200</td>
-              <td>
-                <span class="badge" style="background:rgba(224,128,128,.1);color:#E08080;">Pendiente</span>
-              </td>
-              <td>
-                <div class="action-btns">
-                  <button class="act-btn" title="Marcar como pagado" style="color:#5AE08A;" onclick="marcarPagado(this,'AGT-0004')">
-                    <i class="fas fa-check-circle"></i>
-                  </button>
-                  <button class="act-btn" onclick="showToast('Contactando a Sofía Herrera...')">
-                    <i class="fab fa-whatsapp"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <div style="font-weight:500;">Luis Castillo</div>
-                <div style="font-size:.68rem;color:var(--gray);">luis@correo.com</div>
-              </td>
-              <td style="color:var(--gold);font-weight:700;letter-spacing:.1em;">AGT-0005</td>
-              <td style="text-align:center;">2</td>
-              <td style="text-align:center;color:#5AE08A;font-weight:600;">1</td>
-              <td class="td-gold">$150</td>
-              <td style="color:#E08080;font-weight:600;">$150</td>
-              <td>
-                <span class="badge" style="background:rgba(224,128,128,.1);color:#E08080;">Pendiente</span>
-              </td>
-              <td>
-                <div class="action-btns">
-                  <button class="act-btn" title="Marcar como pagado" style="color:#5AE08A;" onclick="marcarPagado(this,'AGT-0005')">
-                    <i class="fas fa-check-circle"></i>
-                  </button>
-                  <button class="act-btn" onclick="showToast('Contactando a Luis Castillo...')">
-                    <i class="fab fa-whatsapp"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div style="text-align:center;padding:3rem 2rem;color:var(--gray);">
+          <i class="fas fa-tools" style="font-size:2rem;margin-bottom:.8rem;display:block;opacity:.35;"></i>
+          <div style="font-size:.85rem;font-weight:500;margin-bottom:.35rem;">Módulo en construcción</div>
+          <div style="font-size:.75rem;opacity:.7;">El seguimiento de comisiones por cierre estará disponible próximamente.</div>
+        </div>
       </div>
 
       <!-- Agentes en base de datos -->
@@ -2799,56 +2671,30 @@
   }
 
   /* ── AGENTES ──────────────────────────────────────── */
-  function autorizarAgente(rowId, code, nombre){
-    const row = document.getElementById(rowId);
-    if(!row) return;
-    const badge = row.querySelector('.badge');
-    badge.style.background='rgba(90,224,138,.12)';
-    badge.style.color='#5AE08A';
-    badge.textContent='● Autorizado';
-    const btns = row.querySelector('.action-btns');
-    btns.innerHTML=`<button class="act-btn" onclick="window.open('https://wa.me/50239902399','_blank')"><i class="fab fa-whatsapp"></i></button>`;
-    // Update badge count
-    const nb = document.getElementById('agt-badge');
-    const cnt = parseInt(nb.textContent||'0');
-    if(cnt>1) nb.textContent=cnt-1; else nb.style.display='none';
-    showToast(`✅ Código ${code} autorizado para ${nombre}`);
+  async function autorizarAgente(solicitudId, nombre){
+    if(!confirm(`¿Autorizar la solicitud de ${nombre}?`)) return;
+    try {
+      const result = await apiFetch(`/api/agente/solicitudes/${solicitudId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ estado: 'aprobado' })
+      });
+      showToast(`✅ Aprobado — Código asignado: ${result.codigo_asignado}`);
+      loadSolicitudesAgente();
+    } catch(e) { showToast('Error al aprobar: ' + e.message); }
   }
 
-  function rechazarAgente(rowId){
-    const row = document.getElementById(rowId);
-    if(!row) return;
-    const badge = row.querySelector('.badge');
-    badge.style.background='rgba(224,128,128,.12)';
-    badge.style.color='#E08080';
-    badge.textContent='● Rechazado';
-    const btns = row.querySelector('.action-btns');
-    btns.innerHTML='';
-    const nb = document.getElementById('agt-badge');
-    const cnt = parseInt(nb.textContent||'0');
-    if(cnt>1) nb.textContent=cnt-1; else nb.style.display='none';
-    showToast('Solicitud rechazada');
-  }
-
-  function marcarPagado(btn, code){
-    const row = btn.closest('tr');
-    const pendiente = row.cells[5];
-    const estadoBadge = row.cells[6].querySelector('.badge, span');
-    const accionBtns = row.cells[7].querySelector('.action-btns');
-    pendiente.textContent='$0';
-    pendiente.style.color='#5AE08A';
-    if(estadoBadge){
-      estadoBadge.style.background='rgba(90,224,138,.1)';
-      estadoBadge.style.color='#5AE08A';
-      estadoBadge.textContent='Al día';
-    }
-    if(accionBtns) accionBtns.innerHTML=`<button class="act-btn" onclick="showToast('WhatsApp...')"><i class="fab fa-whatsapp"></i></button>`;
-    showToast(`✅ Comisión de ${code} marcada como pagada`);
-  }
-
-  function exportarComisiones(){
-    showToast('Generando reporte de comisiones (CSV)...');
-    // In production: generate and download CSV with agent data
+  async function rechazarAgente(solicitudId){
+    const motivo = prompt('Motivo del rechazo (requerido):');
+    if(motivo === null) return;
+    if(!motivo.trim()){ showToast('El motivo del rechazo es requerido'); return; }
+    try {
+      await apiFetch(`/api/agente/solicitudes/${solicitudId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ estado: 'rechazado', notas_admin: motivo.trim() })
+      });
+      showToast('✅ Solicitud rechazada');
+      loadSolicitudesAgente();
+    } catch(e) { showToast('Error al rechazar: ' + e.message); }
   }
 
   /* ── COMISIÓN EJEMPLO DINÁMICO (#4) ─────────────────── */
@@ -4091,6 +3937,8 @@
     try{
       const items=await apiFetch('/api/agentes');
       _agentesCache={}; items.forEach(a=>_agentesCache[a.id]=a);
+      const elActivos=document.getElementById('kpi-agt-activos'); if(elActivos) elActivos.textContent=items.filter(a=>a.estado==='Activo').length;
+      const elTotal=document.getElementById('kpi-agt-total'); if(elTotal) elTotal.textContent=items.length;
       if(!items.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem;">No hay agentes. ¡Crea el primero!</td></tr>';return;}
       const BADGE={'Activo':'badge-active','Inactivo':'badge-lost'};
       tbody.innerHTML=items.map(a=>`<tr>
@@ -4159,6 +4007,7 @@
     try {
       const estado = document.getElementById('sol-filter')?.value || '';
       const items = await apiFetch('/api/agente/solicitudes' + (estado ? '?estado=' + estado : ''));
+      const elP = document.getElementById('kpi-agt-pendientes'); if (elP) elP.textContent = items.filter(s => s.estado === 'pendiente').length;
       if (!items.length) { tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:2rem;">No hay solicitudes.</td></tr>'; return; }
       const estadoBadge = { pendiente: 'badge-process', aprobado: 'badge-active', rechazado: 'badge-lost' };
       tbody.innerHTML = items.map(s => `<tr>
@@ -4172,7 +4021,8 @@
         <td style="font-family:monospace;color:var(--gold);font-size:.75rem;">${s.codigo_asignado||'—'}</td>
         <td style="color:var(--gray);font-size:.72rem;">${s.created_at?new Date(s.created_at).toLocaleDateString('es-GT'):'—'}</td>
         <td><div class="action-btns">
-          <button class="act-btn" title="Revisar" onclick="openSolModal(${s.id})"><i class="fas fa-eye"></i></button>
+          ${s.estado==='pendiente'?`<button class="act-btn" title="Aprobar" style="color:#5AE08A;" onclick="autorizarAgente(${s.id},'${(s.nombre||'').replace(/'/g,'&#39;')}')"><i class="fas fa-check"></i></button><button class="act-btn danger" title="Rechazar" onclick="rechazarAgente(${s.id})"><i class="fas fa-times"></i></button>`:''}
+          <button class="act-btn" title="Revisar detalle" onclick="openSolModal(${s.id})"><i class="fas fa-eye"></i></button>
         </div></td>
       </tr>`).join('');
     } catch(e) { tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`; }
