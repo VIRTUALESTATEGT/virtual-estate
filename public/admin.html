@@ -345,7 +345,7 @@
     </div>
     <div class="nav-item" onclick="showView('leads', this)">
       <i class="fas fa-funnel-dollar"></i> Leads
-      <span class="nav-badge">3</span>
+      <span class="nav-badge" id="badge-leads" style="display:none;"></span>
     </div>
     <div class="nav-item" onclick="showView('clientes', this)">
       <i class="fas fa-users"></i> Clientes
@@ -362,7 +362,7 @@
     <div class="sidebar-label">Operaciones</div>
     <div class="nav-item" onclick="showView('proyectos', this)">
       <i class="fas fa-tasks"></i> Proyectos
-      <span class="nav-badge">2</span>
+      <span class="nav-badge" id="badge-proyectos" style="display:none;"></span>
     </div>
     <div class="nav-item" onclick="showView('propiedades', this)">
       <i class="fas fa-building"></i> Propiedades
@@ -463,10 +463,14 @@
           <div class="kpi-icon" style="background:rgba(193,146,89,.12); color:var(--gold);"><i class="fas fa-tasks"></i></div>
         </div>
         <div class="kpi-card">
-          <div>
-            <div class="kpi-label">Facturado (mes)</div>
-            <div class="kpi-value gold">$4,850</div>
-            <div class="kpi-sub up"><i class="fas fa-arrow-up"></i> vs mes anterior</div>
+          <div style="flex:1;">
+            <div class="kpi-label">Cerrado (mes)</div>
+            <div class="kpi-value" id="kpi-cerrado">—</div>
+            <div class="kpi-sub" id="kpi-cerrado-sub"></div>
+            <div style="display:flex;align-items:center;gap:.5rem;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);">
+              <span style="font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gray);">Cotizado</span>
+              <span style="font-size:.82rem;font-weight:600;color:var(--white);" id="kpi-cotizado">—</span>
+            </div>
           </div>
           <div class="kpi-icon" style="background:rgba(90,224,138,.1); color:#5AE08A;"><i class="fas fa-dollar-sign"></i></div>
         </div>
@@ -493,31 +497,8 @@
                 <th>Nombre</th><th>Servicio</th><th>Estado</th><th>Fecha</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td><span class="td-bold">Ana García</span><br/><span style="color:var(--gray);font-size:.68rem;">Inmobiliaria XYZ</span></td>
-                <td>Tour Virtual</td>
-                <td><span class="badge badge-new">Nuevo</span></td>
-                <td>Hoy</td>
-              </tr>
-              <tr>
-                <td><span class="td-bold">Carlos Méndez</span><br/><span style="color:var(--gray);font-size:.68rem;">Independiente</span></td>
-                <td>AS BUILT</td>
-                <td><span class="badge badge-quote">Cotizado</span></td>
-                <td>Ayer</td>
-              </tr>
-              <tr>
-                <td><span class="td-bold">Sofía Barrios</span><br/><span style="color:var(--gray);font-size:.68rem;">Desarrolladora Sur</span></td>
-                <td>Paquete Premium</td>
-                <td><span class="badge badge-contact">Contactado</span></td>
-                <td>20 Abr</td>
-              </tr>
-              <tr>
-                <td><span class="td-bold">Roberto Lima</span><br/><span style="color:var(--gray);font-size:.68rem;">Constructora Norte</span></td>
-                <td>Construcción</td>
-                <td><span class="badge badge-won">Ganado</span></td>
-                <td>18 Abr</td>
-              </tr>
+            <tbody id="dash-leads-tbody">
+              <tr><td colspan="4" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i></td></tr>
             </tbody>
           </table>
         </div>
@@ -575,37 +556,10 @@
         </div>
         <table>
           <thead>
-            <tr><th>Proyecto</th><th>Cliente</th><th>Servicio</th><th>M² Const.</th><th>Avance</th><th>Entrega</th><th>Estado</th></tr>
+            <tr><th>Proyecto</th><th>Cliente</th><th>Avance</th><th>Entrega</th><th>Estado</th></tr>
           </thead>
-          <tbody>
-            <tr>
-              <td class="td-bold">PRY-26-0005</td>
-              <td>Roberto Lima</td>
-              <td>Tour Virtual</td>
-              <td>320 m²</td>
-              <td>
-                <div style="display:flex;align-items:center;gap:.6rem;">
-                  <div class="prog-wrap" style="width:80px;"><div class="prog-bar" style="width:65%;"></div></div>
-                  <span style="font-size:.7rem;color:var(--gray);">65%</span>
-                </div>
-              </td>
-              <td style="color:var(--gray);">25 Abr</td>
-              <td><span class="badge badge-process">En proceso</span></td>
-            </tr>
-            <tr>
-              <td class="td-bold">PRY-26-0004</td>
-              <td>Sofía Barrios</td>
-              <td>AS BUILT</td>
-              <td>180 m²</td>
-              <td>
-                <div style="display:flex;align-items:center;gap:.6rem;">
-                  <div class="prog-wrap" style="width:80px;"><div class="prog-bar" style="width:30%;background:#6EAAFF;"></div></div>
-                  <span style="font-size:.7rem;color:var(--gray);">30%</span>
-                </div>
-              </td>
-              <td style="color:var(--gray);">28 Abr</td>
-              <td><span class="badge badge-process">En proceso</span></td>
-            </tr>
+          <tbody id="dash-proyectos-tbody">
+            <tr><td colspan="5" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i></td></tr>
           </tbody>
         </table>
       </div>
@@ -2427,30 +2381,103 @@
     }
     applySuperadminUI(u);
     loadDashboard();
+    if (!window._dashRefreshInterval) {
+      window._dashRefreshInterval = setInterval(loadDashboard, 30000);
+    }
   }
 
   /* ── DASHBOARD KPIs ──────────────────────────────────────── */
   async function loadDashboard() {
     try {
-      const [leads, proyectos, propiedades] = await Promise.all([
+      const [leads, proyectos, propiedades, cotizaciones] = await Promise.all([
         apiFetch('/api/leads'),
         apiFetch('/api/proyectos'),
         apiFetch('/api/propiedades'),
+        apiFetch('/api/cotizaciones'),
       ]);
-      const activos = leads.filter(l => !['Ganado','Perdido'].includes(l.estado));
+
+      // KPI cards
+      const leadsActivos = leads.filter(l => !['Ganado','Perdido'].includes(l.estado));
       const nuevos = leads.filter(l => l.estado === 'Nuevo').length;
-      document.getElementById('kpi-leads').textContent = activos.length;
+      document.getElementById('kpi-leads').textContent = leadsActivos.length;
       document.getElementById('kpi-leads-badge').innerHTML = nuevos > 0
         ? `<i class="fas fa-arrow-up"></i> ${nuevos} nuevos`
         : `${leads.length} total`;
-      const enProceso = proyectos.filter(p => p.estado !== 'Entregado' && p.estado !== 'Cancelado');
+      const enProceso = proyectos.filter(p => !['Entregado','Cancelado'].includes(p.estado));
       document.getElementById('kpi-proyectos').textContent = enProceso.length;
       document.getElementById('kpi-proyectos-sub').textContent = `${proyectos.length} total`;
       document.getElementById('kpi-propiedades').textContent = propiedades.length;
       document.getElementById('kpi-propiedades-sub').textContent = 'en portafolio';
-      const badge = document.querySelector('[onclick*="\'leads\'"] .nav-badge, [onclick*="leads,"] .nav-badge');
-      if (badge && nuevos > 0) { badge.textContent = nuevos; badge.style.display = ''; }
-      else if (badge) badge.style.display = 'none';
+
+      // Sidebar badges dinámicos
+      const _setBadge = (id, n) => { const b = document.getElementById(id); if (!b) return; if (n > 0) { b.textContent = n; b.style.display = ''; } else b.style.display = 'none'; };
+      _setBadge('badge-leads', nuevos);
+      _setBadge('badge-proyectos', enProceso.length);
+      _setBadge('badge-cotizaciones', cotizaciones.filter(c => ['enviada','pendiente','borrador'].includes(c.estado)).length);
+
+      // KPI Cerrado (mes) — confirmadas + aprobadas = conversiones reales
+      const ahora = new Date();
+      const esMesActual = f => { const d = new Date(f); return d.getFullYear() === ahora.getFullYear() && d.getMonth() === ahora.getMonth(); };
+      const cerradoMes = cotizaciones.filter(c => ['confirmada','aprobada'].includes(c.estado) && esMesActual(c.created_at));
+      const totalCerrado = cerradoMes.reduce((s, c) => s + (Number(c.monto) || 0), 0);
+      const cerradoEl = document.getElementById('kpi-cerrado');
+      if (cerradoEl) cerradoEl.textContent = '$' + totalCerrado.toLocaleString('es-GT', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+      const cerradoSubEl = document.getElementById('kpi-cerrado-sub');
+      if (cerradoSubEl) cerradoSubEl.textContent = cerradoMes.length > 0 ? `${cerradoMes.length} cierre${cerradoMes.length > 1 ? 's' : ''} este mes` : 'sin cierres este mes';
+
+      // KPI Cotizado (mes) — enviadas + pendientes = pipeline ofertado
+      const cotizadoMes = cotizaciones.filter(c => ['enviada','pendiente'].includes(c.estado) && esMesActual(c.created_at));
+      const totalCotizado = cotizadoMes.reduce((s, c) => s + (Number(c.monto) || 0), 0);
+      const cotizadoEl = document.getElementById('kpi-cotizado');
+      if (cotizadoEl) cotizadoEl.textContent = '$' + totalCotizado.toLocaleString('es-GT', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+      // Leads Recientes (top 5)
+      const dashLeadsTbody = document.getElementById('dash-leads-tbody');
+      if (dashLeadsTbody) {
+        const BADGE = { 'Nuevo':'badge-new','Contactado':'badge-contact','En seguimiento':'badge-contact','Cotizado':'badge-quote','Ganado':'badge-won','Perdido':'badge-lost' };
+        const recientes = [...leads].slice(0, 5);
+        if (!recientes.length) {
+          dashLeadsTbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--gray);padding:1.5rem;">Sin leads recientes</td></tr>';
+        } else {
+          dashLeadsTbody.innerHTML = recientes.map(l => {
+            const nombre = capitalizarNombre([l.nombre, l.apellido].filter(Boolean).join(' ')) || '—';
+            const fecha = l.created_at ? new Date(l.created_at).toLocaleDateString('es-GT', { day: '2-digit', month: 'short' }) : '—';
+            return `<tr>
+              <td><span class="td-bold">${nombre}</span><br/><span style="color:var(--gray);font-size:.68rem;">${l.empresa || ''}</span></td>
+              <td>${l.servicio || '—'}</td>
+              <td><span class="badge ${BADGE[l.estado] || 'badge-new'}">${l.estado || 'Nuevo'}</span></td>
+              <td style="color:var(--gray);font-size:.72rem;">${fecha}</td>
+            </tr>`;
+          }).join('');
+        }
+      }
+
+      // Proyectos en Curso (top 5 activos)
+      const dashProyTbody = document.getElementById('dash-proyectos-tbody');
+      if (dashProyTbody) {
+        const PROY_BADGE = { 'Activo':'badge-process','En proceso':'badge-process','Entregado':'badge-done','Cancelado':'badge-lost' };
+        const activos = enProceso.slice(0, 5);
+        if (!activos.length) {
+          dashProyTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--gray);padding:1.5rem;">Sin proyectos en curso</td></tr>';
+        } else {
+          dashProyTbody.innerHTML = activos.map(p => {
+            const progreso = Number(p.progreso) || 0;
+            const entrega = p.fechafin ? new Date(p.fechafin).toLocaleDateString('es-GT', { day: '2-digit', month: 'short' }) : '—';
+            return `<tr>
+              <td class="td-bold">${p.nombre || p.id || '—'}</td>
+              <td style="color:var(--gray);">${p.cliente_id || '—'}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:.6rem;">
+                  <div class="prog-wrap" style="width:80px;"><div class="prog-bar" style="width:${progreso}%;"></div></div>
+                  <span style="font-size:.7rem;color:var(--gray);">${progreso}%</span>
+                </div>
+              </td>
+              <td style="color:var(--gray);">${entrega}</td>
+              <td><span class="badge ${PROY_BADGE[p.estado] || 'badge-process'}">${p.estado || 'En proceso'}</span></td>
+            </tr>`;
+          }).join('');
+        }
+      }
     } catch (e) { console.warn('Dashboard KPIs:', e.message); }
   }
 
