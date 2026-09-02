@@ -800,7 +800,7 @@
               <label class="form-label">Tu código de agente asignado</label>
               <div style="display:flex;align-items:center;gap:.75rem;padding:.9rem 1rem;background:rgba(193,146,89,.06);border:1px solid var(--border);border-radius:var(--r);">
                 <i class="fas fa-id-badge" style="color:var(--gold);font-size:1.2rem;"></i>
-                <span style="font-family:'Raleway',sans-serif;font-size:1.1rem;font-weight:700;color:var(--gold);letter-spacing:.14em;" id="agt-preview-code">AGT-0006</span>
+                <span style="font-family:'Raleway',sans-serif;font-size:1.1rem;font-weight:700;color:var(--gold);letter-spacing:.14em;" id="agt-preview-code">AGT-XXXX</span>
               </div>
               <div style="font-size:.68rem;color:var(--gray);margin-top:.3rem;">Se te asignará un código numérico único al aprobar tu solicitud.</div>
             </div>
@@ -892,12 +892,12 @@
           </p>
           <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:1.2rem;text-align:left;">
             <div style="display:flex;justify-content:space-between;padding:.4rem 0;font-size:.78rem;border-bottom:1px solid var(--border);">
-              <span style="color:var(--gray);">Código solicitado</span>
-              <span style="color:var(--gold);font-weight:600;" id="pending-code-display">AGT-0006</span>
+              <span style="color:var(--gray);">Código de agente</span>
+              <span style="color:var(--gray);" id="pending-code-display">Pendiente de asignación</span>
             </div>
             <div style="display:flex;justify-content:space-between;padding:.4rem 0;font-size:.78rem;border-bottom:1px solid var(--border);">
               <span style="color:var(--gray);">Fecha de solicitud</span>
-              <span style="color:var(--white);">20 Abr 2026</span>
+              <span style="color:var(--white);" id="pending-date-display">—</span>
             </div>
             <div style="display:flex;justify-content:space-between;padding:.4rem 0;font-size:.78rem;">
               <span style="color:var(--gray);">Estado</span>
@@ -924,7 +924,7 @@
           <div>
             <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.6rem;margin-bottom:1.2rem;">
               <div style="font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.6rem;">Tu código</div>
-              <div class="agent-code-display" id="active-code-display">AGT-0003</div>
+              <div class="agent-code-display" id="active-code-display">—</div>
               <button onclick="navigator.clipboard.writeText(document.getElementById('active-code-display').textContent).then(()=>showToast('✅ Código copiado'))" style="width:100%;padding:.55rem;background:transparent;border:1px solid var(--border);border-radius:var(--r);color:var(--gray);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;cursor:pointer;margin-top:.3rem;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:.2s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--gray)'">
                 <i class="fas fa-copy"></i> Copiar código
               </button>
@@ -1539,6 +1539,14 @@ async function loadPortalData() {
     const kpiCot = document.querySelectorAll('.kpi-card .kpi-val')[1];
     if (kpiCot) { kpiCot.textContent = cots.length; kpiCot.parentElement.querySelector('.kpi-sub').textContent = cots.filter(c => (c.estado||'').toLowerCase() === 'pendiente').length + ' pendiente(s)'; }
   } catch {}
+  try {
+    const sol = await apiFetch('/api/agente/solicitud/mi-solicitud');
+    if (sol?.estado === 'aprobado') {
+      activarCodigo(sol.codigo_asignado);
+    } else if (sol?.estado === 'pendiente') {
+      _mostrarAgentePendiente(sol.created_at ? new Date(sol.created_at).toLocaleDateString('es-GT') : '—');
+    }
+  } catch {}
 }
 
 function fillUserUI() {
@@ -1612,26 +1620,58 @@ async function savePerfil() {
 let agenteState = 'none';
 let savedBankData = null;
 
-function solicitarCodigo() {
+async function solicitarCodigo() {
   const banco = document.getElementById('req-bank-nombre').value;
   const tipo = document.getElementById('req-bank-tipo').value;
   const cuenta = document.getElementById('req-bank-cuenta').value.trim();
   const titular = document.getElementById('req-bank-titular').value.trim();
-  if (!banco || !tipo || !cuenta || !titular) { showToast('⚠️ Completa los datos bancarios — son obligatorios para recibir comisiones'); document.getElementById('req-bank-nombre').focus(); return; }
-  savedBankData = { banco, tipo, cuenta, titular };
-  renderPerfilBanco();
-  const code = 'AGT-' + String(Math.floor(Math.random() * 9000) + 1000);
+  if (!banco || !tipo || !cuenta || !titular) {
+    showToast('⚠️ Completa los datos bancarios — son obligatorios para recibir comisiones');
+    document.getElementById('req-bank-nombre').focus();
+    return;
+  }
+  const btn = document.querySelector('[onclick="solicitarCodigo()"]');
+  const orig = btn ? btn.innerHTML : '';
+  if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...'; btn.disabled = true; }
+  try {
+    await apiFetch('/api/agente/solicitud', {
+      method: 'POST',
+      body: JSON.stringify({
+        banco,
+        tipo_cuenta: tipo,
+        cuenta_bancaria: cuenta,
+        titular_cuenta: titular,
+        tipo_referido: document.getElementById('agt-tipo')?.value || null,
+        notas: document.getElementById('agt-notas')?.value.trim() || null,
+        dpi_frente: 'pendiente-portal',
+        selfie: 'pendiente-portal',
+        acepta_terminos: true,
+        firma_electronica: (currentUser?.nombre || currentUser?.email || '').trim()
+      })
+    });
+    savedBankData = { banco, tipo, cuenta, titular };
+    renderPerfilBanco();
+    _mostrarAgentePendiente(new Date().toLocaleDateString('es-GT'));
+    showToast('✅ Solicitud enviada — revisamos en 1-2 días hábiles');
+  } catch(e) {
+    showToast('⚠️ ' + e.message);
+  } finally {
+    if (btn) { btn.innerHTML = orig; btn.disabled = false; }
+  }
+}
+
+function _mostrarAgentePendiente(fecha) {
   agenteState = 'pending';
-  document.getElementById('pending-code-display').textContent = code;
+  const dateEl = document.getElementById('pending-date-display');
+  if (dateEl) dateEl.textContent = fecha || '—';
   document.getElementById('agente-state-none').style.display = 'none';
   document.getElementById('agente-state-pending').style.display = 'block';
   document.getElementById('agente-state-active').style.display = 'none';
-  showToast(`✅ Solicitud enviada — Código provisional: ${code}`);
 }
 
 function activarCodigo(code) {
   agenteState = 'active';
-  document.getElementById('active-code-display').textContent = code || 'AGT-0003';
+  document.getElementById('active-code-display').textContent = code;
   document.getElementById('agente-state-none').style.display = 'none';
   document.getElementById('agente-state-pending').style.display = 'none';
   document.getElementById('agente-state-active').style.display = 'block';
@@ -1652,7 +1692,8 @@ function vincularPaso1() {
 
 function vincularPaso2() {
   const agtIngresado = document.getElementById('vinc-agt-input').value.trim().toUpperCase();
-  const miCodigo = (document.getElementById('active-code-display')?.textContent || 'AGT-0003').trim().toUpperCase();
+  const miCodigo = (document.getElementById('active-code-display')?.textContent || '').trim().toUpperCase();
+  if (!miCodigo || miCodigo === '—') { showToast('Tu código de agente no está activo aún'); return; }
   const resultado = document.getElementById('vincular-resultado');
   if (!agtIngresado) { showToast('El código AGT no puede estar vacío'); return; }
   if (agtIngresado === miCodigo) {

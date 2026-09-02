@@ -129,12 +129,9 @@ router.put('/solicitudes/:id', async (req, res) => {
     let updateData = { estado, notas_admin: notas_admin || null, updated_at: new Date().toISOString() };
 
     if (estado === 'aprobado') {
-      // Generate unique agent code: AGT-YY-XXXXX
-      const year = String(new Date().getFullYear()).slice(-2);
-      const { count } = await supabase
-        .from('solicitudes_agente').select('id', { count: 'exact', head: true }).eq('estado', 'aprobado');
-      const seq = String((count || 0) + 1).padStart(5, '0');
-      updateData.codigo_asignado = `AGT-${year}-${seq}`;
+      const { data: seqNum, error: seqErr } = await supabase.rpc('incrementar_secuencia_agente');
+      if (seqErr) return res.status(500).json({ error: 'No se pudo generar el código de agente: ' + seqErr.message });
+      updateData.codigo_asignado = `AGT-${String(seqNum).padStart(4, '0')}`;
 
       // Also store code on clientes record
       const { data: sol } = await supabase
