@@ -64,29 +64,35 @@ app.get(['/health', '/api/health'], async (req, res) => {
 const authRouter = require('./src/routes/auth');
 app.use('/api/auth', authRouter);
 
+const DISP_ALLOWED = new Set(['vacia', 'habitada', 'airbnb', 'en_construccion']);
+
 app.get('/api/propiedades/public', async (req, res) => {
   try {
-    const { zona, tipo, modalidad, precio_min, precio_max, m2_min, m2_max } = req.query;
+    const { zona, tipo, modalidad, precio_min, precio_max, m2_min, m2_max, disponibilidad } = req.query;
+    const dispVals = disponibilidad
+      ? disponibilidad.split(',').map(v => v.trim()).filter(v => DISP_ALLOWED.has(v))
+      : [];
     const applyFilters = (q) => {
-      if (zona)       q = q.ilike('zona', `%${zona}%`);
-      if (tipo)       q = q.eq('tipo', tipo);
-      if (modalidad)  q = q.eq('modalidad', modalidad);
-      if (precio_min) q = q.gte('precio', Number(precio_min));
-      if (precio_max) q = q.lte('precio', Number(precio_max));
-      if (m2_min)     q = q.gte('m2', Number(m2_min));
-      if (m2_max)     q = q.lte('m2', Number(m2_max));
+      if (zona)           q = q.ilike('zona', `%${zona}%`);
+      if (tipo)           q = q.eq('tipo', tipo);
+      if (modalidad)      q = q.eq('modalidad', modalidad);
+      if (precio_min)     q = q.gte('precio', Number(precio_min));
+      if (precio_max)     q = q.lte('precio', Number(precio_max));
+      if (m2_min)         q = q.gte('m2', Number(m2_min));
+      if (m2_max)         q = q.lte('m2', Number(m2_max));
+      if (dispVals.length) q = q.overlaps('disponibilidad', dispVals);
       return q;
     };
     // Try with adicionales join first; fall back to base select if table doesn't exist yet
     let { data, error } = await applyFilters(
       supabasePublic.from('propiedades')
-        .select('id,nombre,tipo,modalidad,precio,m2,zona,linktour3d,propiedades_adicionales(tipo,nombre)')
+        .select('id,nombre,tipo,modalidad,precio,m2,zona,linktour3d,disponibilidad,propiedades_adicionales(tipo,nombre)')
         .order('id', { ascending: false })
     );
     if (error && error.message && error.message.includes('propiedades_adicionales')) {
       ({ data, error } = await applyFilters(
         supabasePublic.from('propiedades')
-          .select('id,nombre,tipo,modalidad,precio,m2,zona,linktour3d')
+          .select('id,nombre,tipo,modalidad,precio,m2,zona,linktour3d,disponibilidad')
           .order('id', { ascending: false })
       ));
     }
