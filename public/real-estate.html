@@ -354,6 +354,7 @@
     .footer-grid{grid-template-columns:1fr;}
   }
   </style>
+  <script src="js/catalog.js"></script>
 </head>
 <body>
 
@@ -826,105 +827,26 @@ window.addEventListener('scroll',()=>{
   document.getElementById('scroll-top').classList.toggle('visible',window.scrollY>300);
 });
 function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
-/* ── PUBLIC API ─────────────────────────────────────────── */
-const API_URL = (location.hostname==='localhost'||location.hostname==='127.0.0.1') ? 'http://localhost:3000' : '';
-let allProps = []; // cache for sort without re-fetching
+/* ── CATALOG INIT ─────────────────────────────────────────── */
+let adicSeleccionados = new Set();
 
-const TIPO_ICON = {Apartamento:'fa-building',Casa:'fa-home',Terreno:'fa-map','Local comercial':'fa-store',Oficina:'fa-briefcase',Penthouse:'fa-city','Bodega / Galera':'fa-warehouse'};
-const DISP_CLASS  = {vacia:'disp-vacia',habitada:'disp-habitada',airbnb:'disp-airbnb',en_construccion:'disp-construccion'};
-const DISP_LABEL  = {vacia:'Disponible',habitada:'Habitada',airbnb:'Airbnb',en_construccion:'En construcción'};
-function _modLabel(m){return Array.isArray(m)?m.map(v=>v==='venta'?'Venta':'Renta').join(' · '):(m||'Venta');}
-function _modIsRenta(m){return Array.isArray(m)?m.includes('renta'):String(m||'').toLowerCase().includes('renta');}
-
-function propCardHTML(p) {
-  const icon = TIPO_ICON[p.tipo] || 'fa-home';
-  const precio = p.precio ? '$' + Number(p.precio).toLocaleString() : 'Consultar';
-  const isRenta = _modIsRenta(p.modalidad);
-  const code = 'PROP-' + String(p.id).padStart(5,'0');
-  const adics = (p.propiedades_adicionales||[]).map(a=>a.nombre);
-  const habSpec = adics.find(a=>a.match(/\d+ hab/i)) || '';
-  const m2Spec = p.m2 ? `${p.m2} m²` : '';
-  const dispArr = p.disponibilidad || [];
-  const dispBadges = dispArr.length
-    ? `<div class="disp-badges">${dispArr.map(d=>`<span class="disp-badge ${DISP_CLASS[d]||''}">${DISP_LABEL[d]||d}</span>`).join('')}</div>`
-    : '';
-  return `<div class="prop-card" data-id="${p.id}" data-adics='${JSON.stringify(adics)}'>
-    <div class="prop-img">
-      <div class="prop-img-ph"><i class="fas ${icon}"></i><span>${p.linktour3d?'Tour virtual disponible':'Sin tour aún'}</span></div>
-      <span class="prop-badge ${isRenta?'badge-renta':'badge-venta'}">${_modLabel(p.modalidad)}</span>
-      ${p.linktour3d?`<span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>`:''}
-    </div>
-    <div class="prop-body">
-      <div class="prop-code">${code}</div>
-      <div class="prop-name"><i class="fas ${icon}" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>${p.nombre}</div>
-      <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> ${p.zona||'Guatemala'}</div>
-      <div class="prop-specs">
-        ${p.tipo?`<span class="prop-spec"><i class="fas ${icon}"></i> ${p.tipo}</span>`:''}
-        ${m2Spec?`<span class="prop-spec"><i class="fas fa-ruler-combined"></i> ${m2Spec}</span>`:''}
-      </div>
-      ${dispBadges}
-      <div class="prop-price" data-usd="${p.precio||0}">${precio}</div>
-    </div>
-    <div class="prop-foot">
-      ${p.linktour3d
-        ? `<a href="${p.linktour3d}" target="_blank" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>`
-        : `<a href="index.html#cotizador" class="prop-link">Agendar visita <i class="fas fa-arrow-right"></i></a>`}
-      <i class="far fa-heart prop-heart" onclick="toggleFav(this,'${code}',${p.id})" title="Guardar en favoritos"></i>
-    </div>
-  </div>`;
-}
-
-async function loadPropiedades() {
-  const grid = document.getElementById('propsGrid');
-  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--gray);"><i class="fas fa-spinner fa-spin" style="font-size:1.4rem;color:var(--gold);"></i><div style="margin-top:.8rem;font-size:.8rem;">Cargando propiedades...</div></div>';
-
-  const params = new URLSearchParams();
-  // Modalidad checkboxes
-  const mods = [...document.querySelectorAll('.fc-modalidad:checked')].map(c=>c.value);
-  const allMods = document.querySelectorAll('.fc-modalidad').length;
-  if(mods.length < allMods && mods.length > 0) params.set('modalidad', mods.join(','));
-  // Tipo checkboxes
-  const tipos = [...document.querySelectorAll('.fc-tipo:checked')].map(c=>c.value);
-  const allTipos = document.querySelectorAll('.fc-tipo').length;
-  if(tipos.length === 1) params.set('tipo', tipos[0]);
-  const zona = document.getElementById('f-zona')?.value.trim();
-  const pMin = document.getElementById('f-min')?.value;
-  const pMax = document.getElementById('f-max')?.value;
-  const m2Min = document.getElementById('f-m2-min')?.value;
-  const m2Max = document.getElementById('f-m2-max')?.value;
-  if(zona) params.set('zona', zona);
-  if(pMin) params.set('precio_min', pMin);
-  if(pMax) params.set('precio_max', pMax);
-  if(m2Min) params.set('m2_min', m2Min);
-  if(m2Max) params.set('m2_max', m2Max);
-  // Disponibilidad: send param only when user deselected at least one option
-  const dispAll = document.querySelectorAll('.fc-disponibilidad').length;
-  const dispChecked = [...document.querySelectorAll('.fc-disponibilidad:checked')].map(c=>c.value);
-  if(dispChecked.length < dispAll && dispChecked.length > 0) params.set('disponibilidad', dispChecked.join(','));
-
-  try {
-    const qs = params.toString();
-    let props = await fetch(API_URL + '/api/propiedades/public' + (qs?'?'+qs:'')).then(r=>r.json());
-    if(tipos.length && tipos.length < allTipos) props = props.filter(p=>tipos.includes(p.tipo));
-    // Adicionales filter
-    if(adicSeleccionados && adicSeleccionados.size) {
-      props = props.filter(p => {
-        const propAdics = (p.propiedades_adicionales||[]).map(a=>a.nombre);
-        return [...adicSeleccionados].every(a => propAdics.includes(a));
-      });
-    }
-    allProps = props;
-    document.getElementById('prop-count').textContent = props.length;
-    if(!props.length) {
-      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--gray);"><i class="fas fa-search" style="font-size:2rem;opacity:.3;display:block;margin-bottom:1rem;"></i>Sin propiedades con esos filtros.</div>';
-    } else {
-      grid.innerHTML = props.map(propCardHTML).join('');
-      applyCurrency();
-    }
-  } catch(e) {
-    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:3rem;color:#E08080;">Error al cargar propiedades: ${e.message}</div>`;
-  }
-}
+const catalog = initCatalog({
+  gridId:      'propsGrid',
+  countId:     'prop-count',
+  cardVariant: 'public',
+  filterIds: {
+    modalidad:      '.fc-modalidad',
+    tipo:           '.fc-tipo',
+    disponibilidad: '.fc-disponibilidad',
+    precioMin: 'f-min',    precioMax: 'f-max',
+    m2Min:     'f-m2-min', m2Max:    'f-m2-max',
+    zona: 'f-zona',
+  },
+  onToggleFav:   (el, code, propId) => toggleFav(el, code, propId),
+  onCardClick:   (code) => openDetail(code),
+  onAfterRender: () => applyCurrency(),
+  getAdics:      () => adicSeleccionados,
+});
 
 function setView(v){
   const grid=document.getElementById('propsGrid');
@@ -932,27 +854,17 @@ function setView(v){
   document.getElementById('btn-list').classList.toggle('active',v==='list');
   grid.classList.toggle('list-view',v==='list');
 }
-function aplicarFiltros(){ loadPropiedades(); }
+function aplicarFiltros(){ catalog.load(); }
 function resetFiltros(){
   document.querySelectorAll('.fc-tipo,.fc-modalidad,.fc-disponibilidad').forEach(cb=>cb.checked=true);
   ['f-min','f-max','f-m2-min','f-m2-max','f-zona'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   limpiarAdic();
-  loadPropiedades();
+  catalog.load();
 }
-function sortProperties(v){
-  if(!allProps.length) return;
-  let sorted=[...allProps];
-  if(v==='price-asc') sorted.sort((a,b)=>(a.precio||0)-(b.precio||0));
-  else if(v==='price-desc') sorted.sort((a,b)=>(b.precio||0)-(a.precio||0));
-  else if(v==='m2-desc') sorted.sort((a,b)=>(b.m2||0)-(a.m2||0));
-  else if(v==='newest') sorted.sort((a,b)=>b.id-a.id);
-  document.getElementById('propsGrid').innerHTML = sorted.map(propCardHTML).join('');
-  applyCurrency();
-}
+function sortProperties(v){ catalog.sort(v); }
 
 /* ── FAVORITES ───────────────────────────────────────────── */
 async function toggleFav(el, code, propId) {
-  event.stopPropagation();
   const token = localStorage.getItem('ve_portal_token');
   if(!token) {
     // Briefly animate heart then show login prompt
@@ -978,7 +890,7 @@ async function toggleFav(el, code, propId) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => { loadPropiedades(); });
+document.addEventListener('DOMContentLoaded', () => { catalog.load(); });
 
 /* ── CAROUSEL ─────────────────────────────────────────── */
 document.querySelectorAll('.prop-img').forEach(img=>{
@@ -1042,7 +954,7 @@ function openDetail(code){
   document.getElementById('detailName').textContent=p.name;
   document.getElementById('detailLoc').textContent=p.loc;
   document.getElementById('detailPrice').textContent=p.price;
-  document.getElementById('detailModalidad').textContent=_modLabel(p.modalidad);
+  document.getElementById('detailModalidad').textContent=catalogModLabel(p.modalidad);
   document.getElementById('detailDesc').textContent=p.desc;
   document.getElementById('detailWA').href=`https://wa.me/50239902399?text=${encodeURIComponent('Hola, me interesa la propiedad '+code+' — '+p.name)}`;
   const sp=document.getElementById('detailSpecs');
@@ -1069,19 +981,7 @@ function closeDetailBtn(){
   document.body.style.overflow='';
 }
 
-// Make cards clickable
-document.querySelectorAll('.prop-card').forEach(card=>{
-  card.style.cursor='pointer';
-  card.addEventListener('click',function(e){
-    if(e.target.closest('.prop-heart')||e.target.closest('.carousel-btn')||e.target.closest('.c-dot')) return;
-    const code=this.querySelector('.prop-code');
-    if(code) openDetail(code.textContent.trim());
-  });
-});
-
 /* ── ADICIONALES MODAL ─────────────────────────────────── */
-let adicSeleccionados = new Set();
-
 function abrirAdicionales(){
   document.getElementById('adicOverlay').classList.add('open');
   document.body.style.overflow='hidden';
@@ -1125,7 +1025,7 @@ function aplicarAdicionales(){
   } else {
     countEl.style.display='none';
   }
-  loadPropiedades();
+  catalog.load();
 }
 function renderChips(){
   const container=document.getElementById('adic-chips-container');
