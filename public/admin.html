@@ -675,9 +675,9 @@
           <button class="topbar-btn btn-primary" onclick="abrirFormPropiedad()"><i class="fas fa-plus"></i> Nueva Propiedad</button>
         </div>
         <table>
-          <thead><tr><th>ID</th><th>Título</th><th>Tipo</th><th>Modalidad</th><th>Precio</th><th>M²</th><th>Zona</th><th>Tour 3D</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>ID</th><th>Título</th><th>Tipo</th><th>Modalidad</th><th>Precio</th><th>M²</th><th>Zona</th><th>Tour 3D</th><th>Disponibilidad</th><th>Acciones</th></tr></thead>
           <tbody id="propiedades-tbody">
-            <tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
+            <tr><td colspan="10" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -1591,6 +1591,23 @@
         <input type="checkbox" id="feat-seg" style="accent-color:var(--gold);"/>
         <label for="feat-seg" style="font-size:.72rem;cursor:pointer;">Seguridad 24/7</label>
       </div>
+    </div>
+
+    <!-- Sección: Disponibilidad -->
+    <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.6rem;margin-top:.8rem;"><i class="fas fa-door-open" style="margin-right:.3rem;"></i>Disponibilidad <span style="font-size:.5rem;color:var(--gray);text-transform:none;letter-spacing:0;font-weight:400;">(sin marcar = sin clasificar)</span></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:.8rem;">
+      <label style="display:flex;align-items:center;gap:.45rem;font-size:.72rem;cursor:pointer;padding:.5rem .7rem;border:1px solid var(--border);border-radius:var(--r);transition:.2s;" onmouseover="this.style.borderColor='#3DB87A'" onmouseout="this.style.borderColor='var(--border)'">
+        <input type="checkbox" id="disp-vacia" style="accent-color:#3DB87A;"/> <span style="color:#3DB87A;font-weight:600;">Vacía</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:.45rem;font-size:.72rem;cursor:pointer;padding:.5rem .7rem;border:1px solid var(--border);border-radius:var(--r);transition:.2s;" onmouseover="this.style.borderColor='#D4845A'" onmouseout="this.style.borderColor='var(--border)'">
+        <input type="checkbox" id="disp-habitada" style="accent-color:#D4845A;"/> <span style="color:#D4845A;font-weight:600;">Habitada</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:.45rem;font-size:.72rem;cursor:pointer;padding:.5rem .7rem;border:1px solid var(--border);border-radius:var(--r);transition:.2s;" onmouseover="this.style.borderColor='#E07A5A'" onmouseout="this.style.borderColor='var(--border)'">
+        <input type="checkbox" id="disp-airbnb" style="accent-color:#E07A5A;"/> <span style="color:#E07A5A;font-weight:600;">Airbnb activo</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:.45rem;font-size:.72rem;cursor:pointer;padding:.5rem .7rem;border:1px solid var(--border);border-radius:var(--r);transition:.2s;" onmouseover="this.style.borderColor='#8A9BB0'" onmouseout="this.style.borderColor='var(--border)'">
+        <input type="checkbox" id="disp-en-construccion" style="accent-color:#8A9BB0;"/> <span style="color:#8A9BB0;font-weight:600;">En construcción</span>
+      </label>
     </div>
 
     <!-- Sección: Adicionales -->
@@ -2871,6 +2888,7 @@
     _editPropiedadId=null;
     const titleSpan=document.querySelector('#propModalOverlay .modal-title span');
     if(titleSpan) titleSpan.innerHTML='<i class="fas fa-building" style="color:var(--gold);margin-right:.5rem;"></i>Nueva Propiedad';
+    ['disp-vacia','disp-habitada','disp-airbnb','disp-en-construccion'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
     document.getElementById('propModalOverlay').classList.add('open');
   }
   function cerrarFormPropiedad(){
@@ -2882,6 +2900,8 @@
     const tipo = document.getElementById('prop-tipo').value;
     const precio = document.getElementById('prop-precio').value.trim();
     if(!nombre||!tipo||!precio){ showToast('Completa los campos obligatorios (*)'); return; }
+    const disponibilidad = ['vacia','habitada','airbnb','en_construccion']
+      .filter(v => document.getElementById('disp-'+v.replace('_','-'))?.checked);
     const payload = {
       nombre, tipo,
       modalidad: document.getElementById('prop-operacion').value,
@@ -2889,6 +2909,7 @@
       m2: document.getElementById('prop-area').value ? Number(document.getElementById('prop-area').value) : null,
       zona: document.getElementById('prop-zona').value.trim() || null,
       linkTour3D: document.getElementById('prop-tour').value.trim() || null,
+      disponibilidad,
     };
     try {
       if(_editPropiedadId){
@@ -4095,15 +4116,21 @@
   }
 
   /* ── PROPIEDADES ────────────────────────────────────────── */
+  const _DISP_STYLE={vacia:'background:rgba(61,184,122,.12);color:#3DB87A;border:1px solid rgba(61,184,122,.25)',habitada:'background:rgba(212,132,90,.12);color:#D4845A;border:1px solid rgba(212,132,90,.25)',airbnb:'background:rgba(224,122,90,.12);color:#E07A5A;border:1px solid rgba(224,122,90,.25)',en_construccion:'background:rgba(138,155,176,.12);color:#8A9BB0;border:1px solid rgba(138,155,176,.25)'};
+  const _DISP_LABEL={vacia:'Disponible',habitada:'Habitada',airbnb:'Airbnb',en_construccion:'En constr.'};
+  function _dispBadges(arr){
+    if(!Array.isArray(arr)||!arr.length) return '<span style="color:var(--gray);font-size:.68rem;">—</span>';
+    return arr.map(v=>`<span style="${_DISP_STYLE[v]||''};padding:.15rem .45rem;border-radius:3px;font-size:.58rem;font-weight:600;white-space:nowrap;display:inline-block;margin:.1rem .15rem .1rem 0;">${_DISP_LABEL[v]||v}</span>`).join('');
+  }
   let _propiedadesCache={}, _editPropiedadId=null;
   async function loadPropiedades(){
     const tbody=document.getElementById('propiedades-tbody');
     if(!tbody)return;
-    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
+    tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
     try{
       const items=await apiFetch('/api/propiedades');
       _propiedadesCache={}; items.forEach(p=>_propiedadesCache[p.id]=p);
-      if(!items.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay propiedades. ¡Crea la primera!</td></tr>';return;}
+      if(!items.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:2rem;">No hay propiedades. ¡Crea la primera!</td></tr>';return;}
       tbody.innerHTML=items.map(p=>`<tr>
         <td style="color:var(--gray);font-size:.72rem;">${p.id}</td>
         <td class="td-bold">${p.nombre||'—'}</td>
@@ -4113,12 +4140,13 @@
         <td>${p.m2?p.m2+' m²':'—'}</td>
         <td>${p.zona||'—'}</td>
         <td>${p.linktour3d?'<a href="'+p.linktour3d+'" target="_blank" style="color:var(--gold);"><i class="fas fa-vr-cardboard"></i> Ver</a>':'<span style="color:var(--gray);">—</span>'}</td>
+        <td>${_dispBadges(p.disponibilidad)}</td>
         <td><div class="action-btns">
           <button class="act-btn" title="Editar" onclick="editPropiedad(${p.id})"><i class="fas fa-pencil-alt"></i></button>
           <button class="act-btn danger" onclick="deletePropiedad(${p.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
         </div></td>
       </tr>`).join('');
-    }catch(e){tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
+    }catch(e){tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
   }
   async function editPropiedad(id){
     const p=_propiedadesCache[id]; if(!p)return;
@@ -4133,6 +4161,8 @@
     const titleSpan=document.querySelector('#propModalOverlay .modal-title span');
     if(titleSpan) titleSpan.innerHTML='<i class="fas fa-building" style="color:var(--gold);margin-right:.5rem;"></i>Editar Propiedad #'+id;
     document.querySelectorAll('#propModalOverlay .adic-check input[type=checkbox]').forEach(cb => cb.checked = false);
+    const dispArr = Array.isArray(p.disponibilidad) ? p.disponibilidad : [];
+    ['vacia','habitada','airbnb','en_construccion'].forEach(v=>{const el=document.getElementById('disp-'+v.replace('_','-'));if(el)el.checked=dispArr.includes(v);});
     try {
       const adics = await apiFetch(`/api/propiedades/${id}/adicionales`);
       const adicSet = new Set(adics.map(a => a.nombre));
