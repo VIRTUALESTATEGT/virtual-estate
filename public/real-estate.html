@@ -317,6 +317,14 @@
   }
   .adic-chip:hover{background:rgba(193,146,89,.25);}
 
+  /* ── DISPONIBILIDAD BADGES ───────────────────────────── */
+  .disp-badges{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.55rem;}
+  .disp-badge{font-size:.52rem;letter-spacing:.09em;text-transform:uppercase;font-weight:700;padding:.18rem .55rem;border-radius:2px;}
+  .disp-vacia{background:rgba(125,200,154,.12);border:1px solid rgba(125,200,154,.4);color:#7DC89A;}
+  .disp-habitada{background:rgba(200,147,74,.12);border:1px solid rgba(200,147,74,.4);color:#C8934A;}
+  .disp-airbnb{background:rgba(200,107,85,.12);border:1px solid rgba(200,107,85,.4);color:#C86B55;}
+  .disp-construccion{background:rgba(138,155,176,.12);border:1px solid rgba(138,155,176,.4);color:#8A9BB0;}
+
   /* ── FOOTER COMPLETO ─────────────────── */
   footer{background:#07100A;border-top:1px solid var(--border);padding:4rem 0 1.8rem;}
   .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:3rem;padding-bottom:2.5rem;border-bottom:1px solid var(--border);margin-bottom:1.6rem;}
@@ -461,6 +469,16 @@
       <div class="filter-section">
         <div class="filter-section-title">Ubicación / Zona</div>
         <input type="text" class="filter-input" id="f-zona" placeholder="Ej: Zona 10, Mixco..." style="width:100%;"/>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-section-title">Disponibilidad</div>
+        <div class="filter-checks">
+          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="Vacía" checked/> Vacía</label>
+          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="Habitada" checked/> Habitada</label>
+          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="Airbnb" checked/> Airbnb</label>
+          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="En construcción" checked/> En construcción</label>
+        </div>
       </div>
 
       <!-- ADICIONALES APLICADOS -->
@@ -814,6 +832,7 @@ const API_URL = (location.hostname==='localhost'||location.hostname==='127.0.0.1
 let allProps = []; // cache for sort without re-fetching
 
 const TIPO_ICON = {Apartamento:'fa-building',Casa:'fa-home',Terreno:'fa-map','Local comercial':'fa-store',Oficina:'fa-briefcase',Penthouse:'fa-city','Bodega / Galera':'fa-warehouse'};
+const DISP_CLASS = {'Vacía':'disp-vacia','Habitada':'disp-habitada','Airbnb':'disp-airbnb','En construcción':'disp-construccion'};
 
 function propCardHTML(p) {
   const icon = TIPO_ICON[p.tipo] || 'fa-home';
@@ -823,6 +842,10 @@ function propCardHTML(p) {
   const adics = (p.propiedades_adicionales||[]).map(a=>a.nombre);
   const habSpec = adics.find(a=>a.match(/\d+ hab/i)) || '';
   const m2Spec = p.m2 ? `${p.m2} m²` : '';
+  const dispArr = p.disponibilidad || [];
+  const dispBadges = dispArr.length
+    ? `<div class="disp-badges">${dispArr.map(d=>`<span class="disp-badge ${DISP_CLASS[d]||''}">${d}</span>`).join('')}</div>`
+    : '';
   return `<div class="prop-card" data-id="${p.id}" data-adics='${JSON.stringify(adics)}'>
     <div class="prop-img">
       <div class="prop-img-ph"><i class="fas ${icon}"></i><span>${p.linktour3d?'Tour virtual disponible':'Sin tour aún'}</span></div>
@@ -837,6 +860,7 @@ function propCardHTML(p) {
         ${p.tipo?`<span class="prop-spec"><i class="fas ${icon}"></i> ${p.tipo}</span>`:''}
         ${m2Spec?`<span class="prop-spec"><i class="fas fa-ruler-combined"></i> ${m2Spec}</span>`:''}
       </div>
+      ${dispBadges}
       <div class="prop-price" data-usd="${p.precio||0}">${precio}</div>
     </div>
     <div class="prop-foot">
@@ -871,6 +895,10 @@ async function loadPropiedades() {
   if(pMax) params.set('precio_max', pMax);
   if(m2Min) params.set('m2_min', m2Min);
   if(m2Max) params.set('m2_max', m2Max);
+  // Disponibilidad: send param only when user deselected at least one option
+  const dispAll = document.querySelectorAll('.fc-disponibilidad').length;
+  const dispChecked = [...document.querySelectorAll('.fc-disponibilidad:checked')].map(c=>c.value);
+  if(dispChecked.length < dispAll && dispChecked.length > 0) params.set('disponibilidad', dispChecked.join(','));
 
   try {
     const qs = params.toString();
@@ -906,7 +934,7 @@ function setView(v){
 }
 function aplicarFiltros(){ loadPropiedades(); }
 function resetFiltros(){
-  document.querySelectorAll('.fc-tipo,.fc-modalidad').forEach(cb=>cb.checked=true);
+  document.querySelectorAll('.fc-tipo,.fc-modalidad,.fc-disponibilidad').forEach(cb=>cb.checked=true);
   ['f-min','f-max','f-m2-min','f-m2-max','f-zona'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   limpiarAdic();
   loadPropiedades();
