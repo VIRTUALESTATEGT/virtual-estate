@@ -474,10 +474,10 @@
       <div class="filter-section">
         <div class="filter-section-title">Disponibilidad</div>
         <div class="filter-checks">
-          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="Vacía" checked/> Vacía</label>
-          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="Habitada" checked/> Habitada</label>
-          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="Airbnb" checked/> Airbnb</label>
-          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="En construcción" checked/> En construcción</label>
+          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="vacia" checked/> Vacía</label>
+          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="habitada" checked/> Habitada</label>
+          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="airbnb" checked/> Airbnb</label>
+          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="en_construccion" checked/> En construcción</label>
         </div>
       </div>
 
@@ -832,7 +832,8 @@ const API_URL = (location.hostname==='localhost'||location.hostname==='127.0.0.1
 let allProps = []; // cache for sort without re-fetching
 
 const TIPO_ICON = {Apartamento:'fa-building',Casa:'fa-home',Terreno:'fa-map','Local comercial':'fa-store',Oficina:'fa-briefcase',Penthouse:'fa-city','Bodega / Galera':'fa-warehouse'};
-const DISP_CLASS = {'Vacía':'disp-vacia','Habitada':'disp-habitada','Airbnb':'disp-airbnb','En construcción':'disp-construccion'};
+const DISP_CLASS  = {vacia:'disp-vacia',habitada:'disp-habitada',airbnb:'disp-airbnb',en_construccion:'disp-construccion'};
+const DISP_LABEL  = {vacia:'Disponible',habitada:'Habitada',airbnb:'Airbnb',en_construccion:'En construcción'};
 
 function propCardHTML(p) {
   const icon = TIPO_ICON[p.tipo] || 'fa-home';
@@ -844,7 +845,7 @@ function propCardHTML(p) {
   const m2Spec = p.m2 ? `${p.m2} m²` : '';
   const dispArr = p.disponibilidad || [];
   const dispBadges = dispArr.length
-    ? `<div class="disp-badges">${dispArr.map(d=>`<span class="disp-badge ${DISP_CLASS[d]||''}">${d}</span>`).join('')}</div>`
+    ? `<div class="disp-badges">${dispArr.map(d=>`<span class="disp-badge ${DISP_CLASS[d]||''}">${DISP_LABEL[d]||d}</span>`).join('')}</div>`
     : '';
   return `<div class="prop-card" data-id="${p.id}" data-adics='${JSON.stringify(adics)}'>
     <div class="prop-img">
