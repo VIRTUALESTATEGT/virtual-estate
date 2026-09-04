@@ -528,9 +528,8 @@
             <div class="re-filter-section">
               <div class="re-filter-title">Modalidad</div>
               <div class="re-filter-checks">
-                <label class="re-filter-check"><input type="checkbox" class="fc-modalidad" value="Venta" checked/> Venta</label>
-                <label class="re-filter-check"><input type="checkbox" class="fc-modalidad" value="Renta" checked/> Renta</label>
-                <label class="re-filter-check"><input type="checkbox" class="fc-modalidad" value="Venta / Renta" checked/> Venta / Renta</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-modalidad" value="venta" checked/> Venta</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-modalidad" value="renta" checked/> Renta</label>
               </div>
             </div>
 
@@ -1636,7 +1635,7 @@ async function buscarPropiedades() {
   const allTipos = document.querySelectorAll('.fc-tipo').length;
   const allMods = document.querySelectorAll('.fc-modalidad').length;
   if (tipoChecked.length > 0 && tipoChecked.length < allTipos) params.set('tipo', tipoChecked[0]);
-  if (modalidadChecked.length > 0 && modalidadChecked.length < allMods) params.set('modalidad', modalidadChecked[0]);
+  if (modalidadChecked.length > 0 && modalidadChecked.length < allMods) params.set('modalidad', modalidadChecked.join(','));
   if (zona) params.set('zona', zona);
   if (pMin) params.set('precio_min', pMin);
   if (pMax) params.set('precio_max', pMax);
@@ -1654,11 +1653,8 @@ async function buscarPropiedades() {
   try {
     const qs = params.toString();
     let props = await apiFetch('/api/propiedades/public' + (qs ? '?' + qs : ''));
-    // Client-side filter for multi-checkbox (API only supports single value per param)
     if (tipoChecked.length > 0 && tipoChecked.length < allTipos)
       props = props.filter(p => tipoChecked.includes(p.tipo));
-    if (modalidadChecked.length > 0 && modalidadChecked.length < allMods)
-      props = props.filter(p => modalidadChecked.includes(p.modalidad));
     if (loading) loading.style.display = 'none';
     browseData = props;
     if (countEl) countEl.textContent = props.length;

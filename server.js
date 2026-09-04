@@ -65,6 +65,7 @@ const authRouter = require('./src/routes/auth');
 app.use('/api/auth', authRouter);
 
 const DISP_ALLOWED = new Set(['vacia', 'habitada', 'airbnb', 'en_construccion']);
+const MOD_ALLOWED  = new Set(['venta', 'renta']);
 
 app.get('/api/propiedades/public', async (req, res) => {
   try {
@@ -72,14 +73,17 @@ app.get('/api/propiedades/public', async (req, res) => {
     const dispVals = disponibilidad
       ? disponibilidad.split(',').map(v => v.trim()).filter(v => DISP_ALLOWED.has(v))
       : [];
+    const modVals = modalidad
+      ? modalidad.split(',').map(v => v.trim()).filter(v => MOD_ALLOWED.has(v))
+      : [];
     const applyFilters = (q) => {
-      if (zona)           q = q.ilike('zona', `%${zona}%`);
-      if (tipo)           q = q.eq('tipo', tipo);
-      if (modalidad)      q = q.eq('modalidad', modalidad);
-      if (precio_min)     q = q.gte('precio', Number(precio_min));
-      if (precio_max)     q = q.lte('precio', Number(precio_max));
-      if (m2_min)         q = q.gte('m2', Number(m2_min));
-      if (m2_max)         q = q.lte('m2', Number(m2_max));
+      if (zona)            q = q.ilike('zona', `%${zona}%`);
+      if (tipo)            q = q.eq('tipo', tipo);
+      if (modVals.length)  q = q.overlaps('modalidad', modVals);
+      if (precio_min)      q = q.gte('precio', Number(precio_min));
+      if (precio_max)      q = q.lte('precio', Number(precio_max));
+      if (m2_min)          q = q.gte('m2', Number(m2_min));
+      if (m2_max)          q = q.lte('m2', Number(m2_max));
       if (dispVals.length) q = q.overlaps('disponibilidad', dispVals);
       return q;
     };

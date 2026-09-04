@@ -4,19 +4,21 @@ const supabase = require('../config/supabase');
 const verificarPermiso = require('../middleware/permisos');
 
 const DISP_ALLOWED = new Set(['vacia', 'habitada', 'airbnb', 'en_construccion']);
+const MOD_ALLOWED  = new Set(['venta', 'renta']);
 
 // GET / — list with optional filters (CRM)
 router.get('/', async (req, res) => {
   try {
     let q = supabase.from('propiedades').select('*').order('id', { ascending: false });
     const { zona, tipo, modalidad, precio_min, precio_max, m2_min, m2_max } = req.query;
-    if (zona)       q = q.ilike('zona', `%${zona}%`);
-    if (tipo)       q = q.eq('tipo', tipo);
-    if (modalidad)  q = q.eq('modalidad', modalidad);
-    if (precio_min) q = q.gte('precio', Number(precio_min));
-    if (precio_max) q = q.lte('precio', Number(precio_max));
-    if (m2_min)     q = q.gte('m2', Number(m2_min));
-    if (m2_max)     q = q.lte('m2', Number(m2_max));
+    const modVals = modalidad ? modalidad.split(',').map(v => v.trim()).filter(v => MOD_ALLOWED.has(v)) : [];
+    if (zona)            q = q.ilike('zona', `%${zona}%`);
+    if (tipo)            q = q.eq('tipo', tipo);
+    if (modVals.length)  q = q.overlaps('modalidad', modVals);
+    if (precio_min)      q = q.gte('precio', Number(precio_min));
+    if (precio_max)      q = q.lte('precio', Number(precio_max));
+    if (m2_min)          q = q.gte('m2', Number(m2_min));
+    if (m2_max)          q = q.lte('m2', Number(m2_max));
     const { data, error } = await q;
     if (error) throw error;
     res.json(data);
@@ -27,12 +29,11 @@ router.get('/', async (req, res) => {
 router.post('/', verificarPermiso('crear_propiedad'), async (req, res) => {
   try {
     const { nombre, tipo, modalidad, precio, m2, zona, linkTour3D, disponibilidad } = req.body;
-    const disp = Array.isArray(disponibilidad)
-      ? disponibilidad.filter(v => DISP_ALLOWED.has(v))
-      : [];
+    const disp = Array.isArray(disponibilidad) ? disponibilidad.filter(v => DISP_ALLOWED.has(v)) : [];
+    const mod  = Array.isArray(modalidad)      ? modalidad.filter(v => MOD_ALLOWED.has(v))       : [];
     const { data, error } = await supabase
       .from('propiedades')
-      .insert([{ nombre, tipo, modalidad, precio, m2, zona, linktour3d: linkTour3D, disponibilidad: disp }])
+      .insert([{ nombre, tipo, modalidad: mod, precio, m2, zona, linktour3d: linkTour3D, disponibilidad: disp }])
       .select();
     if (error) throw error;
     res.status(201).json(data[0]);
@@ -43,12 +44,11 @@ router.post('/', verificarPermiso('crear_propiedad'), async (req, res) => {
 router.put('/:id', verificarPermiso('editar_propiedad'), async (req, res) => {
   try {
     const { nombre, tipo, modalidad, precio, m2, zona, linkTour3D, disponibilidad } = req.body;
-    const disp = Array.isArray(disponibilidad)
-      ? disponibilidad.filter(v => DISP_ALLOWED.has(v))
-      : [];
+    const disp = Array.isArray(disponibilidad) ? disponibilidad.filter(v => DISP_ALLOWED.has(v)) : [];
+    const mod  = Array.isArray(modalidad)      ? modalidad.filter(v => MOD_ALLOWED.has(v))       : [];
     const { data, error } = await supabase
       .from('propiedades')
-      .update({ nombre, tipo, modalidad, precio, m2, zona, linktour3d: linkTour3D, disponibilidad: disp })
+      .update({ nombre, tipo, modalidad: mod, precio, m2, zona, linktour3d: linkTour3D, disponibilidad: disp })
       .eq('id', req.params.id)
       .select();
     if (error) throw error;

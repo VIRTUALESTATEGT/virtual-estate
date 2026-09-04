@@ -1522,11 +1522,14 @@
       </div>
       <div class="form-group">
         <label class="form-label">Operación</label>
-        <select class="form-control" id="prop-operacion">
-          <option>Venta</option>
-          <option>Renta</option>
-          <option>Venta / Renta</option>
-        </select>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.3rem;">
+          <label style="display:flex;align-items:center;gap:.45rem;font-size:.72rem;cursor:pointer;padding:.5rem .7rem;border:1px solid var(--border);border-radius:var(--r);transition:.2s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+            <input type="checkbox" id="mod-venta" style="accent-color:var(--gold);"/> <span style="font-weight:600;">Venta</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:.45rem;font-size:.72rem;cursor:pointer;padding:.5rem .7rem;border:1px solid var(--border);border-radius:var(--r);transition:.2s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
+            <input type="checkbox" id="mod-renta" style="accent-color:var(--gold);"/> <span style="font-weight:600;">Renta</span>
+          </label>
+        </div>
       </div>
     </div>
 
@@ -2904,7 +2907,7 @@
       .filter(v => document.getElementById('disp-'+v.replace('_','-'))?.checked);
     const payload = {
       nombre, tipo,
-      modalidad: document.getElementById('prop-operacion').value,
+      modalidad: ['venta','renta'].filter(v => document.getElementById('mod-'+v)?.checked),
       precio: Number(precio),
       m2: document.getElementById('prop-area').value ? Number(document.getElementById('prop-area').value) : null,
       zona: document.getElementById('prop-zona').value.trim() || null,
@@ -4153,7 +4156,7 @@
     _editPropiedadId=id;
     document.getElementById('prop-titulo').value=p.nombre||'';
     document.getElementById('prop-tipo').value=p.tipo||'Casa';
-    document.getElementById('prop-operacion').value=p.modalidad||'Venta';
+    const modArr=Array.isArray(p.modalidad)?p.modalidad:[];['venta','renta'].forEach(v=>{const el=document.getElementById('mod-'+v);if(el)el.checked=modArr.includes(v);});
     document.getElementById('prop-precio').value=p.precio||'';
     document.getElementById('prop-area').value=p.m2||'';
     document.getElementById('prop-zona').value=p.zona||'';

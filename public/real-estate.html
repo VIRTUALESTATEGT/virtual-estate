@@ -430,9 +430,8 @@
       <div class="filter-section">
         <div class="filter-section-title">Modalidad</div>
         <div class="filter-checks">
-          <label class="filter-check"><input type="checkbox" class="fc-modalidad" value="Venta" checked/> Venta</label>
-          <label class="filter-check"><input type="checkbox" class="fc-modalidad" value="Renta" checked/> Renta</label>
-          <label class="filter-check"><input type="checkbox" class="fc-modalidad" value="Venta / Renta" checked/> Venta / Renta</label>
+          <label class="filter-check"><input type="checkbox" class="fc-modalidad" value="venta" checked/> Venta</label>
+          <label class="filter-check"><input type="checkbox" class="fc-modalidad" value="renta" checked/> Renta</label>
         </div>
       </div>
 
@@ -883,7 +882,7 @@ async function loadPropiedades() {
   // Modalidad checkboxes
   const mods = [...document.querySelectorAll('.fc-modalidad:checked')].map(c=>c.value);
   const allMods = document.querySelectorAll('.fc-modalidad').length;
-  if(mods.length === 1) params.set('modalidad', mods[0]);
+  if(mods.length < allMods && mods.length > 0) params.set('modalidad', mods.join(','));
   // Tipo checkboxes
   const tipos = [...document.querySelectorAll('.fc-tipo:checked')].map(c=>c.value);
   const allTipos = document.querySelectorAll('.fc-tipo').length;
@@ -906,9 +905,7 @@ async function loadPropiedades() {
   try {
     const qs = params.toString();
     let props = await fetch(API_URL + '/api/propiedades/public' + (qs?'?'+qs:'')).then(r=>r.json());
-    // Multi-select client-side
     if(tipos.length && tipos.length < allTipos) props = props.filter(p=>tipos.includes(p.tipo));
-    if(mods.length && mods.length < allMods) props = props.filter(p=>mods.includes(p.modalidad));
     // Adicionales filter
     if(adicSeleccionados && adicSeleccionados.size) {
       props = props.filter(p => {
