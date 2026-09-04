@@ -856,11 +856,11 @@ async function loadPropiedades() {
   // Modalidad checkboxes
   const mods = [...document.querySelectorAll('.fc-modalidad:checked')].map(c=>c.value);
   const allMods = document.querySelectorAll('.fc-modalidad').length;
-  if(mods.length && mods.length < allMods) params.set('modalidad', mods[0]);
+  if(mods.length === 1) params.set('modalidad', mods[0]);
   // Tipo checkboxes
   const tipos = [...document.querySelectorAll('.fc-tipo:checked')].map(c=>c.value);
   const allTipos = document.querySelectorAll('.fc-tipo').length;
-  if(tipos.length && tipos.length < allTipos) params.set('tipo', tipos[0]);
+  if(tipos.length === 1) params.set('tipo', tipos[0]);
   const zona = document.getElementById('f-zona')?.value.trim();
   const pMin = document.getElementById('f-min')?.value;
   const pMax = document.getElementById('f-max')?.value;
