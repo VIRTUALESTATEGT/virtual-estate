@@ -667,95 +667,24 @@
         </div>
       </div>
 
-      <!-- SECCIÓN 2: Cotizaciones vinculadas a código de agente (#9 / #10) -->
+      <!-- SECCIÓN 2: Cotizaciones vinculadas + vincular (Próximamente) -->
       <div>
         <div style="margin-bottom:1.1rem;">
           <span class="label">Cotizaciones vinculadas a mi código de agente</span>
-          <div style="font-size:.78rem;color:var(--gray);margin-top:.2rem;font-weight:400;">Proyectos donde un cliente usó tu código de referido. Aquí se registran tus comisiones pendientes.</div>
+        </div>
+        <div style="text-align:center;padding:2.2rem 1.5rem;border:1px solid var(--border);border-radius:var(--r);background:var(--bg3);margin-bottom:1.4rem;">
+          <i class="fas fa-clock" style="font-size:1.3rem;color:var(--gold);margin-bottom:.6rem;display:block;opacity:.65;"></i>
+          <div style="font-size:.5rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:.35rem;">Próximamente</div>
+          <div style="font-size:.76rem;color:var(--gray);line-height:1.5;">Aquí aparecerán los proyectos donde un cliente usó tu código de referido.</div>
         </div>
 
-        <!-- Tabla de vinculadas -->
-        <div class="table-wrap" style="margin-bottom:1.4rem;">
-          <table>
-            <thead>
-              <tr>
-                <th>Código COT</th>
-                <th>Concepto</th>
-                <th>Fecha vinculación</th>
-                <th>Comisión</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody id="vinculadas-tbody">
-              <tr>
-                <td style="color:var(--gold);font-weight:600;font-size:.75rem;">COT-26-0005</td>
-                <td style="font-size:.75rem;">Tour Virtual 3D · Zona 10</td>
-                <td style="color:var(--gray);font-size:.75rem;">10 Abr 2026</td>
-                <td style="color:var(--gold);font-weight:600;">$200</td>
-                <td><span class="badge badge-approved" style="background:rgba(90,224,138,.12);color:#5AE08A;border:1px solid rgba(90,224,138,.25);">Pagado</span></td>
-              </tr>
-              <tr>
-                <td style="color:var(--gold);font-weight:600;font-size:.75rem;">COT-26-0007</td>
-                <td style="font-size:.75rem;">Paquete Premium · Villa Nueva</td>
-                <td style="color:var(--gray);font-size:.75rem;">17 Abr 2026</td>
-                <td style="color:var(--gold);font-weight:600;">$150</td>
-                <td><span class="badge badge-pending">Pendiente</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Verificación de dos pasos para vincular (#10) -->
         <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.6rem;">
-          <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.3rem;"><i class="fas fa-link" style="margin-right:.4rem;"></i>Vincular cotización existente</div>
-          <p style="font-size:.75rem;color:var(--gray);line-height:1.6;margin-bottom:1.4rem;font-weight:400;">
-            Para vincular una cotización activa a tu código de agente se requiere una confirmación de dos pasos: <strong style="color:var(--white);">tú ingresas el código COT del cliente</strong> y el <strong style="color:var(--white);">cliente confirma ingresando tu código AGT</strong>. Ambos deben coincidir para activar el vínculo.
-          </p>
-
-          <!-- Paso 1 -->
-          <div id="vincular-paso1">
-            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem;">
-              <span style="width:22px;height:22px;border-radius:50%;background:var(--gold);color:var(--bg);font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</span>
-              <div style="font-size:.78rem;font-weight:600;">Ingresa el código de cotización del cliente</div>
-            </div>
-            <div style="display:flex;gap:.8rem;align-items:flex-end;">
-              <div class="form-group" style="margin:0;flex:1;">
-                <label class="form-label">Código COT del cliente</label>
-                <input type="text" class="form-control" id="vinc-cot-input" placeholder="COT-26-0000" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"/>
-              </div>
-              <button onclick="vincularPaso1()" class="w-btn w-btn-gold" style="height:38px;white-space:nowrap;">
-                <i class="fas fa-arrow-right"></i> Continuar
-              </button>
-            </div>
-            <div style="font-size:.65rem;color:var(--gray);margin-top:.4rem;line-height:1.5;"><i class="fas fa-info-circle" style="color:var(--gold);margin-right:.3rem;"></i>El cliente debe haberte proporcionado su código de cotización COT-26-XXXX.</div>
+          <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;"><i class="fas fa-link" style="margin-right:.4rem;"></i>Vincular cotización existente</div>
+          <div style="text-align:center;padding:1.6rem 1rem;">
+            <i class="fas fa-clock" style="font-size:1.2rem;color:var(--gold);margin-bottom:.5rem;display:block;opacity:.65;"></i>
+            <div style="font-size:.5rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:.35rem;">Próximamente</div>
+            <div style="font-size:.76rem;color:var(--gray);line-height:1.5;">El proceso de vinculación de cotizaciones a tu código de agente estará disponible próximamente.</div>
           </div>
-
-          <!-- Paso 2 (oculto hasta que se complete paso 1) -->
-          <div id="vincular-paso2" style="display:none;margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid var(--border);">
-            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem;">
-              <span style="width:22px;height:22px;border-radius:50%;background:var(--gold);color:var(--bg);font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</span>
-              <div style="font-size:.78rem;font-weight:600;">El cliente confirma ingresando tu código AGT</div>
-            </div>
-            <div style="background:rgba(193,146,89,.06);border:1px solid rgba(193,146,89,.2);border-radius:var(--r);padding:1rem;margin-bottom:1rem;">
-              <div style="font-size:.68rem;color:var(--gray);margin-bottom:.3rem;">Cotización a vincular</div>
-              <div style="font-size:.88rem;font-weight:700;color:var(--gold);" id="vinc-cot-confirm">—</div>
-            </div>
-            <div style="display:flex;gap:.8rem;align-items:flex-end;">
-              <div class="form-group" style="margin:0;flex:1;">
-                <label class="form-label">El cliente ingresa tu código AGT aquí</label>
-                <input type="text" class="form-control" id="vinc-agt-input" placeholder="AGT-0000 — ingresado por el cliente" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"/>
-              </div>
-              <button onclick="vincularPaso2()" class="w-btn w-btn-gold" style="height:38px;white-space:nowrap;">
-                <i class="fas fa-check"></i> Confirmar
-              </button>
-            </div>
-            <button onclick="cancelarVinculacion()" style="margin-top:.6rem;background:none;border:none;color:var(--gray);font-size:.7rem;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;font-weight:600;display:flex;align-items:center;gap:.3rem;">
-              <i class="fas fa-times"></i> Cancelar
-            </button>
-          </div>
-
-          <!-- Resultado -->
-          <div id="vincular-resultado" style="display:none;margin-top:1.2rem;padding:1rem;border-radius:var(--r);text-align:center;"></div>
         </div>
       </div>
 
@@ -934,96 +863,56 @@
             </div>
             <div class="agent-stat-row">
               <div class="agent-stat">
-                <div class="agent-stat-num" id="agt-referidos">4</div>
+                <div class="agent-stat-num" id="agt-referidos">—</div>
                 <div class="agent-stat-label">Referidos</div>
               </div>
               <div class="agent-stat">
-                <div class="agent-stat-num" style="color:#5AE08A;" id="agt-cerrados">2</div>
+                <div class="agent-stat-num" style="color:#5AE08A;" id="agt-cerrados">—</div>
                 <div class="agent-stat-label">Cerrados</div>
               </div>
               <div class="agent-stat">
-                <div class="agent-stat-num" style="font-size:1.1rem;" id="agt-total">$350</div>
+                <div class="agent-stat-num" style="font-size:1.1rem;" id="agt-total">—</div>
                 <div class="agent-stat-label">Comisiones</div>
               </div>
             </div>
           </div>
 
           <div>
-            <div style="margin-bottom:.8rem;display:flex;justify-content:space-between;align-items:center;">
+            <div style="margin-bottom:.8rem;">
               <span class="label">Historial de comisiones</span>
-              <span style="font-size:.7rem;color:var(--gray);">Pendientes por pagar: <strong style="color:var(--gold);" id="agt-pendiente">$150</strong></span>
             </div>
-            <div class="commission-table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Proyecto</th>
-                    <th>Monto</th>
-                    <th>Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td style="font-size:.75rem;">COT-26-0005 <span style="color:var(--gray);font-size:.65rem;display:block;">Tour 3D · Zona 10</span></td>
-                    <td style="color:var(--gold);font-weight:600;">$200</td>
-                    <td><span class="badge-paid"><i class="fas fa-check-circle"></i> Pagado</span></td>
-                  </tr>
-                  <tr>
-                    <td style="font-size:.75rem;">COT-26-0007 <span style="color:var(--gray);font-size:.65rem;display:block;">Paquete Premium · V. Nueva</span></td>
-                    <td style="color:var(--gold);font-weight:600;">$150</td>
-                    <td><span class="badge-unpaid"><i class="fas fa-clock"></i> Pendiente</span></td>
-                  </tr>
-                </tbody>
-              </table>
+            <div style="text-align:center;padding:2.2rem 1.5rem;border:1px solid var(--border);border-radius:var(--r);background:var(--bg3);">
+              <i class="fas fa-clock" style="font-size:1.3rem;color:var(--gold);margin-bottom:.6rem;display:block;opacity:.65;"></i>
+              <div style="font-size:.5rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:.35rem;">Próximamente</div>
+              <div style="font-size:.76rem;color:var(--gray);line-height:1.5;">El historial de comisiones y el estado de pagos estarán disponibles una vez que el módulo esté activo.</div>
             </div>
-            <p style="font-size:.7rem;color:var(--gray);margin-top:.8rem;line-height:1.6;">
-              Los pagos se procesan dentro de los primeros 5 días del mes siguiente al cierre del proyecto.
-              Tu comisión proviene de la comisión interna de VE — <strong style="color:var(--white);">no se cobra extra al cliente</strong>.
-              Cualquier duda, <a href="https://wa.me/50239902399" style="color:var(--gold);">escríbenos por WhatsApp</a>.
-            </p>
           </div>
         </div>
 
-        <!-- #12: PROMO CODE GENERATOR -->
+        <!-- #12: PROMO CODE — Próximamente -->
         <div class="promo-section">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.8rem;">
-            <div>
-              <span class="label">Código Promo</span>
-              <div style="font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:.2rem;">Crea un descuento para tu cliente</div>
-            </div>
-            <div style="font-size:.7rem;color:var(--gray);max-width:280px;text-align:right;line-height:1.5;">El descuento <strong style="color:var(--white);">se descuenta de tu comisión</strong>, no del precio de VE.</div>
+          <div style="margin-bottom:1rem;">
+            <span class="label">Código Promo</span>
+            <div style="font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:.2rem;">Crea un descuento para tu cliente</div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:.8rem;align-items:end;margin-bottom:1rem;">
-            <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">Nombre del código</label>
-              <input type="text" class="form-control" id="promo-name" placeholder="Ej: MARIO10" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"/>
-            </div>
-            <div class="form-group" style="margin-bottom:0;">
-              <label class="form-label">Descuento (%)</label>
-              <input type="number" class="form-control" id="promo-pct" placeholder="Ej: 10" min="1" max="100" oninput="calcPromoImpact()"/>
-            </div>
-            <button onclick="generarPromo()" class="w-btn w-btn-gold" style="height:38px;white-space:nowrap;">
-              <i class="fas fa-tag"></i> Crear
-            </button>
+          <div style="text-align:center;padding:2.2rem 1.5rem;border:1px solid var(--border);border-radius:var(--r);background:var(--bg3);">
+            <i class="fas fa-clock" style="font-size:1.3rem;color:var(--gold);margin-bottom:.6rem;display:block;opacity:.65;"></i>
+            <div style="font-size:.5rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:.35rem;">Próximamente</div>
+            <div style="font-size:.76rem;color:var(--gray);line-height:1.5;">Podrás generar códigos de descuento para tus clientes, descontados de tu comisión.</div>
           </div>
-          <div id="promo-impact" style="display:none;background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:var(--r);padding:.8rem 1rem;margin-bottom:1rem;font-size:.75rem;color:var(--gray);line-height:1.6;"></div>
-          <div id="promo-list" style="display:flex;flex-wrap:wrap;gap:.6rem;margin-top:.5rem;"></div>
-          <p style="font-size:.65rem;color:var(--gray);margin-top:.7rem;line-height:1.5;"><i class="fas fa-info-circle" style="color:var(--gold);margin-right:.3rem;"></i>El descuento se aplica al precio del cliente pero es deducido de tu comisión. No puede superar el monto de tu comisión en esa venta.</p>
         </div>
 
-        <!-- Datos bancarios — se ingresaron al solicitar el código -->
+        <!-- Datos bancarios — visualización próximamente -->
         <div style="margin-top:1.4rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.2rem 1.4rem;" id="bank-section-active">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.6rem;">
-            <div style="display:flex;align-items:center;gap:.6rem;">
-              <i class="fas fa-university" style="color:var(--gold);font-size:1rem;"></i>
-              <div>
-                <div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600;">Cuenta para comisiones</div>
-                <div style="font-size:.8rem;font-weight:600;margin-top:.15rem;" id="active-bank-summary">—</div>
-              </div>
-            </div>
-            <span style="background:rgba(60,180,100,.12);color:#5AE08A;border:1px solid rgba(60,180,100,.3);padding:.22rem .75rem;border-radius:20px;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">✓ Registrada</span>
+          <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem;">
+            <i class="fas fa-university" style="color:var(--gold);font-size:1rem;"></i>
+            <div style="font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600;">Cuenta para comisiones</div>
           </div>
-          <p style="font-size:.65rem;color:var(--gray);margin-top:.6rem;line-height:1.5;"><i class="fas fa-info-circle" style="color:var(--gold);margin-right:.3rem;"></i>Para actualizar tus datos bancarios ve a <strong style="color:var(--white);">Mi Perfil → Cuenta bancaria</strong>.</p>
+          <div style="text-align:center;padding:1.4rem 1rem;border:1px solid var(--border);border-radius:var(--r);background:var(--bg3);">
+            <i class="fas fa-clock" style="font-size:1.1rem;color:var(--gold);margin-bottom:.5rem;display:block;opacity:.65;"></i>
+            <div style="font-size:.5rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:.35rem;">Próximamente</div>
+            <div style="font-size:.76rem;color:var(--gray);line-height:1.5;">Tus datos bancarios están registrados.<br>La visualización en el portal estará disponible próximamente.</div>
+          </div>
         </div>
 
       </div><!-- /agente-state-active -->
@@ -1203,10 +1092,10 @@
         <!-- Cuenta bancaria fija (#8) — full width -->
         <div class="profile-card" id="perfil-banco-card" style="grid-column:1/-1;">
           <div class="profile-form-title" style="display:flex;align-items:center;gap:.5rem;"><i class="fas fa-university" style="color:var(--gold);font-size:.85rem;"></i> Cuenta para comisiones</div>
-          <div id="perfil-banco-vacio" style="padding:1.2rem;background:rgba(255,120,100,.06);border:1px solid rgba(255,120,100,.2);border-radius:var(--r);text-align:center;">
-            <i class="fas fa-exclamation-circle" style="color:#FF8870;font-size:1.3rem;margin-bottom:.5rem;display:block;"></i>
-            <div style="font-size:.75rem;color:#FF8870;font-weight:600;margin-bottom:.3rem;">Sin cuenta bancaria registrada</div>
-            <div style="font-size:.7rem;color:var(--gray);line-height:1.5;">Para recibir comisiones debes solicitar tu código de agente e ingresar tus datos bancarios en el proceso.</div>
+          <div id="perfil-banco-vacio" style="padding:1.2rem;border:1px solid var(--border);border-radius:var(--r);text-align:center;background:var(--bg3);">
+            <i class="fas fa-clock" style="color:var(--gold);font-size:1.3rem;margin-bottom:.5rem;display:block;opacity:.65;"></i>
+            <div style="font-size:.5rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:.35rem;">Próximamente</div>
+            <div style="font-size:.72rem;color:var(--gray);line-height:1.5;">Los datos bancarios se registran al solicitar el código de agente.<br>La visualización en perfil estará disponible próximamente.</div>
           </div>
           <div id="perfil-banco-info" style="display:none;">
             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.2rem;margin-bottom:1rem;">
