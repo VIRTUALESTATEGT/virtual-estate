@@ -1529,6 +1529,8 @@ function doLogout() {
 let dbFavs = []; // [{id, cliente_id, propiedad_id, propiedades:{...}}]
 
 const tipoIcon = { Apartamento:'fa-building', Casa:'fa-home', Terreno:'fa-map', 'Local comercial':'fa-store', Oficina:'fa-briefcase', Penthouse:'fa-city', 'Bodega / Galera':'fa-warehouse' };
+function _modLabel(m){return Array.isArray(m)?m.map(v=>v==='venta'?'Venta':'Renta').join(' · '):(m||'Venta');}
+function _modIsRenta(m){return Array.isArray(m)?m.includes('renta'):String(m||'').toLowerCase().includes('renta');}
 
 async function loadFavs() {
   try {
@@ -1590,14 +1592,14 @@ let browseData = []; // cache of current browse results for sort
 function propCardHTML(p, isSaved) {
   const icon = tipoIcon[p.tipo] || 'fa-home';
   const precio = p.precio ? '$' + Number(p.precio).toLocaleString() : '—';
-  const isRenta = (p.modalidad || '').toLowerCase().includes('renta');
+  const isRenta = _modIsRenta(p.modalidad);
   const badgeClass = isRenta ? 're-badge-renta' : 're-badge-venta';
   const favClass = isSaved ? 'active' : '';
   const favIcon = isSaved ? 'fas' : 'far';
   return `<div class="re-prop-card">
     <div class="re-prop-img">
       <div class="re-prop-img-ph"><i class="fas ${icon}"></i><span>Tour virtual disponible</span></div>
-      <span class="re-prop-badge ${badgeClass}">${p.modalidad||'Venta'}</span>
+      <span class="re-prop-badge ${badgeClass}">${_modLabel(p.modalidad)}</span>
       <div class="re-prop-fav ${favClass}" id="fav-btn-${p.id}" title="${isSaved?'Quitar de favoritos':'Guardar en favoritos'}" onclick="toggleFavDB(${p.id},this)">
         <i class="${favIcon} fa-heart"></i>
       </div>
@@ -1708,7 +1710,7 @@ function openPropModal(id) {
   document.getElementById('pmod-name').textContent = p.nombre;
   document.getElementById('pmod-loc').innerHTML = `<i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.65rem;"></i> ${p.zona || '—'}`;
   document.getElementById('pmod-price').textContent = p.precio ? '$' + Number(p.precio).toLocaleString() : '—';
-  document.getElementById('pmod-badge').textContent = p.modalidad || 'Venta';
+  document.getElementById('pmod-badge').textContent = _modLabel(p.modalidad);
   document.getElementById('pmod-icon').className = 'fas ' + (tipoIcon[p.tipo] || 'fa-home');
   document.getElementById('pmod-area').textContent = p.m2 ? p.m2 + ' m²' : 'Consultar';
   document.getElementById('pmod-rooms').textContent = p.tipo || 'Consultar';

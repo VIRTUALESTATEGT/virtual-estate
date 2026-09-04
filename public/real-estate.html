@@ -834,11 +834,13 @@ let allProps = []; // cache for sort without re-fetching
 const TIPO_ICON = {Apartamento:'fa-building',Casa:'fa-home',Terreno:'fa-map','Local comercial':'fa-store',Oficina:'fa-briefcase',Penthouse:'fa-city','Bodega / Galera':'fa-warehouse'};
 const DISP_CLASS  = {vacia:'disp-vacia',habitada:'disp-habitada',airbnb:'disp-airbnb',en_construccion:'disp-construccion'};
 const DISP_LABEL  = {vacia:'Disponible',habitada:'Habitada',airbnb:'Airbnb',en_construccion:'En construcción'};
+function _modLabel(m){return Array.isArray(m)?m.map(v=>v==='venta'?'Venta':'Renta').join(' · '):(m||'Venta');}
+function _modIsRenta(m){return Array.isArray(m)?m.includes('renta'):String(m||'').toLowerCase().includes('renta');}
 
 function propCardHTML(p) {
   const icon = TIPO_ICON[p.tipo] || 'fa-home';
   const precio = p.precio ? '$' + Number(p.precio).toLocaleString() : 'Consultar';
-  const isRenta = (p.modalidad||'').toLowerCase().includes('renta');
+  const isRenta = _modIsRenta(p.modalidad);
   const code = 'PROP-' + String(p.id).padStart(5,'0');
   const adics = (p.propiedades_adicionales||[]).map(a=>a.nombre);
   const habSpec = adics.find(a=>a.match(/\d+ hab/i)) || '';
@@ -850,7 +852,7 @@ function propCardHTML(p) {
   return `<div class="prop-card" data-id="${p.id}" data-adics='${JSON.stringify(adics)}'>
     <div class="prop-img">
       <div class="prop-img-ph"><i class="fas ${icon}"></i><span>${p.linktour3d?'Tour virtual disponible':'Sin tour aún'}</span></div>
-      <span class="prop-badge ${isRenta?'badge-renta':'badge-venta'}">${p.modalidad||'Venta'}</span>
+      <span class="prop-badge ${isRenta?'badge-renta':'badge-venta'}">${_modLabel(p.modalidad)}</span>
       ${p.linktour3d?`<span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>`:''}
     </div>
     <div class="prop-body">
@@ -1043,7 +1045,7 @@ function openDetail(code){
   document.getElementById('detailName').textContent=p.name;
   document.getElementById('detailLoc').textContent=p.loc;
   document.getElementById('detailPrice').textContent=p.price;
-  document.getElementById('detailModalidad').textContent=p.modalidad;
+  document.getElementById('detailModalidad').textContent=_modLabel(p.modalidad);
   document.getElementById('detailDesc').textContent=p.desc;
   document.getElementById('detailWA').href=`https://wa.me/50239902399?text=${encodeURIComponent('Hola, me interesa la propiedad '+code+' — '+p.name)}`;
   const sp=document.getElementById('detailSpecs');

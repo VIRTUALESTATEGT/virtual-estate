@@ -4135,7 +4135,7 @@
         <td style="color:var(--gray);font-size:.72rem;">${p.id}</td>
         <td class="td-bold">${p.nombre||'—'}</td>
         <td>${p.tipo||'—'}</td>
-        <td><span class="badge ${p.modalidad==='Renta'?'badge-renta':'badge-venta'}">${p.modalidad||'—'}</span></td>
+        <td><span class="badge ${(Array.isArray(p.modalidad)?p.modalidad.includes('renta'):p.modalidad==='Renta')?'badge-renta':'badge-venta'}">${Array.isArray(p.modalidad)?p.modalidad.map(v=>v==='venta'?'Venta':'Renta').join('+'):(p.modalidad||'—')}</span></td>
         <td class="td-gold">${p.precio?'$'+Number(p.precio).toLocaleString():'—'}</td>
         <td>${p.m2?p.m2+' m²':'—'}</td>
         <td>${p.zona||'—'}</td>
