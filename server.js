@@ -64,6 +64,21 @@ app.get(['/health', '/api/health'], async (req, res) => {
 const authRouter = require('./src/routes/auth');
 app.use('/api/auth', authRouter);
 
+// GET /api/adicionales/catalogo — público, sin auth (activos ordenados por tipo y orden)
+app.get('/api/adicionales/catalogo', async (_req, res) => {
+  try {
+    const { data, error } = await supabasePublic
+      .from('adicionales_catalogo')
+      .select('id, tipo, nombre, orden')
+      .eq('activo', true)
+      .order('tipo')
+      .order('orden');
+    if (error) throw error;
+    res.set('Cache-Control', 'public, max-age=300');
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 const DISP_ALLOWED = new Set(['vacia', 'habitada', 'airbnb', 'en_construccion']);
 const MOD_ALLOWED  = new Set(['venta', 'renta']);
 
@@ -188,6 +203,8 @@ const { requireMinRole, requirePortalOrStaff, requireSuperadmin } = require('./s
 app.use('/api/leads',         authMiddleware, requireMinRole('asistente'), leadsRouter);
 app.use('/api/clientes',      authMiddleware, requirePortalOrStaff('asistente'), clientesRouter);
 app.use('/api/propiedades',   authMiddleware, requireMinRole('asistente'), propiedadesRouter);
+const adicionalesAdminRouter = require('./src/routes/adicionales');
+app.use('/api/admin/adicionales', authMiddleware, requireMinRole('admin'), adicionalesAdminRouter);
 app.use('/api/proyectos',     authMiddleware, requireMinRole('asistente'), proyectosRouter);
 app.use('/api/cotizaciones',  authMiddleware, requireMinRole('asistente'), cotizacionesRouter);
 app.use('/api/marketing',    authMiddleware, requireMinRole('gerente'),   marketingAgent);
