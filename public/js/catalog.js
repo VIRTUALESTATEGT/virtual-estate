@@ -94,6 +94,7 @@ function initCatalog(cfg) {
   </div>`;
   }
 
+  // NOTE: pages using cardVariant:'portal' must include .disp-badges/.disp-badge/.disp-{vacia,habitada,airbnb,construccion} CSS
   function _portalCard(p) {
     const icon      = CATALOG_TIPO_ICON[p.tipo] || 'fa-home';
     const precio    = p.precio ? '$' + Number(p.precio).toLocaleString() : 'Consultar';
@@ -102,6 +103,12 @@ function initCatalog(cfg) {
     const badgeCls  = isRenta ? 're-badge-renta' : 're-badge-venta';
     const favCls    = isSaved ? 're-prop-fav active' : 're-prop-fav';
     const favIcon   = isSaved ? 'fas' : 'far';
+    const dispArr   = p.disponibilidad || [];
+    const dispBadges = dispArr.length
+      ? `<div class="disp-badges">${dispArr.map(d =>
+          `<span class="disp-badge ${CATALOG_DISP_CLASS[d] || ''}">${CATALOG_DISP_LABEL[d] || d}</span>`
+        ).join('')}</div>`
+      : '';
     return `<div class="re-prop-card" data-id="${p.id}">
     <div class="re-prop-img">
       <div class="re-prop-img-ph"><i class="fas ${icon}"></i><span>${p.linktour3d ? 'Tour virtual disponible' : 'Sin fotos aún'}</span></div>
@@ -118,6 +125,7 @@ function initCatalog(cfg) {
         ${p.tipo ? `<span class="re-prop-spec"><i class="fas ${icon}"></i> ${p.tipo}</span>` : ''}
         ${p.m2   ? `<span class="re-prop-spec"><i class="fas fa-ruler-combined"></i> ${p.m2} m²</span>` : ''}
       </div>
+      ${dispBadges}
       <div class="re-prop-price">${precio}</div>
     </div>
     <div class="re-prop-foot">
