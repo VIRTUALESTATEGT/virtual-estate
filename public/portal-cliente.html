@@ -1547,7 +1547,10 @@ async function toggleFavDB(propId, btnEl) {
     try {
       await apiFetch(`/api/clientes/me/favoritos/${propId}`, { method: 'DELETE' });
       dbFavs = dbFavs.filter(f => String(f.propiedad_id) !== String(propId));
-      if (btnEl) { btnEl.classList.remove('active'); btnEl.title = 'Guardar'; }
+      if (btnEl) {
+        btnEl.classList.remove('active'); btnEl.title = 'Guardar en favoritos';
+        const i = btnEl.querySelector('i'); if (i) { i.classList.remove('fas'); i.classList.add('far'); }
+      }
       showToast('Removido de favoritos');
     } catch(e) { showToast('Error: ' + e.message); }
   } else {
@@ -1555,7 +1558,10 @@ async function toggleFavDB(propId, btnEl) {
       const row = await apiFetch('/api/clientes/me/favoritos', { method:'POST', body: JSON.stringify({ propiedad_id: propId }) });
       // Reload full favs to get joined propiedad data
       await loadFavs();
-      if (btnEl) { btnEl.classList.add('active'); btnEl.title = 'Quitar de favoritos'; }
+      if (btnEl) {
+        btnEl.classList.add('active'); btnEl.title = 'Quitar de favoritos';
+        const i = btnEl.querySelector('i'); if (i) { i.classList.remove('far'); i.classList.add('fas'); }
+      }
       showToast('Guardado en favoritos');
     } catch(e) { showToast('Error: ' + e.message); }
   }
