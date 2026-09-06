@@ -10,7 +10,7 @@ window.API_URL = (location.hostname === 'localhost' || location.hostname === '12
 const CATALOG_TIPO_ICON = {
   Apartamento: 'fa-building', Casa: 'fa-home', Terreno: 'fa-map',
   'Local comercial': 'fa-store', Oficina: 'fa-briefcase',
-  Penthouse: 'fa-city', 'Bodega / Galera': 'fa-warehouse',
+  Penthouse: 'fa-city', 'Bodega / Galera': 'fa-warehouse', Finca: 'fa-tractor',
 };
 
 const CATALOG_DISP_CLASS = {
@@ -38,11 +38,15 @@ function initCatalog(cfg) {
     cardVariant   = 'public',
     filterIds     = {},
     favIds        = new Set(),
+    getFavIds     = null,
     onToggleFav   = null,
     onCardClick   = null,
     onAfterRender = null,
     getAdics      = () => new Set(),
   } = cfg;
+
+  // getFavIds wins over static favIds so callers can pass a live getter
+  const _getFavIds = getFavIds || (() => favIds);
 
   let _data = [];
 
@@ -94,7 +98,7 @@ function initCatalog(cfg) {
     const icon      = CATALOG_TIPO_ICON[p.tipo] || 'fa-home';
     const precio    = p.precio ? '$' + Number(p.precio).toLocaleString() : 'Consultar';
     const isRenta   = catalogModIsRenta(p.modalidad);
-    const isSaved   = favIds.has(p.id);
+    const isSaved   = _getFavIds().has(p.id);
     const badgeCls  = isRenta ? 're-badge-renta' : 're-badge-venta';
     const favCls    = isSaved ? 're-prop-fav active' : 're-prop-fav';
     const favIcon   = isSaved ? 'fas' : 'far';

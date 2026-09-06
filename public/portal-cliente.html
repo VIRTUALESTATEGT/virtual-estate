@@ -522,6 +522,7 @@
                 <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Local comercial" checked/> Local comercial</label>
                 <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Terreno" checked/> Terreno</label>
                 <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Bodega / Galera" checked/> Bodega / Galera</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Finca" checked/> Finca</label>
               </div>
             </div>
 
@@ -546,6 +547,16 @@
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
                 <input type="number" class="re-filter-input" id="filt-m2-min" placeholder="Desde"/>
                 <input type="number" class="re-filter-input" id="filt-m2-max" placeholder="Hasta"/>
+              </div>
+            </div>
+
+            <div class="re-filter-section">
+              <div class="re-filter-title">Disponibilidad</div>
+              <div class="re-filter-checks">
+                <label class="re-filter-check"><input type="checkbox" class="fc-disp" value="vacia" checked/> Disponible</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-disp" value="habitada" checked/> Habitada</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-disp" value="airbnb" checked/> Airbnb</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-disp" value="en_construccion" checked/> En construcción</label>
               </div>
             </div>
 
@@ -1501,6 +1512,7 @@
 </div>
 
 
+<script src="js/catalog.js"></script>
 <script>
 /* ── API ────────────────────────────────────────────────── */
 const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3000' : '';
@@ -1592,7 +1604,7 @@ function renderFavs(containerId, limit) {
   updateFavCount();
 }
 
-let browseData = []; // cache of current browse results for sort
+let browseCatalog = null; // initCatalog instance for the explore panel
 
 function propCardHTML(p, isSaved) {
   const icon = tipoIcon[p.tipo] || 'fa-home';
@@ -1628,67 +1640,16 @@ function propCardHTML(p, isSaved) {
 }
 
 /* ── PROPERTY BROWSE & FILTERS ──────────────────────────── */
-async function buscarPropiedades() {
-  const params = new URLSearchParams();
-  const tipoChecked = [...document.querySelectorAll('.fc-tipo:checked')].map(c => c.value);
-  const modalidadChecked = [...document.querySelectorAll('.fc-modalidad:checked')].map(c => c.value);
-  const zona = document.getElementById('filt-zona')?.value.trim();
-  const pMin = document.getElementById('filt-precio-min')?.value;
-  const pMax = document.getElementById('filt-precio-max')?.value;
-  const m2Min = document.getElementById('filt-m2-min')?.value;
-  const m2Max = document.getElementById('filt-m2-max')?.value;
-  // Only send tipo/modalidad if a subset is selected (not all = no filter needed)
-  const allTipos = document.querySelectorAll('.fc-tipo').length;
-  const allMods = document.querySelectorAll('.fc-modalidad').length;
-  if (tipoChecked.length > 0 && tipoChecked.length < allTipos) params.set('tipo', tipoChecked[0]);
-  if (modalidadChecked.length > 0 && modalidadChecked.length < allMods) params.set('modalidad', modalidadChecked.join(','));
-  if (zona) params.set('zona', zona);
-  if (pMin) params.set('precio_min', pMin);
-  if (pMax) params.set('precio_max', pMax);
-  if (m2Min) params.set('m2_min', m2Min);
-  if (m2Max) params.set('m2_max', m2Max);
-
-  const loading = document.getElementById('browse-loading');
-  const grid = document.getElementById('browse-grid');
-  const empty = document.getElementById('browse-empty');
-  const countEl = document.getElementById('browse-count');
-  if (loading) loading.style.display = 'block';
-  if (grid) grid.innerHTML = '';
-  if (empty) empty.style.display = 'none';
-
-  try {
-    const qs = params.toString();
-    let props = await apiFetch('/api/propiedades/public' + (qs ? '?' + qs : ''));
-    if (tipoChecked.length > 0 && tipoChecked.length < allTipos)
-      props = props.filter(p => tipoChecked.includes(p.tipo));
-    if (loading) loading.style.display = 'none';
-    browseData = props;
-    if (countEl) countEl.textContent = props.length;
-    if (!props.length) { if (empty) empty.style.display = 'block'; return; }
-    if (grid) grid.innerHTML = props.map(p => propCardHTML(p, isFav(p.id))).join('');
-  } catch(e) {
-    if (loading) loading.style.display = 'none';
-    showToast('Error al buscar: ' + e.message);
-  }
-}
-
-function sortBrowse(value) {
-  if (!browseData.length) return;
-  let sorted = [...browseData];
-  if (value === 'price-asc') sorted.sort((a, b) => (a.precio||0) - (b.precio||0));
-  else if (value === 'price-desc') sorted.sort((a, b) => (b.precio||0) - (a.precio||0));
-  else if (value === 'm2-desc') sorted.sort((a, b) => (b.m2||0) - (a.m2||0));
-  const grid = document.getElementById('browse-grid');
-  if (grid) grid.innerHTML = sorted.map(p => propCardHTML(p, isFav(p.id))).join('');
-}
+function buscarPropiedades() { browseCatalog?.load(); }
+function sortBrowse(value)   { browseCatalog?.sort(value); }
 
 function limpiarFiltros() {
-  document.querySelectorAll('.fc-tipo, .fc-modalidad').forEach(cb => cb.checked = true);
+  document.querySelectorAll('.fc-tipo, .fc-modalidad, .fc-disp').forEach(cb => cb.checked = true);
   ['filt-zona','filt-precio-min','filt-precio-max','filt-m2-min','filt-m2-max'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
-  buscarPropiedades();
+  browseCatalog?.load();
 }
 
 function setPropSubTab(tab) {
@@ -2135,6 +2096,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!data.valid) { clearToken(); window.location.href = '/portal.html'; return; }
     currentUser = data.usuario;
     await loadPortalData();
+    browseCatalog = initCatalog({
+      gridId:      'browse-grid',
+      countId:     'browse-count',
+      cardVariant: 'portal',
+      filterIds: {
+        tipo:           '.fc-tipo',
+        modalidad:      '.fc-modalidad',
+        disponibilidad: '.fc-disp',
+        precioMin:      'filt-precio-min',
+        precioMax:      'filt-precio-max',
+        m2Min:          'filt-m2-min',
+        m2Max:          'filt-m2-max',
+        zona:           'filt-zona',
+      },
+      getFavIds:   () => new Set(dbFavs.map(f => f.propiedad_id)),
+      onToggleFav: (propId, btnEl) => toggleFavDB(propId, btnEl),
+    });
     // Show dashboard, hide loading screen
     document.getElementById('auth-checking').style.display = 'none';
     document.getElementById('dashboard-view').style.display = 'flex';
