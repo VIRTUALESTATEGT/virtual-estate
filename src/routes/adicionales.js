@@ -4,16 +4,18 @@ const supabase = require('../config/supabase');
 
 const TIPOS_VALIDOS = new Set(['servicios_basicos', 'espacios_ambientes', 'adicionales', 'amenidades']);
 
-// GET / — todos (activos e inactivos) para la UI de gestión del CRM
+// GET / — todos (activos e inactivos) para la UI de gestión del CRM, con conteo de uso
 router.get('/', async (req, res) => {
   try {
-    const { data, error } = await supabase
-      .from('adicionales_catalogo')
-      .select('*')
-      .order('tipo')
-      .order('orden');
+    const [{ data, error }, { data: usos, error: usoErr }] = await Promise.all([
+      supabase.from('adicionales_catalogo').select('*').order('tipo').order('orden'),
+      supabase.from('propiedades_adicionales').select('nombre'),
+    ]);
     if (error) throw error;
-    res.json(data);
+    if (usoErr) throw usoErr;
+    const usoCounts = {};
+    (usos || []).forEach(u => { usoCounts[u.nombre] = (usoCounts[u.nombre] || 0) + 1; });
+    res.json(data.map(a => ({ ...a, propiedades_en_uso: usoCounts[a.nombre] || 0 })));
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 

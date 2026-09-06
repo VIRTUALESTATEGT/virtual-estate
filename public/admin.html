@@ -380,6 +380,9 @@
     <div class="nav-item" onclick="showView('precios', this)">
       <i class="fas fa-tags"></i> Precios
     </div>
+    <div class="nav-item" onclick="showView('adicionales', this)">
+      <i class="fas fa-list-check"></i> Adicionales
+    </div>
     <div class="nav-item" onclick="showView('promos', this)">
       <i class="fas fa-ticket-alt"></i> Códigos Promo
     </div>
@@ -754,6 +757,31 @@
           <thead><tr><th>Código</th><th>Categoría</th><th>Servicio / Descripción</th><th>Tipo</th><th>Tarifa</th><th>Mínimo</th><th>Estado</th><th>IA Auto</th><th>Acciones</th></tr></thead>
           <tbody id="precios-tbody">
             <tr><td colspan="9" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── ADICIONALES VIEW ──────────────────── -->
+    <div class="view" id="view-adicionales">
+      <div class="table-wrap">
+        <div class="table-head">
+          <span class="table-head-title">Catálogo de Adicionales</span>
+          <div style="display:flex;gap:.6rem;align-items:center;">
+            <select id="adic-filtro-tipo" class="form-control" style="font-size:.72rem;height:2rem;padding:.2rem .6rem;min-width:180px;" onchange="filtrarAdicionales()">
+              <option value="">Todas las categorías</option>
+              <option value="servicios_basicos">Servicios Básicos</option>
+              <option value="espacios_ambientes">Espacios y Ambientes</option>
+              <option value="adicionales">Adicionales y Equip.</option>
+              <option value="amenidades">Amenidades</option>
+            </select>
+            <button class="topbar-btn btn-primary" onclick="abrirAgregarAdic()"><i class="fas fa-plus"></i> Agregar</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Nombre</th><th>Categoría</th><th>Orden</th><th>En uso</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <tbody id="adicionales-tbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -2579,7 +2607,7 @@
       dashboard:'Dashboard', leads:'Leads', clientes:'Clientes',
       constructores:'Constructores', cotizaciones:'Cotizaciones',
       proyectos:'Proyectos', propiedades:'Propiedades', reportes:'Reportes',
-      calendario:'Calendario', precios:'Precios', promos:'Códigos Promo',
+      calendario:'Calendario', precios:'Precios', adicionales:'Adicionales', promos:'Códigos Promo',
       agentes:'Agentes / Referidos', permisos:'Usuarios & Permisos', config:'Configuración',
       conversaciones:'Conversaciones Multicanal', verificaciones:'Verificaciones de Identidad',
       zonas:'Zonas de Riesgo', notificaciones:'Notificaciones',
@@ -2598,6 +2626,7 @@
     else if (name === 'verificaciones') loadVerificaciones();
     else if (name === 'zonas') loadZonas();
     else if (name === 'precios') loadPrecios();
+    else if (name === 'adicionales') loadAdicionales();
     else if (name === 'notificaciones') loadNotificaciones();
     else if (name === 'wa-contacts') loadWaContacts();
   }
@@ -4858,12 +4887,174 @@
       input.value = '';
     }
   }
+
+  /* ── ADICIONALES CATÁLOGO ─────────────────────────────────────────── */
+  let _adicCache = [];
+
+  const ADIC_TIPO_LABEL = {
+    servicios_basicos:  'Serv. Básicos',
+    espacios_ambientes: 'Espacios',
+    adicionales:        'Adicionales',
+    amenidades:         'Amenidades',
+  };
+
+  async function loadAdicionales() {
+    const tbody = document.getElementById('adicionales-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
+    try {
+      _adicCache = await apiFetch('/api/admin/adicionales');
+      renderAdicionales();
+    } catch(e) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;
+    }
+  }
+
+  function filtrarAdicionales() { renderAdicionales(); }
+
+  function renderAdicionales() {
+    const tbody = document.getElementById('adicionales-tbody');
+    if (!tbody) return;
+    const filtro = document.getElementById('adic-filtro-tipo')?.value || '';
+    const items = filtro ? _adicCache.filter(a => a.tipo === filtro) : _adicCache;
+    if (!items.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem;">Sin adicionales para este filtro.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.map(a => {
+      const enUso = a.propiedades_en_uso || 0;
+      const enUsoBadge = enUso > 0
+        ? `<span class="badge badge-contact" style="font-size:.62rem;">${enUso}</span>`
+        : `<span style="color:var(--gray);font-size:.72rem;">—</span>`;
+      return `<tr>
+        <td style="font-size:.8rem;font-weight:600;">${a.nombre}</td>
+        <td><span class="badge badge-process" style="font-size:.62rem;">${ADIC_TIPO_LABEL[a.tipo] || a.tipo}</span></td>
+        <td><input type="number" value="${a.orden}" min="0"
+          style="width:4rem;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);color:var(--white);padding:.2rem .4rem;font-size:.72rem;text-align:center;"
+          onchange="cambiarOrdenAdic(${a.id}, this.value)"/></td>
+        <td>${enUsoBadge}</td>
+        <td><span class="badge ${a.activo ? 'badge-active' : 'badge-lost'}" style="cursor:pointer;" onclick="toggleActivoAdic(${a.id})">${a.activo ? 'Activo' : 'Oculto'}</span></td>
+        <td><div class="action-btns">
+          <button class="act-btn" title="Editar" onclick="abrirEditarAdic(${a.id})"><i class="fas fa-pencil-alt"></i></button>
+          <button class="act-btn danger" title="Eliminar" onclick="eliminarAdic(${a.id})"><i class="fas fa-trash"></i></button>
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function toggleActivoAdic(id) {
+    const a = _adicCache.find(x => x.id === id);
+    if (!a) return;
+    try {
+      await apiFetch(`/api/admin/adicionales/${id}`, { method: 'PUT', body: JSON.stringify({ activo: !a.activo }) });
+      loadAdicionales();
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+
+  async function cambiarOrdenAdic(id, valor) {
+    try {
+      await apiFetch(`/api/admin/adicionales/${id}`, { method: 'PUT', body: JSON.stringify({ orden: Number(valor) }) });
+      const idx = _adicCache.findIndex(x => x.id === id);
+      if (idx >= 0) _adicCache[idx].orden = Number(valor);
+      showToast('Orden actualizado');
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+
+  let _adicEditId = null;
+
+  function abrirAgregarAdic() {
+    _adicEditId = null;
+    document.getElementById('adic-modal-title').textContent = 'Nuevo Adicional';
+    document.getElementById('adic-nombre').value = '';
+    document.getElementById('adic-tipo').value = 'servicios_basicos';
+    document.getElementById('adic-orden').value = '0';
+    document.getElementById('adicModal').classList.add('open');
+  }
+
+  function abrirEditarAdic(id) {
+    const a = _adicCache.find(x => x.id === id);
+    if (!a) return;
+    _adicEditId = id;
+    document.getElementById('adic-modal-title').textContent = 'Editar Adicional';
+    document.getElementById('adic-nombre').value = a.nombre;
+    document.getElementById('adic-tipo').value = a.tipo;
+    document.getElementById('adic-orden').value = a.orden;
+    document.getElementById('adicModal').classList.add('open');
+  }
+
+  async function guardarAdic() {
+    const nombre = document.getElementById('adic-nombre').value.trim();
+    const tipo   = document.getElementById('adic-tipo').value;
+    const orden  = Number(document.getElementById('adic-orden').value) || 0;
+    if (!nombre) { showToast('El nombre es requerido.'); return; }
+
+    if (_adicEditId !== null) {
+      const current = _adicCache.find(x => x.id === _adicEditId);
+      const nombreCambia = current && nombre !== current.nombre;
+      if (nombreCambia && (current.propiedades_en_uso || 0) > 0) {
+        if (!confirm(`Este adicional está en uso en ${current.propiedades_en_uso} propiedad(es). Renombrarlo actualizará automáticamente todas esas propiedades. ¿Continuar?`)) return;
+      }
+      try {
+        const res = await apiFetch(`/api/admin/adicionales/${_adicEditId}`, {
+          method: 'PUT', body: JSON.stringify({ nombre, tipo, orden })
+        });
+        const n = res.propiedades_actualizadas || 0;
+        showToast(n > 0 ? `✅ Actualizado. ${n} propiedad(es) renombradas.` : '✅ Adicional actualizado.');
+      } catch(e) { showToast('Error: ' + e.message); return; }
+    } else {
+      try {
+        await apiFetch('/api/admin/adicionales', { method: 'POST', body: JSON.stringify({ nombre, tipo, orden }) });
+        showToast('✅ Adicional creado.');
+      } catch(e) { showToast('Error: ' + e.message); return; }
+    }
+    document.getElementById('adicModal').classList.remove('open');
+    loadAdicionales();
+  }
+
+  async function eliminarAdic(id) {
+    const a = _adicCache.find(x => x.id === id);
+    if (!a) return;
+    if (!confirm(`¿Eliminar "${a.nombre}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await apiFetch(`/api/admin/adicionales/${id}`, { method: 'DELETE' });
+      showToast(`"${a.nombre}" eliminado.`);
+      loadAdicionales();
+    } catch(e) { showToast(e.message); }
+  }
 </script>
 <!-- Modal: detalle cotización -->
 <div id="cot-detalle-overlay" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9000;align-items:center;justify-content:center;padding:1rem;">
   <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);width:90%;max-width:540px;padding:2rem;position:relative;max-height:90vh;overflow-y:auto;">
     <button onclick="document.getElementById('cot-detalle-overlay').style.display='none'" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--gray);font-size:1rem;cursor:pointer;"><i class="fas fa-times"></i></button>
     <div id="cot-detalle-body"></div>
+  </div>
+</div>
+
+<!-- Modal: adicional (crear / editar) -->
+<div class="modal-overlay" id="adicModal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title" id="adic-modal-title" style="font-size:.95rem;">Adicional</div>
+    <div class="form-group">
+      <label class="form-label">Nombre *</label>
+      <input type="text" id="adic-nombre" class="form-control" placeholder="Ej: Terraza techada"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Categoría *</label>
+      <select id="adic-tipo" class="form-control">
+        <option value="servicios_basicos">Servicios Básicos</option>
+        <option value="espacios_ambientes">Espacios y Ambientes</option>
+        <option value="adicionales">Adicionales y Equipamiento</option>
+        <option value="amenidades">Amenidades Comunitarias</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Orden</label>
+      <input type="number" id="adic-orden" class="form-control" min="0" placeholder="0"/>
+    </div>
+    <div style="display:flex;gap:.6rem;margin-top:1.2rem;">
+      <button class="topbar-btn btn-primary" onclick="guardarAdic()" style="flex:2;justify-content:center;"><i class="fas fa-save"></i> Guardar</button>
+      <button class="topbar-btn btn-sec" onclick="document.getElementById('adicModal').classList.remove('open')" style="flex:1;justify-content:center;">Cancelar</button>
+    </div>
   </div>
 </div>
 
