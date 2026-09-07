@@ -722,104 +722,9 @@
     </div>
 
     <div class="adic-body">
-
-      <!-- SERVICIOS BÁSICOS -->
-      <div class="adic-cat-title"><i class="fas fa-plug" style="margin-right:.4rem;"></i> Servicios Básicos</div>
-      <div class="adic-grid" id="adic-servicios">
-        <label class="adic-check"><input type="checkbox" value="Agua potable" onchange="actualizarAdic(this)"/> Agua potable</label>
-        <label class="adic-check"><input type="checkbox" value="Drenaje" onchange="actualizarAdic(this)"/> Drenaje</label>
-        <label class="adic-check"><input type="checkbox" value="Cable" onchange="actualizarAdic(this)"/> Cable</label>
-        <label class="adic-check"><input type="checkbox" value="Electricidad" onchange="actualizarAdic(this)"/> Electricidad</label>
-        <label class="adic-check"><input type="checkbox" value="Gas Natural" onchange="actualizarAdic(this)"/> Gas Natural</label>
-        <label class="adic-check"><input type="checkbox" value="Internet" onchange="actualizarAdic(this)"/> Internet</label>
-        <label class="adic-check"><input type="checkbox" value="Pavimento" onchange="actualizarAdic(this)"/> Pavimento</label>
-        <label class="adic-check"><input type="checkbox" value="Teléfono" onchange="actualizarAdic(this)"/> Teléfono</label>
-        <label class="adic-check"><input type="checkbox" value="Panel solar" onchange="actualizarAdic(this)"/> Panel solar</label>
-        <label class="adic-check"><input type="checkbox" value="Planta eléctrica" onchange="actualizarAdic(this)"/> Planta eléctrica</label>
-        <label class="adic-check"><input type="checkbox" value="Cisterna" onchange="actualizarAdic(this)"/> Cisterna</label>
-        <label class="adic-check"><input type="checkbox" value="Portero" onchange="actualizarAdic(this)"/> Portero</label>
+      <div id="adic-body-content">
+        <div style="text-align:center;padding:2rem 1rem;color:var(--gray);font-size:.82rem;"><i class="fas fa-spinner fa-spin" style="font-size:1.2rem;display:block;margin-bottom:.8rem;"></i>Cargando opciones...</div>
       </div>
-
-      <!-- ESPACIOS -->
-      <div class="adic-cat-title"><i class="fas fa-door-open" style="margin-right:.4rem;"></i> Espacios y Ambientes</div>
-      <div class="adic-grid">
-        <label class="adic-check"><input type="checkbox" value="Antecomedor" onchange="actualizarAdic(this)"/> Antecomedor</label>
-        <label class="adic-check"><input type="checkbox" value="Ático" onchange="actualizarAdic(this)"/> Ático</label>
-        <label class="adic-check"><input type="checkbox" value="Balcón" onchange="actualizarAdic(this)"/> Balcón</label>
-        <label class="adic-check"><input type="checkbox" value="Bodega" onchange="actualizarAdic(this)"/> Bodega</label>
-        <label class="adic-check"><input type="checkbox" value="Chimenea" onchange="actualizarAdic(this)"/> Chimenea</label>
-        <label class="adic-check"><input type="checkbox" value="Cocina equipada" onchange="actualizarAdic(this)"/> Cocina equipada</label>
-        <label class="adic-check"><input type="checkbox" value="Cocina integral" onchange="actualizarAdic(this)"/> Cocina integral</label>
-        <label class="adic-check"><input type="checkbox" value="Comedor" onchange="actualizarAdic(this)"/> Comedor</label>
-        <label class="adic-check"><input type="checkbox" value="Cuarto de servicio" onchange="actualizarAdic(this)"/> Cuarto de servicio</label>
-        <label class="adic-check"><input type="checkbox" value="Dos plantas" onchange="actualizarAdic(this)"/> Dos plantas</label>
-        <label class="adic-check"><input type="checkbox" value="Elevador" onchange="actualizarAdic(this)"/> Elevador</label>
-        <label class="adic-check"><input type="checkbox" value="Escritorio" onchange="actualizarAdic(this)"/> Escritorio</label>
-        <label class="adic-check"><input type="checkbox" value="Estudio" onchange="actualizarAdic(this)"/> Estudio</label>
-        <label class="adic-check"><input type="checkbox" value="Galería" onchange="actualizarAdic(this)"/> Galería</label>
-        <label class="adic-check"><input type="checkbox" value="Garaje" onchange="actualizarAdic(this)"/> Garaje</label>
-        <label class="adic-check"><input type="checkbox" value="Jardín" onchange="actualizarAdic(this)"/> Jardín</label>
-        <label class="adic-check"><input type="checkbox" value="Lavandería" onchange="actualizarAdic(this)"/> Lavandería</label>
-        <label class="adic-check"><input type="checkbox" value="Living comedor" onchange="actualizarAdic(this)"/> Living comedor</label>
-        <label class="adic-check"><input type="checkbox" value="Mini bodega" onchange="actualizarAdic(this)"/> Mini bodega</label>
-        <label class="adic-check"><input type="checkbox" value="Oficina" onchange="actualizarAdic(this)"/> Oficina</label>
-        <label class="adic-check"><input type="checkbox" value="Patio" onchange="actualizarAdic(this)"/> Patio</label>
-        <label class="adic-check"><input type="checkbox" value="Planta Baja" onchange="actualizarAdic(this)"/> Planta baja</label>
-        <label class="adic-check"><input type="checkbox" value="Recámara en planta baja" onchange="actualizarAdic(this)"/> Rec. planta baja</label>
-        <label class="adic-check"><input type="checkbox" value="Sala" onchange="actualizarAdic(this)"/> Sala</label>
-        <label class="adic-check"><input type="checkbox" value="Sótano" onchange="actualizarAdic(this)"/> Sótano</label>
-        <label class="adic-check"><input type="checkbox" value="Suite" onchange="actualizarAdic(this)"/> Suite</label>
-        <label class="adic-check"><input type="checkbox" value="Terraza" onchange="actualizarAdic(this)"/> Terraza</label>
-        <label class="adic-check"><input type="checkbox" value="Tres plantas" onchange="actualizarAdic(this)"/> Tres plantas</label>
-        <label class="adic-check"><input type="checkbox" value="Vestíbulo" onchange="actualizarAdic(this)"/> Vestíbulo</label>
-        <label class="adic-check"><input type="checkbox" value="Asadores" onchange="actualizarAdic(this)"/> Asadores</label>
-        <label class="adic-check"><input type="checkbox" value="Roof garden" onchange="actualizarAdic(this)"/> Roof garden</label>
-      </div>
-
-      <!-- ADICIONALES -->
-      <div class="adic-cat-title"><i class="fas fa-star" style="margin-right:.4rem;"></i> Adicionales y Equipamiento</div>
-      <div class="adic-grid">
-        <label class="adic-check"><input type="checkbox" value="Aire acondicionado" onchange="actualizarAdic(this)"/> Aire acondicionado</label>
-        <label class="adic-check"><input type="checkbox" value="Alarma" onchange="actualizarAdic(this)"/> Alarma</label>
-        <label class="adic-check"><input type="checkbox" value="Alberca" onchange="actualizarAdic(this)"/> Alberca</label>
-        <label class="adic-check"><input type="checkbox" value="Amueblado" onchange="actualizarAdic(this)"/> Amueblado</label>
-        <label class="adic-check"><input type="checkbox" value="Apto crédito" onchange="actualizarAdic(this)"/> Apto crédito</label>
-        <label class="adic-check"><input type="checkbox" value="Apto mascotas" onchange="actualizarAdic(this)"/> Apto mascotas</label>
-        <label class="adic-check"><input type="checkbox" value="Calefacción" onchange="actualizarAdic(this)"/> Calefacción</label>
-        <label class="adic-check"><input type="checkbox" value="Deck" onchange="actualizarAdic(this)"/> Deck</label>
-        <label class="adic-check"><input type="checkbox" value="En construcción" onchange="actualizarAdic(this)"/> En construcción</label>
-        <label class="adic-check"><input type="checkbox" value="Estacionamiento subterráneo" onchange="actualizarAdic(this)"/> Est. subterráneo</label>
-        <label class="adic-check"><input type="checkbox" value="Hidromasaje" onchange="actualizarAdic(this)"/> Hidromasaje</label>
-        <label class="adic-check"><input type="checkbox" value="Jacuzzi" onchange="actualizarAdic(this)"/> Jacuzzi</label>
-        <label class="adic-check"><input type="checkbox" value="Parrilla" onchange="actualizarAdic(this)"/> Parrilla</label>
-        <label class="adic-check"><input type="checkbox" value="Perimetral" onchange="actualizarAdic(this)"/> Perimetral</label>
-        <label class="adic-check"><input type="checkbox" value="Riego automático" onchange="actualizarAdic(this)"/> Riego automático</label>
-        <label class="adic-check"><input type="checkbox" value="Sauna" onchange="actualizarAdic(this)"/> Sauna</label>
-        <label class="adic-check"><input type="checkbox" value="Seguridad 24hs" onchange="actualizarAdic(this)"/> Seguridad 24hs</label>
-        <label class="adic-check"><input type="checkbox" value="Simulador de Golf" onchange="actualizarAdic(this)"/> Simulador Golf</label>
-        <label class="adic-check"><input type="checkbox" value="Solario" onchange="actualizarAdic(this)"/> Solario</label>
-        <label class="adic-check"><input type="checkbox" value="Área de Yoga" onchange="actualizarAdic(this)"/> Área de Yoga</label>
-        <label class="adic-check"><input type="checkbox" value="Acceso a playa" onchange="actualizarAdic(this)"/> Acceso a playa</label>
-        <label class="adic-check"><input type="checkbox" value="Lobby y Recepción" onchange="actualizarAdic(this)"/> Lobby y Recepción</label>
-      </div>
-
-      <!-- AMENIDADES -->
-      <div class="adic-cat-title"><i class="fas fa-swimmer" style="margin-right:.4rem;"></i> Amenidades Comunitarias</div>
-      <div class="adic-grid">
-        <label class="adic-check"><input type="checkbox" value="Área de juegos infantiles" onchange="actualizarAdic(this)"/> Juegos infantiles</label>
-        <label class="adic-check"><input type="checkbox" value="Cancha de pádel" onchange="actualizarAdic(this)"/> Cancha pádel</label>
-        <label class="adic-check"><input type="checkbox" value="Cancha de tenis" onchange="actualizarAdic(this)"/> Cancha tenis</label>
-        <label class="adic-check"><input type="checkbox" value="Centro de deportes" onchange="actualizarAdic(this)"/> Centro deportes</label>
-        <label class="adic-check"><input type="checkbox" value="Cine" onchange="actualizarAdic(this)"/> Cine</label>
-        <label class="adic-check"><input type="checkbox" value="Fogatero" onchange="actualizarAdic(this)"/> Fogatero</label>
-        <label class="adic-check"><input type="checkbox" value="Gimnasio" onchange="actualizarAdic(this)"/> Gimnasio</label>
-        <label class="adic-check"><input type="checkbox" value="Piscina comunitaria" onchange="actualizarAdic(this)"/> Piscina comunal</label>
-        <label class="adic-check"><input type="checkbox" value="Sala de juegos" onchange="actualizarAdic(this)"/> Sala de juegos</label>
-        <label class="adic-check"><input type="checkbox" value="SUM" onchange="actualizarAdic(this)"/> Salón usos múltiples</label>
-        <label class="adic-check"><input type="checkbox" value="BBQ común" onchange="actualizarAdic(this)"/> BBQ común</label>
-        <label class="adic-check"><input type="checkbox" value="Coworking" onchange="actualizarAdic(this)"/> Coworking</label>
-      </div>
-
     </div><!-- /adic-body -->
 
     <div class="adic-footer">
@@ -851,6 +756,7 @@ function closeFavLoginSheet(){document.getElementById('favLoginSheet').classList
 function _favSheetOutside(e){if(!document.getElementById('favLoginSheet').contains(e.target))closeFavLoginSheet();}
 /* ── CATALOG INIT ─────────────────────────────────────────── */
 let adicSeleccionados = new Set();
+let _adicCatalogCache = null; // fetched once per page load from /api/adicionales/catalogo
 
 const catalog = initCatalog({
   gridId:      'propsGrid',
@@ -998,9 +904,55 @@ function closeDetailBtn(){
 }
 
 /* ── ADICIONALES MODAL ─────────────────────────────────── */
-function abrirAdicionales(){
+const _ADIC_RE_CATS = [
+  { tipo: 'servicios_basicos',  label: 'Servicios Básicos',          icon: 'fa-plug' },
+  { tipo: 'espacios_ambientes', label: 'Espacios y Ambientes',        icon: 'fa-door-open' },
+  { tipo: 'adicionales',        label: 'Adicionales y Equipamiento',  icon: 'fa-star' },
+  { tipo: 'amenidades',         label: 'Amenidades Comunitarias',     icon: 'fa-swimmer' },
+];
+
+async function abrirAdicionales(){
   document.getElementById('adicOverlay').classList.add('open');
   document.body.style.overflow='hidden';
+  await _renderAdicModal();
+}
+
+async function _renderAdicModal(){
+  const container = document.getElementById('adic-body-content');
+  if (!container) return;
+
+  if (!_adicCatalogCache) {
+    container.innerHTML = '<div style="text-align:center;padding:2rem 1rem;color:var(--gray);font-size:.82rem;"><i class="fas fa-spinner fa-spin" style="font-size:1.2rem;display:block;margin-bottom:.8rem;"></i>Cargando opciones...</div>';
+    try {
+      _adicCatalogCache = await fetch(API_URL + '/api/adicionales/catalogo').then(r => r.json());
+    } catch(e) {
+      container.innerHTML = `<div style="text-align:center;padding:2rem 1rem;color:#E08080;font-size:.8rem;"><i class="fas fa-triangle-exclamation" style="font-size:1.2rem;display:block;margin-bottom:.6rem;"></i>No se pudo cargar el catálogo.<br/><span style="color:var(--gray);font-size:.72rem;">${e.message}</span></div>`;
+      return;
+    }
+  }
+
+  const groups = {};
+  _ADIC_RE_CATS.forEach(c => { groups[c.tipo] = []; });
+  _adicCatalogCache.forEach(a => { if (groups[a.tipo]) groups[a.tipo].push(a); });
+
+  container.innerHTML = _ADIC_RE_CATS.map(({ tipo, label, icon }) => {
+    const items = groups[tipo];
+    if (!items.length) return '';
+    const checks = items.map(a =>
+      `<label class="adic-check"><input type="checkbox" value="${a.nombre}" onchange="actualizarAdic(this)"/> ${a.nombre}</label>`
+    ).join('');
+    return `<div class="adic-cat-title"><i class="fas ${icon}" style="margin-right:.4rem;"></i> ${label}</div><div class="adic-grid">${checks}</div>`;
+  }).join('');
+
+  // Restore current selection state
+  container.querySelectorAll('.adic-check input').forEach(cb => {
+    if (adicSeleccionados.has(cb.value)) {
+      cb.checked = true;
+      cb.closest('.adic-check').classList.add('selected');
+    }
+  });
+  const count = adicSeleccionados.size;
+  document.getElementById('adic-count-badge').textContent = count + ' seleccionado' + (count !== 1 ? 's' : '');
 }
 function cerrarAdicionales(e){
   if(e.target===document.getElementById('adicOverlay')) cerrarAdicBtn();
