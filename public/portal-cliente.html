@@ -1440,15 +1440,12 @@
 
       <div id="pmod-tour-box" style="display:none;background:rgba(193,146,89,.06);border:1px solid var(--border);border-radius:var(--r);padding:.9rem 1.1rem;display:none;align-items:center;gap:.7rem;margin-bottom:1.4rem;">
         <i class="fas fa-vr-cardboard" style="color:var(--gold);font-size:1rem;flex-shrink:0;"></i>
-        <p style="font-size:.72rem;color:var(--gray);line-height:1.5;font-weight:400;">Tour virtual 3D disponible exclusivamente con una reunión agendada. <a href="index.html#contacto" style="color:var(--gold);font-weight:600;">Agendar ahora →</a></p>
+        <p style="font-size:.72rem;color:var(--gray);line-height:1.5;font-weight:400;">Tour virtual 3D disponible exclusivamente con una reunión agendada. <a href="#" onclick="agendarTour(document.getElementById('pmod-code').textContent);return false;" style="color:var(--gold);font-weight:600;">Agendar ahora →</a></p>
       </div>
 
-      <div id="pmod-ctas" style="display:flex;gap:.8rem;flex-wrap:wrap;">
+      <div id="pmod-ctas" style="display:flex;gap:.8rem;flex-wrap:wrap;align-items:center;">
         <button onclick="agendarTour(document.getElementById('pmod-code').textContent)" class="w-btn w-btn-gold">
-          <i class="fas fa-calendar-check"></i> Agendar reunión
-        </button>
-        <button onclick="window.open('index.html#cotizador','_blank')" class="w-btn w-btn-out">
-          <i class="fas fa-file-invoice-dollar"></i> Solicitar cotización
+          <i class="fab fa-whatsapp"></i> Agendar reunión
         </button>
         <button id="pmod-remove-fav" onclick="removeFav(modalPropId);closePropModal()" style="display:none;background:none;border:none;color:var(--gray);font-size:.72rem;cursor:pointer;align-items:center;gap:.3rem;padding:.5rem;transition:.2s;" onmouseover="this.style.color='#E08080'" onmouseout="this.style.color='var(--gray)'">
           <i class="fas fa-heart-broken"></i> Quitar de favoritos
@@ -2140,7 +2137,10 @@ function renderPromos() {
 }
 
 /* ── MISC ───────────────────────────────────────────────── */
-function agendarTour(name) { showToast('Redirigiendo para agendar acceso al tour 3D...'); setTimeout(() => window.open('index.html#contacto','_blank'), 800); }
+function agendarTour(code) {
+  const name = document.getElementById('pmod-name')?.textContent || '';
+  window.open(`https://wa.me/50239902399?text=${encodeURIComponent(`Hola, quiero agendar una visita a ${code} — ${name}`)}`, '_blank');
+}
 
 function togglePw(inputId, btn) {
   const input = document.getElementById(inputId);

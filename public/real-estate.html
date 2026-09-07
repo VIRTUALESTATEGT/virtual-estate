@@ -622,16 +622,12 @@
                target="_blank" class="btn btn-gold" style="width:100%;justify-content:center;margin-bottom:.6rem;">
               <i class="fab fa-whatsapp"></i> Consultar por WhatsApp
             </a>
-            <a href="index.html#cotizador" class="btn btn-outline" style="width:100%;justify-content:center;font-size:.62rem;">
-              <i class="fas fa-file-invoice"></i> Cotizar servicio
-            </a>
-
             <div class="detail-tour-lock" style="margin-top:1.2rem;">
               <i class="fas fa-lock"></i>
               <p>El recorrido virtual 3D de esta propiedad es exclusivo y requiere agendar una reunión con nuestro equipo para obtener acceso único.</p>
-              <a href="index.html#contacto" class="btn btn-outline" style="width:100%;justify-content:center;font-size:.6rem;">
-                <i class="fas fa-calendar-check"></i> Agendar reunión
-              </a>
+              <button onclick="agendarVisitaRE()" class="btn btn-outline" style="width:100%;justify-content:center;font-size:.6rem;">
+                <i class="fab fa-whatsapp"></i> Agendar reunión
+              </button>
             </div>
           </div>
         </div>
@@ -816,6 +812,11 @@ function openDetail(code, propId) {
 }
 
 function galNav(dir) { _gal.nav(dir); }
+function agendarVisitaRE() {
+  const code = document.getElementById('detailCode').textContent;
+  const name = document.getElementById('detailName').textContent;
+  window.open(`https://wa.me/50239902399?text=${encodeURIComponent(`Hola, quiero agendar una visita a ${code} — ${name}`)}`, '_blank');
+}
 function closeDetail(e) { if (e.target === document.getElementById('detailOverlay')) closeDetailBtn(); }
 function closeDetailBtn() {
   document.getElementById('detailOverlay').classList.remove('open');
