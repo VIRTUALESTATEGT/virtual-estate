@@ -43,6 +43,7 @@ function initCatalog(cfg) {
     onCardClick   = null,
     onAfterRender = null,
     getAdics      = () => new Set(),
+    getAdicsMode  = null, // () => 'some' | 'every'  — defaults to 'some' (OR)
   } = cfg;
 
   // getFavIds wins over static favIds so callers can pass a live getter
@@ -182,12 +183,14 @@ function initCatalog(cfg) {
       const total = document.querySelectorAll(filterIds.tipo).length;
       if (tipos.length && tipos.length < total) props = props.filter(p => tipos.includes(p.tipo));
     }
-    // adicionales: all selected must be present
+    // adicionales: mode 'every' = AND (all must be present), 'some' = OR (at least one)
     const adics = getAdics();
     if (adics && adics.size) {
+      const mode = getAdicsMode ? getAdicsMode() : 'some';
+      const matchFn = mode === 'every' ? 'every' : 'some';
       props = props.filter(p => {
         const pa = (p.propiedades_adicionales || []).map(a => a.nombre);
-        return [...adics].every(a => pa.includes(a));
+        return [...adics][matchFn](a => pa.includes(a));
       });
     }
     return props;

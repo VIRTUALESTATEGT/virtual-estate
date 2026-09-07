@@ -498,7 +498,10 @@
 
       <!-- ADICIONALES APLICADOS -->
       <div id="adic-chips-container" style="display:none;margin-bottom:.6rem;">
-        <div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.4rem;">Adicionales activos</div>
+        <div style="font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.4rem;">
+          Adicionales activos
+          <span id="adic-mode-indicator" style="color:var(--gray);text-transform:none;letter-spacing:normal;font-weight:400;font-size:.6rem;"></span>
+        </div>
         <div class="adic-applied-chips" id="adic-chips"></div>
       </div>
 
@@ -756,6 +759,7 @@ function closeFavLoginSheet(){document.getElementById('favLoginSheet').classList
 function _favSheetOutside(e){if(!document.getElementById('favLoginSheet').contains(e.target))closeFavLoginSheet();}
 /* ── CATALOG INIT ─────────────────────────────────────────── */
 let adicSeleccionados = new Set();
+let adicMode = 'some'; // 'some' = OR (alguna), 'every' = AND (todas)
 let _adicCatalogCache = null; // fetched once per page load from /api/adicionales/catalogo
 
 const catalog = initCatalog({
@@ -774,6 +778,7 @@ const catalog = initCatalog({
   onCardClick:   (code) => openDetail(code),
   onAfterRender: () => applyCurrency(),
   getAdics:      () => adicSeleccionados,
+  getAdicsMode:  () => adicMode,
 });
 
 function setView(v){
@@ -935,7 +940,12 @@ async function _renderAdicModal(){
   _ADIC_RE_CATS.forEach(c => { groups[c.tipo] = []; });
   _adicCatalogCache.forEach(a => { if (groups[a.tipo]) groups[a.tipo].push(a); });
 
-  container.innerHTML = _ADIC_RE_CATS.map(({ tipo, label, icon }) => {
+  const modeToggle = `<div style="display:flex;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1.1rem;font-family:'Montserrat',sans-serif;">
+    <button id="adic-mode-some" onclick="setAdicionalesMode('some')" style="flex:1;padding:.45rem .5rem;font-size:.68rem;letter-spacing:.06em;border:none;border-right:1px solid var(--border);cursor:pointer;transition:.15s;font-family:inherit;">Alguna de estas</button>
+    <button id="adic-mode-every" onclick="setAdicionalesMode('every')" style="flex:1;padding:.45rem .5rem;font-size:.68rem;letter-spacing:.06em;border:none;cursor:pointer;transition:.15s;font-family:inherit;">Todas estas</button>
+  </div>`;
+
+  container.innerHTML = modeToggle + _ADIC_RE_CATS.map(({ tipo, label, icon }) => {
     const items = groups[tipo];
     if (!items.length) return '';
     const checks = items.map(a =>
@@ -944,13 +954,14 @@ async function _renderAdicModal(){
     return `<div class="adic-cat-title"><i class="fas ${icon}" style="margin-right:.4rem;"></i> ${label}</div><div class="adic-grid">${checks}</div>`;
   }).join('');
 
-  // Restore current selection state
+  // Restore current selection and mode state
   container.querySelectorAll('.adic-check input').forEach(cb => {
     if (adicSeleccionados.has(cb.value)) {
       cb.checked = true;
       cb.closest('.adic-check').classList.add('selected');
     }
   });
+  _syncModeToggle();
   const count = adicSeleccionados.size;
   document.getElementById('adic-count-badge').textContent = count + ' seleccionado' + (count !== 1 ? 's' : '');
 }
@@ -973,12 +984,28 @@ function actualizarAdic(cb){
   const count = adicSeleccionados.size;
   document.getElementById('adic-count-badge').textContent = count + ' seleccionado' + (count!==1?'s':'');
 }
+function setAdicionalesMode(mode){
+  adicMode = mode;
+  _syncModeToggle();
+}
+function _syncModeToggle(){
+  const btnSome  = document.getElementById('adic-mode-some');
+  const btnEvery = document.getElementById('adic-mode-every');
+  if (!btnSome || !btnEvery) return;
+  const isSome = adicMode === 'some';
+  btnSome.style.background  = isSome ? 'var(--gold)' : 'transparent';
+  btnSome.style.color        = isSome ? 'var(--bg)'   : 'var(--gray)';
+  btnEvery.style.background  = isSome ? 'transparent' : 'var(--gold)';
+  btnEvery.style.color       = isSome ? 'var(--gray)' : 'var(--bg)';
+}
 function limpiarAdic(){
   document.querySelectorAll('#adicModal .adic-check input').forEach(cb=>{
     cb.checked=false;
     cb.closest('.adic-check').classList.remove('selected');
   });
   adicSeleccionados.clear();
+  adicMode = 'some';
+  _syncModeToggle();
   document.getElementById('adic-count-badge').textContent='0 seleccionados';
   renderChips();
 }
@@ -1003,6 +1030,8 @@ function renderChips(){
     return;
   }
   container.style.display='block';
+  const modeEl = document.getElementById('adic-mode-indicator');
+  if (modeEl) modeEl.textContent = adicMode === 'every' ? '· todas' : '· alguna';
   chips.innerHTML=[...adicSeleccionados].map(v=>
     `<span class="adic-chip" onclick="quitarChip('${v}')">
        ${v} <i class="fas fa-times"></i>
