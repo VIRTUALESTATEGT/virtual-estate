@@ -1851,8 +1851,19 @@
     <!-- Sección: Media -->
     <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;margin-top:.6rem;"><i class="fas fa-photo-video" style="margin-right:.3rem;"></i>Media</div>
     <div class="form-group">
-      <label class="form-label">URLs de fotos (una por línea)</label>
-      <textarea class="form-control" id="prop-fotos" placeholder="https://... (1 URL por línea)" style="min-height:70px;"></textarea>
+      <!-- Modo: nueva propiedad (sin ID) -->
+      <div id="prop-fotos-new-note" style="background:rgba(255,255,255,.04);border:1px dashed var(--border);border-radius:var(--r);padding:.75rem 1rem;font-size:.72rem;color:var(--gray);display:flex;align-items:center;gap:.5rem;">
+        <i class="fas fa-info-circle" style="color:var(--gold);flex-shrink:0;"></i> Guardá la propiedad primero; luego podés agregar fotos desde aquí.
+      </div>
+      <!-- Modo: editando (con ID) -->
+      <div id="prop-fotos-edit-area" style="display:none;">
+        <label id="prop-fotos-label" style="display:flex;align-items:center;gap:.5rem;cursor:pointer;background:rgba(193,146,89,.06);border:1px dashed rgba(193,146,89,.45);border-radius:var(--r);padding:.65rem 1rem;font-size:.73rem;color:var(--gold);font-weight:600;margin-bottom:.65rem;transition:opacity .15s;">
+          <i class="fas fa-camera"></i> Seleccionar fotos (JPEG · PNG · WEBP)
+          <input type="file" id="prop-fotos-input" multiple accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="subirFotosSeleccionadas(this.files)"/>
+        </label>
+        <div id="prop-fotos-progress" style="display:none;font-size:.7rem;color:var(--gray);margin-bottom:.5rem;padding:.35rem .6rem;background:rgba(0,0,0,.25);border-radius:4px;"></div>
+        <div id="prop-fotos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:.45rem;"></div>
+      </div>
     </div>
     <div class="form-row">
       <div class="form-group">
@@ -2968,10 +2979,13 @@
     _editPropiedadId=null;
     const titleSpan=document.querySelector('#propModalOverlay .modal-title span');
     if(titleSpan) titleSpan.innerHTML='<i class="fas fa-building" style="color:var(--gold);margin-right:.5rem;"></i>Nueva Propiedad';
+    _propFotosEstado(false);
     document.getElementById('propModalOverlay').classList.add('open');
   }
   function cerrarFormPropiedad(){
     _editPropiedadId=null;
+    _propFotos=[];
+    _propFotosEstado(false);
     document.getElementById('propModalOverlay').classList.remove('open');
   }
   async function guardarPropiedad(){
@@ -3011,8 +3025,13 @@
             await apiFetch(`/api/propiedades/${prop.id}/adicionales`, { method: 'POST', body: JSON.stringify({ adicionales }) });
           } catch(e2) { showToast('Propiedad creada, pero error en adicionales: ' + e2.message); }
         }
-        cerrarFormPropiedad();
-        showToast('✅ Propiedad creada' + (adicionales.length ? ` con ${adicionales.length} adicionales` : ''));
+        // Quedar en el modal en modo edición para que el usuario pueda agregar fotos de inmediato
+        _editPropiedadId = prop.id;
+        const ts = document.querySelector('#propModalOverlay .modal-title span');
+        if(ts) ts.innerHTML = '<i class="fas fa-building" style="color:var(--gold);margin-right:.5rem;"></i>Editar Propiedad #' + prop.id;
+        _propFotosEstado(true);
+        cargarFotosPropiedad(prop.id);
+        showToast('✅ Propiedad creada' + (adicionales.length ? ` con ${adicionales.length} adicionales` : '') + '. Podés agregar fotos ahora.');
         loadPropiedades(); loadDashboard();
       }
     } catch(e) { showToast('Error al guardar: ' + e.message); }
@@ -4237,12 +4256,173 @@
         if(adicSet.has(cb.value)) cb.checked = true;
       });
     } catch {}
+    _propFotosEstado(true);
+    cargarFotosPropiedad(id);
     document.getElementById('propModalOverlay').classList.add('open');
   }
   async function deletePropiedad(id){
     if(!confirm('¿Eliminar esta propiedad?'))return;
     try{await apiFetch('/api/propiedades/'+id,{method:'DELETE'});showToast('Propiedad eliminada');loadPropiedades();loadDashboard();}
     catch(e){showToast('Error: '+e.message);}
+  }
+
+  /* ── FOTOS DE PROPIEDAD ─────────────────────────────────── */
+  let _propFotos = [];
+
+  function _propFotosEstado(editando) {
+    const note = document.getElementById('prop-fotos-new-note');
+    const area = document.getElementById('prop-fotos-edit-area');
+    if (!note || !area) return;
+    note.style.display = editando ? 'none' : 'flex';
+    area.style.display = editando ? 'block' : 'none';
+    if (!editando) {
+      document.getElementById('prop-fotos-grid').innerHTML = '';
+      document.getElementById('prop-fotos-progress').style.display = 'none';
+      const inp = document.getElementById('prop-fotos-input');
+      if (inp) { inp.value = ''; inp.disabled = false; }
+      const lbl = document.getElementById('prop-fotos-label');
+      if (lbl) lbl.style.opacity = '';
+    }
+  }
+
+  // Compresión en el navegador: máx 1920px de ancho, JPEG 0.8, sin agrandar.
+  function comprimirFoto(file, maxWidth, quality) {
+    maxWidth = maxWidth || 1920; quality = quality || 0.8;
+    return new Promise(function(resolve, reject) {
+      var img = new Image();
+      var url = URL.createObjectURL(file);
+      img.onload = function() {
+        URL.revokeObjectURL(url);
+        var scale = img.naturalWidth > maxWidth ? maxWidth / img.naturalWidth : 1;
+        var w = Math.round(img.naturalWidth * scale);
+        var h = Math.round(img.naturalHeight * scale);
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        canvas.toBlob(function(blob) {
+          if (blob) resolve(blob);
+          else reject(new Error('No se pudo comprimir la imagen'));
+        }, 'image/jpeg', quality);
+      };
+      img.onerror = function() { URL.revokeObjectURL(url); reject(new Error('Archivo inválido')); };
+      img.src = url;
+    });
+  }
+
+  async function subirFotosSeleccionadas(files) {
+    const propId = _editPropiedadId;
+    if (!propId || !files.length) return;
+    const ALLOWED = new Set(['image/jpeg', 'image/png', 'image/webp']);
+    const valid = [...files].filter(function(f) {
+      if (!ALLOWED.has(f.type)) { showToast('"' + f.name + '": formato no soportado. Solo JPEG, PNG o WEBP.'); return false; }
+      if (f.size > 50 * 1024 * 1024) { showToast('"' + f.name + '": archivo muy grande (máx 50 MB).'); return false; }
+      return true;
+    });
+    if (!valid.length) return;
+    const progressEl = document.getElementById('prop-fotos-progress');
+    const inputEl    = document.getElementById('prop-fotos-input');
+    const labelEl    = document.getElementById('prop-fotos-label');
+    inputEl.disabled = true;
+    labelEl.style.opacity = '.45';
+    progressEl.style.display = 'block';
+    for (let i = 0; i < valid.length; i++) {
+      const file = valid[i];
+      progressEl.textContent = 'Comprimiendo y subiendo ' + (i + 1) + ' de ' + valid.length + ': ' + file.name + '…';
+      try {
+        const blob = await comprimirFoto(file);
+        const fd = new FormData();
+        fd.append('foto', blob, file.name.replace(/\.[^.]+$/, '.jpg'));
+        const resp = await fetch(API_URL + '/api/propiedades/' + propId + '/fotos', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + getToken() },
+          body: fd,
+        });
+        if (resp.status === 401) { logout(); return; }
+        if (!resp.ok) {
+          const err = await resp.json().catch(function(){ return {}; });
+          showToast('Error en "' + file.name + '": ' + (err.error || resp.statusText));
+        }
+      } catch(e) {
+        showToast('Error en "' + file.name + '": ' + e.message);
+      }
+    }
+    progressEl.style.display = 'none';
+    progressEl.textContent = '';
+    inputEl.disabled = false;
+    inputEl.value = '';
+    labelEl.style.opacity = '';
+    await cargarFotosPropiedad(propId);
+  }
+
+  async function cargarFotosPropiedad(propId) {
+    try {
+      _propFotos = await apiFetch('/api/propiedades/' + propId + '/fotos');
+      renderFotosPropiedad();
+    } catch(e) {
+      const grid = document.getElementById('prop-fotos-grid');
+      if (grid) grid.innerHTML = '<span style="color:#E08080;font-size:.7rem;">Error al cargar fotos: ' + e.message + '</span>';
+    }
+  }
+
+  function renderFotosPropiedad() {
+    const grid = document.getElementById('prop-fotos-grid');
+    if (!grid) return;
+    if (!_propFotos.length) {
+      grid.innerHTML = '<span style="color:var(--gray);font-size:.68rem;">Sin fotos aún. Seleccioná una o más arriba.</span>';
+      return;
+    }
+    const last = _propFotos.length - 1;
+    grid.innerHTML = _propFotos.map(function(f, idx) {
+      const btnBase = 'border-radius:3px;height:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;font-size:.5rem;border:1px solid var(--border);';
+      const btnNav  = btnBase + 'width:18px;background:var(--bg3);color:var(--gray);';
+      const isPrincipal = f.es_principal;
+      return '<div style="display:flex;flex-direction:column;gap:3px;" data-foto-id="' + f.id + '">'
+        + '<div style="position:relative;aspect-ratio:1;overflow:hidden;border-radius:4px;background:var(--bg3);">'
+        +   '<img src="' + f.url + '" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.parentNode.style.background=\'#1a1a1a\'">'
+        +   (isPrincipal ? '<span style="position:absolute;top:3px;left:3px;background:rgba(193,146,89,.92);color:#0D1A14;font-size:.44rem;padding:.15rem .35rem;border-radius:2px;font-weight:800;letter-spacing:.04em;pointer-events:none;">PORTADA</span>' : '')
+        +   '<button onclick="eliminarFotoPropiedad(' + f.id + ')" title="Eliminar foto" style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,.65);border:none;color:#E08080;border-radius:3px;width:18px;height:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;font-size:.55rem;"><i class="fas fa-times"></i></button>'
+        + '</div>'
+        + '<div style="display:grid;grid-template-columns:18px 18px 1fr;gap:2px;">'
+        +   '<button onclick="moverFotoPropiedad(' + f.id + ',\'left\')" title="Mover antes" ' + (idx===0?'disabled':'') + ' style="' + btnNav + (idx===0?'opacity:.25;':'') + '"><i class="fas fa-chevron-left"></i></button>'
+        +   '<button onclick="moverFotoPropiedad(' + f.id + ',\'right\')" title="Mover después" ' + (idx===last?'disabled':'') + ' style="' + btnNav + (idx===last?'opacity:.25;':'') + '"><i class="fas fa-chevron-right"></i></button>'
+        +   '<button onclick="hacerPortadaPropiedad(' + f.id + ')" title="' + (isPrincipal?'Ya es portada':'Hacer portada') + '" ' + (isPrincipal?'disabled':'') + ' style="' + btnBase + 'flex:1;background:' + (isPrincipal?'rgba(193,146,89,.12)':'var(--bg3)') + ';border-color:' + (isPrincipal?'rgba(193,146,89,.4)':'var(--border)') + ';color:' + (isPrincipal?'var(--gold)':'var(--gray)') + ';' + (isPrincipal?'':'cursor:pointer;') + '"><i class="fas fa-star" style="margin-right:' + (isPrincipal?'2px':'0') + ';"></i>' + (isPrincipal?'Portada':'') + '</button>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  async function eliminarFotoPropiedad(fotoId) {
+    if (!confirm('¿Eliminar esta foto?')) return;
+    try {
+      await apiFetch('/api/propiedades/' + _editPropiedadId + '/fotos/' + fotoId, { method: 'DELETE' });
+      await cargarFotosPropiedad(_editPropiedadId);
+    } catch(e) { showToast('Error al eliminar: ' + e.message); }
+  }
+
+  async function moverFotoPropiedad(fotoId, dir) {
+    const idx = _propFotos.findIndex(function(f){ return f.id === fotoId; });
+    if (idx < 0) return;
+    const newIdx = dir === 'left' ? idx - 1 : idx + 1;
+    if (newIdx < 0 || newIdx >= _propFotos.length) return;
+    // Optimistic swap y re-render inmediato
+    var tmp = _propFotos[idx]; _propFotos[idx] = _propFotos[newIdx]; _propFotos[newIdx] = tmp;
+    renderFotosPropiedad();
+    try {
+      await apiFetch('/api/propiedades/' + _editPropiedadId + '/fotos/orden', {
+        method: 'PUT',
+        body: JSON.stringify({ ids: _propFotos.map(function(f){ return f.id; }) }),
+      });
+    } catch(e) {
+      showToast('Error al reordenar: ' + e.message);
+      await cargarFotosPropiedad(_editPropiedadId); // revertir
+    }
+  }
+
+  async function hacerPortadaPropiedad(fotoId) {
+    try {
+      await apiFetch('/api/propiedades/' + _editPropiedadId + '/fotos/' + fotoId + '/principal', { method: 'PUT' });
+      await cargarFotosPropiedad(_editPropiedadId);
+    } catch(e) { showToast('Error al cambiar portada: ' + e.message); }
   }
 
   /* ── USUARIOS & PERMISOS ────────────────────────────────── */
