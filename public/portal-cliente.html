@@ -6,6 +6,7 @@
   <title>Portal de Clientes — Virtual Estate</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Raleway:wght@400;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="css/catalog.css"/>
   <style>
   :root{--bg:#0D1A14;--bg2:#0E1615;--bg3:#1E3028;--gold:#C19259;--gold-lt:#D4A96A;--white:#F5F0E8;--gray:#8A9990;--border:rgba(193,146,89,.18);--tr:.35s cubic-bezier(.25,.46,.45,.94);--r:4px;}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -579,6 +580,19 @@
                 <option>Otro departamento</option>
               </select>
             </div>
+
+            <!-- Adicionales: chips strip + trigger button -->
+            <div id="adic-chips-strip" style="display:none;margin-top:.9rem;">
+              <div class="re-filter-title" style="display:flex;align-items:center;gap:.4rem;">
+                <i class="fas fa-list-check" style="color:var(--gold);font-size:.7rem;"></i>
+                Adicionales
+                <span id="adic-mode-indicator" style="font-size:.55rem;color:var(--gray);"></span>
+              </div>
+              <div id="adic-applied-chips" class="adic-applied-chips"></div>
+            </div>
+            <button class="btn-mas" onclick="abrirAdicionales()">
+              <i class="fas fa-list-check"></i> Más opciones · Adicionales
+            </button>
 
             <button onclick="buscarPropiedades()" style="width:100%;margin-top:.9rem;padding:.65rem;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:.2s;" onmouseover="this.style.background='var(--gold-lt)'" onmouseout="this.style.background='var(--gold)'">
               <i class="fas fa-search"></i> Aplicar filtros
@@ -1655,6 +1669,7 @@ function limpiarFiltros() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  limpiarAdic();
   browseCatalog?.load();
 }
 
@@ -2092,6 +2107,153 @@ function showToast(m) {
   setTimeout(() => t.classList.remove('show'), 3300);
 }
 
+/* ── ADICIONALES FILTER MODAL ───────────────────────────── */
+let adicSeleccionados = new Set();
+let adicMode = 'some';
+let _adicCatalogCache = null;
+
+const _ADIC_CATS = [
+  { tipo: 'servicios_basicos',  label: 'Servicios Básicos',         icon: 'fa-plug' },
+  { tipo: 'espacios_ambientes', label: 'Espacios y Ambientes',       icon: 'fa-door-open' },
+  { tipo: 'adicionales',        label: 'Adicionales y Equipamiento', icon: 'fa-star' },
+  { tipo: 'amenidades',         label: 'Amenidades Comunitarias',    icon: 'fa-swimmer' },
+];
+
+async function abrirAdicionales() {
+  document.getElementById('adic-overlay').classList.add('open');
+  await _renderAdicModal();
+}
+
+function cerrarAdicionales() {
+  document.getElementById('adic-overlay').classList.remove('open');
+}
+
+function cerrarAdicBtn(e) {
+  if (e.target === document.getElementById('adic-overlay')) cerrarAdicionales();
+}
+
+async function _renderAdicModal() {
+  const body = document.getElementById('adic-body-content');
+  if (!_adicCatalogCache) {
+    body.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--gray);"><i class="fas fa-spinner fa-spin" style="font-size:1.4rem;color:var(--gold);"></i></div>';
+    try {
+      _adicCatalogCache = await fetch(API_URL + '/api/adicionales/catalogo').then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      });
+    } catch (e) {
+      body.innerHTML = `<div style="text-align:center;padding:3rem;color:#E08080;"><i class="fas fa-exclamation-triangle" style="font-size:1.4rem;display:block;margin-bottom:.8rem;"></i>Error al cargar adicionales.<br><small>${e.message}</small></div>`;
+      return;
+    }
+  }
+
+  const modeToggleHtml = `
+    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1.4rem;padding:.7rem 1rem;background:rgba(193,146,89,.05);border:1px solid var(--border);border-radius:var(--r);">
+      <span style="font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);flex:1;">Modo de filtro:</span>
+      <button id="adic-mode-some"  onclick="setAdicionalesMode('some')"  style="padding:.3rem .85rem;border:1px solid var(--border);border-radius:var(--r);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;transition:.2s;">Alguna de estas</button>
+      <button id="adic-mode-every" onclick="setAdicionalesMode('every')" style="padding:.3rem .85rem;border:1px solid var(--border);border-radius:var(--r);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;transition:.2s;">Todas estas</button>
+    </div>`;
+
+  const byTipo = {};
+  (_adicCatalogCache || []).forEach(a => { (byTipo[a.tipo] = byTipo[a.tipo] || []).push(a); });
+
+  const sections = _ADIC_CATS.map(cat => {
+    const items = byTipo[cat.tipo] || [];
+    if (!items.length) return '';
+    const checks = items.map(a => {
+      const sel = adicSeleccionados.has(a.nombre) ? 'selected' : '';
+      return `<label class="adic-check ${sel}" data-nombre="${a.nombre}">
+        <input type="checkbox" ${sel ? 'checked' : ''} onchange="actualizarAdic('${a.nombre.replace(/'/g,"\\'")}',this.checked,this.closest('label'))">
+        ${a.nombre}
+      </label>`;
+    }).join('');
+    return `<div class="adic-cat-title"><i class="fas ${cat.icon}" style="margin-right:.4rem;"></i>${cat.label}</div>
+      <div class="adic-grid">${checks}</div>`;
+  }).join('');
+
+  body.innerHTML = modeToggleHtml + sections;
+  _syncModeToggle();
+  _actualizarBadge();
+}
+
+function actualizarAdic(nombre, checked, labelEl) {
+  if (checked) adicSeleccionados.add(nombre);
+  else         adicSeleccionados.delete(nombre);
+  if (labelEl) labelEl.classList.toggle('selected', checked);
+  _actualizarBadge();
+}
+
+function _actualizarBadge() {
+  const b = document.getElementById('adic-count-badge');
+  if (b) b.textContent = adicSeleccionados.size + ' seleccionados';
+}
+
+function setAdicionalesMode(mode) {
+  adicMode = mode;
+  _syncModeToggle();
+}
+
+function _syncModeToggle() {
+  const btnSome  = document.getElementById('adic-mode-some');
+  const btnEvery = document.getElementById('adic-mode-every');
+  if (!btnSome || !btnEvery) return;
+  const isSome = adicMode === 'some';
+  btnSome.style.background  = isSome ? 'var(--gold)' : 'transparent';
+  btnSome.style.color        = isSome ? 'var(--bg)'   : 'var(--gray)';
+  btnEvery.style.background  = isSome ? 'transparent' : 'var(--gold)';
+  btnEvery.style.color       = isSome ? 'var(--gray)' : 'var(--bg)';
+}
+
+function limpiarAdic() {
+  adicSeleccionados = new Set();
+  adicMode = 'some';
+  _syncModeToggle();
+  _actualizarBadge();
+  document.querySelectorAll('#adic-body-content .adic-check').forEach(l => {
+    l.classList.remove('selected');
+    const cb = l.querySelector('input');
+    if (cb) cb.checked = false;
+  });
+  renderChips();
+}
+
+function aplicarAdicionales() {
+  cerrarAdicionales();
+  renderChips();
+  buscarPropiedades();
+}
+
+function renderChips() {
+  const strip = document.getElementById('adic-chips-strip');
+  const container = document.getElementById('adic-applied-chips');
+  const indicator = document.getElementById('adic-mode-indicator');
+  if (!strip || !container) return;
+  if (!adicSeleccionados.size) {
+    strip.style.display = 'none';
+    return;
+  }
+  strip.style.display = 'block';
+  if (indicator) indicator.textContent = adicMode === 'every' ? '· todas' : '· alguna';
+  container.innerHTML = [...adicSeleccionados].map(n =>
+    `<span class="adic-chip" onclick="quitarChip('${n.replace(/'/g,"\\'")}')">
+      ${n} <i class="fas fa-times" style="font-size:.5rem;opacity:.7;"></i>
+    </span>`
+  ).join('');
+}
+
+function quitarChip(nombre) {
+  adicSeleccionados.delete(nombre);
+  const label = document.querySelector(`#adic-body-content .adic-check[data-nombre="${nombre}"]`);
+  if (label) {
+    label.classList.remove('selected');
+    const cb = label.querySelector('input');
+    if (cb) cb.checked = false;
+  }
+  _actualizarBadge();
+  renderChips();
+  buscarPropiedades();
+}
+
 /* ── INIT — verify token, redirect if invalid ────────────── */
 document.addEventListener('DOMContentLoaded', async () => {
   const token = getToken();
@@ -2116,8 +2278,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         m2Max:          'filt-m2-max',
         zona:           'filt-zona',
       },
-      getFavIds:   () => new Set(dbFavs.map(f => f.propiedad_id)),
-      onToggleFav: (propId, btnEl) => toggleFavDB(propId, btnEl),
+      getFavIds:    () => new Set(dbFavs.map(f => f.propiedad_id)),
+      onToggleFav:  (propId, btnEl) => toggleFavDB(propId, btnEl),
+      getAdics:     () => adicSeleccionados,
+      getAdicsMode: () => adicMode,
     });
     // Show dashboard, hide loading screen
     document.getElementById('auth-checking').style.display = 'none';
@@ -2307,5 +2471,25 @@ async function submitVerificacion() {
   }
 }
 </script>
+
+<!-- ── ADICIONALES MODAL ────────────────────────────────────────────── -->
+<div class="adic-overlay" id="adic-overlay" onclick="cerrarAdicBtn(event)">
+  <div class="adic-modal">
+    <div class="adic-header">
+      <h3><i class="fas fa-list-check" style="color:var(--gold);margin-right:.6rem;font-size:.8rem;"></i>Filtrar por adicionales</h3>
+      <button class="adic-close" onclick="cerrarAdicionales()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="adic-body" id="adic-body-content">
+      <div style="text-align:center;padding:3rem;color:var(--gray);"><i class="fas fa-spinner fa-spin" style="font-size:1.4rem;color:var(--gold);"></i></div>
+    </div>
+    <div class="adic-footer">
+      <span class="adic-count-badge" id="adic-count-badge">0 seleccionados</span>
+      <div style="display:flex;gap:.6rem;">
+        <button onclick="limpiarAdic()" style="padding:.55rem 1.2rem;background:transparent;border:1px solid var(--border);border-radius:var(--r);color:var(--gray);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;transition:.2s;">Limpiar</button>
+        <button onclick="aplicarAdicionales()" style="padding:.55rem 1.4rem;background:var(--gold);border:none;border-radius:var(--r);color:var(--bg);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:.2s;">Aplicar</button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
