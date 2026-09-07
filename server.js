@@ -105,13 +105,13 @@ app.get('/api/propiedades/public', async (req, res) => {
     // Try with adicionales join first; fall back to base select if table doesn't exist yet
     let { data, error } = await applyFilters(
       supabasePublic.from('propiedades')
-        .select('id,nombre,tipo,modalidad,precio,m2,zona,linktour3d,disponibilidad,foto_principal_url,propiedades_adicionales(tipo,nombre)')
+        .select('id,nombre,tipo,modalidad,precio,m2,zona,linktour3d,disponibilidad,foto_principal_url,descripcion,habitaciones,banos,anio_construccion,propiedades_adicionales(tipo,nombre)')
         .order('id', { ascending: false })
     );
     if (error && error.message && error.message.includes('propiedades_adicionales')) {
       ({ data, error } = await applyFilters(
         supabasePublic.from('propiedades')
-          .select('id,nombre,tipo,modalidad,precio,m2,zona,linktour3d,disponibilidad,foto_principal_url')
+          .select('id,nombre,tipo,modalidad,precio,m2,zona,linktour3d,disponibilidad,foto_principal_url,descripcion,habitaciones,banos,anio_construccion')
           .order('id', { ascending: false })
       ));
     }

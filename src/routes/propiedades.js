@@ -43,12 +43,19 @@ router.get('/', async (req, res) => {
 // POST / — create property
 router.post('/', verificarPermiso('crear_propiedad'), async (req, res) => {
   try {
-    const { nombre, tipo, modalidad, precio, m2, zona, linkTour3D, disponibilidad } = req.body;
+    const { nombre, tipo, modalidad, precio, m2, zona, linkTour3D, disponibilidad,
+            descripcion, habitaciones, banos, anio_construccion } = req.body;
     const disp = Array.isArray(disponibilidad) ? disponibilidad.filter(v => DISP_ALLOWED.has(v)) : [];
     const mod  = Array.isArray(modalidad)      ? modalidad.filter(v => MOD_ALLOWED.has(v))       : [];
     const { data, error } = await supabase
       .from('propiedades')
-      .insert([{ nombre, tipo, modalidad: mod, precio, m2, zona, linktour3d: linkTour3D, disponibilidad: disp }])
+      .insert([{
+        nombre, tipo, modalidad: mod, precio, m2, zona, linktour3d: linkTour3D, disponibilidad: disp,
+        descripcion:       descripcion       || null,
+        habitaciones:      habitaciones      != null ? Number(habitaciones)      : null,
+        banos:             banos             != null ? Number(banos)             : null,
+        anio_construccion: anio_construccion != null ? Number(anio_construccion) : null,
+      }])
       .select();
     if (error) throw error;
     res.status(201).json(data[0]);
@@ -58,12 +65,19 @@ router.post('/', verificarPermiso('crear_propiedad'), async (req, res) => {
 // PUT /:id — update property (must be registered before /:id/fotos/*)
 router.put('/:id', verificarPermiso('editar_propiedad'), async (req, res) => {
   try {
-    const { nombre, tipo, modalidad, precio, m2, zona, linkTour3D, disponibilidad } = req.body;
+    const { nombre, tipo, modalidad, precio, m2, zona, linkTour3D, disponibilidad,
+            descripcion, habitaciones, banos, anio_construccion } = req.body;
     const disp = Array.isArray(disponibilidad) ? disponibilidad.filter(v => DISP_ALLOWED.has(v)) : [];
     const mod  = Array.isArray(modalidad)      ? modalidad.filter(v => MOD_ALLOWED.has(v))       : [];
     const { data, error } = await supabase
       .from('propiedades')
-      .update({ nombre, tipo, modalidad: mod, precio, m2, zona, linktour3d: linkTour3D, disponibilidad: disp })
+      .update({
+        nombre, tipo, modalidad: mod, precio, m2, zona, linktour3d: linkTour3D, disponibilidad: disp,
+        descripcion:       descripcion       ?? null,
+        habitaciones:      habitaciones      != null ? Number(habitaciones)      : null,
+        banos:             banos             != null ? Number(banos)             : null,
+        anio_construccion: anio_construccion != null ? Number(anio_construccion) : null,
+      })
       .eq('id', req.params.id)
       .select();
     if (error) throw error;

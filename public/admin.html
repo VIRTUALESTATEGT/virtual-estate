@@ -2836,6 +2836,10 @@
     _editPropiedadId=null;
     const titleSpan=document.querySelector('#propModalOverlay .modal-title span');
     if(titleSpan) titleSpan.innerHTML='<i class="fas fa-building" style="color:var(--gold);margin-right:.5rem;"></i>Nueva Propiedad';
+    ['prop-titulo','prop-zona','prop-tour','prop-descripcion'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    ['prop-precio','prop-area','prop-habs','prop-banos','prop-anio'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    ['prop-tipo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    ['mod-venta','mod-renta'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
     ['disp-vacia','disp-habitada','disp-airbnb','disp-en-construccion'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
     _propFotosEstado(false);
     document.getElementById('propModalOverlay').classList.add('open');
@@ -2862,6 +2866,10 @@
       zona: document.getElementById('prop-zona').value.trim() || null,
       linkTour3D: document.getElementById('prop-tour').value.trim() || null,
       disponibilidad,
+      descripcion:       document.getElementById('prop-descripcion').value.trim() || null,
+      habitaciones:      document.getElementById('prop-habs').value  ? Number(document.getElementById('prop-habs').value)  : null,
+      banos:             document.getElementById('prop-banos').value ? Number(document.getElementById('prop-banos').value) : null,
+      anio_construccion: document.getElementById('prop-anio').value  ? Number(document.getElementById('prop-anio').value)  : null,
     };
     try {
       if(_editPropiedadId){
@@ -4158,6 +4166,10 @@
     document.getElementById('prop-area').value=p.m2||'';
     document.getElementById('prop-zona').value=p.zona||'';
     document.getElementById('prop-tour').value=p.linktour3d||'';
+    document.getElementById('prop-descripcion').value=p.descripcion||'';
+    document.getElementById('prop-habs').value=p.habitaciones!=null?p.habitaciones:'';
+    document.getElementById('prop-banos').value=p.banos!=null?p.banos:'';
+    document.getElementById('prop-anio').value=p.anio_construccion!=null?p.anio_construccion:'';
     const titleSpan=document.querySelector('#propModalOverlay .modal-title span');
     if(titleSpan) titleSpan.innerHTML='<i class="fas fa-building" style="color:var(--gold);margin-right:.5rem;"></i>Editar Propiedad #'+id;
     const dispArr = Array.isArray(p.disponibilidad) ? p.disponibilidad : [];
