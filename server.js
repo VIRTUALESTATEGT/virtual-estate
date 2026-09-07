@@ -122,6 +122,19 @@ app.get('/api/propiedades/public', async (req, res) => {
   }
 });
 
+app.get('/api/propiedades/public/:id/fotos', async (req, res) => {
+  try {
+    const { data, error } = await supabasePublic
+      .from('propiedad_fotos')
+      .select('id, url, orden, es_principal')
+      .eq('propiedad_id', req.params.id)
+      .order('orden')
+      .order('id');
+    if (error) throw error;
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 app.post('/api/leads/public', async (req, res) => {
   const ip = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
   try {

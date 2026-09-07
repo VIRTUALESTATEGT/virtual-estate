@@ -575,16 +575,16 @@
     <button class="detail-close" onclick="closeDetailBtn()"><i class="fas fa-times"></i></button>
 
     <div class="detail-gallery" id="detailGallery">
-      <div class="detail-gallery-ph">
+      <img id="galImg" src="" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;" onerror="this.style.display='none';document.getElementById('detailGalleryPh').style.display='flex';">
+      <div class="detail-gallery-ph" id="detailGalleryPh">
         <i class="fas fa-camera" id="detailIcon"></i>
-        <span id="detailPhotoLabel">Foto 1 de 4</span>
+        <span>Sin fotos</span>
       </div>
-      <div class="detail-gallery-nav">
+      <div class="detail-gallery-nav" id="galNavBtns">
         <button class="detail-gallery-btn" onclick="galNav(-1)"><i class="fas fa-chevron-left"></i></button>
         <button class="detail-gallery-btn" onclick="galNav(1)"><i class="fas fa-chevron-right"></i></button>
       </div>
-      <!-- Photo counter badge -->
-      <div style="position:absolute;bottom:.8rem;right:.8rem;background:rgba(13,26,20,.75);border:1px solid var(--border);padding:.2rem .6rem;border-radius:2px;font-size:.62rem;color:var(--gold);z-index:5;" id="galCounter">1 / 4</div>
+      <div style="position:absolute;bottom:.8rem;right:.8rem;background:rgba(13,26,20,.75);border:1px solid var(--border);padding:.2rem .6rem;border-radius:2px;font-size:.62rem;color:var(--gold);z-index:5;display:none;" id="galCounter"></div>
     </div>
 
     <div class="detail-body">
@@ -704,7 +704,7 @@ const catalog = initCatalog({
     zona: 'f-zona',
   },
   onToggleFav:   (el, code, propId) => toggleFav(el, code, propId),
-  onCardClick:   (code) => openDetail(code),
+  onCardClick:   (code, propId) => openDetail(code, propId),
   onAfterRender: () => applyCurrency(),
   getAdics:      () => adicSeleccionados,
   getAdicsMode:  () => adicMode,
@@ -789,52 +789,72 @@ function setCarouselIdx(img,idx){
 }
 
 /* ── DETAIL MODAL ─────────────────────────────────────── */
-let galIdx=0, galTotal=4;
+let galIdx = 0, _galFotos = [];
 
-const PROPS = {
-  'PRO-26-0001':{ name:'Apartamento Zona 14', loc:'Zona 14, Ciudad de Guatemala', price:'$185,000', modalidad:'Venta', specs:[{i:'fa-bed',t:'3 habitaciones'},{i:'fa-bath',t:'2 baños'},{i:'fa-ruler-combined',t:'145 m²'},{i:'fa-car',t:'2 est.'}], desc:'Moderno apartamento ubicado en Zona 14, con excelentes acabados, vistas panorámicas y tour virtual 3D disponible para acceso exclusivo.' },
-  'PRO-26-0002':{ name:'Casa Colonia Oakland', loc:'Villa Nueva, Guatemala', price:'$320,000', modalidad:'Venta', specs:[{i:'fa-bed',t:'4 habitaciones'},{i:'fa-bath',t:'3 baños'},{i:'fa-ruler-combined',t:'290 m²'},{i:'fa-tree',t:'Jardín'}], desc:'Amplia casa familiar con jardín, área de BBQ y acabados de alta calidad. Recorrido virtual disponible bajo cita.' },
-  'PRO-26-0003':{ name:'Oficina Pradera Torre 4', loc:'Zona 10, Ciudad de Guatemala', price:'$1,200 / mes', modalidad:'Renta', specs:[{i:'fa-users',t:'8 puestos'},{i:'fa-bath',t:'1 baño'},{i:'fa-ruler-combined',t:'95 m²'},{i:'fa-wifi',t:'Internet incluido'}], desc:'Oficina ejecutiva en ubicación premium, Torre 4 del Centro Pradera. Disponible desde el mes siguiente.' },
-  'PRO-26-0004':{ name:'Penthouse Zona 15', loc:'Zona 15, Ciudad de Guatemala', price:'$480,000', modalidad:'Venta', specs:[{i:'fa-bed',t:'3 habitaciones'},{i:'fa-bath',t:'3 baños'},{i:'fa-ruler-combined',t:'220 m²'},{i:'fa-sun',t:'Terraza'}], desc:'Penthouse exclusivo con terraza privada y vistas únicas. Acabados de lujo, cocina integrada y área de entretenimiento.' },
-  'PRO-26-0005':{ name:'Bodega Industrial Mixco', loc:'Mixco, Guatemala', price:'$2,800 / mes', modalidad:'Renta', specs:[{i:'fa-ruler-combined',t:'800 m²'},{i:'fa-truck',t:'Acceso trailer'},{i:'fa-bolt',t:'Trifásico'}], desc:'Bodega industrial de alto estándar con acceso de trailer, plataforma de carga y electricidad trifásica.' },
-  'PRO-26-0006':{ name:'Local Comercial Miraflores', loc:'Villa Nueva, Guatemala', price:'$95,000', modalidad:'Venta', specs:[{i:'fa-ruler-combined',t:'120 m²'},{i:'fa-store',t:'Esquinero'},{i:'fa-car',t:'Parqueo'}], desc:'Local comercial en esquina con alta visibilidad en área residencial consolidada de Villa Nueva.' },
-  'PRO-26-0008-01':{ name:'Apto. Torre Cayalá · Unidad 01', loc:'Zona 16, Guatemala', price:'$210,000', modalidad:'Venta', specs:[{i:'fa-bed',t:'2 habitaciones'},{i:'fa-bath',t:'2 baños'},{i:'fa-ruler-combined',t:'110 m²'},{i:'fa-building',t:'Piso 8'}], desc:'Apartamento en Torre Cayalá, unidad 01. Amenidades completas: piscina, gimnasio, lobby de lujo.' },
-  'PRO-26-0008-02':{ name:'Apto. Torre Cayalá · Unidad 02', loc:'Zona 16, Guatemala', price:'$225,000', modalidad:'Venta', specs:[{i:'fa-bed',t:'2 habitaciones'},{i:'fa-bath',t:'2 baños'},{i:'fa-ruler-combined',t:'118 m²'},{i:'fa-building',t:'Piso 12'}], desc:'Apartamento en Torre Cayalá, unidad 02, piso 12. Vistas superiores y luz natural todo el día.' },
-  'PRO-26-0009':{ name:'Casa en Condominio Santa Fe', loc:'Mixco, Guatemala', price:'$155,000', modalidad:'Venta', specs:[{i:'fa-bed',t:'3 habitaciones'},{i:'fa-bath',t:'2 baños'},{i:'fa-ruler-combined',t:'180 m²'},{i:'fa-lock',t:'Condominio cerrado'}], desc:'Casa en condominio privado con seguridad 24/7. Ideal para familia, jardín propio y acceso rápido a periférico.' },
-};
+function _setGalDisplay() {
+  const img     = document.getElementById('galImg');
+  const ph      = document.getElementById('detailGalleryPh');
+  const counter = document.getElementById('galCounter');
+  const nav     = document.getElementById('galNavBtns');
+  if (_galFotos.length) {
+    img.src = _galFotos[galIdx];
+    img.style.display = 'block';
+    ph.style.display  = 'none';
+    counter.textContent = `${galIdx + 1} / ${_galFotos.length}`;
+    counter.style.display = _galFotos.length > 1 ? '' : 'none';
+    nav.style.display = _galFotos.length > 1 ? '' : 'none';
+  } else {
+    img.style.display     = 'none';
+    ph.style.display      = 'flex';
+    counter.style.display = 'none';
+    nav.style.display     = 'none';
+  }
+}
 
-function openDetail(code){
-  const p=PROPS[code];
-  if(!p)return;
-  document.getElementById('detailCode').textContent=code;
-  document.getElementById('detailName').textContent=p.name;
-  document.getElementById('detailLoc').textContent=p.loc;
-  document.getElementById('detailPrice').textContent=p.price;
-  document.getElementById('detailModalidad').textContent=catalogModLabel(p.modalidad);
-  document.getElementById('detailDesc').textContent=p.desc;
-  document.getElementById('detailWA').href=`https://wa.me/50239902399?text=${encodeURIComponent('Hola, me interesa la propiedad '+code+' — '+p.name)}`;
-  const sp=document.getElementById('detailSpecs');
-  sp.innerHTML=p.specs.map(s=>`<div class="detail-spec"><i class="fas ${s.i}"></i> ${s.t}</div>`).join('');
-  galIdx=0; galTotal=4;
-  updateGalDisplay(code);
+function openDetail(code, propId) {
+  const p = catalog.getData().find(x => x.id === propId);
+  if (!p) return;
+  const icon = CATALOG_TIPO_ICON[p.tipo] || 'fa-home';
+  document.getElementById('detailCode').textContent = code;
+  document.getElementById('detailName').textContent = p.nombre;
+  document.getElementById('detailLoc').textContent  = p.zona || 'Guatemala';
+  document.getElementById('detailPrice').textContent = p.precio ? '$' + Number(p.precio).toLocaleString() : 'Consultar';
+  document.getElementById('detailModalidad').textContent = catalogModLabel(p.modalidad);
+  document.getElementById('detailDesc').textContent = p.descripcion || 'Propiedad con ficha técnica completa disponible.';
+  document.getElementById('detailWA').href = `https://wa.me/50239902399?text=${encodeURIComponent('Hola, me interesa la propiedad ' + code + ' — ' + p.nombre)}`;
+  const sp = document.getElementById('detailSpecs');
+  const specs = [];
+  if (p.tipo) specs.push({ i: icon,              t: p.tipo });
+  if (p.m2)   specs.push({ i: 'fa-ruler-combined', t: p.m2 + ' m²' });
+  sp.innerHTML = specs.map(s => `<div class="detail-spec"><i class="fas ${s.i}"></i> ${s.t}</div>`).join('');
+
+  // Reset gallery, show modal immediately
+  _galFotos = [];
+  galIdx    = 0;
+  _setGalDisplay();
   document.getElementById('detailOverlay').classList.add('open');
-  document.body.style.overflow='hidden';
+  document.body.style.overflow = 'hidden';
+
+  // Async load all photos
+  fetch(window.API_URL + `/api/propiedades/public/${propId}/fotos`)
+    .then(r => r.ok ? r.json() : [])
+    .then(fotos => {
+      _galFotos = fotos.map(f => f.url);
+      galIdx    = 0;
+      _setGalDisplay();
+    })
+    .catch(() => {});
 }
-function updateGalDisplay(code){
-  document.getElementById('detailPhotoLabel').textContent=`Foto ${galIdx+1} de ${galTotal}`;
-  document.getElementById('galCounter').textContent=`${galIdx+1} / ${galTotal}`;
-  // Icon variety by index
-  const icons=['fa-camera','fa-image','fa-home','fa-building'];
-  document.getElementById('detailIcon').className='fas '+icons[galIdx%icons.length];
+
+function galNav(dir) {
+  if (!_galFotos.length) return;
+  galIdx = (galIdx + dir + _galFotos.length) % _galFotos.length;
+  _setGalDisplay();
 }
-function galNav(dir){
-  galIdx=(galIdx+dir+galTotal)%galTotal;
-  updateGalDisplay();
-}
-function closeDetail(e){if(e.target===document.getElementById('detailOverlay'))closeDetailBtn();}
-function closeDetailBtn(){
+function closeDetail(e) { if (e.target === document.getElementById('detailOverlay')) closeDetailBtn(); }
+function closeDetailBtn() {
   document.getElementById('detailOverlay').classList.remove('open');
-  document.body.style.overflow='';
+  document.body.style.overflow = '';
 }
 
 /* ── ADICIONALES MODAL ─────────────────────────────────── */

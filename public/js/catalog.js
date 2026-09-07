@@ -69,9 +69,13 @@ function initCatalog(cfg) {
           `<span class="disp-badge ${CATALOG_DISP_CLASS[d] || ''}">${CATALOG_DISP_LABEL[d] || d}</span>`
         ).join('')}</div>`
       : '';
+    const imgHtml = p.foto_principal_url
+      ? `<img src="${p.foto_principal_url}" alt="${p.nombre}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+         <div class="prop-img-ph" style="display:none;position:absolute;inset:0;"><i class="fas ${icon}"></i><span>${p.linktour3d ? 'Tour virtual disponible' : 'Sin tour aún'}</span></div>`
+      : `<div class="prop-img-ph"><i class="fas ${icon}"></i><span>${p.linktour3d ? 'Tour virtual disponible' : 'Sin tour aún'}</span></div>`;
     return `<div class="prop-card" data-id="${p.id}" data-adics='${JSON.stringify(adics)}'>
     <div class="prop-img">
-      <div class="prop-img-ph"><i class="fas ${icon}"></i><span>${p.linktour3d ? 'Tour virtual disponible' : 'Sin tour aún'}</span></div>
+      ${imgHtml}
       <span class="prop-badge ${isRenta ? 'badge-renta' : 'badge-venta'}">${catalogModLabel(p.modalidad)}</span>
       ${p.linktour3d ? `<span class="prop-tour-badge"><i class="fas fa-vr-cardboard"></i> 3D</span>` : ''}
     </div>
@@ -110,9 +114,13 @@ function initCatalog(cfg) {
           `<span class="disp-badge ${CATALOG_DISP_CLASS[d] || ''}">${CATALOG_DISP_LABEL[d] || d}</span>`
         ).join('')}</div>`
       : '';
+    const imgHtmlP = p.foto_principal_url
+      ? `<img src="${p.foto_principal_url}" alt="${p.nombre}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+         <div class="re-prop-img-ph" style="display:none;position:absolute;inset:0;"><i class="fas ${icon}"></i><span>Sin fotos</span></div>`
+      : `<div class="re-prop-img-ph"><i class="fas ${icon}"></i><span>${p.linktour3d ? 'Tour virtual disponible' : 'Sin fotos aún'}</span></div>`;
     return `<div class="re-prop-card" data-id="${p.id}">
     <div class="re-prop-img">
-      <div class="re-prop-img-ph"><i class="fas ${icon}"></i><span>${p.linktour3d ? 'Tour virtual disponible' : 'Sin fotos aún'}</span></div>
+      ${imgHtmlP}
       <span class="re-prop-badge ${badgeCls}">${catalogModLabel(p.modalidad)}</span>
       <div class="${favCls}" id="fav-btn-${p.id}" data-propid="${p.id}" title="${isSaved ? 'Quitar de favoritos' : 'Guardar en favoritos'}">
         <i class="${favIcon} fa-heart"></i>
@@ -234,7 +242,7 @@ function initCatalog(cfg) {
         const card = e.target.closest('[data-id]');
         if (card && !e.target.closest('.carousel-btn') && !e.target.closest('.c-dot')) {
           const codeEl = card.querySelector('.prop-code,.re-prop-code');
-          if (codeEl) onCardClick(codeEl.textContent.trim(), card);
+          if (codeEl) onCardClick(codeEl.textContent.trim(), parseInt(card.dataset.id), card);
         }
       }
     };
