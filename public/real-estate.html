@@ -291,6 +291,7 @@
   }
   </style>
   <script src="js/catalog.js"></script>
+  <script src="js/detail-modal.js"></script>
 </head>
 <body>
 
@@ -599,17 +600,15 @@
 
           <div class="detail-info-row" id="detailSpecs"></div>
 
-          <div class="detail-section-title" style="margin-top:1.2rem;">Descripción</div>
-          <p class="detail-description" id="detailDesc">
-            Propiedad con recorrido virtual 3D, fotografía profesional y ficha técnica completa disponible.
-          </p>
+          <div id="detailDisp" class="disp-badges" style="margin:.6rem 0;display:none;"></div>
 
-          <div class="detail-section-title" style="margin-top:1.4rem;">Incluye</div>
-          <div class="detail-checklist">
-            <div class="detail-check-item"><i class="fas fa-check-circle"></i> Recorrido virtual 3D (solicitar acceso)</div>
-            <div class="detail-check-item"><i class="fas fa-check-circle"></i> Fotografía profesional</div>
-            <div class="detail-check-item"><i class="fas fa-check-circle"></i> Ficha técnica completa</div>
-            <div class="detail-check-item"><i class="fas fa-check-circle"></i> Planos de distribución</div>
+          <div id="detailDescSection" style="display:none;">
+            <div class="detail-section-title" style="margin-top:1.2rem;">Descripción</div>
+            <p class="detail-description" id="detailDesc"></p>
+          </div>
+
+          <div id="detailAdicsSection" style="display:none;margin-top:1.4rem;">
+            <div id="detailAdics"></div>
           </div>
         </div>
 
@@ -789,68 +788,34 @@ function setCarouselIdx(img,idx){
 }
 
 /* ── DETAIL MODAL ─────────────────────────────────────── */
-let galIdx = 0, _galFotos = [];
-
-function _setGalDisplay() {
-  const img     = document.getElementById('galImg');
-  const ph      = document.getElementById('detailGalleryPh');
-  const counter = document.getElementById('galCounter');
-  const nav     = document.getElementById('galNavBtns');
-  if (_galFotos.length) {
-    img.src = _galFotos[galIdx];
-    img.style.display = 'block';
-    ph.style.display  = 'none';
-    counter.textContent = `${galIdx + 1} / ${_galFotos.length}`;
-    counter.style.display = _galFotos.length > 1 ? '' : 'none';
-    nav.style.display = _galFotos.length > 1 ? '' : 'none';
-  } else {
-    img.style.display     = 'none';
-    ph.style.display      = 'flex';
-    counter.style.display = 'none';
-    nav.style.display     = 'none';
-  }
-}
+const _gal = PropDetail.makeGallery({
+  imgId: 'galImg', phId: 'detailGalleryPh', navId: 'galNavBtns', counterId: 'galCounter',
+});
 
 function openDetail(code, propId) {
   const p = catalog.getData().find(x => x.id === propId);
   if (!p) return;
   const icon = CATALOG_TIPO_ICON[p.tipo] || 'fa-home';
-  document.getElementById('detailCode').textContent = code;
-  document.getElementById('detailName').textContent = p.nombre;
-  document.getElementById('detailLoc').textContent  = p.zona || 'Guatemala';
-  document.getElementById('detailPrice').textContent = p.precio ? '$' + Number(p.precio).toLocaleString() : 'Consultar';
+  document.getElementById('detailCode').textContent     = code;
+  document.getElementById('detailName').textContent     = p.nombre;
+  document.getElementById('detailLoc').textContent      = p.zona || 'Guatemala';
+  document.getElementById('detailPrice').textContent    = p.precio ? '$' + Number(p.precio).toLocaleString() : 'Consultar';
   document.getElementById('detailModalidad').textContent = catalogModLabel(p.modalidad);
-  document.getElementById('detailDesc').textContent = p.descripcion || 'Propiedad con ficha técnica completa disponible.';
   document.getElementById('detailWA').href = `https://wa.me/50239902399?text=${encodeURIComponent('Hola, me interesa la propiedad ' + code + ' — ' + p.nombre)}`;
-  const sp = document.getElementById('detailSpecs');
-  const specs = [];
-  if (p.tipo) specs.push({ i: icon,              t: p.tipo });
-  if (p.m2)   specs.push({ i: 'fa-ruler-combined', t: p.m2 + ' m²' });
-  sp.innerHTML = specs.map(s => `<div class="detail-spec"><i class="fas ${s.i}"></i> ${s.t}</div>`).join('');
 
-  // Reset gallery, show modal immediately
-  _galFotos = [];
-  galIdx    = 0;
-  _setGalDisplay();
+  PropDetail.renderSpecs(document.getElementById('detailSpecs'), p, icon);
+  PropDetail.renderDisp(document.getElementById('detailDisp'), p);
+  PropDetail.renderDesc(document.getElementById('detailDesc'), document.getElementById('detailDescSection'), p);
+  PropDetail.renderAdics(document.getElementById('detailAdics'), document.getElementById('detailAdicsSection'), p);
+
+  _gal.reset();
   document.getElementById('detailOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 
-  // Async load all photos
-  fetch(window.API_URL + `/api/propiedades/public/${propId}/fotos`)
-    .then(r => r.ok ? r.json() : [])
-    .then(fotos => {
-      _galFotos = fotos.map(f => f.url);
-      galIdx    = 0;
-      _setGalDisplay();
-    })
-    .catch(() => {});
+  _gal.load(propId);
 }
 
-function galNav(dir) {
-  if (!_galFotos.length) return;
-  galIdx = (galIdx + dir + _galFotos.length) % _galFotos.length;
-  _setGalDisplay();
-}
+function galNav(dir) { _gal.nav(dir); }
 function closeDetail(e) { if (e.target === document.getElementById('detailOverlay')) closeDetailBtn(); }
 function closeDetailBtn() {
   document.getElementById('detailOverlay').classList.remove('open');

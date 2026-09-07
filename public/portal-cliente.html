@@ -317,11 +317,23 @@
   #prop-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:3000;align-items:center;justify-content:center;padding:1rem;}
   #prop-modal-overlay.open{display:flex;}
   .prop-modal-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);width:min(680px,100%);max-height:88vh;overflow-y:auto;position:relative;}
-  .prop-modal-img{height:240px;background:var(--bg3);display:flex;align-items:center;justify-content:center;position:relative;}
-  .prop-modal-img i{font-size:3.5rem;color:rgba(193,146,89,.2);}
+  .prop-modal-img{height:240px;background:var(--bg3);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
   .prop-modal-body{padding:1.8rem 2rem;}
-  .prop-modal-close{position:absolute;top:.9rem;right:1rem;background:none;border:none;color:var(--gray);font-size:1.1rem;cursor:pointer;z-index:1;transition:.2s;}
+  .prop-modal-close{position:absolute;top:.9rem;right:1rem;background:none;border:none;color:var(--gray);font-size:1.1rem;cursor:pointer;z-index:2;transition:.2s;}
   .prop-modal-close:hover{color:var(--white);}
+  /* gallery nav inside pmod-img */
+  .pmod-gal-nav{position:absolute;bottom:.6rem;left:0;right:0;display:none;align-items:center;justify-content:center;gap:.5rem;z-index:2;}
+  .pmod-gal-btn{background:rgba(13,26,20,.75);border:1px solid rgba(193,146,89,.3);color:var(--gold);width:30px;height:30px;min-width:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;cursor:pointer;transition:.2s;-webkit-tap-highlight-color:transparent;}
+  .pmod-gal-btn:hover,.pmod-gal-btn:active{background:rgba(193,146,89,.2);}
+  #pmod-gal-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg3);}
+  /* shared detail helpers (used by PropDetail module) */
+  .detail-spec{display:flex;align-items:center;gap:.4rem;font-size:.78rem;color:rgba(245,240,232,.7);}
+  .detail-spec i{color:var(--gold);font-size:.7rem;}
+  .detail-section-title{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.6rem;}
+  .detail-description{font-size:.82rem;color:var(--gray);line-height:1.8;font-weight:400;margin:0;}
+  .detail-checklist{display:flex;flex-direction:column;gap:.45rem;}
+  .detail-check-item{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:rgba(245,240,232,.75);}
+  .detail-check-item i{color:var(--gold);font-size:.65rem;}
   /* ── BANK ACCOUNT BOX ────────────────────── */
   .bank-req-box{background:rgba(193,146,89,.06);border:1px solid rgba(193,146,89,.3);border-left:3px solid var(--gold);border-radius:var(--r);padding:.9rem 1.2rem;margin-bottom:1.2rem;}
   /* ── PROMO CODES ─────────────────────────── */
@@ -1394,12 +1406,17 @@
   <div class="prop-modal-box">
     <button class="prop-modal-close" onclick="closePropModal()"><i class="fas fa-times"></i></button>
     <div class="prop-modal-img" id="pmod-img">
-      <img id="pmod-img-tag" src="" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;" onerror="this.style.display='none';document.getElementById('pmod-icon').style.display='';">
-      <i class="fas fa-building" id="pmod-icon"></i>
-      <span id="pmod-badge" style="position:absolute;top:.7rem;left:.7rem;background:rgba(193,146,89,.9);color:#0D1A14;font-size:.52rem;padding:.18rem .55rem;border-radius:2px;letter-spacing:.08em;font-weight:700;text-transform:uppercase;z-index:1;"></span>
+      <img id="pmod-img-tag" src="" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;" onerror="this.style.display='none';">
+      <div id="pmod-gal-ph"><i class="fas fa-building" style="font-size:3.5rem;color:rgba(193,146,89,.2);"></i></div>
+      <span id="pmod-badge" style="position:absolute;top:.7rem;left:.7rem;background:rgba(193,146,89,.9);color:#0D1A14;font-size:.52rem;padding:.18rem .55rem;border-radius:2px;letter-spacing:.08em;font-weight:700;text-transform:uppercase;z-index:2;"></span>
+      <div class="pmod-gal-nav" id="pmod-gal-nav">
+        <button class="pmod-gal-btn" onclick="event.stopPropagation();_pmodGal.nav(-1)"><i class="fas fa-chevron-left"></i></button>
+        <button class="pmod-gal-btn" onclick="event.stopPropagation();_pmodGal.nav(1)"><i class="fas fa-chevron-right"></i></button>
+      </div>
+      <div id="pmod-gal-counter" style="position:absolute;top:.6rem;right:.7rem;background:rgba(13,26,20,.75);border:1px solid var(--border);padding:.15rem .5rem;border-radius:2px;font-size:.58rem;color:var(--gold);z-index:2;display:none;"></div>
     </div>
     <div class="prop-modal-body">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.2rem;flex-wrap:wrap;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:.8rem;flex-wrap:wrap;">
         <div>
           <div style="font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);font-weight:500;" id="pmod-code">—</div>
           <h2 style="font-family:'Raleway',sans-serif;font-size:1.3rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:.3rem 0;" id="pmod-name">—</h2>
@@ -1407,35 +1424,33 @@
         </div>
         <div style="font-family:'Raleway',sans-serif;font-size:1.6rem;font-weight:700;color:var(--gold);" id="pmod-price">—</div>
       </div>
-      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.2rem;margin-bottom:1.4rem;">
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;text-align:center;">
-          <div>
-            <div style="font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin-bottom:.3rem;">Área</div>
-            <div style="font-size:.88rem;font-weight:600;color:var(--white);" id="pmod-area">—</div>
-          </div>
-          <div>
-            <div style="font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin-bottom:.3rem;">Habitaciones</div>
-            <div style="font-size:.88rem;font-weight:600;color:var(--white);" id="pmod-rooms">—</div>
-          </div>
-          <div>
-            <div style="font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);margin-bottom:.3rem;">Año</div>
-            <div style="font-size:.88rem;font-weight:600;color:var(--white);" id="pmod-year">—</div>
-          </div>
-        </div>
+
+      <div id="pmod-disp" class="disp-badges" style="margin:.4rem 0 .9rem;display:none;"></div>
+
+      <div class="detail-info-row" id="pmod-specs" style="flex-wrap:wrap;gap:.5rem;margin-bottom:1.4rem;"></div>
+
+      <div id="pmod-desc-section" style="display:none;margin-bottom:1.4rem;">
+        <div class="detail-section-title">Descripción</div>
+        <p class="detail-description" id="pmod-desc"></p>
       </div>
-      <p style="font-size:.8rem;color:var(--gray);line-height:1.7;margin-bottom:1.4rem;font-weight:400;" id="pmod-desc">—</p>
-      <div style="background:rgba(193,146,89,.06);border:1px solid var(--border);border-radius:var(--r);padding:.9rem 1.1rem;display:flex;align-items:center;gap:.7rem;margin-bottom:1.4rem;">
+
+      <div id="pmod-adics-section" style="display:none;margin-bottom:1.4rem;">
+        <div id="pmod-adics"></div>
+      </div>
+
+      <div id="pmod-tour-box" style="display:none;background:rgba(193,146,89,.06);border:1px solid var(--border);border-radius:var(--r);padding:.9rem 1.1rem;display:none;align-items:center;gap:.7rem;margin-bottom:1.4rem;">
         <i class="fas fa-vr-cardboard" style="color:var(--gold);font-size:1rem;flex-shrink:0;"></i>
         <p style="font-size:.72rem;color:var(--gray);line-height:1.5;font-weight:400;">Tour virtual 3D disponible exclusivamente con una reunión agendada. <a href="index.html#contacto" style="color:var(--gold);font-weight:600;">Agendar ahora →</a></p>
       </div>
-      <div style="display:flex;gap:.8rem;flex-wrap:wrap;">
+
+      <div id="pmod-ctas" style="display:flex;gap:.8rem;flex-wrap:wrap;">
         <button onclick="agendarTour(document.getElementById('pmod-code').textContent)" class="w-btn w-btn-gold">
           <i class="fas fa-calendar-check"></i> Agendar reunión
         </button>
         <button onclick="window.open('index.html#cotizador','_blank')" class="w-btn w-btn-out">
           <i class="fas fa-file-invoice-dollar"></i> Solicitar cotización
         </button>
-        <button onclick="removeFav(modalPropId);closePropModal()" style="background:none;border:none;color:var(--gray);font-size:.72rem;cursor:pointer;display:flex;align-items:center;gap:.3rem;padding:.5rem;transition:.2s;" onmouseover="this.style.color='#E08080'" onmouseout="this.style.color='var(--gray)'">
+        <button id="pmod-remove-fav" onclick="removeFav(modalPropId);closePropModal()" style="display:none;background:none;border:none;color:var(--gray);font-size:.72rem;cursor:pointer;align-items:center;gap:.3rem;padding:.5rem;transition:.2s;" onmouseover="this.style.color='#E08080'" onmouseout="this.style.color='var(--gray)'">
           <i class="fas fa-heart-broken"></i> Quitar de favoritos
         </button>
       </div>
@@ -1534,6 +1549,7 @@
 
 
 <script src="js/catalog.js"></script>
+<script src="js/detail-modal.js"></script>
 <script>
 /* ── API ────────────────────────────────────────────────── */
 const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3000' : '';
@@ -1690,34 +1706,48 @@ function setPropSubTab(tab) {
 /* ── PROP MODAL ─────────────────────────────────────────── */
 let modalPropId = null;
 
-function openPropModal(id) {
-  const fav = dbFavs.find(f => String(f.propiedad_id) === String(id));
-  const p = fav?.propiedades || null;
-  if (!p) return;
+const _pmodGal = PropDetail.makeGallery({
+  imgId: 'pmod-img-tag', phId: 'pmod-gal-ph', navId: 'pmod-gal-nav', counterId: 'pmod-gal-counter',
+});
+
+function _fillPropModal(p, isFav) {
   modalPropId = p.id;
   document.getElementById('pmod-code').textContent = `PROP-${String(p.id).padStart(5,'0')}`;
   document.getElementById('pmod-name').textContent = p.nombre;
   document.getElementById('pmod-loc').innerHTML = `<i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.65rem;"></i> ${p.zona || '—'}`;
   document.getElementById('pmod-price').textContent = p.precio ? '$' + Number(p.precio).toLocaleString() : '—';
   document.getElementById('pmod-badge').textContent = _modLabel(p.modalidad);
-  document.getElementById('pmod-icon').className = 'fas ' + (tipoIcon[p.tipo] || 'fa-home');
-  document.getElementById('pmod-area').textContent = p.m2 ? p.m2 + ' m²' : 'Consultar';
-  document.getElementById('pmod-rooms').textContent = p.tipo || 'Consultar';
-  document.getElementById('pmod-year').textContent = 'Consultar';
-  document.getElementById('pmod-desc').textContent = 'Para información completa y fotos de esta propiedad, contáctanos o agenda una reunión con nuestro equipo.';
 
-  // Show principal photo immediately if available
-  const imgTag = document.getElementById('pmod-img-tag');
-  const iconEl = document.getElementById('pmod-icon');
-  if (p.foto_principal_url) {
-    imgTag.src           = p.foto_principal_url;
-    imgTag.style.display = 'block';
-    iconEl.style.display = 'none';
-  } else {
-    imgTag.style.display = 'none';
-    iconEl.style.display = '';
-  }
+  PropDetail.renderSpecs(document.getElementById('pmod-specs'), p, tipoIcon[p.tipo] || 'fa-home');
+  PropDetail.renderDisp(document.getElementById('pmod-disp'), p);
+  PropDetail.renderDesc(document.getElementById('pmod-desc'), document.getElementById('pmod-desc-section'), p);
+  PropDetail.renderAdics(document.getElementById('pmod-adics'), document.getElementById('pmod-adics-section'), p);
 
+  // Tour 3D box — show only if linktour3d is present
+  const tourBox = document.getElementById('pmod-tour-box');
+  if (tourBox) tourBox.style.display = p.linktour3d ? 'flex' : 'none';
+
+  // "Quitar de favoritos" button — only shown from favorites context
+  const removeFavBtn = document.getElementById('pmod-remove-fav');
+  if (removeFavBtn) removeFavBtn.style.display = isFav ? 'flex' : 'none';
+
+  _pmodGal.reset();
+  _pmodGal.load(p.id);
+}
+
+function openPropModal(id) {
+  const fav = dbFavs.find(f => String(f.propiedad_id) === String(id));
+  const p = fav?.propiedades || null;
+  if (!p) return;
+  _fillPropModal(p, true);
+  document.getElementById('prop-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function openBrowseDetail(code, propId) {
+  const p = browseCatalog.getData().find(x => x.id === propId);
+  if (!p) return;
+  _fillPropModal(p, false);
   document.getElementById('prop-modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -2298,6 +2328,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       },
       getFavIds:    () => new Set(dbFavs.map(f => f.propiedad_id)),
       onToggleFav:  (propId, btnEl) => toggleFavDB(propId, btnEl),
+      onCardClick:  (code, propId) => openBrowseDetail(code, propId),
       getAdics:     () => adicSeleccionados,
       getAdicsMode: () => adicMode,
     });

@@ -112,7 +112,7 @@ router.get('/me/favoritos', async (req, res) => {
     if (!cliente) return res.json([]);
     const { data, error } = await supabase
       .from('propiedades_favoritas')
-      .select('*, propiedades(*)')
+      .select('*, propiedades(*, propiedades_adicionales(tipo,nombre))')
       .eq('cliente_id', cliente.id)
       .order('created_at', { ascending: false });
     if (error) throw error;
