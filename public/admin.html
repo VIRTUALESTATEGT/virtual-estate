@@ -294,6 +294,8 @@
   }
   .adic-check:hover { color: var(--white); border-color: var(--border); }
   .adic-check input { accent-color: var(--gold); width: 12px; height: 12px; flex-shrink: 0; }
+  .adic-check.adic-oculto { border-color: rgba(200,147,74,.3); }
+  .adic-check.adic-oculto:hover { border-color: rgba(200,147,74,.55); }
 
   /* ── PERMISOS CHECKBOXES ─────────────────────── */
   .perm-group { margin-bottom: 1rem; }
@@ -1641,105 +1643,10 @@
       </label>
     </div>
 
-    <!-- Sección: Adicionales -->
+    <!-- Sección: Adicionales (renderizado dinámico desde /api/admin/adicionales) -->
     <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;margin-top:1rem;"><i class="fas fa-list-check" style="margin-right:.3rem;"></i>Adicionales de la propiedad</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:.6rem;">
-      <div>
-        <div style="font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);margin-bottom:.5rem;font-weight:600;">Servicios básicos</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem;" id="adic-servicios-crm">
-          <label class="adic-check"><input type="checkbox" value="Agua potable" data-tipo="servicios_basicos"/> Agua potable</label>
-          <label class="adic-check"><input type="checkbox" value="Electricidad" data-tipo="servicios_basicos"/> Electricidad</label>
-          <label class="adic-check"><input type="checkbox" value="Internet" data-tipo="servicios_basicos"/> Internet</label>
-          <label class="adic-check"><input type="checkbox" value="Gas Natural" data-tipo="servicios_basicos"/> Gas Natural</label>
-          <label class="adic-check"><input type="checkbox" value="Drenaje" data-tipo="servicios_basicos"/> Drenaje</label>
-          <label class="adic-check"><input type="checkbox" value="Cable" data-tipo="servicios_basicos"/> Cable</label>
-          <label class="adic-check"><input type="checkbox" value="Pavimento" data-tipo="servicios_basicos"/> Pavimento</label>
-          <label class="adic-check"><input type="checkbox" value="Teléfono" data-tipo="servicios_basicos"/> Teléfono</label>
-          <label class="adic-check"><input type="checkbox" value="Panel solar" data-tipo="servicios_basicos"/> Panel solar</label>
-          <label class="adic-check"><input type="checkbox" value="Planta eléctrica" data-tipo="servicios_basicos"/> Planta eléctrica</label>
-          <label class="adic-check"><input type="checkbox" value="Cisterna" data-tipo="servicios_basicos"/> Cisterna</label>
-          <label class="adic-check"><input type="checkbox" value="Portero" data-tipo="servicios_basicos"/> Portero</label>
-        </div>
-      </div>
-      <div>
-        <div style="font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);margin-bottom:.5rem;font-weight:600;">Espacios y ambientes</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem;" id="adic-espacios-crm">
-          <label class="adic-check"><input type="checkbox" value="Antecomedor" data-tipo="espacios_ambientes"/> Antecomedor</label>
-          <label class="adic-check"><input type="checkbox" value="Ático" data-tipo="espacios_ambientes"/> Ático</label>
-          <label class="adic-check"><input type="checkbox" value="Balcón" data-tipo="espacios_ambientes"/> Balcón</label>
-          <label class="adic-check"><input type="checkbox" value="Bodega" data-tipo="espacios_ambientes"/> Bodega</label>
-          <label class="adic-check"><input type="checkbox" value="Chimenea" data-tipo="espacios_ambientes"/> Chimenea</label>
-          <label class="adic-check"><input type="checkbox" value="Cocina equipada" data-tipo="espacios_ambientes"/> Coc. equipada</label>
-          <label class="adic-check"><input type="checkbox" value="Cocina integral" data-tipo="espacios_ambientes"/> Coc. integral</label>
-          <label class="adic-check"><input type="checkbox" value="Comedor" data-tipo="espacios_ambientes"/> Comedor</label>
-          <label class="adic-check"><input type="checkbox" value="Cuarto de servicio" data-tipo="espacios_ambientes"/> Cto. servicio</label>
-          <label class="adic-check"><input type="checkbox" value="Dos plantas" data-tipo="espacios_ambientes"/> Dos plantas</label>
-          <label class="adic-check"><input type="checkbox" value="Elevador" data-tipo="espacios_ambientes"/> Elevador</label>
-          <label class="adic-check"><input type="checkbox" value="Escritorio" data-tipo="espacios_ambientes"/> Escritorio</label>
-          <label class="adic-check"><input type="checkbox" value="Estudio" data-tipo="espacios_ambientes"/> Estudio</label>
-          <label class="adic-check"><input type="checkbox" value="Galería" data-tipo="espacios_ambientes"/> Galería</label>
-          <label class="adic-check"><input type="checkbox" value="Garaje" data-tipo="espacios_ambientes"/> Garaje</label>
-          <label class="adic-check"><input type="checkbox" value="Jardín" data-tipo="espacios_ambientes"/> Jardín</label>
-          <label class="adic-check"><input type="checkbox" value="Lavandería" data-tipo="espacios_ambientes"/> Lavandería</label>
-          <label class="adic-check"><input type="checkbox" value="Living comedor" data-tipo="espacios_ambientes"/> Living comedor</label>
-          <label class="adic-check"><input type="checkbox" value="Mini bodega" data-tipo="espacios_ambientes"/> Mini bodega</label>
-          <label class="adic-check"><input type="checkbox" value="Patio" data-tipo="espacios_ambientes"/> Patio</label>
-          <label class="adic-check"><input type="checkbox" value="Planta Baja" data-tipo="espacios_ambientes"/> Planta baja</label>
-          <label class="adic-check"><input type="checkbox" value="Recámara en planta baja" data-tipo="espacios_ambientes"/> Rec. planta baja</label>
-          <label class="adic-check"><input type="checkbox" value="Sala" data-tipo="espacios_ambientes"/> Sala</label>
-          <label class="adic-check"><input type="checkbox" value="Sótano" data-tipo="espacios_ambientes"/> Sótano</label>
-          <label class="adic-check"><input type="checkbox" value="Suite" data-tipo="espacios_ambientes"/> Suite</label>
-          <label class="adic-check"><input type="checkbox" value="Terraza" data-tipo="espacios_ambientes"/> Terraza</label>
-          <label class="adic-check"><input type="checkbox" value="Tres plantas" data-tipo="espacios_ambientes"/> Tres plantas</label>
-          <label class="adic-check"><input type="checkbox" value="Vestíbulo" data-tipo="espacios_ambientes"/> Vestíbulo</label>
-          <label class="adic-check"><input type="checkbox" value="Asadores" data-tipo="espacios_ambientes"/> Asadores</label>
-          <label class="adic-check"><input type="checkbox" value="Roof garden" data-tipo="espacios_ambientes"/> Roof garden</label>
-        </div>
-      </div>
-      <div>
-        <div style="font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);margin-bottom:.5rem;font-weight:600;">Adicionales y equipamiento</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem;" id="adic-equipamiento-crm">
-          <label class="adic-check"><input type="checkbox" value="Aire acondicionado" data-tipo="adicionales"/> Aire acondicionado</label>
-          <label class="adic-check"><input type="checkbox" value="Alarma" data-tipo="adicionales"/> Alarma</label>
-          <label class="adic-check"><input type="checkbox" value="Alberca" data-tipo="adicionales"/> Alberca</label>
-          <label class="adic-check"><input type="checkbox" value="Amueblado" data-tipo="adicionales"/> Amueblado</label>
-          <label class="adic-check"><input type="checkbox" value="Apto crédito" data-tipo="adicionales"/> Apto crédito</label>
-          <label class="adic-check"><input type="checkbox" value="Apto mascotas" data-tipo="adicionales"/> Apto mascotas</label>
-          <label class="adic-check"><input type="checkbox" value="Calefacción" data-tipo="adicionales"/> Calefacción</label>
-          <label class="adic-check"><input type="checkbox" value="Deck" data-tipo="adicionales"/> Deck</label>
-          <label class="adic-check"><input type="checkbox" value="En construcción" data-tipo="adicionales"/> En construcción</label>
-          <label class="adic-check"><input type="checkbox" value="Estacionamiento subterráneo" data-tipo="adicionales"/> Est. subterráneo</label>
-          <label class="adic-check"><input type="checkbox" value="Hidromasaje" data-tipo="adicionales"/> Hidromasaje</label>
-          <label class="adic-check"><input type="checkbox" value="Jacuzzi" data-tipo="adicionales"/> Jacuzzi</label>
-          <label class="adic-check"><input type="checkbox" value="Parrilla" data-tipo="adicionales"/> Parrilla</label>
-          <label class="adic-check"><input type="checkbox" value="Perimetral" data-tipo="adicionales"/> Perimetral</label>
-          <label class="adic-check"><input type="checkbox" value="Riego automático" data-tipo="adicionales"/> Riego automático</label>
-          <label class="adic-check"><input type="checkbox" value="Sauna" data-tipo="adicionales"/> Sauna</label>
-          <label class="adic-check"><input type="checkbox" value="Seguridad 24hs" data-tipo="adicionales"/> Seguridad 24hs</label>
-          <label class="adic-check"><input type="checkbox" value="Simulador de Golf" data-tipo="adicionales"/> Simulador Golf</label>
-          <label class="adic-check"><input type="checkbox" value="Solario" data-tipo="adicionales"/> Solario</label>
-          <label class="adic-check"><input type="checkbox" value="Área de Yoga" data-tipo="adicionales"/> Área de Yoga</label>
-          <label class="adic-check"><input type="checkbox" value="Acceso a playa" data-tipo="adicionales"/> Acceso a playa</label>
-          <label class="adic-check"><input type="checkbox" value="Lobby y Recepción" data-tipo="adicionales"/> Lobby y Recepción</label>
-        </div>
-      </div>
-      <div>
-        <div style="font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);margin-bottom:.5rem;font-weight:600;">Amenidades comunitarias</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem;" id="adic-amenidades-crm">
-          <label class="adic-check"><input type="checkbox" value="Área de juegos infantiles" data-tipo="amenidades"/> Juegos infantiles</label>
-          <label class="adic-check"><input type="checkbox" value="Cancha de pádel" data-tipo="amenidades"/> Cancha pádel</label>
-          <label class="adic-check"><input type="checkbox" value="Cancha de tenis" data-tipo="amenidades"/> Cancha tenis</label>
-          <label class="adic-check"><input type="checkbox" value="Centro de deportes" data-tipo="amenidades"/> Centro deportes</label>
-          <label class="adic-check"><input type="checkbox" value="Cine" data-tipo="amenidades"/> Cine</label>
-          <label class="adic-check"><input type="checkbox" value="Fogatero" data-tipo="amenidades"/> Fogatero</label>
-          <label class="adic-check"><input type="checkbox" value="Gimnasio" data-tipo="amenidades"/> Gimnasio</label>
-          <label class="adic-check"><input type="checkbox" value="Piscina comunitaria" data-tipo="amenidades"/> Piscina comunal</label>
-          <label class="adic-check"><input type="checkbox" value="Sala de juegos" data-tipo="amenidades"/> Sala de juegos</label>
-          <label class="adic-check"><input type="checkbox" value="SUM" data-tipo="amenidades"/> Salón usos múltiples</label>
-          <label class="adic-check"><input type="checkbox" value="BBQ común" data-tipo="amenidades"/> BBQ común</label>
-          <label class="adic-check"><input type="checkbox" value="Coworking" data-tipo="amenidades"/> Coworking</label>
-        </div>
-      </div>
+    <div id="adic-form-container" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:.6rem;">
+      <div style="grid-column:1/-1;text-align:center;color:var(--gray);padding:1rem;font-size:.78rem;"><i class="fas fa-spinner fa-spin"></i> Cargando adicionales...</div>
     </div>
 
     <!-- Sección: Precio -->
@@ -2922,6 +2829,7 @@
     if(titleSpan) titleSpan.innerHTML='<i class="fas fa-building" style="color:var(--gold);margin-right:.5rem;"></i>Nueva Propiedad';
     ['disp-vacia','disp-habitada','disp-airbnb','disp-en-construccion'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
     document.getElementById('propModalOverlay').classList.add('open');
+    cargarAdicionalesCRM(false);
   }
   function cerrarFormPropiedad(){
     _editPropiedadId=null;
@@ -2973,6 +2881,50 @@
       }
     } catch(e) { showToast('Error al guardar: ' + e.message); }
   }
+  /* ── ADICIONALES dinámicos en el form de propiedad ──────── */
+  const _ADIC_TIPO_ORDER = ['servicios_basicos','espacios_ambientes','adicionales','amenidades'];
+  const _ADIC_TIPO_LABEL_FORM = {
+    servicios_basicos:  'Servicios básicos',
+    espacios_ambientes: 'Espacios y ambientes',
+    adicionales:        'Adicionales y equipamiento',
+    amenidades:         'Amenidades comunitarias',
+  };
+
+  async function cargarAdicionalesCRM(isEdit, adicSet = new Set()) {
+    const container = document.getElementById('adic-form-container');
+    if (!container) return;
+    container.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--gray);padding:1rem;font-size:.78rem;"><i class="fas fa-spinner fa-spin"></i> Cargando adicionales...</div>';
+    let catalogo;
+    try {
+      catalogo = await apiFetch('/api/admin/adicionales');
+    } catch(e) {
+      container.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:#E08080;padding:1rem;font-size:.78rem;"><i class="fas fa-triangle-exclamation"></i> No se pudo cargar el catálogo de adicionales: ${e.message}</div>`;
+      return;
+    }
+    // Group by tipo (API returns ordered by tipo, orden)
+    const groups = {};
+    _ADIC_TIPO_ORDER.forEach(t => { groups[t] = []; });
+    catalogo.forEach(a => {
+      // Active always shown; inactive only shown in edit mode when already assigned
+      if (!a.activo && !(isEdit && adicSet.has(a.nombre))) return;
+      if (groups[a.tipo]) groups[a.tipo].push(a);
+    });
+    container.innerHTML = _ADIC_TIPO_ORDER.map(tipo => {
+      const items = groups[tipo];
+      if (!items.length) return '';
+      const checks = items.map(a => {
+        const ch = adicSet.has(a.nombre) ? ' checked' : '';
+        const ocultoClass = a.activo ? '' : ' adic-oculto';
+        const ocultoTag = a.activo ? '' : ' <span style="font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:#C8934A;font-weight:700;">[oculto]</span>';
+        return `<label class="adic-check${ocultoClass}"><input type="checkbox" value="${a.nombre}" data-tipo="${a.tipo}"${ch}/> ${a.nombre}${ocultoTag}</label>`;
+      }).join('');
+      return `<div>
+        <div style="font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);margin-bottom:.5rem;font-weight:600;">${_ADIC_TIPO_LABEL_FORM[tipo]}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem;">${checks}</div>
+      </div>`;
+    }).join('');
+  }
+
   /* ── CLIENTES ───────────────────────────────────────────── */
   let _clientesCache={}, _clientesAll=[], _editClienteId=null;
 
@@ -4192,17 +4144,15 @@
     document.getElementById('prop-tour').value=p.linktour3d||'';
     const titleSpan=document.querySelector('#propModalOverlay .modal-title span');
     if(titleSpan) titleSpan.innerHTML='<i class="fas fa-building" style="color:var(--gold);margin-right:.5rem;"></i>Editar Propiedad #'+id;
-    document.querySelectorAll('#propModalOverlay .adic-check input[type=checkbox]').forEach(cb => cb.checked = false);
     const dispArr = Array.isArray(p.disponibilidad) ? p.disponibilidad : [];
     ['vacia','habitada','airbnb','en_construccion'].forEach(v=>{const el=document.getElementById('disp-'+v.replace('_','-'));if(el)el.checked=dispArr.includes(v);});
+    document.getElementById('propModalOverlay').classList.add('open');
+    let adicSet = new Set();
     try {
       const adics = await apiFetch(`/api/propiedades/${id}/adicionales`);
-      const adicSet = new Set(adics.map(a => a.nombre));
-      document.querySelectorAll('#propModalOverlay .adic-check input[type=checkbox]').forEach(cb => {
-        if(adicSet.has(cb.value)) cb.checked = true;
-      });
+      adicSet = new Set(adics.map(a => a.nombre));
     } catch {}
-    document.getElementById('propModalOverlay').classList.add('open');
+    cargarAdicionalesCRM(true, adicSet);
   }
   async function deletePropiedad(id){
     if(!confirm('¿Eliminar esta propiedad?'))return;
