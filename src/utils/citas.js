@@ -123,4 +123,38 @@ async function getSlots(fecha, tipo, m2) {
   return slots;
 }
 
-module.exports = { calcularDuracion, getSlots };
+// ── addMinutes ────────────────────────────────────────────────────────────────
+
+function addMinutes(timeStr, mins) {
+  return fromMins(toMins(timeStr) + mins);
+}
+
+// ── checkSlotConflict ─────────────────────────────────────────────────────────
+// Verifica si [horaInicio, horaFin] choca con alguna cita APROBADA en esa fecha
+// (respetando el margen de traslado de 45 min entre citas).
+// Devuelve la cita conflictiva, o null si el slot está libre.
+// excludeId: ID de la cita que se está aprobando (no chocarse consigo misma).
+
+async function checkSlotConflict(fecha, horaInicio, horaFin, excludeId) {
+  const { data, error } = await supabase
+    .from('citas')
+    .select('id, nombre_contacto, tipo, hora_inicio, hora_fin')
+    .eq('fecha', fecha)
+    .eq('estado', 'aprobada')
+    .neq('id', excludeId);
+  if (error) throw error;
+
+  const s = toMins(horaInicio);
+  const e = toMins(horaFin);
+
+  for (const c of (data || [])) {
+    const cs = toMins(c.hora_inicio);
+    const ce = toMins(c.hora_fin);
+    // Sin conflicto si A termina ≥45 min antes de B, o B termina ≥45 min antes de A
+    if (e <= cs - MARGEN || s >= ce + MARGEN) continue;
+    return c;
+  }
+  return null;
+}
+
+module.exports = { calcularDuracion, getSlots, addMinutes, checkSlotConflict };
