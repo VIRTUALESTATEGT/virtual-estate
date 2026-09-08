@@ -213,6 +213,9 @@ const imageGallery           = require('./src/routes/image-gallery');
 
 const { requireMinRole, requirePortalOrStaff, requireSuperadmin } = require('./src/middleware/roles');
 
+const citasRouter = require('./src/routes/citas');
+app.use('/api/citas', citasRouter); // GET /disponibles es público; auth en rutas posteriores
+
 app.use('/api/leads',         authMiddleware, requireMinRole('asistente'), leadsRouter);
 app.use('/api/clientes',      authMiddleware, requirePortalOrStaff('asistente'), clientesRouter);
 app.use('/api/propiedades',   authMiddleware, requireMinRole('asistente'), propiedadesRouter);
