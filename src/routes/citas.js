@@ -5,7 +5,7 @@ const jwt          = require('jsonwebtoken');
 const router       = express.Router();
 const supabase     = require('../config/supabase');
 const { calcularDuracion, getSlots, addMinutes, checkSlotConflict } = require('../utils/citas');
-const { notifyAdmin } = require('../utils/whatsapp');
+const { notifyAdmin, sendWhatsAppTemplate } = require('../utils/whatsapp');
 const { enviarEmail, registrarEmail, buildEmailBase } = require('../utils/email');
 const authMiddleware  = require('../middleware/auth');
 const { requireMinRole, requirePortalOrStaff } = require('../middleware/roles');
@@ -163,6 +163,17 @@ async function _enviarEmailCita(cita, tipoEmail, { notas_admin } = {}) {
       error_detalle: errorDetalle,
     });
 
+    // WhatsApp template — solo si hay teléfono; fallo no bloquea
+    if (cita.telefono_contacto) {
+      try {
+        await sendWhatsAppTemplate(cita.telefono_contacto, 'cita_confirmada',
+          [cita.nombre_contacto, fechaLarga, hi]);
+        console.log(`[citas] WA cita_confirmada #${cita.id} OK`);
+      } catch (e) {
+        console.error(`[citas] WA cita_confirmada #${cita.id} (plantilla en revisión o número inválido): ${e.message}`);
+      }
+    }
+
   } else if (tipoEmail === 'cita_rechazada') {
 
     const notasHtml = notas_admin
@@ -188,7 +199,7 @@ async function _enviarEmailCita(cita, tipoEmail, { notas_admin } = {}) {
        </p>`;
 
     const html = buildEmailBase({
-      titulo:    'Sobre tu solicitud de visita',
+      titulo:    'Sobre tu solicitud de visita ❌',
       subtitulo: 'No pudimos confirmar la fecha solicitada',
       cuerpoHtml,
       ctaTexto: 'Solicitar otra fecha',
@@ -215,6 +226,17 @@ async function _enviarEmailCita(cita, tipoEmail, { notas_admin } = {}) {
       estado,
       error_detalle: errorDetalle,
     });
+
+    // WhatsApp template — solo si hay teléfono; fallo no bloquea
+    if (cita.telefono_contacto) {
+      try {
+        await sendWhatsAppTemplate(cita.telefono_contacto, 'cita_rechazada',
+          [cita.nombre_contacto, fechaLarga, hi]);
+        console.log(`[citas] WA cita_rechazada #${cita.id} OK`);
+      } catch (e) {
+        console.error(`[citas] WA cita_rechazada #${cita.id} (plantilla en revisión o número inválido): ${e.message}`);
+      }
+    }
   }
 }
 
