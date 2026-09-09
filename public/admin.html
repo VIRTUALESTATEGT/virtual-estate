@@ -304,6 +304,52 @@
   .perm-item { display: flex; align-items: center; gap: .4rem; font-size: .72rem; color: rgba(245,240,232,.75); cursor: pointer; padding: .3rem .4rem; border: 1px solid transparent; border-radius: 3px; transition: .15s; }
   .perm-item:hover { border-color: var(--border); color: var(--white); }
   .perm-item input { accent-color: var(--gold); width: 13px; height: 13px; flex-shrink: 0; }
+
+  /* ── CITAS / CALENDARIO ──────────────────────── */
+  .citas-toggle { display:flex; gap:.4rem; margin-bottom:1.2rem; }
+  .citas-toggle button { background:transparent; border:1px solid var(--border); color:var(--gray); font-family:'Montserrat',sans-serif; font-size:.7rem; padding:.38rem .9rem; border-radius:3px; cursor:pointer; transition:.15s; }
+  .citas-toggle button.active { background:var(--gold); color:var(--bg); border-color:var(--gold); font-weight:600; }
+  .cal-nav { display:flex; align-items:center; gap:.8rem; margin-bottom:1rem; flex-wrap:wrap; }
+  .cal-nav-lbl { font-size:.8rem; font-weight:500; color:var(--white); min-width:190px; text-align:center; }
+  .cal-nav button { background:transparent; border:1px solid var(--border); color:var(--gray); padding:.3rem .7rem; border-radius:3px; cursor:pointer; font-size:.72rem; }
+  .cal-nav button:hover { color:var(--white); border-color:var(--gray); }
+  .cal-nav button.active { border-color:var(--gold); color:var(--gold); }
+  .cal-week { display:grid; grid-template-columns:repeat(5,1fr); gap:.6rem; }
+  .cal-day { background:var(--bg2); border:1px solid var(--border); border-radius:4px; min-height:110px; }
+  .cal-day-hd { padding:.5rem .7rem; border-bottom:1px solid var(--border); font-size:.63rem; letter-spacing:.1em; text-transform:uppercase; color:var(--gray); }
+  .cal-day-hd.hoy { color:var(--gold); }
+  .cal-day-body { padding:.4rem; display:flex; flex-direction:column; gap:.3rem; }
+  .cita-blk { border-radius:3px; padding:.35rem .5rem; cursor:pointer; font-size:.65rem; line-height:1.35; transition:.12s; border-left:3px solid transparent; }
+  .cita-blk:hover { filter:brightness(1.12); }
+  .cita-blk.pendiente  { background:rgba(224,184,64,.14); border-left-color:#E0B840; }
+  .cita-blk.aprobada   { background:rgba(90,224,138,.12); border-left-color:#5AE08A; }
+  .cita-blk.rechazada,.cita-blk.cancelada { background:rgba(160,160,170,.09); border-left-color:#888; opacity:.6; }
+  .cita-blk-time   { font-weight:600; color:var(--white); }
+  .cita-blk-tipo   { color:var(--gray); font-size:.6rem; }
+  .cita-blk-nombre { color:rgba(245,240,232,.8); }
+  .cal-day-empty { color:var(--gray); font-size:.63rem; padding:.5rem; text-align:center; }
+  .cal-month { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+  .cal-month-hd { text-align:center; font-size:.59rem; letter-spacing:.1em; text-transform:uppercase; color:var(--gray); padding:.3rem 0; }
+  .cal-month-day { background:var(--bg2); border:1px solid var(--border); border-radius:3px; min-height:56px; padding:.3rem .4rem; cursor:pointer; transition:.12s; }
+  .cal-month-day:hover { border-color:var(--gold); }
+  .cal-month-day .day-num { font-size:.68rem; color:var(--gray); margin-bottom:.2rem; }
+  .cal-month-day.hoy .day-num { color:var(--gold); font-weight:700; }
+  .cal-month-day.has-citas .day-num { color:var(--white); }
+  .cal-dot-row { display:flex; gap:2px; flex-wrap:wrap; }
+  .cal-dot { width:6px; height:6px; border-radius:50%; }
+  .cal-dot.pendiente { background:#E0B840; }
+  .cal-dot.aprobada  { background:#5AE08A; }
+  .cal-dot.rechazada,.cal-dot.cancelada { background:#888; }
+  .citas-fstat { display:flex; gap:.5rem; margin-bottom:.8rem; flex-wrap:wrap; }
+  .citas-fstat button { background:transparent; border:1px solid var(--border); color:var(--gray); font-family:'Montserrat',sans-serif; font-size:.68rem; padding:.28rem .72rem; border-radius:20px; cursor:pointer; transition:.15s; }
+  .citas-fstat .f-todas.active    { background:rgba(255,255,255,.08); color:var(--white); border-color:var(--gray); }
+  .citas-fstat .f-pendiente.active { background:rgba(224,184,64,.15); color:#E0B840; border-color:#E0B840; }
+  .citas-fstat .f-aprobada.active  { background:rgba(90,224,138,.12); color:#5AE08A; border-color:#5AE08A; }
+  .citas-fstat .f-rechazada.active { background:rgba(160,160,170,.1); color:#AAA; border-color:#888; }
+  .citas-filters { display:flex; gap:.6rem; align-items:center; margin-bottom:1rem; flex-wrap:wrap; }
+  .citas-filters select,.citas-filters input[type=date] { background:rgba(255,255,255,.04); border:1px solid var(--border); color:var(--text); font-family:'Montserrat',sans-serif; font-size:.72rem; padding:.36rem .65rem; border-radius:3px; }
+  .citas-filters select:focus,.citas-filters input:focus { outline:none; border-color:var(--gold); }
+  .citas-filters select option { background:var(--bg2); }
   </style>
 </head>
 <body>
@@ -374,6 +420,7 @@
     </div>
     <div class="nav-item" onclick="showView('calendario', this)">
       <i class="fas fa-calendar-alt"></i> Calendario
+      <span class="nav-badge" id="badge-citas" style="display:none;background:#E0B840;color:#1A1A18;"></span>
     </div>
   </div>
 
@@ -689,63 +736,70 @@
     </div>
 
     <!-- ── CALENDARIO VIEW ────────────────── -->
+    <!-- ── CITAS / CALENDARIO VIEW ──────────────── -->
     <div class="view" id="view-calendario">
-      <div class="panel">
-        <div class="panel-head">
-          <span class="table-head-title">Google Calendar — Citas y Visitas</span>
-          <a href="https://calendar.google.com" target="_blank" class="topbar-btn btn-primary" style="text-decoration:none;">
-            <i class="fab fa-google"></i> Abrir Google Calendar
-          </a>
-        </div>
-        <div style="padding:1.4rem;">
-          <div class="cal-placeholder">
-            <i class="fas fa-calendar-alt"></i>
-            <p>
-              Aquí se integrará tu <strong>Google Calendar</strong> mediante embed o API.<br/>
-              Todas las visitas agendadas desde la web aparecerán automáticamente.<br/><br/>
-              <strong>Para integrar:</strong><br/>
-              1. Ve a Google Calendar → Configuración → Integrar calendario<br/>
-              2. Copia el código de embed y reemplaza este bloque<br/>
-              3. O conecta via Google Calendar API para lectura/escritura completa<br/><br/>
-              <a href="https://calendar.google.com/calendar/embed?" target="_blank">Configurar integración →</a>
-            </p>
-          </div>
 
-          <div style="margin-top:1.4rem;">
-            <div class="section-title">Próximas Citas</div>
-            <table>
-              <thead><tr><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Cliente</th><th>Servicio</th><th>Dirección / Link</th></tr></thead>
-              <tbody>
-                <tr>
-                  <td class="td-bold">22 Abr 2026</td>
-                  <td>10:00 AM</td>
-                  <td><span class="badge badge-process">Visita campo</span></td>
-                  <td>Sofía Barrios</td>
-                  <td>AS BUILT</td>
-                  <td style="color:var(--gray);">Zona 10, Guatemala</td>
-                </tr>
-                <tr>
-                  <td class="td-bold">23 Abr 2026</td>
-                  <td>2:00 PM</td>
-                  <td><span class="badge badge-new">Virtual</span></td>
-                  <td>Ana García</td>
-                  <td>Tour Virtual</td>
-                  <td style="color:var(--gray);"><a href="#" style="color:var(--gold);">meet.google.com/abc-xyz</a></td>
-                </tr>
-                <tr>
-                  <td class="td-bold">25 Abr 2026</td>
-                  <td>9:00 AM</td>
-                  <td><span class="badge badge-process">Escaneo</span></td>
-                  <td>Roberto Lima</td>
-                  <td>Tour Virtual 320 m²</td>
-                  <td style="color:var(--gray);">Villa Nueva, Guatemala</td>
-                </tr>
-              </tbody>
-            </table>
+      <!-- Toggle Calendario / Lista -->
+      <div class="citas-toggle">
+        <button id="citas-btn-cal" class="active" onclick="citaSetVista('cal')"><i class="fas fa-calendar-week" style="margin-right:.35rem;"></i>Calendario</button>
+        <button id="citas-btn-lista" onclick="citaSetVista('lista')"><i class="fas fa-list" style="margin-right:.35rem;"></i>Lista</button>
+        <button class="topbar-btn btn-sec" onclick="loadCitas()" style="margin-left:auto;font-size:.68rem;"><i class="fas fa-sync"></i> Actualizar</button>
+      </div>
+
+      <!-- ── Vista Calendario ── -->
+      <div id="citas-vista-cal">
+        <!-- Stats pills -->
+        <div style="display:flex;gap:.55rem;margin-bottom:.9rem;flex-wrap:wrap;">
+          <span id="citas-stat-pend" style="font-size:.67rem;padding:.22rem .7rem;border-radius:20px;background:rgba(224,184,64,.12);color:#E0B840;border:1px solid rgba(224,184,64,.28);">0 pendientes</span>
+          <span id="citas-stat-apro" style="font-size:.67rem;padding:.22rem .7rem;border-radius:20px;background:rgba(90,224,138,.1);color:#5AE08A;border:1px solid rgba(90,224,138,.22);">0 aprobadas</span>
+          <span id="citas-stat-rech" style="font-size:.67rem;padding:.22rem .7rem;border-radius:20px;background:rgba(160,160,170,.08);color:#AAA;border:1px solid rgba(160,160,170,.18);">0 rechazadas/canceladas</span>
+        </div>
+        <!-- Nav de semana/mes -->
+        <div class="cal-nav">
+          <button onclick="citaNavSem(-1)"><i class="fas fa-chevron-left"></i></button>
+          <div class="cal-nav-lbl" id="cal-lbl">—</div>
+          <button onclick="citaNavSem(1)"><i class="fas fa-chevron-right"></i></button>
+          <div style="margin-left:auto;display:flex;gap:.4rem;">
+            <button id="cal-btn-sem" class="active" onclick="citaCalModo('sem')">Semanal</button>
+            <button id="cal-btn-mes" onclick="citaCalModo('mes')">Mensual</button>
           </div>
+        </div>
+        <!-- Grid generado por JS -->
+        <div id="citas-cal-grid"></div>
+      </div>
+
+      <!-- ── Vista Lista ── -->
+      <div id="citas-vista-lista" style="display:none;">
+        <div class="citas-fstat">
+          <button class="f-todas active" onclick="citaFiltrarEstado(null, this)">Todas</button>
+          <button class="f-pendiente"    onclick="citaFiltrarEstado('pendiente', this)">Pendientes</button>
+          <button class="f-aprobada"     onclick="citaFiltrarEstado('aprobada', this)">Aprobadas</button>
+          <button class="f-rechazada"    onclick="citaFiltrarEstado('rechazada', this)">Rechazadas / Canceladas</button>
+        </div>
+        <div class="citas-filters">
+          <select id="citas-f-tipo" onchange="citasRenderLista()">
+            <option value="">Todos los tipos</option>
+            <option value="visita_propiedades">Visita a propiedades</option>
+            <option value="visita_tecnica">Visita técnica</option>
+          </select>
+          <input type="date" id="citas-f-desde" onchange="citasRenderLista()">
+          <input type="date" id="citas-f-hasta" onchange="citasRenderLista()">
+          <button class="topbar-btn btn-sec" onclick="citasClearFiltros()" style="font-size:.68rem;"><i class="fas fa-times"></i> Limpiar</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-head">
+            <span class="table-head-title">Citas</span>
+          </div>
+          <table>
+            <thead><tr><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Cliente / Contacto</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="citas-lista-tbody">
+              <tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando…</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
-    </div>
+
+    </div><!-- /view-calendario -->
 
     <!-- ── PRECIOS VIEW ───────────────────── -->
     <div class="view" id="view-precios">
@@ -2304,11 +2358,12 @@
   /* ── DASHBOARD KPIs ──────────────────────────────────────── */
   async function loadDashboard() {
     try {
-      const [leads, proyectos, propiedades, cotizaciones] = await Promise.all([
+      const [leads, proyectos, propiedades, cotizaciones, citasPend] = await Promise.all([
         apiFetch('/api/leads'),
         apiFetch('/api/proyectos'),
         apiFetch('/api/propiedades'),
         apiFetch('/api/cotizaciones'),
+        apiFetch('/api/citas?estado=pendiente').catch(() => []),
       ]);
 
       // KPI cards
@@ -2329,6 +2384,7 @@
       _setBadge('badge-leads', nuevos);
       _setBadge('badge-proyectos', enProceso.length);
       _setBadge('badge-cotizaciones', cotizaciones.filter(c => ['enviada','pendiente','borrador'].includes(c.estado)).length);
+      _setBadge('badge-citas', (citasPend || []).length);
 
       // KPI Cerrado (mes) — confirmadas + aprobadas = conversiones reales
       const ahora = new Date();
@@ -2545,6 +2601,7 @@
     else if (name === 'adicionales') loadAdicionales();
     else if (name === 'notificaciones') loadNotificaciones();
     else if (name === 'wa-contacts') loadWaContacts();
+    else if (name === 'calendario') loadCitas();
   }
 
   function openModal() {
@@ -5114,6 +5171,304 @@
       loadAdicionales();
     } catch(e) { showToast(e.message); }
   }
+
+  /* ── CITAS / CALENDARIO ─────────────────────────────────────── */
+  let _citasAll = [];
+  let _citasVista    = 'cal';  // 'cal' | 'lista'
+  let _citasCalModo  = 'sem';  // 'sem' | 'mes'
+  let _citasWeekStart = null;  // ISO Monday de la semana visible
+  let _citasMesStart  = null;  // 'YYYY-MM-01' del mes visible
+  let _citasFiltroEstado = null;
+  let _citaDetalleId = null;
+
+  function _citasHoyGT() {
+    return new Intl.DateTimeFormat('sv', { timeZone: 'America/Guatemala' }).format(new Date());
+  }
+  function _citasAddDays(iso, n) {
+    const [y, m, d] = iso.split('-').map(Number);
+    const dt = new Date(y, m - 1, d + n);
+    return [dt.getFullYear(), String(dt.getMonth()+1).padStart(2,'0'), String(dt.getDate()).padStart(2,'0')].join('-');
+  }
+  function _citasMondayOf(iso) {
+    const [y, m, d] = iso.split('-').map(Number);
+    const dow = new Date(y, m - 1, d).getDay(); // 0=Dom
+    return _citasAddDays(iso, dow === 0 ? -6 : 1 - dow);
+  }
+  function _citasFmt(iso, opts) {
+    return new Intl.DateTimeFormat('es-GT', { timeZone:'UTC', ...opts }).format(new Date(iso + 'T12:00:00Z'));
+  }
+  function _citaEstadoCls(e) {
+    return e === 'aprobada' ? 'aprobada' : e === 'pendiente' ? 'pendiente' : 'rechazada';
+  }
+  function _citaEstadoBadge(e) {
+    const m = { pendiente:['badge-contact','Pendiente'], aprobada:['badge-active','Aprobada'], rechazada:['badge-lost','Rechazada'], cancelada:['badge-cot-gris','Cancelada'] };
+    const [c, l] = m[e] || ['badge-cot-gris', e];
+    return `<span class="badge ${c}">${l}</span>`;
+  }
+  function _citasTipoLabel(t) {
+    return t === 'visita_propiedades' ? 'Visita a propiedades' : 'Visita técnica';
+  }
+
+  async function loadCitas() {
+    try {
+      _citasAll = await apiFetch('/api/citas');
+      _citasUpdateBadge();
+      _citasUpdateStats();
+      if (_citasVista === 'cal') _citasRenderCal(); else citasRenderLista();
+    } catch(e) { showToast('Error cargando citas: ' + e.message); }
+  }
+
+  function _citasUpdateBadge() {
+    const n = _citasAll.filter(c => c.estado === 'pendiente').length;
+    const b = document.getElementById('badge-citas');
+    if (b) { if (n) { b.textContent = n; b.style.display = ''; } else b.style.display = 'none'; }
+  }
+
+  function _citasUpdateStats() {
+    const p = _citasAll.filter(c => c.estado === 'pendiente').length;
+    const a = _citasAll.filter(c => c.estado === 'aprobada').length;
+    const r = _citasAll.filter(c => ['rechazada','cancelada'].includes(c.estado)).length;
+    const g = id => document.getElementById(id);
+    if (g('citas-stat-pend')) g('citas-stat-pend').textContent = `${p} pendiente${p!==1?'s':''}`;
+    if (g('citas-stat-apro')) g('citas-stat-apro').textContent = `${a} aprobada${a!==1?'s':''}`;
+    if (g('citas-stat-rech')) g('citas-stat-rech').textContent = `${r} rechazada${r!==1?'s':''}/cancelada${r!==1?'s':''}`;
+  }
+
+  function citaSetVista(v) {
+    _citasVista = v;
+    document.getElementById('citas-vista-cal').style.display   = v==='cal'   ? '' : 'none';
+    document.getElementById('citas-vista-lista').style.display = v==='lista' ? '' : 'none';
+    document.getElementById('citas-btn-cal').classList.toggle('active',   v==='cal');
+    document.getElementById('citas-btn-lista').classList.toggle('active', v==='lista');
+    if (v === 'cal') _citasRenderCal(); else citasRenderLista();
+  }
+
+  function citaNavSem(d) {
+    if (_citasCalModo === 'sem') {
+      _citasWeekStart = _citasAddDays(_citasWeekStart, d * 7);
+    } else {
+      const [y, mo] = _citasMesStart.split('-').map(Number);
+      const nm = new Date(y, mo - 1 + d, 1);
+      _citasMesStart = [nm.getFullYear(), String(nm.getMonth()+1).padStart(2,'0'), '01'].join('-');
+    }
+    _citasRenderCal();
+  }
+
+  function citaCalModo(modo) {
+    _citasCalModo = modo;
+    document.getElementById('cal-btn-sem').classList.toggle('active', modo==='sem');
+    document.getElementById('cal-btn-mes').classList.toggle('active', modo==='mes');
+    _citasRenderCal();
+  }
+
+  function _citasRenderCal() {
+    const grid = document.getElementById('citas-cal-grid'); if (!grid) return;
+    const hoy = _citasHoyGT();
+
+    if (_citasCalModo === 'sem') {
+      if (!_citasWeekStart) _citasWeekStart = _citasMondayOf(hoy);
+      const days = Array.from({length:5}, (_,i) => _citasAddDays(_citasWeekStart, i));
+      document.getElementById('cal-lbl').textContent =
+        `${_citasFmt(days[0], {day:'numeric',month:'short'})} – ${_citasFmt(days[4], {day:'numeric',month:'short',year:'numeric'})}`;
+      grid.innerHTML = `<div class="cal-week">${days.map(day => {
+        const citas = _citasAll.filter(c => c.fecha === day);
+        const hd = _citasFmt(day, {weekday:'short', day:'numeric'});
+        const isHoy = day === hoy ? ' hoy' : '';
+        const blocks = citas.length
+          ? citas.map(c =>
+              `<div class="cita-blk ${_citaEstadoCls(c.estado)}" onclick="openCitaModal('${c.id}')">
+                <div class="cita-blk-time">${(c.hora_inicio||'').slice(0,5)}–${(c.hora_fin||'').slice(0,5)}</div>
+                <div class="cita-blk-tipo">${_citasTipoLabel(c.tipo)}</div>
+                <div class="cita-blk-nombre">${c.nombre_contacto||''}</div>
+              </div>`).join('')
+          : `<div class="cal-day-empty">–</div>`;
+        return `<div class="cal-day">
+          <div class="cal-day-hd${isHoy}">${hd.charAt(0).toUpperCase()+hd.slice(1)}</div>
+          <div class="cal-day-body">${blocks}</div>
+        </div>`;
+      }).join('')}</div>`;
+
+    } else {
+      if (!_citasMesStart) { const t=hoy.split('-'); _citasMesStart=`${t[0]}-${t[1]}-01`; }
+      const [y, mo] = _citasMesStart.split('-').map(Number);
+      const mesLbl = _citasFmt(_citasMesStart, {month:'long', year:'numeric'});
+      document.getElementById('cal-lbl').textContent = mesLbl.charAt(0).toUpperCase() + mesLbl.slice(1);
+      const firstDow = (new Date(y, mo-1, 1).getDay() + 6) % 7; // Lun=0
+      const lastDay  = new Date(y, mo, 0).getDate();
+      const map = {};
+      _citasAll.forEach(c => {
+        const [cy, cm] = c.fecha.split('-').map(Number);
+        if (cy===y && cm===mo) { (map[c.fecha] = map[c.fecha]||[]).push(c); }
+      });
+      const hdrs = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map(h=>`<div class="cal-month-hd">${h}</div>`).join('');
+      let cells = Array(firstDow).fill('<div style="background:none;border:none;min-height:0;padding:0;"></div>').join('');
+      for (let d = 1; d <= lastDay; d++) {
+        const iso = `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const cs  = map[iso] || [];
+        cells += `<div class="cal-month-day${iso===hoy?' hoy':''}${cs.length?' has-citas':''}" onclick="citaCalDia('${iso}')">
+          <div class="day-num">${d}</div>
+          <div class="cal-dot-row">${cs.map(c=>`<div class="cal-dot ${_citaEstadoCls(c.estado)}"></div>`).join('')}</div>
+        </div>`;
+      }
+      grid.innerHTML = `<div class="cal-month">${hdrs}${cells}</div>`;
+    }
+  }
+
+  function citaCalDia(iso) {
+    const f1 = document.getElementById('citas-f-desde'); if (f1) f1.value = iso;
+    const f2 = document.getElementById('citas-f-hasta'); if (f2) f2.value = iso;
+    _citasFiltroEstado = null;
+    document.querySelectorAll('.citas-fstat button').forEach(b => b.classList.remove('active'));
+    document.querySelector('.citas-fstat .f-todas')?.classList.add('active');
+    citaSetVista('lista');
+  }
+
+  function citaFiltrarEstado(estado, btn) {
+    _citasFiltroEstado = estado;
+    document.querySelectorAll('.citas-fstat button').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    citasRenderLista();
+  }
+
+  function citasClearFiltros() {
+    _citasFiltroEstado = null;
+    document.querySelectorAll('.citas-fstat button').forEach(b => b.classList.remove('active'));
+    document.querySelector('.citas-fstat .f-todas')?.classList.add('active');
+    ['citas-f-tipo','citas-f-desde','citas-f-hasta'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+    citasRenderLista();
+  }
+
+  function citasRenderLista() {
+    const tbody = document.getElementById('citas-lista-tbody'); if (!tbody) return;
+    const tipo  = document.getElementById('citas-f-tipo')?.value || '';
+    const desde = document.getElementById('citas-f-desde')?.value || '';
+    const hasta = document.getElementById('citas-f-hasta')?.value || '';
+    let items = _citasAll;
+    if (_citasFiltroEstado === 'rechazada') items = items.filter(c => ['rechazada','cancelada'].includes(c.estado));
+    else if (_citasFiltroEstado) items = items.filter(c => c.estado === _citasFiltroEstado);
+    if (tipo)  items = items.filter(c => c.tipo === tipo);
+    if (desde) items = items.filter(c => c.fecha >= desde);
+    if (hasta) items = items.filter(c => c.fecha <= hasta);
+    if (!items.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem;">Sin citas para los filtros seleccionados.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = items.map(c => {
+      const fec = _citasFmt(c.fecha, {weekday:'short',day:'numeric',month:'short',year:'numeric'});
+      return `<tr>
+        <td class="td-bold">${fec}</td>
+        <td>${(c.hora_inicio||'').slice(0,5)} – ${(c.hora_fin||'').slice(0,5)}</td>
+        <td>${_citasTipoLabel(c.tipo)}</td>
+        <td><div class="td-bold">${c.nombre_contacto||'—'}</div><div style="font-size:.65rem;color:var(--gray);">${c.email_contacto||''}</div></td>
+        <td>${_citaEstadoBadge(c.estado)}</td>
+        <td style="white-space:nowrap;">
+          <button class="topbar-btn btn-sec" onclick="openCitaModal('${c.id}')" style="font-size:.66rem;">Ver</button>
+          ${c.estado==='pendiente'?`<button class="topbar-btn btn-primary" onclick="citaAprobarRapido('${c.id}')" style="font-size:.66rem;margin-left:.3rem;">Aprobar</button>`:''}
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  /* ── Modal de detalle ─── */
+  function openCitaModal(id) {
+    const cita = _citasAll.find(c => String(c.id) === String(id)); if (!cita) return;
+    _citaDetalleId = id;
+    document.getElementById('cita-modal-titulo').textContent = _citasTipoLabel(cita.tipo);
+    const fec = _citasFmt(cita.fecha, {weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    const f = (lbl, val) => `<div><div class="form-label">${lbl}</div><div style="font-size:.8rem;color:var(--white);line-height:1.5;">${val||'—'}</div></div>`;
+    let html = `${f('Estado',_citaEstadoBadge(cita.estado))}${f('Fecha',fec)}${f('Horario',`${(cita.hora_inicio||'').slice(0,5)} – ${(cita.hora_fin||'').slice(0,5)} (${cita.duracion_minutos} min)`)}${f('Contacto',cita.nombre_contacto)}${f('Email',cita.email_contacto)}${f('Teléfono',cita.telefono_contacto||null)}`;
+    if (cita.tipo==='visita_propiedades' && cita.propiedades?.length)
+      html += f('Propiedades', cita.propiedades.map(p=>`${p.codigo} — ${p.nombre}`).join('<br>'));
+    if (cita.tipo==='visita_tecnica') {
+      html += f('m² aprox.', cita.m2_aproximados ? `${cita.m2_aproximados} m²` : null);
+      html += f('Dirección', cita.direccion_tecnica);
+    }
+    if (cita.notas_cliente) html += `<div style="grid-column:1/-1;">${f('Notas del cliente', cita.notas_cliente)}</div>`;
+    if (cita.notas_admin)   html += `<div style="grid-column:1/-1;">${f('Notas admin', cita.notas_admin)}</div>`;
+    document.getElementById('cita-modal-info').innerHTML = html;
+    document.getElementById('cita-modal-conflicto').style.display = 'none';
+    document.getElementById('cita-modal-rechazo').style.display = 'none';
+    document.getElementById('cita-notas-rechazo').value = '';
+    _citasRenderAcciones(cita.estado);
+    document.getElementById('citaModalOverlay').classList.add('open');
+  }
+
+  function closeCitaModal() {
+    document.getElementById('citaModalOverlay').classList.remove('open');
+    _citaDetalleId = null;
+  }
+
+  function _citasRenderAcciones(estado) {
+    const el = document.getElementById('cita-modal-actions'); if (!el) return;
+    if (estado === 'pendiente') {
+      el.innerHTML = `<button class="topbar-btn btn-primary" onclick="citaAprobar()" style="font-size:.76rem;padding:.55rem 1.1rem;"><i class="fas fa-check"></i> Aprobar</button><button class="topbar-btn btn-sec" onclick="citaMostrarRechazo()" style="font-size:.76rem;padding:.55rem 1.1rem;"><i class="fas fa-times"></i> Rechazar</button><button class="topbar-btn btn-sec" onclick="closeCitaModal()" style="margin-left:auto;font-size:.76rem;">Cerrar</button>`;
+    } else if (estado === 'aprobada') {
+      el.innerHTML = `<button class="topbar-btn btn-sec" onclick="citaMostrarRechazo()" style="font-size:.76rem;padding:.55rem 1.1rem;"><i class="fas fa-ban"></i> Rechazar</button><button class="topbar-btn btn-sec" onclick="closeCitaModal()" style="margin-left:auto;font-size:.76rem;">Cerrar</button>`;
+    } else {
+      el.innerHTML = `<button class="topbar-btn btn-sec" onclick="closeCitaModal()" style="margin-left:auto;font-size:.76rem;">Cerrar</button>`;
+    }
+  }
+
+  function citaMostrarRechazo() {
+    document.getElementById('cita-modal-rechazo').style.display = '';
+    document.getElementById('cita-modal-actions').innerHTML = `<button class="topbar-btn" onclick="submitCitaRechazar()" style="font-size:.76rem;padding:.55rem 1.1rem;background:#c0392b;color:#fff;border:none;border-radius:3px;cursor:pointer;display:flex;align-items:center;gap:.4rem;"><i class="fas fa-times-circle"></i> Confirmar rechazo</button><button class="topbar-btn btn-sec" onclick="citaCancelarRechazo()" style="font-size:.76rem;">Cancelar</button>`;
+  }
+
+  function citaCancelarRechazo() {
+    document.getElementById('cita-modal-rechazo').style.display = 'none';
+    const cita = _citasAll.find(c => String(c.id) === String(_citaDetalleId));
+    if (cita) _citasRenderAcciones(cita.estado);
+  }
+
+  async function citaAprobar() {
+    if (!_citaDetalleId) return;
+    const conflEl = document.getElementById('cita-modal-conflicto');
+    if (conflEl) conflEl.style.display = 'none';
+    const actEl = document.getElementById('cita-modal-actions');
+    const prev = actEl.innerHTML;
+    actEl.innerHTML = `<i class="fas fa-spinner fa-spin" style="color:var(--gold);"></i>&nbsp;Aprobando…`;
+    try {
+      const res = await fetch(API_URL + `/api/citas/${_citaDetalleId}/aprobar`, {
+        method: 'PATCH', body: '{}',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (res.status === 409 && data.conflicto && conflEl) {
+          const c = data.conflicto;
+          conflEl.innerHTML = `<i class="fas fa-exclamation-triangle" style="margin-right:.4rem;"></i><strong>Conflicto de slot:</strong> Ya hay una cita aprobada con <strong>${c.nombre}</strong> (${_citasTipoLabel(c.tipo)}) de ${(c.hora_inicio||'').slice(0,5)} a ${(c.hora_fin||'').slice(0,5)}.`;
+          conflEl.style.display = '';
+        } else {
+          showToast('Error: ' + (data.error || 'No se pudo aprobar'));
+        }
+        actEl.innerHTML = prev; return;
+      }
+      const idx = _citasAll.findIndex(c => String(c.id) === String(_citaDetalleId));
+      if (idx !== -1) _citasAll[idx] = { ..._citasAll[idx], ...data };
+      showToast('✅ Cita aprobada — email enviado al cliente');
+      closeCitaModal(); loadCitas();
+    } catch(e) { showToast('Error de conexión'); actEl.innerHTML = prev; }
+  }
+
+  async function submitCitaRechazar() {
+    if (!_citaDetalleId) return;
+    const notas = document.getElementById('cita-notas-rechazo')?.value.trim() || '';
+    const actEl = document.getElementById('cita-modal-actions');
+    const prev = actEl.innerHTML;
+    actEl.innerHTML = `<i class="fas fa-spinner fa-spin" style="color:var(--gold);"></i>&nbsp;Rechazando…`;
+    try {
+      const updated = await apiFetch(`/api/citas/${_citaDetalleId}/rechazar`, { method:'PATCH', body:JSON.stringify({ notas_admin: notas }) });
+      const idx = _citasAll.findIndex(c => String(c.id) === String(_citaDetalleId));
+      if (idx !== -1) _citasAll[idx] = { ..._citasAll[idx], ...updated };
+      showToast('✅ Cita rechazada — notificación enviada al cliente');
+      closeCitaModal(); loadCitas();
+    } catch(e) { showToast('Error: ' + e.message); actEl.innerHTML = prev; }
+  }
+
+  async function citaAprobarRapido(id) {
+    _citaDetalleId = id;
+    await citaAprobar();
+  }
 </script>
 <!-- Modal: detalle cotización -->
 <div id="cot-detalle-overlay" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9000;align-items:center;justify-content:center;padding:1rem;">
@@ -5207,6 +5562,28 @@
       <button class="topbar-btn btn-sec" onclick="cerrarEnvioModal()" style="flex:1;justify-content:center;font-size:.72rem;">No enviar</button>
     </div>
     <div id="envio-result" style="margin-top:.8rem;min-height:1.5rem;font-size:.75rem;text-align:center;color:var(--gold);"></div>
+  </div>
+</div>
+
+<!-- ── Modal: detalle de cita ─────────────────────────────────────────── -->
+<div class="modal-overlay" id="citaModalOverlay" onclick="if(event.target===this)closeCitaModal()">
+  <div class="modal" style="max-width:600px;width:100%;">
+    <div class="modal-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;">
+      <span id="cita-modal-titulo">Detalle de cita</span>
+      <button onclick="closeCitaModal()" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:1.2rem;line-height:1;">×</button>
+    </div>
+    <!-- Info grid -->
+    <div id="cita-modal-info" style="display:grid;grid-template-columns:1fr 1fr;gap:.55rem 1.2rem;margin-bottom:1.3rem;"></div>
+    <!-- Conflicto 409 -->
+    <div id="cita-modal-conflicto" style="display:none;background:rgba(220,80,80,.1);border:1px solid rgba(220,80,80,.28);border-radius:4px;padding:.65rem .9rem;margin-bottom:1rem;font-size:.72rem;color:#E08080;line-height:1.5;"></div>
+    <!-- Textarea de rechazo -->
+    <div id="cita-modal-rechazo" style="display:none;margin-bottom:1rem;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Motivo del rechazo <span style="color:var(--gray);font-weight:400;text-transform:none;letter-spacing:0;">(se enviará al cliente por email y WhatsApp)</span></label>
+        <textarea id="cita-notas-rechazo" class="form-control" rows="3" placeholder="Ej: No tenemos disponibilidad para esa fecha. Por favor elegí otro horario…"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions" id="cita-modal-actions"></div>
   </div>
 </div>
 </body>
