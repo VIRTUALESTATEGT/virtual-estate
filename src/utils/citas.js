@@ -90,12 +90,9 @@ async function getSlots(fecha, tipo, m2) {
     .or(`reserva_expira_en.is.null,reserva_expira_en.gt.${ahora}`);
   if (citErr) throw citErr;
 
-  // 6. Ventana máxima de inicio según tipo
-  //    visita_propiedades: tope 15:00 (para terminar con luz natural)
-  //    visita_tecnica: debe terminar antes del cierre (17:00)
-  const maxInicio = tipo === 'visita_propiedades'
-    ? Math.min(15 * 60, cierre - duracion)
-    : cierre - duracion;
+  // 6. Ventana máxima de inicio: debe terminar antes del cierre (17:00)
+  //    Las técnicas largas (3h, 5h) que no caben antes del cierre no se ofrecen.
+  const maxInicio = cierre - duracion;
 
   if (maxInicio < apertura) return [];
 
@@ -112,11 +109,15 @@ async function getSlots(fecha, tipo, m2) {
       .map(b => ({ start: toMins(b.hora_inicio), end: toMins(b.hora_fin) })),
   ];
 
-  // 8. Candidatos cada 30 min; libre si [s, s+dur] no solapa ningún rango bloqueado
+  // 8. Candidatos cada 30 min; libre si [s, s+dur] no solapa ningún rango bloqueado.
+  //    Para visita_tecnica: advertencia cuando la cita termina después de las 16:00
+  //    (iluminación natural puede afectar calidad del escaneo).
+  const AVISO_ILUMINACION = 16 * 60;
   const slots = [];
   for (let s = apertura; s <= maxInicio; s += 30) {
     if (bloqueados.every(r => s + duracion <= r.start || s >= r.end)) {
-      slots.push(fromMins(s));
+      const advertencia = tipo === 'visita_tecnica' && s + duracion > AVISO_ILUMINACION;
+      slots.push({ hora: fromMins(s), advertencia });
     }
   }
 

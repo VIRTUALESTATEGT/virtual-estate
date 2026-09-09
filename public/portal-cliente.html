@@ -1639,6 +1639,9 @@
             <i class="fas fa-spinner fa-spin" style="color:var(--gold);margin-right:.4rem;"></i>Cargando horarios disponibles…
           </div>
           <div class="slots-grid" id="vs-slots-grid"></div>
+          <div id="vs-slot-advertencia" style="display:none;font-size:.68rem;color:#E0B840;margin:.3rem 0 .9rem;padding:.45rem .75rem;border-radius:6px;background:rgba(224,184,64,.08);border:1px solid rgba(224,184,64,.28);line-height:1.45;">
+            <i class="fas fa-exclamation-triangle" style="margin-right:.4rem;"></i>Por la hora, la iluminación natural puede afectar la calidad del escaneo. Podés continuar, pero el resultado podría requerir ajustes.
+          </div>
           <p id="vs-slots-empty" style="display:none;font-size:.7rem;color:var(--gray);margin:.4rem 0 1rem;">
             No hay horarios disponibles para esta fecha. Elegí otro día.
           </p>
@@ -1670,6 +1673,9 @@
           <div class="form-group">
             <label class="form-label">Notas adicionales</label>
             <textarea id="vs-notas" class="form-control" rows="3" placeholder="Preferencias, preguntas o cualquier indicación…" style="resize:vertical;"></textarea>
+          </div>
+          <div id="vs-submit-advertencia" style="display:none;font-size:.68rem;color:#E0B840;margin-bottom:.85rem;padding:.45rem .75rem;border-radius:6px;background:rgba(224,184,64,.08);border:1px solid rgba(224,184,64,.28);line-height:1.45;">
+            <i class="fas fa-exclamation-triangle" style="margin-right:.4rem;"></i>Por la hora, la iluminación natural puede afectar la calidad del escaneo. Podés continuar, pero el resultado podría requerir ajustes.
           </div>
           <div id="vs-submit-err" style="color:#E08080;font-size:.7rem;display:none;margin-bottom:.8rem;"></div>
           <button class="w-btn w-btn-gold" id="vs-submit-btn" onclick="vsSubmit()" style="width:100%;padding:.82rem;font-size:.7rem;">
@@ -2927,10 +2933,14 @@ async function vsLoadSlots() {
     const data = await apiFetch(url);
     vsState.duracion = data.duracion_minutos;
     loading.style.display = 'none';
+    const advEl = document.getElementById('vs-slot-advertencia');
+    if (advEl) advEl.style.display = 'none';
     if (!data.slots || !data.slots.length) { emptyEl.style.display = ''; return; }
     grid.innerHTML = data.slots.map(slot => {
-      const sel = vsState.hora === slot ? ' selected' : '';
-      return `<button class="slot-pill${sel}" onclick="vsSelectSlot('${slot}')">${slot}</button>`;
+      const hora = slot.hora;
+      const sel  = vsState.hora === hora ? ' selected' : '';
+      const warn = slot.advertencia ? ' data-advertencia' : '';
+      return `<button class="slot-pill${sel}"${warn} onclick="vsSelectSlot('${hora}')">${hora}</button>`;
     }).join('');
   } catch (e) {
     loading.style.display = 'none';
@@ -2945,6 +2955,10 @@ function vsSelectSlot(hora) {
   const endMin = hh * 60 + mm + (vsState.duracion || 90);
   vsState.horaFin = `${String(Math.floor(endMin/60)).padStart(2,'0')}:${String(endMin%60).padStart(2,'0')}`;
   document.querySelectorAll('.slot-pill').forEach(p => p.classList.toggle('selected', p.textContent.trim() === hora));
+  const selectedBtn = [...document.querySelectorAll('.slot-pill')].find(p => p.textContent.trim() === hora);
+  vsState.slotAdvertencia = selectedBtn?.hasAttribute('data-advertencia') ?? false;
+  const advEl3 = document.getElementById('vs-slot-advertencia');
+  if (advEl3) advEl3.style.display = vsState.slotAdvertencia ? '' : 'none';
   setTimeout(() => { vsGoStep(4); vsFillContactForm(); vsRenderResumen(); }, 200);
 }
 
@@ -2969,6 +2983,8 @@ function vsRenderResumen() {
     <span><i class="fas fa-clock" style="color:var(--gold);margin-right:.25rem;"></i>${vsState.hora} – ${vsState.horaFin} (${vsState.duracion} min)</span>
     ${vsState.tipo === 'visita_propiedades' && vsState.propIds.length ? `<span><i class="fas fa-building" style="color:var(--gold);margin-right:.25rem;"></i>${vsState.propIds.length} propiedad(es)</span>` : ''}
     ${vsState.tipo === 'visita_tecnica' && vsState.m2 ? `<span><i class="fas fa-ruler-combined" style="color:var(--gold);margin-right:.25rem;"></i>${vsState.m2} m²</span>` : ''}`;
+  const adv4 = document.getElementById('vs-submit-advertencia');
+  if (adv4) adv4.style.display = vsState.slotAdvertencia ? '' : 'none';
 }
 
 async function vsSubmit() {

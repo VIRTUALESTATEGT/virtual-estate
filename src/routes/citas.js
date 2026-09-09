@@ -307,7 +307,7 @@ router.post('/', rateLimiter(10, 60_000), optionalAuth, async (req, res) => {
     return res.status(500).json({ error: 'Error al verificar disponibilidad.' });
   }
 
-  if (!slotsLibres.includes(hora_inicio))
+  if (!slotsLibres.some(s => s.hora === hora_inicio))
     return res.status(409).json({
       error: 'El horario seleccionado ya no está disponible. Por favor elegí otro slot.',
       slots_disponibles: slotsLibres,
