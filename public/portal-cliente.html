@@ -340,6 +340,65 @@
   .promo-section{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;margin-top:1.4rem;}
   .promo-code-tag{display:inline-flex;align-items:center;gap:.5rem;background:rgba(193,146,89,.12);border:1px solid var(--border);border-radius:var(--r);padding:.5rem 1rem;font-family:'Raleway',sans-serif;font-size:1rem;font-weight:700;color:var(--gold);letter-spacing:.14em;}
 
+  /* ── VISITAS (Agendamiento) ─────────────────── */
+  .vs-stepper{display:flex;align-items:center;margin-bottom:2rem;}
+  .vs-step{display:flex;align-items:center;gap:.4rem;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);font-weight:600;white-space:nowrap;}
+  .vs-step.active{color:var(--gold);}
+  .vs-step.done{color:rgba(193,146,89,.45);}
+  .vs-step-num{width:22px;height:22px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:.56rem;font-weight:700;flex-shrink:0;}
+  .vs-step.active .vs-step-num{background:var(--gold);color:var(--bg);border-color:var(--gold);}
+  .vs-step.done .vs-step-num{background:rgba(193,146,89,.2);}
+  .vs-step-line{flex:1;height:1px;background:var(--border);margin:0 .4rem;}
+  .tipo-cards{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0 1.6rem;}
+  .tipo-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r);padding:1.5rem 1rem;cursor:pointer;transition:var(--tr);text-align:center;}
+  .tipo-card:hover{border-color:var(--gold);background:rgba(193,146,89,.06);}
+  .tipo-card.selected{border-color:var(--gold);background:rgba(193,146,89,.08);}
+  .tipo-card i{font-size:1.4rem;color:var(--gold);margin-bottom:.5rem;display:block;}
+  .tipo-card span{font-size:.74rem;font-weight:700;color:var(--white);display:block;margin-bottom:.3rem;}
+  .tipo-card p{font-size:.64rem;color:var(--gray);margin:0;line-height:1.5;}
+  .favs-checklist{display:flex;flex-direction:column;gap:.35rem;max-height:200px;overflow-y:auto;margin:.7rem 0 1rem;padding-right:.2rem;}
+  .fav-check-row{display:flex;align-items:center;gap:.55rem;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:.5rem .8rem;cursor:pointer;transition:.18s;}
+  .fav-check-row:hover{border-color:var(--gold);}
+  .fav-check-row input[type=checkbox]{accent-color:var(--gold);width:13px;height:13px;flex-shrink:0;cursor:pointer;}
+  .fav-check-row label{font-size:.7rem;color:var(--white);cursor:pointer;line-height:1.3;flex:1;}
+  .vs-cal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem;display:inline-block;min-width:296px;}
+  .vs-cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;}
+  .vs-cal-title{font-size:.68rem;font-weight:700;color:var(--white);letter-spacing:.05em;text-transform:capitalize;}
+  .vs-cal-btn{background:none;border:1px solid var(--border);color:var(--gray);width:25px;height:25px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.58rem;transition:.18s;}
+  .vs-cal-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold);}
+  .vs-cal-btn:disabled{opacity:.3;cursor:default;}
+  .vs-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.15rem;}
+  .vs-cal-dow{font-size:.5rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gray);text-align:center;padding:.2rem 0;font-weight:600;}
+  .vs-day{height:33px;display:flex;align-items:center;justify-content:center;border-radius:var(--r);font-size:.68rem;border:1px solid transparent;transition:.15s;cursor:pointer;}
+  .vs-day.empty{pointer-events:none;}
+  .vs-day.disabled{color:rgba(138,153,144,.28);cursor:default;pointer-events:none;}
+  .vs-day.available:hover{background:rgba(193,146,89,.13);border-color:var(--gold);color:var(--gold);}
+  .vs-day.selected{background:var(--gold);color:var(--bg);font-weight:700;}
+  .slots-grid{display:flex;flex-wrap:wrap;gap:.45rem;margin:.7rem 0 1.3rem;}
+  .slot-pill{padding:.36rem .82rem;border-radius:20px;border:1.5px solid var(--border);background:var(--bg2);color:var(--white);font-size:.68rem;cursor:pointer;transition:.18s;font-weight:500;}
+  .slot-pill:hover{border-color:var(--gold);color:var(--gold);}
+  .slot-pill.selected{background:var(--gold);color:var(--bg);border-color:var(--gold);font-weight:700;}
+  .vs-section-label{font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.55rem;}
+  .cita-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.2rem;margin-bottom:.75rem;}
+  .cita-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:.45rem;}
+  .cita-badge{display:inline-flex;align-items:center;gap:.25rem;font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:.16rem .52rem;border-radius:20px;flex-shrink:0;}
+  .badge-pendiente{background:rgba(193,146,89,.15);color:var(--gold);}
+  .badge-aprobada{background:rgba(60,180,100,.15);color:#5AE08A;}
+  .badge-rechazada{background:rgba(200,60,60,.15);color:#E08080;}
+  .badge-cancelada{background:rgba(138,153,144,.12);color:var(--gray);}
+  .badge-completada{background:rgba(80,120,200,.15);color:#80A0E0;}
+  .cita-title{font-size:.76rem;font-weight:600;color:var(--white);}
+  .cita-meta{font-size:.68rem;color:var(--gray);display:flex;flex-wrap:wrap;gap:.3rem .7rem;margin-top:.3rem;}
+  .cita-meta i{color:var(--gold);font-size:.6rem;}
+  .cita-notas{margin-top:.55rem;font-size:.66rem;color:var(--gray);background:var(--bg3);border-radius:var(--r);padding:.45rem .65rem;border-left:2px solid var(--gold);}
+  .vs-empty{text-align:center;padding:2.5rem 1rem;color:var(--gray);}
+  .vs-empty i{font-size:1.8rem;color:rgba(193,146,89,.25);margin-bottom:.55rem;display:block;}
+  @media(max-width:640px){
+    .tipo-cards{grid-template-columns:1fr;}
+    .vs-cal{min-width:auto;width:100%;}
+    .vs-day{height:29px;font-size:.62rem;}
+  }
+
   #dashboard-view{display:flex !important;}
   @media(max-width:768px){
     .kpi-row{grid-template-columns:1fr 1fr;}
@@ -422,6 +481,10 @@
       <div class="p-tab" id="ptab-cotizaciones" onclick="setTab('cotizaciones')">
         <i class="fas fa-file-invoice-dollar"></i> Mis cotizaciones
         <span class="p-tab-badge">2</span>
+      </div>
+      <div class="p-tab" id="ptab-visitas" onclick="setTab('visitas')">
+        <i class="fas fa-calendar-check"></i> Visitas
+        <span class="p-tab-badge" id="visitas-badge" style="display:none;">0</span>
       </div>
       <div class="p-tab" id="ptab-agente" onclick="setTab('agente')">
         <i class="fas fa-id-badge"></i> Código de Agente
@@ -1541,6 +1604,165 @@
       </div>
     </div><!-- /panel-verificacion -->
 
+    <!-- TAB: VISITAS -->
+    <div class="tab-panel" id="panel-visitas">
+
+      <!-- Sub-tabs -->
+      <div class="sub-tabs" style="margin-bottom:1.8rem;">
+        <button class="sub-tab active" id="vstab-agendar" onclick="setVsTab('agendar')">
+          <i class="fas fa-plus"></i> Agendar visita
+        </button>
+        <button class="sub-tab" id="vstab-miscitas" onclick="setVsTab('miscitas')">
+          <i class="fas fa-list"></i> Mis citas
+        </button>
+      </div>
+
+      <!-- ── Agendar ── -->
+      <div id="vs-agendar">
+        <!-- Stepper -->
+        <div class="vs-stepper" id="vs-stepper">
+          <div class="vs-step active" id="vs-stp-1"><div class="vs-step-num">1</div><span>Tipo</span></div>
+          <div class="vs-step-line"></div>
+          <div class="vs-step" id="vs-stp-2"><div class="vs-step-num">2</div><span>Fecha</span></div>
+          <div class="vs-step-line"></div>
+          <div class="vs-step" id="vs-stp-3"><div class="vs-step-num">3</div><span>Hora</span></div>
+          <div class="vs-step-line"></div>
+          <div class="vs-step" id="vs-stp-4"><div class="vs-step-num">4</div><span>Confirmar</span></div>
+        </div>
+
+        <!-- Step 1: Tipo -->
+        <div id="vs-step1">
+          <div class="vs-section-label">¿Qué tipo de visita necesitás?</div>
+          <div class="tipo-cards">
+            <div class="tipo-card" id="tc-propiedades" onclick="vsSelectTipo('visita_propiedades')">
+              <i class="fas fa-door-open"></i>
+              <span>Visita a propiedades</span>
+              <p>Recorrido por las propiedades de tu lista de favoritos (90 min)</p>
+            </div>
+            <div class="tipo-card" id="tc-tecnica" onclick="vsSelectTipo('visita_tecnica')">
+              <i class="fas fa-drafting-compass"></i>
+              <span>Visita técnica</span>
+              <p>Escaneo 3D / levantamiento de planos (2 h – 5 h según metraje)</p>
+            </div>
+          </div>
+
+          <!-- Favoritos selector -->
+          <div id="vs-favs-wrap" style="display:none;">
+            <div class="vs-section-label">Propiedades a visitar</div>
+            <div class="favs-checklist" id="vs-favs-list"></div>
+            <p id="vs-favs-empty" style="display:none;font-size:.72rem;color:var(--gray);margin:.4rem 0 1rem;">
+              No tenés propiedades guardadas.
+              <a href="#" onclick="setTab('favoritos');return false;" style="color:var(--gold);">Explorá y guardá favoritos →</a>
+            </p>
+            <button class="w-btn w-btn-gold" onclick="vsStep1Next()" style="margin-top:.4rem;">Continuar →</button>
+          </div>
+
+          <!-- Técnica form -->
+          <div id="vs-tecnica-wrap" style="display:none;">
+            <div class="form-row" style="margin-bottom:.8rem;">
+              <div class="form-group">
+                <label class="form-label">Metros cuadrados aproximados *</label>
+                <input type="number" id="vs-m2" class="form-control" placeholder="120" min="1">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Dirección del inmueble *</label>
+                <input type="text" id="vs-direccion" class="form-control" placeholder="Zona 10, Guatemala">
+              </div>
+            </div>
+            <div id="vs-tecnica-err" style="color:#E08080;font-size:.7rem;display:none;margin-bottom:.6rem;"></div>
+            <button class="w-btn w-btn-gold" onclick="vsStep1Next()">Continuar →</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Fecha -->
+        <div id="vs-step2" style="display:none;">
+          <a href="#" onclick="vsGoStep(1);return false;" style="font-size:.63rem;color:var(--gray);display:inline-flex;align-items:center;gap:.3rem;margin-bottom:1.2rem;text-decoration:none;">
+            <i class="fas fa-chevron-left"></i> Volver
+          </a>
+          <div class="vs-section-label">Seleccioná una fecha</div>
+          <p style="font-size:.68rem;color:var(--gray);margin:0 0 .9rem;">Solo días hábiles (lunes a viernes). Anticipación mínima: 2 días.</p>
+          <div id="vs-cal"></div>
+        </div>
+
+        <!-- Step 3: Hora -->
+        <div id="vs-step3" style="display:none;">
+          <a href="#" onclick="vsGoStep(2);return false;" style="font-size:.63rem;color:var(--gray);display:inline-flex;align-items:center;gap:.3rem;margin-bottom:1.2rem;text-decoration:none;">
+            <i class="fas fa-chevron-left"></i> Volver
+          </a>
+          <div class="vs-section-label">Hora de inicio</div>
+          <p id="vs-fecha-display" style="font-size:.76rem;color:var(--white);margin:0 0 .8rem;font-weight:500;"></p>
+          <div id="vs-slots-loading" style="display:none;padding:1.2rem 0;color:var(--gray);font-size:.7rem;">
+            <i class="fas fa-spinner fa-spin" style="color:var(--gold);margin-right:.4rem;"></i>Cargando horarios disponibles…
+          </div>
+          <div class="slots-grid" id="vs-slots-grid"></div>
+          <p id="vs-slots-empty" style="display:none;font-size:.7rem;color:var(--gray);margin:.4rem 0 1rem;">
+            No hay horarios disponibles para esta fecha. Elegí otro día.
+          </p>
+          <div id="vs-slots-err" style="display:none;font-size:.68rem;color:#E08080;margin-bottom:1rem;"></div>
+        </div>
+
+        <!-- Step 4: Contacto + Confirmar -->
+        <div id="vs-step4" style="display:none;">
+          <a href="#" onclick="vsGoStep(3);return false;" style="font-size:.63rem;color:var(--gray);display:inline-flex;align-items:center;gap:.3rem;margin-bottom:1.2rem;text-decoration:none;">
+            <i class="fas fa-chevron-left"></i> Volver
+          </a>
+          <div class="vs-section-label">Resumen</div>
+          <div id="vs-resumen" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:.85rem 1rem;margin-bottom:1.4rem;font-size:.7rem;color:var(--gray);display:flex;flex-wrap:wrap;gap:.3rem .8rem;"></div>
+          <div class="vs-section-label">Datos de contacto</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nombre *</label>
+              <input type="text" id="vs-nombre" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email *</label>
+              <input type="email" id="vs-email" class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teléfono / WhatsApp</label>
+            <input type="tel" id="vs-telefono" class="form-control" placeholder="+502 5555-0000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notas adicionales</label>
+            <textarea id="vs-notas" class="form-control" rows="3" placeholder="Preferencias, preguntas o cualquier indicación…" style="resize:vertical;"></textarea>
+          </div>
+          <div id="vs-submit-err" style="color:#E08080;font-size:.7rem;display:none;margin-bottom:.8rem;"></div>
+          <button class="w-btn w-btn-gold" id="vs-submit-btn" onclick="vsSubmit()" style="width:100%;padding:.82rem;font-size:.7rem;">
+            <i class="fas fa-calendar-check"></i> Confirmar solicitud de visita
+          </button>
+        </div>
+
+        <!-- Éxito -->
+        <div id="vs-step-success" style="display:none;text-align:center;padding:2.5rem 1rem;">
+          <i class="fas fa-check-circle" style="font-size:2.6rem;color:#5AE08A;margin-bottom:.8rem;display:block;"></i>
+          <div style="font-size:.95rem;font-weight:700;color:var(--white);margin-bottom:.4rem;">¡Solicitud enviada!</div>
+          <p style="font-size:.76rem;color:var(--gray);margin:0 0 1.5rem;max-width:380px;margin-left:auto;margin-right:auto;">
+            Revisaremos tu solicitud y te notificaremos por email en las próximas horas.
+          </p>
+          <div style="display:flex;gap:.7rem;justify-content:center;flex-wrap:wrap;">
+            <button class="w-btn w-btn-out" onclick="vsReset()">Agendar otra visita</button>
+            <button class="w-btn w-btn-gold" onclick="setVsTab('miscitas')">Ver mis citas →</button>
+          </div>
+        </div>
+      </div><!-- /vs-agendar -->
+
+      <!-- ── Mis citas ── -->
+      <div id="vs-miscitas" style="display:none;">
+        <div id="vs-mc-loading" style="text-align:center;padding:2rem;color:var(--gray);font-size:.7rem;">
+          <i class="fas fa-spinner fa-spin" style="color:var(--gold);margin-right:.4rem;"></i>Cargando…
+        </div>
+        <div id="vs-mc-list"></div>
+        <div id="vs-mc-empty" class="vs-empty" style="display:none;">
+          <i class="fas fa-calendar-times"></i>
+          <div style="font-weight:600;color:var(--white);margin-bottom:.35rem;">Sin citas registradas</div>
+          <p style="font-size:.7rem;margin:0;">Agendá tu primera visita desde la pestaña Agendar.</p>
+          <button class="w-btn w-btn-gold" onclick="setVsTab('agendar')" style="margin-top:1.1rem;">Agendar visita</button>
+        </div>
+      </div><!-- /vs-miscitas -->
+
+    </div><!-- /panel-visitas -->
+
   </div>
 </div>
 
@@ -1560,7 +1782,7 @@ function clearToken() { localStorage.removeItem('ve_portal_token'); }
 async function apiFetch(path, opts = {}) {
   const res = await fetch(API_URL + path, { ...opts, headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken(), ...(opts.headers || {}) } });
   if (res.status === 401) { doLogout(); throw new Error('Sesión expirada'); }
-  if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || res.statusText); }
+  if (!res.ok) { const d = await res.json().catch(() => ({})); const err = new Error(d.error || res.statusText); err.status = res.status; throw err; }
   return res.json();
 }
 
@@ -1756,13 +1978,14 @@ function closePropModal() {
 
 /* ── TABS ───────────────────────────────────────────────── */
 function setTab(tab) {
-  ['inicio','favoritos','cotizaciones','agente','pagos','perfil','verificacion'].forEach(t => {
+  ['inicio','favoritos','cotizaciones','visitas','agente','pagos','perfil','verificacion'].forEach(t => {
     document.getElementById(`ptab-${t}`)?.classList.toggle('active', t === tab);
     document.getElementById(`panel-${t}`)?.classList.toggle('active', t === tab);
   });
   if (tab === 'favoritos') { setPropSubTab('explorar'); }
   if (tab === 'inicio') renderFavs('resumen-props', 3);
   if (tab === 'verificacion') loadVerificacionEstado();
+  if (tab === 'visitas') loadVisitasPanel();
 }
 
 /* ── LOAD PORTAL DATA ───────────────────────────────────── */
@@ -1785,6 +2008,8 @@ async function loadPortalData() {
     const sol = await apiFetch('/api/agente/solicitud/mi-solicitud');
     if (sol) renderAgenteEstado(sol);
   } catch {}
+  // Visitas badge
+  updateVisitasBadge().catch(() => {});
 }
 
 function clienteCode(c) {
@@ -2337,6 +2562,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('dashboard-view').style.display = 'flex';
     if (window.location.hash === '#agente') setTab('agente');
     if (window.location.hash === '#verificacion') setTab('verificacion');
+    if (window.location.hash === '#visitas') setTab('visitas');
   } catch {
     clearToken();
     window.location.href = '/portal.html';
@@ -2518,6 +2744,345 @@ async function submitVerificacion() {
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar documentos';
   }
+}
+
+/* ── VISITAS (Agendamiento) ─────────────────────────────────────── */
+
+const vsState = { tipo:null, propIds:[], m2:null, direccion:null, fecha:null, hora:null, horaFin:null, duracion:null };
+let vsCalMes = null;
+
+function gtHoyStr() {
+  return new Intl.DateTimeFormat('sv', { timeZone: 'America/Guatemala' }).format(new Date());
+}
+
+function addDaysStr(iso, n) {
+  const [y, m, d] = iso.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + n);
+  return [dt.getFullYear(), String(dt.getMonth()+1).padStart(2,'0'), String(dt.getDate()).padStart(2,'0')].join('-');
+}
+
+function setVsTab(t) {
+  ['agendar','miscitas'].forEach(x => {
+    document.getElementById('vstab-' + x)?.classList.toggle('active', x === t);
+  });
+  document.getElementById('vs-agendar').style.display = t === 'agendar' ? '' : 'none';
+  document.getElementById('vs-miscitas').style.display = t === 'miscitas' ? '' : 'none';
+  if (t === 'miscitas') renderMisCitas();
+}
+
+function vsUpdateStepper(active) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('vs-stp-' + i);
+    if (!el) continue;
+    el.classList.remove('active','done');
+    if (i < active) el.classList.add('done');
+    else if (i === active) el.classList.add('active');
+  }
+}
+
+function vsGoStep(n) {
+  [1,2,3,4].forEach(i => {
+    const el = document.getElementById('vs-step' + i);
+    if (el) el.style.display = i === n ? '' : 'none';
+  });
+  document.getElementById('vs-step-success').style.display = 'none';
+  document.getElementById('vs-stepper').style.display = '';
+  vsUpdateStepper(n);
+}
+
+function loadVisitasPanel() {
+  if (!vsState.tipo) vsGoStep(1);
+}
+
+function vsSelectTipo(tipo) {
+  vsState.tipo = tipo;
+  document.getElementById('tc-propiedades').classList.toggle('selected', tipo === 'visita_propiedades');
+  document.getElementById('tc-tecnica').classList.toggle('selected', tipo === 'visita_tecnica');
+  document.getElementById('vs-favs-wrap').style.display = tipo === 'visita_propiedades' ? '' : 'none';
+  document.getElementById('vs-tecnica-wrap').style.display = tipo === 'visita_tecnica' ? '' : 'none';
+  if (tipo === 'visita_propiedades') renderVsFavs();
+}
+
+function renderVsFavs() {
+  const list = document.getElementById('vs-favs-list');
+  const empty = document.getElementById('vs-favs-empty');
+  if (!dbFavs.length) {
+    list.style.display = 'none'; empty.style.display = ''; return;
+  }
+  empty.style.display = 'none'; list.style.display = '';
+  list.innerHTML = dbFavs.map(f => {
+    const p = f.propiedades || {};
+    const titulo = p.titulo || p.codigo || `Propiedad #${f.propiedad_id}`;
+    const zona = p.zona ? ` · ${p.zona}` : '';
+    const checked = vsState.propIds.includes(f.propiedad_id) ? 'checked' : '';
+    return `<label class="fav-check-row">
+      <input type="checkbox" value="${f.propiedad_id}" ${checked} onchange="vsToggleProp(this)">
+      <span style="font-size:.7rem;color:var(--white);line-height:1.3;">${titulo}${zona}</span>
+    </label>`;
+  }).join('');
+}
+
+function vsToggleProp(cb) {
+  const id = parseInt(cb.value);
+  if (cb.checked) { if (!vsState.propIds.includes(id)) vsState.propIds.push(id); }
+  else { vsState.propIds = vsState.propIds.filter(x => x !== id); }
+}
+
+function vsStep1Next() {
+  if (vsState.tipo === 'visita_propiedades') {
+    if (!vsState.propIds.length) { showToast('Seleccioná al menos una propiedad'); return; }
+  } else {
+    const m2 = parseInt(document.getElementById('vs-m2').value);
+    const dir = document.getElementById('vs-direccion').value.trim();
+    const errEl = document.getElementById('vs-tecnica-err');
+    if (!m2 || m2 <= 0) { errEl.textContent = 'Ingresá los metros cuadrados aproximados'; errEl.style.display = ''; return; }
+    if (!dir) { errEl.textContent = 'Ingresá la dirección del inmueble'; errEl.style.display = ''; return; }
+    errEl.style.display = 'none';
+    vsState.m2 = m2; vsState.direccion = dir;
+  }
+  vsGoStep(2);
+  const hoy = gtHoyStr();
+  const [y, m] = hoy.split('-').map(Number);
+  vsCalMes = { y, m };
+  renderVsCal();
+}
+
+const VS_MES_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+function renderVsCal() {
+  const { y, m } = vsCalMes;
+  const hoy = gtHoyStr();
+  const minFecha = addDaysStr(hoy, 2);
+  const [hy, hm] = hoy.split('-').map(Number);
+  const prevDisabled = (y < hy || (y === hy && m <= hm)) ? 'disabled' : '';
+  const title = `${VS_MES_ES[m-1]} ${y}`;
+
+  const firstDow = new Date(y, m - 1, 1).getDay();
+  const offset = (firstDow + 6) % 7;
+  const daysInMonth = new Date(y, m, 0).getDate();
+
+  const dows = ['L','M','M','J','V','S','D'];
+  let cells = dows.map(d => `<div class="vs-cal-dow">${d}</div>`).join('');
+  for (let i = 0; i < offset; i++) cells += `<div class="vs-day empty"></div>`;
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const ds = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow = new Date(y, m - 1, d).getDay();
+    const isWeekend = dow === 0 || dow === 6;
+    const isTooSoon = ds < minFecha;
+    const isSelected = vsState.fecha === ds;
+    let cls = 'vs-day';
+    if (isWeekend || isTooSoon) cls += ' disabled';
+    else if (isSelected) cls += ' selected';
+    else cls += ' available';
+    const click = (!isWeekend && !isTooSoon) ? `onclick="vsSelectFecha('${ds}')"` : '';
+    cells += `<div class="${cls}" ${click}>${d}</div>`;
+  }
+
+  document.getElementById('vs-cal').innerHTML = `
+    <div class="vs-cal">
+      <div class="vs-cal-nav">
+        <button class="vs-cal-btn" ${prevDisabled} onclick="vsCalNav(-1)"><i class="fas fa-chevron-left"></i></button>
+        <span class="vs-cal-title">${title}</span>
+        <button class="vs-cal-btn" onclick="vsCalNav(1)"><i class="fas fa-chevron-right"></i></button>
+      </div>
+      <div class="vs-cal-grid">${cells}</div>
+    </div>`;
+}
+
+function vsCalNav(dir) {
+  let { y, m } = vsCalMes;
+  m += dir;
+  if (m < 1) { m = 12; y--; }
+  if (m > 12) { m = 1; y++; }
+  const hoy = gtHoyStr();
+  const [hy, hm] = hoy.split('-').map(Number);
+  if (y < hy || (y === hy && m < hm)) return;
+  vsCalMes = { y, m };
+  renderVsCal();
+}
+
+async function vsSelectFecha(ds) {
+  vsState.fecha = ds;
+  renderVsCal();
+  vsGoStep(3);
+  const dp = document.getElementById('vs-fecha-display');
+  if (dp) {
+    const fmt = new Intl.DateTimeFormat('es-GT', { weekday:'long', day:'numeric', month:'long', year:'numeric', timeZone:'UTC' }).format(new Date(ds + 'T12:00:00Z'));
+    dp.textContent = fmt.charAt(0).toUpperCase() + fmt.slice(1);
+  }
+  await vsLoadSlots();
+}
+
+async function vsLoadSlots() {
+  const grid = document.getElementById('vs-slots-grid');
+  const loading = document.getElementById('vs-slots-loading');
+  const emptyEl = document.getElementById('vs-slots-empty');
+  const errEl = document.getElementById('vs-slots-err');
+  grid.innerHTML = ''; emptyEl.style.display = 'none'; errEl.style.display = 'none';
+  loading.style.display = '';
+  try {
+    let url = `/api/citas/disponibles?fecha=${vsState.fecha}&tipo=${vsState.tipo}`;
+    if (vsState.tipo === 'visita_tecnica') url += `&m2=${vsState.m2}`;
+    const data = await apiFetch(url);
+    vsState.duracion = data.duracion_minutos;
+    loading.style.display = 'none';
+    if (!data.slots || !data.slots.length) { emptyEl.style.display = ''; return; }
+    grid.innerHTML = data.slots.map(slot => {
+      const sel = vsState.hora === slot ? ' selected' : '';
+      return `<button class="slot-pill${sel}" onclick="vsSelectSlot('${slot}')">${slot}</button>`;
+    }).join('');
+  } catch (e) {
+    loading.style.display = 'none';
+    errEl.textContent = 'Error cargando horarios: ' + e.message;
+    errEl.style.display = '';
+  }
+}
+
+function vsSelectSlot(hora) {
+  vsState.hora = hora;
+  const [hh, mm] = hora.split(':').map(Number);
+  const endMin = hh * 60 + mm + (vsState.duracion || 90);
+  vsState.horaFin = `${String(Math.floor(endMin/60)).padStart(2,'0')}:${String(endMin%60).padStart(2,'0')}`;
+  document.querySelectorAll('.slot-pill').forEach(p => p.classList.toggle('selected', p.textContent.trim() === hora));
+  setTimeout(() => { vsGoStep(4); vsFillContactForm(); vsRenderResumen(); }, 200);
+}
+
+function vsFillContactForm() {
+  if (clienteData) {
+    const n = document.getElementById('vs-nombre'); if (n && !n.value) n.value = clienteData.nombre || '';
+    const e = document.getElementById('vs-email'); if (e && !e.value) e.value = clienteData.email || '';
+    const t = document.getElementById('vs-telefono'); if (t && !t.value) t.value = clienteData.telefono || '';
+  }
+}
+
+function vsRenderResumen() {
+  const el = document.getElementById('vs-resumen'); if (!el) return;
+  const tipoLabel = vsState.tipo === 'visita_propiedades' ? 'Visita a propiedades' : 'Visita técnica';
+  const fmt = vsState.fecha
+    ? new Intl.DateTimeFormat('es-GT', { weekday:'long', day:'numeric', month:'short', timeZone:'UTC' }).format(new Date(vsState.fecha + 'T12:00:00Z'))
+    : '';
+  const fmtCap = fmt ? fmt.charAt(0).toUpperCase() + fmt.slice(1) : '';
+  el.innerHTML = `
+    <span><i class="fas fa-tag" style="color:var(--gold);margin-right:.25rem;"></i>${tipoLabel}</span>
+    <span><i class="fas fa-calendar" style="color:var(--gold);margin-right:.25rem;"></i>${fmtCap}</span>
+    <span><i class="fas fa-clock" style="color:var(--gold);margin-right:.25rem;"></i>${vsState.hora} – ${vsState.horaFin} (${vsState.duracion} min)</span>
+    ${vsState.tipo === 'visita_propiedades' && vsState.propIds.length ? `<span><i class="fas fa-building" style="color:var(--gold);margin-right:.25rem;"></i>${vsState.propIds.length} propiedad(es)</span>` : ''}
+    ${vsState.tipo === 'visita_tecnica' && vsState.m2 ? `<span><i class="fas fa-ruler-combined" style="color:var(--gold);margin-right:.25rem;"></i>${vsState.m2} m²</span>` : ''}`;
+}
+
+async function vsSubmit() {
+  const btn = document.getElementById('vs-submit-btn');
+  const errEl = document.getElementById('vs-submit-err');
+  const nombre = document.getElementById('vs-nombre').value.trim();
+  const email = document.getElementById('vs-email').value.trim();
+  const telefono = document.getElementById('vs-telefono').value.trim();
+  const notas = document.getElementById('vs-notas').value.trim();
+  errEl.style.display = 'none';
+  if (!nombre) { errEl.textContent = 'El nombre es requerido'; errEl.style.display = ''; return; }
+  if (!email) { errEl.textContent = 'El email es requerido'; errEl.style.display = ''; return; }
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando…';
+  try {
+    const body = { tipo: vsState.tipo, fecha: vsState.fecha, hora_inicio: vsState.hora, nombre_contacto: nombre, email_contacto: email };
+    if (telefono) body.telefono_contacto = telefono;
+    if (notas) body.notas_cliente = notas;
+    if (vsState.tipo === 'visita_propiedades') body.propiedades_ids = vsState.propIds;
+    if (vsState.tipo === 'visita_tecnica') { body.m2_aproximados = vsState.m2; body.direccion_tecnica = vsState.direccion; }
+    await apiFetch('/api/citas', { method: 'POST', body: JSON.stringify(body) });
+    [1,2,3,4].forEach(i => { const e = document.getElementById('vs-step'+i); if(e) e.style.display='none'; });
+    document.getElementById('vs-stepper').style.display = 'none';
+    document.getElementById('vs-step-success').style.display = '';
+    updateVisitasBadge().catch(() => {});
+  } catch (e) {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-calendar-check"></i> Confirmar solicitud de visita';
+    if (e.status === 409) {
+      errEl.textContent = 'El horario ya no está disponible. Por favor elegí otro.';
+      errEl.style.display = '';
+      vsState.hora = null;
+      vsGoStep(3);
+      await vsLoadSlots();
+    } else {
+      errEl.textContent = e.message || 'Error al enviar. Intentá de nuevo.';
+      errEl.style.display = '';
+    }
+  }
+}
+
+function vsReset() {
+  Object.assign(vsState, { tipo:null, propIds:[], m2:null, direccion:null, fecha:null, hora:null, horaFin:null, duracion:null });
+  document.getElementById('tc-propiedades')?.classList.remove('selected');
+  document.getElementById('tc-tecnica')?.classList.remove('selected');
+  document.getElementById('vs-favs-wrap').style.display = 'none';
+  document.getElementById('vs-tecnica-wrap').style.display = 'none';
+  document.getElementById('vs-step-success').style.display = 'none';
+  document.getElementById('vs-stepper').style.display = '';
+  // Clear contact form
+  ['vs-nombre','vs-email','vs-telefono','vs-notas'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  vsGoStep(1);
+}
+
+/* ── Mis citas ─── */
+
+function vsEstadoLabel(e) {
+  return { pendiente:'Pendiente', aprobada:'Confirmada', rechazada:'Rechazada', cancelada:'Cancelada', completada:'Completada' }[e] || e;
+}
+
+async function renderMisCitas() {
+  const list = document.getElementById('vs-mc-list');
+  const loading = document.getElementById('vs-mc-loading');
+  const empty = document.getElementById('vs-mc-empty');
+  list.innerHTML = ''; loading.style.display = ''; empty.style.display = 'none';
+  try {
+    const citas = await apiFetch('/api/citas/me');
+    loading.style.display = 'none';
+    if (!citas.length) { empty.style.display = ''; return; }
+    list.innerHTML = citas.map(c => {
+      const tipoLabel = c.tipo === 'visita_propiedades' ? 'Visita a propiedades' : 'Visita técnica';
+      const fmt = new Intl.DateTimeFormat('es-GT', { weekday:'long', day:'numeric', month:'long', year:'numeric', timeZone:'UTC' }).format(new Date(c.fecha + 'T12:00:00Z'));
+      const fmtCap = fmt.charAt(0).toUpperCase() + fmt.slice(1);
+      const hora = (c.hora_inicio||'').slice(0,5) + ' – ' + (c.hora_fin||'').slice(0,5);
+      const canCancel = (c.estado === 'pendiente' || c.estado === 'aprobada') && c.fecha > gtHoyStr();
+      return `<div class="cita-card">
+        <div class="cita-card-header">
+          <div>
+            <div class="cita-title">${tipoLabel}</div>
+            <div class="cita-meta">
+              <span><i class="fas fa-calendar"></i> ${fmtCap}</span>
+              <span><i class="fas fa-clock"></i> ${hora}</span>
+              ${c.tipo==='visita_tecnica'&&c.m2_aproximados?`<span><i class="fas fa-ruler-combined"></i> ${c.m2_aproximados} m²</span>`:''}
+            </div>
+          </div>
+          <span class="cita-badge badge-${c.estado}">${vsEstadoLabel(c.estado)}</span>
+        </div>
+        ${c.notas_admin?`<div class="cita-notas"><strong style="color:var(--gold);">Nota:</strong> ${c.notas_admin}</div>`:''}
+        ${canCancel?`<button class="w-btn w-btn-out" style="margin-top:.65rem;font-size:.6rem;padding:.32rem .85rem;" onclick="vsCancelarCita(${c.id})"><i class="fas fa-times"></i> Cancelar</button>`:''}
+      </div>`;
+    }).join('');
+  } catch (e) {
+    loading.style.display = 'none';
+    list.innerHTML = `<div style="color:#E08080;font-size:.7rem;padding:.8rem;">${e.message}</div>`;
+  }
+}
+
+async function vsCancelarCita(id) {
+  if (!confirm('¿Cancelar esta cita?')) return;
+  try {
+    await apiFetch(`/api/citas/${id}/cancelar`, { method:'PATCH', body:'{}' });
+    showToast('Cita cancelada');
+    await renderMisCitas();
+    updateVisitasBadge().catch(() => {});
+  } catch (e) { showToast('Error: ' + e.message); }
+}
+
+async function updateVisitasBadge() {
+  try {
+    const citas = await apiFetch('/api/citas/me');
+    const n = citas.filter(c => c.estado === 'pendiente' || c.estado === 'aprobada').length;
+    const badge = document.getElementById('visitas-badge');
+    if (badge) { badge.textContent = n; badge.style.display = n > 0 ? '' : 'none'; }
+  } catch {}
 }
 </script>
 
