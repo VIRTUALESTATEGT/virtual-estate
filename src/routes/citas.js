@@ -6,6 +6,7 @@ const router       = express.Router();
 const supabase     = require('../config/supabase');
 const { calcularDuracion, getSlots, addMinutes, checkSlotConflict } = require('../utils/citas');
 const { notifyAdmin } = require('../utils/whatsapp');
+const { enviarEmail, registrarEmail, buildEmailBase } = require('../utils/email');
 const authMiddleware  = require('../middleware/auth');
 const { requireMinRole, requirePortalOrStaff } = require('../middleware/roles');
 
@@ -63,6 +64,158 @@ async function enrichConPropiedades(citas) {
     ...c,
     propiedades: (c.propiedades_ids || []).map(id => propMap[id]).filter(Boolean),
   }));
+}
+
+// ── Email helper ──────────────────────────────────────────────────────────────
+// Envía email al cliente al aprobar o rechazar. Awaitable; nunca lanza.
+// Registra el intento (éxito o error) en email_log.
+
+async function _enviarEmailCita(cita, tipoEmail, { notas_admin } = {}) {
+  const appUrl = process.env.APP_URL || 'https://www.virtualestategt.com';
+  const WA     = 'https://wa.me/50239902399';
+
+  // Fecha larga en español guatemalteco
+  const fechaLarga = new Intl.DateTimeFormat('es-GT', {
+    timeZone: 'America/Guatemala',
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  }).format(new Date(cita.fecha + 'T12:00:00Z'));
+  const hi = normTime(cita.hora_inicio);
+  const hf = normTime(cita.hora_fin);
+  const esPropiedad = cita.tipo === 'visita_propiedades';
+
+  let detalleHtml = '';
+
+  if (tipoEmail === 'cita_aprobada') {
+    // Propiedades: fetch si aplica
+    if (esPropiedad && cita.propiedades_ids?.length) {
+      const { data: props } = await supabase
+        .from('propiedades').select('codigo, nombre').in('id', cita.propiedades_ids);
+      if (props?.length) {
+        detalleHtml =
+          `<p style="color:#8A9990;font-size:13px;margin:16px 0 6px;font-weight:700;
+                     text-transform:uppercase;letter-spacing:.5px;">Propiedades a visitar</p>` +
+          `<ul style="margin:0;padding-left:18px;color:#F5F0E8;font-size:14px;line-height:1.9;">` +
+          props.map(p => `<li><strong>${p.codigo}</strong> — ${p.nombre}</li>`).join('') +
+          `</ul>`;
+      }
+    } else if (!esPropiedad) {
+      const lineas = [];
+      if (cita.direccion_tecnica) lineas.push(`<strong>Dirección:</strong> ${cita.direccion_tecnica}`);
+      if (cita.m2_aproximados)    lineas.push(`<strong>Área:</strong> ${cita.m2_aproximados} m²`);
+      if (lineas.length) {
+        detalleHtml =
+          `<div style="background:rgba(193,146,89,.07);border-left:3px solid #B09A6C;
+                       padding:10px 14px;margin:16px 0;border-radius:0 4px 4px 0;
+                       color:#F5F0E8;font-size:14px;line-height:1.8;">` +
+          lineas.join('<br>') + `</div>`;
+      }
+    }
+
+    const cuerpoHtml =
+      `<p style="color:#F5F0E8;font-size:15px;margin:0 0 8px;">
+         Hola <strong>${cita.nombre_contacto}</strong>,
+       </p>
+       <p style="color:#8A9990;font-size:14px;line-height:1.7;margin:0 0 20px;">
+         Tu visita ha sido <strong style="color:#4F8A3A;">confirmada ✅</strong>.
+         Te esperamos en la siguiente fecha:
+       </p>
+       <div style="background:rgba(79,138,58,.1);border:1px solid rgba(79,138,58,.3);
+                   border-radius:6px;padding:14px 18px;margin:0 0 20px;">
+         <p style="color:#F5F0E8;font-size:15px;font-weight:700;margin:0;">
+           📅 ${fechaLarga}
+         </p>
+         <p style="color:#B09A6C;font-size:14px;margin:6px 0 0;">
+           🕙 ${hi} — ${hf}
+         </p>
+       </div>
+       ${detalleHtml}
+       <p style="color:#8A9990;font-size:13px;line-height:1.7;margin:20px 0 0;">
+         ¿Necesitás reprogramar o tenés alguna consulta?
+         Escribinos por WhatsApp y con gusto te ayudamos.
+       </p>`;
+
+    const html = buildEmailBase({
+      titulo:    'Tu visita está confirmada ✅',
+      subtitulo: 'Virtual Estate GT — Agendamiento de visitas',
+      cuerpoHtml,
+      ctaTexto: 'Escribir por WhatsApp',
+      ctaLink:  WA,
+    });
+
+    let estado = 'enviado', errorDetalle = null;
+    try {
+      await enviarEmail({
+        to:      cita.email_contacto,
+        subject: `Visita confirmada — ${fechaLarga}, ${hi}`,
+        html,
+        label:   `cita_aprobada#${cita.id}`,
+      });
+    } catch (e) {
+      estado = 'error';
+      errorDetalle = e.message;
+      console.error(`[citas] email cita_aprobada #${cita.id} error:`, e.message);
+    }
+    await registrarEmail({
+      destinatario:  cita.email_contacto,
+      tipo_email:    'cita_aprobada',
+      referencia_id: cita.id,
+      estado,
+      error_detalle: errorDetalle,
+    });
+
+  } else if (tipoEmail === 'cita_rechazada') {
+
+    const notasHtml = notas_admin
+      ? `<div style="background:rgba(255,255,255,.04);border-left:3px solid rgba(193,146,89,.5);
+                     padding:10px 14px;margin:16px 0;border-radius:0 4px 4px 0;
+                     color:#8A9990;font-size:13px;line-height:1.7;">
+           ${notas_admin}
+         </div>`
+      : '';
+
+    const cuerpoHtml =
+      `<p style="color:#F5F0E8;font-size:15px;margin:0 0 8px;">
+         Hola <strong>${cita.nombre_contacto}</strong>,
+       </p>
+       <p style="color:#8A9990;font-size:14px;line-height:1.7;margin:0 0 16px;">
+         Lamentablemente no pudimos confirmar tu visita solicitada para el
+         <strong style="color:#F5F0E8;">${fechaLarga}, ${hi} — ${hf}</strong>.
+       </p>
+       ${notasHtml}
+       <p style="color:#8A9990;font-size:14px;line-height:1.7;margin:16px 0 0;">
+         Podés solicitar otra fecha disponible desde el portal o
+         escribirnos directamente por WhatsApp.
+       </p>`;
+
+    const html = buildEmailBase({
+      titulo:    'Sobre tu solicitud de visita',
+      subtitulo: 'No pudimos confirmar la fecha solicitada',
+      cuerpoHtml,
+      ctaTexto: 'Solicitar otra fecha',
+      ctaLink:  `${appUrl}/portal-cliente.html`,
+    });
+
+    let estado = 'enviado', errorDetalle = null;
+    try {
+      await enviarEmail({
+        to:      cita.email_contacto,
+        subject: `Solicitud de visita — ${fechaLarga}`,
+        html,
+        label:   `cita_rechazada#${cita.id}`,
+      });
+    } catch (e) {
+      estado = 'error';
+      errorDetalle = e.message;
+      console.error(`[citas] email cita_rechazada #${cita.id} error:`, e.message);
+    }
+    await registrarEmail({
+      destinatario:  cita.email_contacto,
+      tipo_email:    'cita_rechazada',
+      referencia_id: cita.id,
+      estado,
+      error_detalle: errorDetalle,
+    });
+  }
 }
 
 // ── GET /api/citas/disponibles ────────────────────────────────────────────────
@@ -281,6 +434,9 @@ router.patch('/:id/aprobar', authMiddleware, requireMinRole('asistente'), async 
       .maybeSingle();
     if (upErr) throw upErr;
 
+    // Email al cliente — awaited (Lambda muere al responder), nunca bloquea la respuesta
+    await _enviarEmailCita(updated, 'cita_aprobada');
+
     res.json(updated);
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -305,6 +461,9 @@ router.patch('/:id/rechazar', authMiddleware, requireMinRole('asistente'), async
     const { data: updated, error } = await supabase
       .from('citas').update(update).eq('id', id).select().maybeSingle();
     if (error) throw error;
+
+    // Email al cliente — awaited (Lambda muere al responder), nunca bloquea la respuesta
+    await _enviarEmailCita(updated, 'cita_rechazada', { notas_admin: updated.notas_admin });
 
     res.json(updated);
   } catch (e) {
