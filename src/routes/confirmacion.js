@@ -591,7 +591,27 @@ async function limpiarHandler(req, res) {
     console.error('[CRON] Tarea 2 error:', e.message);
   }
 
-  res.json({ success: true, eliminadas, pendientes });
+  // ── Tarea 3: cancelar reservas provisionales de citas vencidas ────────────
+  // getSlots ya las ignora en tiempo real (lazy); esto limpia el estado en DB
+  // para que el historial y los reportes reflejen el estado real.
+  let citasCanceladas = 0;
+  try {
+    const { data: canceladas, error: errCitas } = await supabase
+      .from('citas')
+      .update({ estado: 'cancelada' })
+      .eq('estado', 'pendiente')
+      .not('reserva_expira_en', 'is', null)
+      .lt('reserva_expira_en', new Date().toISOString())
+      .select('id');
+
+    if (errCitas) throw errCitas;
+    citasCanceladas = canceladas?.length || 0;
+    console.log(`[CRON] Tarea 3 — reservas provisionales vencidas canceladas: ${citasCanceladas}`);
+  } catch (e) {
+    console.error('[CRON] Tarea 3 error:', e.message);
+  }
+
+  res.json({ success: true, eliminadas, pendientes, citasCanceladas });
 }
 
 router.get('/limpiar',  limpiarHandler);
