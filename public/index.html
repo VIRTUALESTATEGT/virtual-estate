@@ -866,82 +866,7 @@
       </div>
     </div>
 
-    <div class="properties-grid">
-      <div class="prop-card reveal">
-        <div class="prop-img">
-          <div class="prop-img-ph">
-            <i class="fas fa-building"></i>
-            <span>Tour virtual disponible</span>
-          </div>
-          <span class="prop-badge">Venta</span>
-        </div>
-        <div class="prop-body">
-          <div class="prop-code">VE-PROP-001</div>
-          <div class="prop-name"><i class="fas fa-building" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Apartamento Zona 14</div>
-          <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.65rem;"></i> Zona 14, Ciudad de Guatemala</div>
-          <div class="prop-specs">
-            <span class="prop-spec"><i class="fas fa-bed"></i> 3 hab.</span>
-            <span class="prop-spec"><i class="fas fa-bath"></i> 2 baños</span>
-            <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 145 m²</span>
-          </div>
-          <div class="prop-price">$185,000</div>
-        </div>
-        <div class="prop-foot">
-          <a href="real-estate.html" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
-          <i class="far fa-heart prop-heart" onclick="toggleFav(this,'VE-PROP-001')"></i>
-        </div>
-      </div>
-
-      <div class="prop-card reveal" style="transition-delay:.1s">
-        <div class="prop-img">
-          <div class="prop-img-ph">
-            <i class="fas fa-home"></i>
-            <span>Tour virtual disponible</span>
-          </div>
-          <span class="prop-badge">Venta</span>
-        </div>
-        <div class="prop-body">
-          <div class="prop-code">VE-PROP-002</div>
-          <div class="prop-name"><i class="fas fa-home" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Casa Colonia Oakland</div>
-          <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.65rem;"></i> Villa Nueva, Guatemala</div>
-          <div class="prop-specs">
-            <span class="prop-spec"><i class="fas fa-bed"></i> 4 hab.</span>
-            <span class="prop-spec"><i class="fas fa-bath"></i> 3 baños</span>
-            <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 290 m²</span>
-          </div>
-          <div class="prop-price">$320,000</div>
-        </div>
-        <div class="prop-foot">
-          <a href="real-estate.html" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
-          <i class="far fa-heart prop-heart" onclick="toggleFav(this,'VE-PROP-002')"></i>
-        </div>
-      </div>
-
-      <div class="prop-card reveal" style="transition-delay:.2s">
-        <div class="prop-img">
-          <div class="prop-img-ph">
-            <i class="fas fa-store"></i>
-            <span>Tour virtual disponible</span>
-          </div>
-          <span class="prop-badge renta">Renta</span>
-        </div>
-        <div class="prop-body">
-          <div class="prop-code">VE-PROP-003</div>
-          <div class="prop-name"><i class="fas fa-briefcase" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>Oficina Pradera Torre 4</div>
-          <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.65rem;"></i> Zona 10, Ciudad de Guatemala</div>
-          <div class="prop-specs">
-            <span class="prop-spec"><i class="fas fa-users"></i> 8 puestos</span>
-            <span class="prop-spec"><i class="fas fa-bath"></i> 1 baño</span>
-            <span class="prop-spec"><i class="fas fa-ruler-combined"></i> 95 m²</span>
-          </div>
-          <div class="prop-price">$1,200 / mes</div>
-        </div>
-        <div class="prop-foot">
-          <a href="real-estate.html" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>
-          <i class="far fa-heart prop-heart" onclick="toggleFav(this,'VE-PROP-003')"></i>
-        </div>
-      </div>
-    </div>
+    <div id="re-preview-grid" class="properties-grid"></div>
 
     <div style="text-align:center;margin-top:3rem;" class="reveal">
       <a href="real-estate.html" class="btn btn-gold">
@@ -1657,6 +1582,64 @@ const obs = new IntersectionObserver(es=>{
   es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
 },{threshold:.1});
 document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+/* ── REAL ESTATE PREVIEW ─────────────────────────────── */
+(async function loadPreview() {
+  const grid = document.getElementById('re-preview-grid');
+  if (!grid) return;
+  const TIPO_ICON = { Apartamento:'fa-building', Casa:'fa-home', Terreno:'fa-map', 'Local comercial':'fa-store', Oficina:'fa-briefcase', Penthouse:'fa-city', 'Bodega / Galera':'fa-warehouse', Finca:'fa-tractor' };
+  const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const skeleton = `<div class="prop-card" style="opacity:.35;pointer-events:none;">
+    <div class="prop-img" style="background:var(--bg3);"></div>
+    <div class="prop-body">
+      <div style="height:.45rem;background:var(--bg3);border-radius:2px;margin-bottom:.7rem;width:38%;"></div>
+      <div style="height:.8rem;background:var(--bg3);border-radius:2px;margin-bottom:.5rem;width:80%;"></div>
+      <div style="height:.65rem;background:var(--bg3);border-radius:2px;width:52%;"></div>
+    </div>
+  </div>`;
+  grid.innerHTML = skeleton + skeleton + skeleton;
+  try {
+    const API = (location.hostname==='localhost'||location.hostname==='127.0.0.1') ? 'http://localhost:3000' : '';
+    const props = await fetch(API + '/api/propiedades/public?limit=3&foto_first=true').then(r => r.json());
+    if (!Array.isArray(props) || !props.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem 1rem;color:var(--gray);font-size:.82rem;"><i class="fas fa-home" style="font-size:2rem;display:block;margin-bottom:.8rem;opacity:.25;"></i>No hay propiedades publicadas aún.<br/><a href="real-estate.html" style="color:var(--gold);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;margin-top:.8rem;display:inline-block;">Ver catálogo →</a></div>';
+      return;
+    }
+    grid.innerHTML = props.map((p, i) => {
+      const icon = TIPO_ICON[p.tipo] || 'fa-home';
+      const isRenta = Array.isArray(p.modalidad) ? p.modalidad.includes('renta') : String(p.modalidad||'').includes('renta');
+      const modLabel = Array.isArray(p.modalidad) ? p.modalidad.map(v=>v==='venta'?'Venta':'Renta').join(' · ') : (p.modalidad||'Venta');
+      const precio = p.precio ? '$' + Number(p.precio).toLocaleString() : 'Consultar';
+      const code = 'PROP-' + String(p.id).padStart(5,'0');
+      const imgHtml = p.foto_principal_url
+        ? `<img src="${p.foto_principal_url}" alt="${esc(p.nombre)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`
+        : `<div class="prop-img-ph"><i class="fas ${icon}"></i><span>${p.linktour3d?'Tour virtual disponible':'Sin fotos aún'}</span></div>`;
+      const delay = i > 0 ? `transition-delay:${i*.1}s;` : '';
+      const tourBadge = p.linktour3d ? `<span style="position:absolute;top:.9rem;right:1rem;background:rgba(13,26,20,.85);color:var(--gold);font-size:.55rem;letter-spacing:.1em;padding:.2rem .55rem;border-radius:2px;font-weight:700;"><i class="fas fa-vr-cardboard"></i> 3D</span>` : '';
+      const footLink = p.linktour3d
+        ? `<a href="${p.linktour3d}" target="_blank" class="prop-link" onclick="event.stopPropagation()">Ver tour 3D <i class="fas fa-arrow-right"></i></a>`
+        : `<a href="real-estate.html" class="prop-link" onclick="event.stopPropagation()">Ver en catálogo <i class="fas fa-arrow-right"></i></a>`;
+      return `<div class="prop-card reveal" style="cursor:pointer;${delay}" onclick="location.href='real-estate.html'">
+        <div class="prop-img">${imgHtml}<span class="prop-badge${isRenta?' renta':''}">${modLabel}</span>${tourBadge}</div>
+        <div class="prop-body">
+          <div class="prop-code">${code}</div>
+          <div class="prop-name"><i class="fas ${icon}" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>${esc(p.nombre)}</div>
+          <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.65rem;"></i> ${esc(p.zona||'Guatemala')}</div>
+          <div class="prop-specs">
+            ${p.m2          ? `<span class="prop-spec"><i class="fas fa-ruler-combined"></i> ${p.m2} m²</span>` : ''}
+            ${p.habitaciones ? `<span class="prop-spec"><i class="fas fa-bed"></i> ${p.habitaciones} hab.</span>` : ''}
+            ${p.banos       ? `<span class="prop-spec"><i class="fas fa-bath"></i> ${p.banos} baños</span>` : ''}
+          </div>
+          <div class="prop-price">${precio}</div>
+        </div>
+        <div class="prop-foot">${footLink}</div>
+      </div>`;
+    }).join('');
+    grid.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+  } catch(e) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem 1rem;color:var(--gray);font-size:.82rem;"><i class="fas fa-exclamation-triangle" style="display:block;font-size:1.5rem;margin-bottom:.8rem;opacity:.4;"></i>No se pudo cargar el listado. <a href="real-estate.html" style="color:var(--gold);">Ver propiedades →</a></div>';
+  }
+})();
 
 /* ── SERVICES CHECKBOXES ─────────────────────────────── */
 document.querySelectorAll('.svc-check').forEach(label=>{
