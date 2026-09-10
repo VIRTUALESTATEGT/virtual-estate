@@ -139,6 +139,21 @@ app.get('/api/propiedades/public/:id/fotos', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// GET /api/config/public — público, sin auth (leído por el landing)
+const PUBLIC_CONFIG_KEYS = new Set(['tour_demo_url']);
+app.get('/api/config/public', async (_req, res) => {
+  try {
+    const { data, error } = await supabasePublic
+      .from('config_sitio')
+      .select('clave, valor')
+      .in('clave', [...PUBLIC_CONFIG_KEYS]);
+    if (error) throw error;
+    const map = {};
+    (data || []).forEach(r => { map[r.clave] = r.valor; });
+    res.json(map);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 app.post('/api/leads/public', async (req, res) => {
   const ip = (req.headers['x-forwarded-for'] || req.ip || '').split(',')[0].trim();
   try {
@@ -340,23 +355,6 @@ app.post('/api/wa-contacts/import-vcard', authMiddleware, requireMinRole('asiste
 // ── Envío de cotizaciones por canal ──────────────────────────────────────────
 const envioCotizacionRouter = require('./src/routes/envio-cotizacion');
 app.use('/api', authMiddleware, requireMinRole('asistente'), envioCotizacionRouter);
-
-// ── Config sitio (claves públicas + edición admin) ────────────────────────────
-const PUBLIC_CONFIG_KEYS = new Set(['tour_demo_url']);
-
-app.get('/api/config/public', async (_req, res) => {
-  const supabase = require('./src/config/supabase');
-  try {
-    const { data, error } = await supabase
-      .from('config_sitio')
-      .select('clave, valor')
-      .in('clave', [...PUBLIC_CONFIG_KEYS]);
-    if (error) throw error;
-    const map = {};
-    (data || []).forEach(r => { map[r.clave] = r.valor; });
-    res.json(map);
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
 
 app.put('/api/admin/config/:clave', authMiddleware, requireMinRole('admin'), async (req, res) => {
   const supabase = require('./src/config/supabase');
