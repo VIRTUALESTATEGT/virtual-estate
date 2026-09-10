@@ -7,18 +7,7 @@
 ────────────────────────────────────────────────────────────────────────────── */
 window.PropDetail = (() => {
 
-  const ADIC_CATS = [
-    { tipo: 'servicios_infraestructura', label: 'Servicios e Infraestructura', icon: 'fa-bolt' },
-    { tipo: 'espacios_privados',         label: 'Espacios Privados',           icon: 'fa-door-open' },
-    { tipo: 'caracteristicas_fisicas',   label: 'Características Físicas',     icon: 'fa-ruler-combined' },
-    { tipo: 'equipamiento_confort',      label: 'Equipamiento y Confort',      icon: 'fa-couch' },
-    { tipo: 'seguridad_estacionamiento', label: 'Seguridad y Estacionamiento', icon: 'fa-shield-alt' },
-    { tipo: 'amenidades_compartidas',    label: 'Amenidades Compartidas',      icon: 'fa-swimming-pool' },
-    { tipo: 'servicios_edificio',        label: 'Servicios del Edificio',      icon: 'fa-building' },
-    { tipo: 'oficinas_locales',          label: 'Oficinas y Locales',          icon: 'fa-briefcase' },
-    { tipo: 'bodegas_industria',         label: 'Bodegas e Industria',         icon: 'fa-warehouse' },
-    { tipo: 'politicas_condiciones',     label: 'Políticas y Condiciones',     icon: 'fa-file-contract' },
-  ];
+  const ADIC_CATS = window.ADIC_CATS;
   const DISP_CLASS = {
     vacia: 'disp-vacia', habitada: 'disp-habitada',
     airbnb: 'disp-airbnb', en_construccion: 'disp-construccion',

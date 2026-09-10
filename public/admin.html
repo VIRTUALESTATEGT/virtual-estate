@@ -826,16 +826,6 @@
           <div style="display:flex;gap:.6rem;align-items:center;">
             <select id="adic-filtro-tipo" class="form-control" style="font-size:.72rem;height:2rem;padding:.2rem .6rem;min-width:180px;" onchange="filtrarAdicionales()">
               <option value="">Todas las categorías</option>
-              <option value="servicios_infraestructura">Servicios e Infraestructura</option>
-              <option value="espacios_privados">Espacios Privados</option>
-              <option value="caracteristicas_fisicas">Características Físicas</option>
-              <option value="equipamiento_confort">Equipamiento y Confort</option>
-              <option value="seguridad_estacionamiento">Seguridad y Estacionamiento</option>
-              <option value="amenidades_compartidas">Amenidades Compartidas</option>
-              <option value="servicios_edificio">Servicios del Edificio</option>
-              <option value="oficinas_locales">Oficinas y Locales</option>
-              <option value="bodegas_industria">Bodegas e Industria</option>
-              <option value="politicas_condiciones">Políticas y Condiciones</option>
             </select>
             <button class="topbar-btn btn-primary" onclick="abrirAgregarAdic()"><i class="fas fa-plus"></i> Agregar</button>
           </div>
@@ -2214,6 +2204,7 @@
   </div>
 </div>
 
+<script src="js/adicionales-cats.js"></script>
 <script>
   /* ── UTILS ──────────────────────────────────────────────── */
   function formatearTelefono(numero) {
@@ -2969,30 +2960,8 @@
     } catch(e) { showToast('Error al guardar: ' + e.message); }
   }
   /* ── ADICIONALES dinámicos en el form de propiedad ──────── */
-  const _ADIC_TIPO_ORDER = [
-    'servicios_infraestructura',
-    'espacios_privados',
-    'caracteristicas_fisicas',
-    'equipamiento_confort',
-    'seguridad_estacionamiento',
-    'amenidades_compartidas',
-    'servicios_edificio',
-    'oficinas_locales',
-    'bodegas_industria',
-    'politicas_condiciones',
-  ];
-  const _ADIC_TIPO_LABEL_FORM = {
-    servicios_infraestructura:  'Servicios e infraestructura',
-    espacios_privados:          'Espacios privados',
-    caracteristicas_fisicas:    'Características físicas',
-    equipamiento_confort:       'Equipamiento y confort',
-    seguridad_estacionamiento:  'Seguridad y estacionamiento',
-    amenidades_compartidas:     'Amenidades compartidas',
-    servicios_edificio:         'Servicios del edificio',
-    oficinas_locales:           'Oficinas y locales',
-    bodegas_industria:          'Bodegas e industria',
-    politicas_condiciones:      'Políticas y condiciones',
-  };
+  const _ADIC_TIPO_ORDER      = window.ADIC_CATS.map(c => c.tipo);
+  const _ADIC_TIPO_LABEL_FORM = Object.fromEntries(window.ADIC_CATS.map(c => [c.tipo, c.label]));
 
   async function cargarAdicionalesCRM(isEdit, adicSet = new Set()) {
     const container = document.getElementById('adic-form-container');
@@ -5064,18 +5033,7 @@
   /* ── ADICIONALES CATÁLOGO ─────────────────────────────────────────── */
   let _adicCache = [];
 
-  const ADIC_TIPO_LABEL = {
-    servicios_infraestructura:  'Infraestructura',
-    espacios_privados:          'Esp. Privados',
-    caracteristicas_fisicas:    'Características',
-    equipamiento_confort:       'Equipamiento',
-    seguridad_estacionamiento:  'Seguridad',
-    amenidades_compartidas:     'Amenidades',
-    servicios_edificio:         'Edificio',
-    oficinas_locales:           'Oficinas',
-    bodegas_industria:          'Bodegas',
-    politicas_condiciones:      'Políticas',
-  };
+  const ADIC_TIPO_LABEL = Object.fromEntries(window.ADIC_CATS.map(c => [c.tipo, c.labelCorto]));
 
   async function loadAdicionales() {
     const tbody = document.getElementById('adicionales-tbody');
@@ -5498,6 +5456,15 @@
     _citaDetalleId = id;
     await citaAprobar();
   }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const cats = window.ADIC_CATS;
+    const optHtml = cats.map(c => `<option value="${c.tipo}">${c.label}</option>`).join('');
+    const filtro = document.getElementById('adic-filtro-tipo');
+    if (filtro) filtro.insertAdjacentHTML('beforeend', optHtml);
+    const tipoSel = document.getElementById('adic-tipo');
+    if (tipoSel) tipoSel.innerHTML = optHtml;
+  });
 </script>
 <!-- Modal: detalle cotización -->
 <div id="cot-detalle-overlay" onclick="if(event.target===this)this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9000;align-items:center;justify-content:center;padding:1rem;">
@@ -5517,18 +5484,7 @@
     </div>
     <div class="form-group">
       <label class="form-label">Categoría *</label>
-      <select id="adic-tipo" class="form-control">
-        <option value="servicios_infraestructura">Servicios e Infraestructura</option>
-        <option value="espacios_privados">Espacios Privados</option>
-        <option value="caracteristicas_fisicas">Características Físicas</option>
-        <option value="equipamiento_confort">Equipamiento y Confort</option>
-        <option value="seguridad_estacionamiento">Seguridad y Estacionamiento</option>
-        <option value="amenidades_compartidas">Amenidades Compartidas</option>
-        <option value="servicios_edificio">Servicios del Edificio</option>
-        <option value="oficinas_locales">Oficinas y Locales</option>
-        <option value="bodegas_industria">Bodegas e Industria</option>
-        <option value="politicas_condiciones">Políticas y Condiciones</option>
-      </select>
+      <select id="adic-tipo" class="form-control"></select>
     </div>
     <div class="form-group">
       <label class="form-label">Orden</label>
