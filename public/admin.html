@@ -826,10 +826,16 @@
           <div style="display:flex;gap:.6rem;align-items:center;">
             <select id="adic-filtro-tipo" class="form-control" style="font-size:.72rem;height:2rem;padding:.2rem .6rem;min-width:180px;" onchange="filtrarAdicionales()">
               <option value="">Todas las categorías</option>
-              <option value="servicios_basicos">Servicios Básicos</option>
-              <option value="espacios_ambientes">Espacios y Ambientes</option>
-              <option value="adicionales">Adicionales y Equip.</option>
-              <option value="amenidades">Amenidades</option>
+              <option value="servicios_infraestructura">Servicios e Infraestructura</option>
+              <option value="espacios_privados">Espacios Privados</option>
+              <option value="caracteristicas_fisicas">Características Físicas</option>
+              <option value="equipamiento_confort">Equipamiento y Confort</option>
+              <option value="seguridad_estacionamiento">Seguridad y Estacionamiento</option>
+              <option value="amenidades_compartidas">Amenidades Compartidas</option>
+              <option value="servicios_edificio">Servicios del Edificio</option>
+              <option value="oficinas_locales">Oficinas y Locales</option>
+              <option value="bodegas_industria">Bodegas e Industria</option>
+              <option value="politicas_condiciones">Políticas y Condiciones</option>
             </select>
             <button class="topbar-btn btn-primary" onclick="abrirAgregarAdic()"><i class="fas fa-plus"></i> Agregar</button>
           </div>
@@ -2963,12 +2969,29 @@
     } catch(e) { showToast('Error al guardar: ' + e.message); }
   }
   /* ── ADICIONALES dinámicos en el form de propiedad ──────── */
-  const _ADIC_TIPO_ORDER = ['servicios_basicos','espacios_ambientes','adicionales','amenidades'];
+  const _ADIC_TIPO_ORDER = [
+    'servicios_infraestructura',
+    'espacios_privados',
+    'caracteristicas_fisicas',
+    'equipamiento_confort',
+    'seguridad_estacionamiento',
+    'amenidades_compartidas',
+    'servicios_edificio',
+    'oficinas_locales',
+    'bodegas_industria',
+    'politicas_condiciones',
+  ];
   const _ADIC_TIPO_LABEL_FORM = {
-    servicios_basicos:  'Servicios básicos',
-    espacios_ambientes: 'Espacios y ambientes',
-    adicionales:        'Adicionales y equipamiento',
-    amenidades:         'Amenidades comunitarias',
+    servicios_infraestructura:  'Servicios e infraestructura',
+    espacios_privados:          'Espacios privados',
+    caracteristicas_fisicas:    'Características físicas',
+    equipamiento_confort:       'Equipamiento y confort',
+    seguridad_estacionamiento:  'Seguridad y estacionamiento',
+    amenidades_compartidas:     'Amenidades compartidas',
+    servicios_edificio:         'Servicios del edificio',
+    oficinas_locales:           'Oficinas y locales',
+    bodegas_industria:          'Bodegas e industria',
+    politicas_condiciones:      'Políticas y condiciones',
   };
 
   async function cargarAdicionalesCRM(isEdit, adicSet = new Set()) {
@@ -5042,10 +5065,16 @@
   let _adicCache = [];
 
   const ADIC_TIPO_LABEL = {
-    servicios_basicos:  'Serv. Básicos',
-    espacios_ambientes: 'Espacios',
-    adicionales:        'Adicionales',
-    amenidades:         'Amenidades',
+    servicios_infraestructura:  'Infraestructura',
+    espacios_privados:          'Esp. Privados',
+    caracteristicas_fisicas:    'Características',
+    equipamiento_confort:       'Equipamiento',
+    seguridad_estacionamiento:  'Seguridad',
+    amenidades_compartidas:     'Amenidades',
+    servicios_edificio:         'Edificio',
+    oficinas_locales:           'Oficinas',
+    bodegas_industria:          'Bodegas',
+    politicas_condiciones:      'Políticas',
   };
 
   async function loadAdicionales() {
@@ -5116,7 +5145,7 @@
     _adicEditId = null;
     document.getElementById('adic-modal-title').textContent = 'Nuevo Adicional';
     document.getElementById('adic-nombre').value = '';
-    document.getElementById('adic-tipo').value = 'servicios_basicos';
+    document.getElementById('adic-tipo').value = 'servicios_infraestructura';
     document.getElementById('adic-orden').value = '0';
     document.getElementById('adicModal').classList.add('open');
   }
@@ -5489,10 +5518,16 @@
     <div class="form-group">
       <label class="form-label">Categoría *</label>
       <select id="adic-tipo" class="form-control">
-        <option value="servicios_basicos">Servicios Básicos</option>
-        <option value="espacios_ambientes">Espacios y Ambientes</option>
-        <option value="adicionales">Adicionales y Equipamiento</option>
-        <option value="amenidades">Amenidades Comunitarias</option>
+        <option value="servicios_infraestructura">Servicios e Infraestructura</option>
+        <option value="espacios_privados">Espacios Privados</option>
+        <option value="caracteristicas_fisicas">Características Físicas</option>
+        <option value="equipamiento_confort">Equipamiento y Confort</option>
+        <option value="seguridad_estacionamiento">Seguridad y Estacionamiento</option>
+        <option value="amenidades_compartidas">Amenidades Compartidas</option>
+        <option value="servicios_edificio">Servicios del Edificio</option>
+        <option value="oficinas_locales">Oficinas y Locales</option>
+        <option value="bodegas_industria">Bodegas e Industria</option>
+        <option value="politicas_condiciones">Políticas y Condiciones</option>
       </select>
     </div>
     <div class="form-group">

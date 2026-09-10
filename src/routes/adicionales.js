@@ -2,7 +2,18 @@ const express = require('express');
 const router  = express.Router();
 const supabase = require('../config/supabase');
 
-const TIPOS_VALIDOS = new Set(['servicios_basicos', 'espacios_ambientes', 'adicionales', 'amenidades']);
+const TIPOS_VALIDOS = new Set([
+  'servicios_infraestructura',
+  'espacios_privados',
+  'caracteristicas_fisicas',
+  'equipamiento_confort',
+  'seguridad_estacionamiento',
+  'amenidades_compartidas',
+  'servicios_edificio',
+  'oficinas_locales',
+  'bodegas_industria',
+  'politicas_condiciones',
+]);
 
 // GET / — todos (activos e inactivos) para la UI de gestión del CRM, con conteo de uso
 router.get('/', async (req, res) => {
