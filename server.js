@@ -341,6 +341,37 @@ app.post('/api/wa-contacts/import-vcard', authMiddleware, requireMinRole('asiste
 const envioCotizacionRouter = require('./src/routes/envio-cotizacion');
 app.use('/api', authMiddleware, requireMinRole('asistente'), envioCotizacionRouter);
 
+// ── Config sitio (claves públicas + edición admin) ────────────────────────────
+const PUBLIC_CONFIG_KEYS = new Set(['tour_demo_url']);
+
+app.get('/api/config/public', async (_req, res) => {
+  const supabase = require('./src/config/supabase');
+  try {
+    const { data, error } = await supabase
+      .from('config_sitio')
+      .select('clave, valor')
+      .in('clave', [...PUBLIC_CONFIG_KEYS]);
+    if (error) throw error;
+    const map = {};
+    (data || []).forEach(r => { map[r.clave] = r.valor; });
+    res.json(map);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put('/api/admin/config/:clave', authMiddleware, requireMinRole('admin'), async (req, res) => {
+  const supabase = require('./src/config/supabase');
+  const { clave } = req.params;
+  const { valor } = req.body;
+  if (typeof valor !== 'string') return res.status(400).json({ error: 'valor requerido' });
+  try {
+    const { error } = await supabase
+      .from('config_sitio')
+      .upsert({ clave, valor }, { onConflict: 'clave' });
+    if (error) throw error;
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // Notificaciones admin (inline — simple read/list endpoint)
 app.get('/api/notificaciones', authMiddleware, requireMinRole('asistente'), async (req, res) => {
   const supabase = require('./src/config/supabase');

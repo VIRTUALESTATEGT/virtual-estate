@@ -1234,6 +1234,22 @@
           </button>
         </div>
 
+        <!-- Recorrido Virtual -->
+        <div style="grid-column:1/-1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;">
+          <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem;"><i class="fas fa-vr-cardboard"></i> Recorrido Virtual (Demo)</div>
+          <p style="font-size:.75rem;color:var(--gray);line-height:1.6;margin-bottom:1.1rem;font-weight:400;">
+            URL del tour 3D que se muestra en la sección "Recorrido Virtual" de la página de inicio. Se carga en un iframe embebido. Si se deja vacío, la sección se oculta automáticamente.
+          </p>
+          <div class="form-group">
+            <label class="form-label">URL del tour demo (Matterport u otro)</label>
+            <input type="url" class="form-control" id="cfg-tour-url" placeholder="https://my.matterport.com/show/?m=..." style="font-family:monospace;font-size:.73rem;"/>
+            <div style="font-size:.65rem;color:var(--gray);margin-top:.3rem;">Pegar la URL completa del embed. Se recomienda incluir parámetros <code>brand=0&amp;help=0&amp;title=0</code>.</div>
+          </div>
+          <button onclick="guardarTourUrl()" style="padding:.65rem 1.4rem;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:.2s;" onmouseover="this.style.background='var(--gold-lt)'" onmouseout="this.style.background='var(--gold)'">
+            <i class="fas fa-save" style="margin-right:.4rem;"></i> Guardar URL
+          </button>
+        </div>
+
         <!-- Integraciones -->
         <div style="grid-column:1/-1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;">
           <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem;"><i class="fas fa-plug"></i> Integraciones</div>
@@ -2742,6 +2758,28 @@
       if(el){ el.value = saved; actualizarEjemploComision(); }
     }
   })();
+
+  /* ── RECORRIDO VIRTUAL (config_sitio) ───────────────── */
+  (async function cargarTourUrl(){
+    try {
+      const r = await fetch(API_URL + '/api/config/public');
+      if (!r.ok) return;
+      const cfg = await r.json();
+      const el = document.getElementById('cfg-tour-url');
+      if (el && cfg.tour_demo_url) el.value = cfg.tour_demo_url;
+    } catch {}
+  })();
+
+  async function guardarTourUrl() {
+    const val = (document.getElementById('cfg-tour-url')?.value || '').trim();
+    try {
+      await apiFetch('/api/admin/config/tour_demo_url', {
+        method: 'PUT',
+        body: JSON.stringify({ valor: val }),
+      });
+      showToast('✅ URL del tour guardada');
+    } catch (e) { showToast('❌ ' + e.message); }
+  }
 
   /* ── SEGURIDAD DE LA CUENTA ─────────────────────────── */
   async function doCambiarPasswordAdmin() {
