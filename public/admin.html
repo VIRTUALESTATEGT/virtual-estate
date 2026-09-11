@@ -563,42 +563,8 @@
           <div class="panel-head">
             <span class="table-head-title">Actividad Reciente</span>
           </div>
-          <div style="padding:.8rem 1.2rem;">
-            <div class="activity-item">
-              <div class="act-dot"></div>
-              <div>
-                <div class="act-text">Nuevo lead desde formulario web — <strong>Ana García</strong> <span style="font-size:.6rem;color:var(--gold);border:1px solid var(--border);padding:.05rem .3rem;border-radius:3px;margin-left:.3rem;">IA</span></div>
-                <div class="act-time">Hoy, 10:32 AM</div>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="act-dot" style="background:#6EAAFF;"></div>
-              <div>
-                <div class="act-text">Cotización enviada a <strong>Carlos Méndez</strong> — $850</div>
-                <div class="act-time">Ayer, 3:15 PM</div>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="act-dot" style="background:#5AE08A;"></div>
-              <div>
-                <div class="act-text">Proyecto <strong>PRY-26-0004</strong> marcado como entregado</div>
-                <div class="act-time">19 Abr, 6:00 PM</div>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="act-dot" style="background:var(--gold);"></div>
-              <div>
-                <div class="act-text">Propiedad <strong>PRO-26-0003</strong> agregada al portafolio</div>
-                <div class="act-time">18 Abr, 11:00 AM</div>
-              </div>
-            </div>
-            <div class="activity-item">
-              <div class="act-dot" style="background:#C8C05A;"></div>
-              <div>
-                <div class="act-text">Visita de campo agendada — <strong>Sofía Barrios</strong>, 22 Abr 10 AM</div>
-                <div class="act-time">17 Abr, 9:00 AM</div>
-              </div>
-            </div>
+          <div id="dash-activity" style="padding:.8rem 1.2rem;">
+            <div style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i></div>
           </div>
         </div>
       </div>
@@ -1110,9 +1076,7 @@
             <label class="form-label">Sitio web</label>
             <input type="text" class="form-control" value="https://virtualestategt.com"/>
           </div>
-          <button onclick="showToast('✅ Datos de empresa guardados')" style="width:100%;padding:.65rem;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:.2s;" onmouseover="this.style.background='var(--gold-lt)'" onmouseout="this.style.background='var(--gold)'">
-            <i class="fas fa-save" style="margin-right:.4rem;"></i> Guardar datos empresa
-          </button>
+          <p style="font-size:.65rem;color:var(--gray);margin-top:.5rem;line-height:1.5;"><i class="fas fa-info-circle" style="color:var(--gold);margin-right:.3rem;"></i>Próximamente vas a poder editar estos datos desde acá.</p>
         </div>
 
         <!-- Usuarios y acceso -->
@@ -1130,9 +1094,7 @@
               <span style="font-size:.6rem;background:rgba(193,146,89,.15);color:var(--gold);padding:.15rem .55rem;border-radius:10px;font-weight:700;">Activo</span>
             </div>
           </div>
-          <button onclick="showToast('Función disponible próximamente')" style="width:100%;padding:.65rem;background:transparent;border:1.5px dashed var(--border);color:var(--gray);border-radius:var(--r);font-size:.7rem;cursor:pointer;font-family:'Montserrat',sans-serif;transition:.2s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--gray)'">
-            <i class="fas fa-user-plus" style="margin-right:.4rem;"></i> Agregar usuario
-          </button>
+          <p style="font-size:.65rem;color:var(--gray);margin-top:.5rem;line-height:1.5;"><i class="fas fa-info-circle" style="color:var(--gold);margin-right:.3rem;"></i>Próximamente vas a poder agregar usuarios desde acá.</p>
         </div>
 
         <!-- Notificaciones -->
@@ -1160,9 +1122,7 @@
               <input type="checkbox" style="accent-color:var(--gold);width:16px;height:16px;"/>
             </label>
           </div>
-          <button onclick="showToast('✅ Preferencias de notificación guardadas')" style="width:100%;margin-top:1.2rem;padding:.65rem;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:.2s;" onmouseover="this.style.background='var(--gold-lt)'" onmouseout="this.style.background='var(--gold)'">
-            <i class="fas fa-save" style="margin-right:.4rem;"></i> Guardar
-          </button>
+          <p style="font-size:.65rem;color:var(--gray);margin-top:.9rem;line-height:1.5;"><i class="fas fa-info-circle" style="color:var(--gold);margin-right:.3rem;"></i>Próximamente vas a poder configurar tus notificaciones desde acá.</p>
         </div>
 
         <!-- Comisiones -->
@@ -2462,6 +2422,56 @@
           }).join('');
         }
       }
+      // Actividad Reciente — derivada de datos reales ya cargados
+      const actEl = document.getElementById('dash-activity');
+      if (actEl) {
+        const _fmtDate = (iso) => {
+          if (!iso) return '—';
+          const d = new Date(iso), now = new Date();
+          const diff = (now - d) / 864e5;
+          const t = d.toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
+          if (diff < 1)  return 'Hoy, '  + t;
+          if (diff < 2)  return 'Ayer, ' + t;
+          return d.toLocaleDateString('es-GT', { day: '2-digit', month: 'short', year: undefined });
+        };
+        const evts = [];
+        leads.forEach(l => {
+          const n = capitalizarNombre([l.nombre, l.apellido].filter(Boolean).join(' ')) || '—';
+          evts.push({ d: l.created_at, c: 'var(--gold)',
+            t: `Nuevo lead — <strong>${n}</strong>${l.servicio ? ' · ' + l.servicio : ''}` });
+        });
+        cotizaciones.forEach(c => {
+          const cli = c.nombre_cliente || c.cliente_nombre || c.cliente || '—';
+          const m = c.monto ? ` — $${Number(c.monto).toLocaleString()}` : '';
+          const col = ['confirmada','aprobada'].includes(c.estado) ? '#5AE08A'
+                    : c.estado === 'enviada' ? '#6EAAFF' : 'var(--gray)';
+          evts.push({ d: c.created_at, c: col,
+            t: `Cotización <em>${c.estado || ''}</em> — <strong>${cli}</strong>${m}` });
+        });
+        proyectos.forEach(p => {
+          evts.push({ d: p.created_at, c: '#5AE08A',
+            t: `Proyecto <strong>${p.nombre || p.id}</strong> — ${p.estado || 'creado'}` });
+        });
+        propiedades.forEach(p => {
+          evts.push({ d: p.created_at, c: 'var(--gold)',
+            t: `Propiedad <strong>${p.codigo || p.nombre || p.id}</strong> agregada al portafolio` });
+        });
+        (citasPend || []).forEach(c => {
+          const n = c.nombre_cliente || c.nombre || '—';
+          evts.push({ d: c.created_at || c.fecha_hora, c: '#C8C05A',
+            t: `Cita agendada — <strong>${n}</strong>` });
+        });
+        evts.sort((a, b) => new Date(b.d || 0) - new Date(a.d || 0));
+        const top5 = evts.slice(0, 5);
+        actEl.innerHTML = top5.length
+          ? top5.map(e =>
+              `<div class="activity-item">
+                <div class="act-dot" style="background:${e.c};"></div>
+                <div><div class="act-text">${e.t}</div><div class="act-time">${_fmtDate(e.d)}</div></div>
+              </div>`).join('')
+          : '<div style="text-align:center;color:var(--gray);padding:1.5rem;font-size:.78rem;">Sin actividad reciente</div>';
+      }
+
     } catch (e) { console.warn('Dashboard KPIs:', e.message); }
   }
 
