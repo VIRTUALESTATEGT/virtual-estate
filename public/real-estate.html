@@ -272,15 +272,64 @@
   .footer-link:hover{color:var(--white);}
   .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;font-size:.68rem;color:var(--gray);}
 
+  /* ── FILTER DRAWER (móvil) ──────────────────────────── */
+  .filter-fab{
+    display:none;position:fixed;bottom:5rem;left:1.2rem;z-index:900;
+    background:var(--gold);color:var(--bg);border:none;border-radius:24px;
+    padding:.65rem 1.1rem;font-size:.72rem;font-weight:700;letter-spacing:.1em;
+    text-transform:uppercase;font-family:'Montserrat',sans-serif;
+    box-shadow:0 4px 18px rgba(0,0,0,.45);
+    align-items:center;gap:.45rem;min-height:44px;cursor:pointer;
+  }
+  .filter-fab-badge{
+    background:var(--bg);color:var(--gold);border-radius:50%;
+    width:18px;height:18px;font-size:.6rem;font-weight:700;
+    display:inline-flex;align-items:center;justify-content:center;
+    margin-left:.2rem;
+  }
+  .filter-drawer-overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1100;
+  }
+  .filter-drawer-overlay.open{display:block;}
+  .filter-drawer{
+    position:fixed;left:0;bottom:0;top:0;width:min(320px,88vw);z-index:1101;
+    background:var(--bg2);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;
+    transform:translateX(-100%);transition:transform .32s cubic-bezier(.25,.46,.45,.94);
+    overflow:hidden;
+  }
+  .filter-drawer.open{transform:translateX(0);}
+  .filter-drawer-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:1.1rem 1.4rem;border-bottom:1px solid var(--border);flex-shrink:0;
+  }
+  .filter-drawer-head span{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+  .filter-drawer-close{
+    background:none;border:none;color:var(--gray);font-size:1.1rem;cursor:pointer;
+    width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+    border-radius:50%;transition:color .2s;
+  }
+  .filter-drawer-close:hover{color:var(--white);}
+  .filter-drawer-body{flex:1;overflow-y:auto;padding:1.2rem 1.4rem;}
+  .filter-drawer-foot{
+    padding:.9rem 1.4rem;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:.5rem;flex-shrink:0;
+  }
+
   /* ── RESPONSIVE ──────────────────────── */
   @media(max-width:900px){
     .re-layout{grid-template-columns:1fr;}
-    .filters-sidebar{position:static;}
+    .filters-sidebar{display:none;}       /* reemplazado por drawer */
+    .filter-fab{display:inline-flex;}
     .properties-grid.list-view .prop-card{grid-template-columns:1fr;}
     .properties-grid.list-view .prop-img{min-height:180px;}
     .properties-grid.list-view .prop-foot{border-left:none;border-top:1px solid var(--border);flex-direction:row;}
     .social-float{display:none;}
     .footer-grid{grid-template-columns:1fr 1fr;}
+    /* modal detail */
+    .detail-grid{grid-template-columns:1fr;}
+    .detail-gallery{height:240px;}
+    .detail-body{padding:1.2rem;}
+    .detail-close{width:40px;height:40px;}
   }
   @media(max-width:600px){
     .nav-links{display:none;}
@@ -288,6 +337,16 @@
     .properties-grid{grid-template-columns:1fr;}
     .price-row{grid-template-columns:1fr;}
     .footer-grid{grid-template-columns:1fr;}
+    /* pequeños textos → mínimo legible */
+    .prop-badge{font-size:.7rem;}
+    .prop-tour-badge{font-size:.7rem;}
+    .prop-code{font-size:.7rem;}
+    .disp-badge{font-size:.65rem;}
+    /* botones tocables ≥44px */
+    .filter-btn,.filter-reset,.btn-mas{min-height:44px;}
+    .carousel-btn{width:40px;height:40px;opacity:1;}
+    .detail-gallery-btn{width:48px;height:48px;}
+    .detail-close{width:44px;height:44px;}
   }
   </style>
   <script src="js/adicionales-cats.js"></script>
@@ -311,6 +370,32 @@
   <div class="fls-actions">
     <a href="portal.html" class="fls-btn-portal">Iniciar sesión en el portal</a>
     <button class="fls-btn-cancel" onclick="closeFavLoginSheet()">Ahora no</button>
+  </div>
+</div>
+
+<!-- ── FILTER FAB (móvil) ─────────────────────────────── -->
+<button class="filter-fab" id="filterFab" onclick="openFilterDrawer()">
+  <i class="fas fa-sliders-h"></i> Filtrar
+  <span class="filter-fab-badge" id="filterFabBadge" style="display:none;"></span>
+</button>
+
+<!-- ── FILTER DRAWER (móvil) ─────────────────────────── -->
+<div class="filter-drawer-overlay" id="filterDrawerOverlay" onclick="closeFilterDrawer()"></div>
+<div class="filter-drawer" id="filterDrawer">
+  <div class="filter-drawer-head">
+    <span>Filtros de búsqueda</span>
+    <button class="filter-drawer-close" onclick="closeFilterDrawer()"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="filter-drawer-body" id="filterDrawerBody">
+    <!-- contenido copiado del sidebar, comparte los mismos IDs de inputs -->
+  </div>
+  <div class="filter-drawer-foot">
+    <button class="filter-btn" onclick="aplicarFiltros();closeFilterDrawer();">
+      <i class="fas fa-search"></i> Aplicar filtros
+    </button>
+    <button class="filter-reset" onclick="resetFiltros();closeFilterDrawer();">
+      <i class="fas fa-redo"></i> Limpiar filtros
+    </button>
   </div>
 </div>
 
@@ -983,6 +1068,68 @@ function setReCurrency(cur){
   document.getElementById('re-btn-gtq').style.color      = cur==='GTQ' ? 'var(--bg)'   : 'var(--gray)';
   applyCurrency();
 }
+
+/* ── FILTER DRAWER ──────────────────────────────────── */
+function openFilterDrawer() {
+  // Mueve el contenido del sidebar al drawer si no está ya ahí
+  const sidebar = document.querySelector('.filters-sidebar');
+  const drawerBody = document.getElementById('filterDrawerBody');
+  if (sidebar && drawerBody && !drawerBody._populated) {
+    drawerBody.innerHTML = sidebar.innerHTML;
+    drawerBody._populated = true;
+    // Sincroniza cambios en drawer → sidebar (checkboxes/inputs comparten mismos IDs)
+    drawerBody.addEventListener('change', _syncDrawerToSidebar);
+    drawerBody.addEventListener('input',  _syncDrawerToSidebar);
+  }
+  document.getElementById('filterDrawer').classList.add('open');
+  document.getElementById('filterDrawerOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeFilterDrawer() {
+  document.getElementById('filterDrawer').classList.remove('open');
+  document.getElementById('filterDrawerOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function _syncDrawerToSidebar(e) {
+  // Refleja el cambio del drawer al elemento equivalente del sidebar (mismo name/value/id)
+  const src = e.target;
+  const sidebar = document.querySelector('.filters-sidebar');
+  if (!sidebar) return;
+  if (src.type === 'checkbox') {
+    const match = sidebar.querySelector(`input[type="checkbox"][class="${src.className}"][value="${src.value}"]`);
+    if (match) match.checked = src.checked;
+  } else if (src.id) {
+    const match = sidebar.getElementById ? null : sidebar.querySelector('#' + src.id);
+    if (match) match.value = src.value;
+  }
+  _updateFabBadge();
+}
+
+function _updateFabBadge() {
+  const sidebar = document.querySelector('.filters-sidebar');
+  if (!sidebar) return;
+  // Cuenta filtros no-default: checkboxes desmarcados + inputs con valor
+  const unchecked = [...sidebar.querySelectorAll('input[type="checkbox"]')].filter(c => !c.checked).length;
+  const filled    = [...sidebar.querySelectorAll('input[type="number"],input[type="text"]')].filter(i => i.value.trim()).length;
+  const adicCount = parseInt(document.getElementById('adic-sidebar-count')?.textContent || '0') || 0;
+  const total = unchecked + filled + adicCount;
+  const badge = document.getElementById('filterFabBadge');
+  if (badge) { badge.textContent = total; badge.style.display = total > 0 ? 'inline-flex' : 'none'; }
+}
+
+// Actualiza badge cuando se aplican filtros desde el sidebar (desktop)
+const _origAplicar = aplicarFiltros;
+aplicarFiltros = function() { _origAplicar(); _updateFabBadge(); };
+const _origReset = resetFiltros;
+resetFiltros = function() {
+  _origReset();
+  // Resetea el drawer también
+  const drawerBody = document.getElementById('filterDrawerBody');
+  if (drawerBody) { drawerBody.innerHTML = ''; drawerBody._populated = false; }
+  _updateFabBadge();
+};
 </script>
 </body>
 </html>
