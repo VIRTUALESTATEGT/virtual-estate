@@ -552,6 +552,14 @@
   .footer-link:hover{color:var(--white);}
   .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;font-size:.68rem;color:var(--gray);}
 
+  /* ─── RESPONSIVE-READY CLASSES (reemplazan inline grids) ─── */
+  .paquetes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;}
+  .servicios-ind-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;}
+  .agentes-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;}
+  .marcas-logos{display:flex;align-items:flex-end;justify-content:center;gap:5rem;flex-wrap:wrap;}
+  .marca-sep{width:1px;height:80px;background:var(--border);flex-shrink:0;margin-bottom:1.8rem;}
+  .marca-cap{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gray);font-weight:500;}
+
   /* ─── RESPONSIVE ──────────────────────────────────────── */
   @media(max-width:1024px){
     .divisions-strip{flex-direction:column;}
@@ -564,6 +572,7 @@
     .cotizador-wrap{grid-template-columns:1fr;}
   }
   @media(max-width:768px){
+    .nav-inner{display:flex;justify-content:space-between;align-items:center;}
     .nav-links{display:none;}
     .hamburger{display:flex;}
     .about-grid{grid-template-columns:1fr;}
@@ -577,11 +586,36 @@
     .chat-toggle{right:1.5rem;bottom:5.5rem;}
     .chat-panel{width:calc(100vw - 2rem);right:1rem;bottom:6.5rem;}
     .services-grid{grid-template-columns:1fr;}
+    .paquetes-grid{grid-template-columns:1fr;}
+    .servicios-ind-grid{grid-template-columns:1fr 1fr;}
+    .agentes-grid{grid-template-columns:1fr;gap:2rem;}
+    .marcas-logos{gap:2.5rem;}
+    .marca-sep{display:none;}
   }
   @media(max-width:480px){
     .valores-grid{grid-template-columns:1fr;}
     .steps-grid{grid-template-columns:1fr;}
     .about-stats{grid-template-columns:1fr 1fr;}
+    .servicios-ind-grid{grid-template-columns:1fr;}
+  }
+  @media(max-width:600px){
+    .label{font-size:.75rem;}
+    .stat-label{font-size:.75rem;}
+    .quote-attr{font-size:.75rem;}
+    .mv-label{font-size:.75rem;}
+    .div-subtitle{font-size:.75rem;}
+    .div-service{font-size:.78rem;}
+    .div-link{font-size:.75rem;}
+    .form-label{font-size:.75rem;}
+    .footer-col-title{font-size:.75rem;}
+    .footer-bottom{font-size:.75rem;}
+    .currency-toggle button{font-size:.75rem;}
+    .chip{font-size:.75rem;}
+    .btn{font-size:.78rem;}
+    .prop-badge,.prop-code{font-size:.75rem;}
+    .prop-link{font-size:.75rem;}
+    .prop-spec{font-size:.75rem;}
+    .marca-cap{font-size:.75rem;}
   }
   </style>
 </head>
@@ -987,7 +1021,7 @@
       <h2 style="font-size:clamp(1.8rem,3vw,2.6rem);text-transform:uppercase;letter-spacing:.06em;">Lo que incluye cada paquete</h2>
       <p style="font-size:.85rem;color:var(--gray);max-width:520px;margin:1rem auto 0;font-weight:400;">Selecciona el paquete que mejor se adapte a tu propiedad o combina servicios individuales a la medida.</p>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-bottom:0;" class="reveal">
+    <div class="paquetes-grid reveal">
       <!-- BÁSICO -->
       <div style="border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--bg);">
         <div style="background:var(--bg3);padding:1.6rem 1.8rem;border-bottom:1px solid var(--border);">
@@ -1054,7 +1088,7 @@
         ¿No necesitas un paquete completo? Elige exactamente lo que requiere tu proyecto.
       </p>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;" class="reveal">
+    <div class="servicios-ind-grid reveal">
 
       <div style="border:1px solid var(--border);border-radius:var(--r);padding:1.6rem;background:var(--bg2);transition:var(--tr);" onmouseover="this.style.borderColor='rgba(193,146,89,.4)'" onmouseout="this.style.borderColor='var(--border)'">
         <div style="font-size:1.3rem;color:var(--gold);margin-bottom:.9rem;"><i class="fas fa-cube"></i></div>
@@ -1410,7 +1444,7 @@
 <!-- ─── AGENTE / REFERIDOS ────────────────────────────── -->
 <section id="agentes" style="background:var(--bg3);padding:70px 0;border-top:1px solid var(--border);">
   <div class="container">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;" class="reveal">
+    <div class="agentes-grid reveal">
       <div>
         <span class="label">Programa de Agentes</span>
         <div class="divider"></div>
@@ -1487,29 +1521,29 @@
       <div class="divider center"></div>
       <p style="font-size:.82rem;color:var(--gray);font-weight:400;">Alianzas estratégicas que respaldan nuestros proyectos.</p>
     </div>
-    <div style="display:flex;align-items:flex-end;justify-content:center;gap:5rem;flex-wrap:wrap;" class="reveal">
+    <div class="marcas-logos reveal">
       <!-- CICONSA primero -->
       <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;opacity:.9;transition:.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.9'">
         <div style="height:130px;display:flex;align-items:center;justify-content:center;">
           <img src="assets/logo-ciconsa.png" alt="CICONSA" style="max-height:112px;width:auto;object-fit:contain;filter:brightness(0) saturate(100%) invert(55%) sepia(60%) saturate(300%) brightness(0.64);"/>
         </div>
-        <span style="font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gray);font-weight:500;">Inmobiliaria y Construcción</span>
+        <span class="marca-cap">Inmobiliaria y Construcción</span>
       </div>
-      <div style="width:1px;height:80px;background:var(--border);flex-shrink:0;margin-bottom:1.8rem;"></div>
+      <div class="marca-sep"></div>
       <!-- Virtual Estate en el centro -->
       <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;opacity:.85;transition:.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.85'">
         <div style="height:130px;display:flex;align-items:center;justify-content:center;">
           <img src="assets/logo-letras.png" alt="Virtual Estate" style="max-height:96px;width:auto;object-fit:contain;filter:brightness(.9);"/>
         </div>
-        <span style="font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gray);font-weight:500;">Virtual Estate GT</span>
+        <span class="marca-cap">Virtual Estate GT</span>
       </div>
-      <div style="width:1px;height:80px;background:var(--border);flex-shrink:0;margin-bottom:1.8rem;"></div>
+      <div class="marca-sep"></div>
       <!-- Paramétrica al final -->
       <div style="display:flex;flex-direction:column;align-items:center;gap:1rem;opacity:.75;transition:.3s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.75'">
         <div style="height:130px;display:flex;align-items:center;justify-content:center;">
           <img src="assets/logo-parametrica.png" alt="Paramétrica" style="max-height:128px;width:auto;object-fit:contain;"/>
         </div>
-        <span style="font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gray);font-weight:500;">Construction Management</span>
+        <span class="marca-cap">Construction Management</span>
       </div>
     </div>
   </div>
