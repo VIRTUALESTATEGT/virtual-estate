@@ -257,6 +257,7 @@
   .portal-mobile-menu-item i{color:var(--gold);width:18px;text-align:center;font-size:.85rem;flex-shrink:0;}
 
   /* ── FILTER DRAWER (Explorar propiedades) ─── */
+  #browse-filters-aside{position:sticky;top:72px;}
   .browse-filter-fab{display:none;align-items:center;gap:.5rem;padding:.55rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:20px;color:var(--white);font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;transition:.2s;-webkit-tap-highlight-color:transparent;}
   .browse-filter-fab:hover{border-color:var(--gold);color:var(--gold);}
   .browse-filter-backdrop{display:none;position:fixed;inset:0;z-index:1400;background:rgba(0,0,0,.5);}
@@ -358,8 +359,8 @@
   .prop-modal-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);width:min(680px,100%);max-height:88vh;overflow-y:auto;position:relative;}
   .prop-modal-img{height:240px;background:var(--bg3);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
   .prop-modal-body{padding:1.8rem 2rem;}
-  .prop-modal-close{position:absolute;top:.9rem;right:1rem;background:none;border:none;color:var(--gray);font-size:1.1rem;cursor:pointer;z-index:2;transition:.2s;}
-  .prop-modal-close:hover{color:var(--white);}
+  .prop-modal-close{position:absolute;top:.65rem;right:.65rem;background:rgba(13,26,20,.82);border:1px solid rgba(255,255,255,.15);color:var(--white);font-size:.88rem;cursor:pointer;z-index:10;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:.2s;-webkit-tap-highlight-color:transparent;}
+  .prop-modal-close:hover{background:rgba(193,146,89,.28);color:var(--gold);}
   /* gallery nav inside pmod-img */
   .pmod-gal-nav{position:absolute;bottom:.6rem;left:0;right:0;display:none;align-items:center;justify-content:center;gap:.5rem;z-index:2;}
   .pmod-gal-btn{background:rgba(13,26,20,.75);border:1px solid rgba(193,146,89,.3);color:var(--gold);width:30px;height:30px;min-width:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;cursor:pointer;transition:.2s;-webkit-tap-highlight-color:transparent;}
@@ -689,7 +690,7 @@
         <div class="explorar-grid">
 
           <!-- Sidebar filtros (estilo real-estate.html) -->
-          <aside id="browse-filters-aside" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;position:sticky;top:72px;">
+          <aside id="browse-filters-aside" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;">
             <div style="font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1rem;">Filtros</div>
 
             <div class="re-filter-section">
@@ -2085,6 +2086,7 @@ function openPropModal(id) {
   _fillPropModal(p, true);
   document.getElementById('prop-modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+  history.pushState({ve_modal:'prop'}, '');
 }
 
 function openBrowseDetail(code, propId) {
@@ -2093,12 +2095,18 @@ function openBrowseDetail(code, propId) {
   _fillPropModal(p, false);
   document.getElementById('prop-modal-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+  history.pushState({ve_modal:'prop'}, '');
 }
 
 function closePropModal() {
   document.getElementById('prop-modal-overlay').classList.remove('open');
   document.body.style.overflow = '';
 }
+
+window.addEventListener('popstate', function(){
+  if(document.getElementById('prop-modal-overlay').classList.contains('open'))
+    closePropModal();
+});
 
 /* ── MOBILE MENU ────────────────────────────────────────── */
 function openPortalMenu(){document.getElementById('portalMobileMenu').classList.add('open');document.body.style.overflow='hidden';}
