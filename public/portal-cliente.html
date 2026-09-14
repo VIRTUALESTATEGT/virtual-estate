@@ -231,8 +231,47 @@
   .prop-mini-fav i{font-size:.72rem;color:var(--gray);}
   .prop-mini-fav.active i{color:var(--gold);}
 
+  /* ── RESPONSIVE GRID CLASSES ──────────────── */
+  .explorar-grid{display:grid;grid-template-columns:240px 1fr;gap:1.4rem;align-items:start;}
+  .agt-bank-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
+  .dpi-upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+  .agt-active-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.6rem;}
+  .promo-code-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:.8rem;align-items:end;margin-bottom:1rem;}
+  .pagos-main-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:2rem;align-items:start;}
+  .card-exp-cvv-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+  .bank-info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+  .profile-codes-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem;}
+
+  /* ── HAMBURGER + MOBILE MENU ──────────────── */
+  .portal-hamburger{display:none;flex-direction:column;justify-content:center;gap:4px;cursor:pointer;background:none;border:none;padding:.35rem;-webkit-tap-highlight-color:transparent;}
+  .portal-hamburger span{display:block;width:22px;height:1.5px;background:var(--white);border-radius:1px;transition:.2s;}
+  .portal-mobile-menu{display:none;position:fixed;inset:0;z-index:2000;background:rgba(13,26,20,.97);backdrop-filter:blur(10px);flex-direction:column;overflow-y:auto;}
+  .portal-mobile-menu.open{display:flex;}
+  .portal-mobile-menu-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.4rem;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .portal-mobile-menu-header img{height:34px;}
+  .portal-mobile-close{background:none;border:none;color:var(--gray);font-size:1.4rem;cursor:pointer;padding:.35rem;-webkit-tap-highlight-color:transparent;}
+  .portal-mobile-close:hover{color:var(--white);}
+  .portal-mobile-menu nav{display:flex;flex-direction:column;padding:.5rem 0;}
+  .portal-mobile-menu-item{padding:1rem 1.6rem;display:flex;align-items:center;gap:.9rem;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--white);background:none;border:none;border-bottom:1px solid rgba(193,146,89,.08);cursor:pointer;font-family:'Montserrat',sans-serif;transition:.15s;text-align:left;width:100%;-webkit-tap-highlight-color:transparent;}
+  .portal-mobile-menu-item:hover{color:var(--gold);background:rgba(193,146,89,.04);}
+  .portal-mobile-menu-item i{color:var(--gold);width:18px;text-align:center;font-size:.85rem;flex-shrink:0;}
+
+  /* ── FILTER DRAWER (Explorar propiedades) ─── */
+  .browse-filter-fab{display:none;align-items:center;gap:.5rem;padding:.55rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:20px;color:var(--white);font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;transition:.2s;-webkit-tap-highlight-color:transparent;}
+  .browse-filter-fab:hover{border-color:var(--gold);color:var(--gold);}
+  .browse-filter-backdrop{display:none;position:fixed;inset:0;z-index:1400;background:rgba(0,0,0,.5);}
+  .browse-filter-backdrop.open{display:block;}
+
   @media(max-width:768px){
-    #spanel-explorar > div[style*="grid-template-columns:240px"]{grid-template-columns:1fr!important;}
+    .explorar-grid{display:block;}
+    #browse-filters-aside{
+      position:fixed;top:0;left:0;bottom:0;z-index:1500;
+      width:min(300px,88vw);background:var(--bg2);overflow-y:auto;
+      transform:translateX(-110%);transition:transform .3s cubic-bezier(.25,.46,.45,.94);
+      border-right:1px solid var(--border);box-shadow:4px 0 24px rgba(0,0,0,.4);
+    }
+    #browse-filters-aside.open{transform:translateX(0);}
+    .browse-filter-fab{display:flex;}
   }
   .prop-mini{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:var(--tr);}
   .prop-mini:hover{border-color:rgba(193,146,89,.35);}
@@ -404,28 +443,40 @@
   #dashboard-view{display:flex !important;}
   @media(max-width:768px){
     .kpi-row{grid-template-columns:1fr 1fr;}
+    .agent-stat-row{grid-template-columns:1fr 1fr;}
     .profile-grid{grid-template-columns:1fr;}
     .form-row{grid-template-columns:1fr;}
     .portal-nav-links{display:none;}
     .portal-nav-logo img{height:52px;}
-    /* Bottom tab bar — scroll horizontal con todos los items */
-    .portal-tabs{
-      position:fixed;bottom:0;left:0;right:0;z-index:900;
-      background:var(--bg2);border-top:1px solid var(--border);border-bottom:none;
-      margin-bottom:0;overflow-x:auto;-webkit-overflow-scrolling:touch;
-      scrollbar-width:none;padding-bottom:env(safe-area-inset-bottom,0px);
-    }
-    .portal-tabs::-webkit-scrollbar{display:none;}
-    .p-tab{
-      flex-direction:column;align-items:center;justify-content:center;
-      padding:.5rem .8rem .55rem;font-size:.6rem;letter-spacing:.06em;
-      gap:.22rem;min-width:64px;flex-shrink:0;
-      border-bottom:none;border-top:2px solid transparent;
-    }
-    .p-tab.active,.p-tab:hover{border-top-color:var(--gold);border-bottom-color:transparent;}
-    .p-tab i{font-size:.9rem;}
-    .portal-content{padding-bottom:72px;}
+    .portal-hamburger{display:flex;}
+    .portal-tabs{display:none;}
+    .portal-content{padding-bottom:1rem;}
     .table-wrap{overflow-x:auto;}
+    /* grids → single column */
+    .agt-bank-grid,.dpi-upload-grid,.agt-active-grid,.pagos-main-grid,.card-exp-cvv-grid,.bank-info-grid,.promo-code-grid,.profile-codes-grid{grid-template-columns:1fr;}
+    .pagos-main-grid{gap:1.2rem;}
+    /* tables → cards */
+    .cot-table thead{display:none;}
+    .cot-table tbody tr{display:block;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:.7rem;padding:.85rem 1rem;}
+    .cot-table tbody tr.cot-empty-row{display:table-row;background:transparent;border:none;margin:0;padding:0;}
+    .cot-table tbody tr.cot-empty-row td{display:table-cell;text-align:center;padding:2rem;border-bottom:none;}
+    .cot-table tbody td{display:flex;justify-content:space-between;align-items:flex-start;padding:.3rem 0;font-size:.82rem;border-bottom:1px solid rgba(255,255,255,.04);}
+    .cot-table tbody td:last-child{border-bottom:none;}
+    .cot-table tbody tr:hover td{background:transparent;}
+    .cot-table td::before{font-size:.54rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray);font-weight:600;flex-shrink:0;margin-right:.8rem;white-space:nowrap;padding-top:.12rem;}
+    .cot-svc td:nth-child(1)::before{content:"Código";}
+    .cot-svc td:nth-child(2)::before{content:"Concepto";}
+    .cot-svc td:nth-child(3)::before{content:"Monto";}
+    .cot-svc td:nth-child(4)::before{content:"Estado";}
+    .cot-svc td:nth-child(5)::before{content:"Anticipo";}
+    .cot-vinc td:nth-child(1)::before{content:"Código COT";}
+    .cot-vinc td:nth-child(2)::before{content:"Concepto";}
+    .cot-vinc td:nth-child(3)::before{content:"Fecha";}
+    .cot-vinc td:nth-child(4)::before{content:"Comisión";}
+    .cot-vinc td:nth-child(5)::before{content:"Estado";}
+    .cot-comis td:nth-child(1)::before{content:"Proyecto";}
+    .cot-comis td:nth-child(2)::before{content:"Monto";}
+    .cot-comis td:nth-child(3)::before{content:"Estado";}
   }
   @media(max-width:480px){
     .kpi-row{grid-template-columns:1fr 1fr;}
@@ -478,6 +529,9 @@
         <a href="#" onclick="setTab('perfil')">Mi Perfil</a>
         <a href="index.html">Sitio Web</a>
       </div>
+      <button class="portal-hamburger" onclick="openPortalMenu()" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
       <div class="portal-user">
         <div class="portal-avatar" id="portal-avatar">AN</div>
         <div>
@@ -629,10 +683,13 @@
 
       <!-- ── SUB-PANEL: EXPLORAR ── -->
       <div id="spanel-explorar">
-        <div style="display:grid;grid-template-columns:240px 1fr;gap:1.4rem;align-items:start;">
+        <!-- Filter FAB: visible only on mobile via CSS -->
+        <button class="browse-filter-fab" onclick="openBrowseFilters()" style="margin-bottom:.9rem;"><i class="fas fa-sliders-h"></i> Filtros</button>
+        <div class="browse-filter-backdrop" id="browseFilterBackdrop" onclick="closeBrowseFilters()"></div>
+        <div class="explorar-grid">
 
           <!-- Sidebar filtros (estilo real-estate.html) -->
-          <aside style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;position:sticky;top:72px;">
+          <aside id="browse-filters-aside" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;position:sticky;top:72px;">
             <div style="font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1rem;">Filtros</div>
 
             <div class="re-filter-section">
@@ -710,7 +767,7 @@
               <i class="fas fa-list-check"></i> Más opciones · Adicionales
             </button>
 
-            <button onclick="buscarPropiedades()" style="width:100%;margin-top:.9rem;padding:.65rem;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:.2s;" onmouseover="this.style.background='var(--gold-lt)'" onmouseout="this.style.background='var(--gold)'">
+            <button onclick="buscarPropiedades();closeBrowseFilters();" style="width:100%;margin-top:.9rem;padding:.65rem;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:.2s;" onmouseover="this.style.background='var(--gold-lt)'" onmouseout="this.style.background='var(--gold)'">
               <i class="fas fa-search"></i> Aplicar filtros
             </button>
             <button onclick="limpiarFiltros()" style="width:100%;margin-top:.4rem;padding:.5rem;background:transparent;color:var(--gray);border:1px solid var(--border);border-radius:var(--r);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;font-weight:500;cursor:pointer;transition:.2s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--gray)'">
@@ -738,8 +795,8 @@
               <p style="font-size:.82rem;color:var(--gray);">No se encontraron propiedades con esos filtros.</p>
             </div>
           </div>
-        </div>
-      </div>
+        </div><!-- /explorar-grid -->
+      </div><!-- /spanel-explorar -->
 
       <!-- ── SUB-PANEL: MIS FAVORITOS ── -->
       <div id="spanel-guardadas" style="display:none;">
@@ -776,7 +833,7 @@
           </button>
         </div>
         <div class="table-wrap">
-          <table>
+          <table class="cot-table cot-svc">
             <thead>
               <tr>
                 <th>Código</th>
@@ -787,7 +844,7 @@
               </tr>
             </thead>
             <tbody id="mis-cotizaciones-tbody">
-              <tr><td colspan="5" style="text-align:center;color:var(--gray);padding:2rem;">Inicia sesión para ver tus cotizaciones.</td></tr>
+              <tr class="cot-empty-row"><td colspan="5" style="text-align:center;color:var(--gray);padding:2rem;">Inicia sesión para ver tus cotizaciones.</td></tr>
             </tbody>
           </table>
         </div>
@@ -807,7 +864,7 @@
 
         <!-- Tabla de vinculadas -->
         <div class="table-wrap" style="margin-bottom:1.4rem;">
-          <table>
+          <table class="cot-table cot-vinc">
             <thead>
               <tr>
                 <th>Código COT</th>
@@ -948,7 +1005,7 @@
             <div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:var(--r);padding:1.4rem;margin-bottom:1.2rem;">
               <div style="font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.3rem;"><i class="fas fa-university" style="margin-right:.4rem;"></i>Datos bancarios para recibir comisiones <span style="color:#E08080;">*</span></div>
               <p style="font-size:.7rem;color:var(--gray);line-height:1.5;margin-bottom:1rem;font-weight:400;">Únicamente cuentas bancarias a tu nombre. <strong style="color:var(--white);">No se realizan depósitos en efectivo.</strong></p>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;">
+              <div class="agt-bank-grid">
                 <div class="form-group"><label class="form-label">Banco <span style="color:#E08080;">*</span></label>
                   <select class="form-control" id="req-bank-nombre">
                     <option value="">— Seleccionar —</option>
@@ -976,7 +1033,7 @@
             <div class="profile-form-title">Paso 2 — Verificación de identidad</div>
             <p style="font-size:.77rem;color:var(--gray);line-height:1.7;margin-bottom:1.2rem;font-weight:400;">Para proteger a Virtual Estate y a sus clientes, necesitamos confirmar que eres quien dices ser. Tus documentos se revisan manualmente por nuestro equipo y nunca son compartidos con terceros.</p>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+            <div class="dpi-upload-grid">
               <div class="form-group">
                 <label class="form-label">DPI — Frente <span style="color:#E08080;">*</span></label>
                 <label id="agt-dpi-front-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.2rem;border:1.5px dashed var(--border);border-radius:var(--r);cursor:pointer;min-height:90px;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor=document.getElementById('agt-dpi-front').files.length?'var(--gold)':'var(--border)'">
@@ -1118,7 +1175,7 @@
           <span style="background:rgba(60,180,100,.12);color:#5AE08A;border:1px solid rgba(60,180,100,.3);padding:.3rem .9rem;border-radius:20px;font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">● Activo</span>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.6rem;">
+        <div class="agt-active-grid">
           <div>
             <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.6rem;margin-bottom:1.2rem;">
               <div style="font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.6rem;">Tu código</div>
@@ -1152,7 +1209,7 @@
               <span style="font-size:.7rem;color:var(--gray);">Pendientes por pagar: <strong style="color:var(--gold);" id="agt-pendiente">$150</strong></span>
             </div>
             <div class="commission-table-wrap">
-              <table>
+              <table class="cot-table cot-comis">
                 <thead>
                   <tr>
                     <th>Proyecto</th>
@@ -1191,7 +1248,7 @@
             </div>
             <div style="font-size:.7rem;color:var(--gray);max-width:280px;text-align:right;line-height:1.5;">El descuento <strong style="color:var(--white);">se descuenta de tu comisión</strong>, no del precio de VE.</div>
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:.8rem;align-items:end;margin-bottom:1rem;">
+          <div class="promo-code-grid">
             <div class="form-group" style="margin-bottom:0;">
               <label class="form-label">Nombre del código</label>
               <input type="text" class="form-control" id="promo-name" placeholder="Ej: MARIO10" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"/>
@@ -1233,7 +1290,7 @@
       <h3 style="font-size:1.1rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.4rem;">Pagos y Facturación</h3>
       <p style="font-size:.78rem;color:var(--gray);margin-bottom:2rem;font-weight:400;">Realiza pagos con tarjeta de crédito o débito de forma segura. Tus datos están protegidos con cifrado SSL.</p>
 
-      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:2rem;align-items:start;">
+      <div class="pagos-main-grid">
 
         <!-- FORMULARIO DE PAGO -->
         <div>
@@ -1288,7 +1345,7 @@
               </div>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div class="card-exp-cvv-grid">
               <div class="form-group">
                 <label class="form-label">Vencimiento</label>
                 <input type="text" class="form-control" id="card-expiry" placeholder="MM / AA" maxlength="7" oninput="formatExpiry(this)"/>
@@ -1407,7 +1464,7 @@
             <div style="font-size:.7rem;color:var(--gray);line-height:1.5;">Para recibir comisiones debes solicitar tu código de agente e ingresar tus datos bancarios en el proceso.</div>
           </div>
           <div id="perfil-banco-info" style="display:none;">
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.2rem;margin-bottom:1rem;">
+            <div class="bank-info-grid" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.2rem;margin-bottom:1rem;">
               <div>
                 <div style="font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:.3rem;">Banco</div>
                 <div style="font-size:.82rem;font-weight:600;" id="pb-banco">—</div>
@@ -1440,7 +1497,7 @@
         <div class="profile-card">
           <div class="profile-form-title">Editar información</div>
           <!-- Codes display -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1rem;">
+          <div class="profile-codes-grid">
             <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:.7rem 1rem;">
               <div style="font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:.2rem;">Código de cliente</div>
               <div style="font-family:'Raleway',sans-serif;font-size:.95rem;font-weight:700;color:var(--gold);" id="prof-cli-code">—</div>
@@ -1527,7 +1584,7 @@
               oninput="this.value=this.value.replace(/\D/g,'').substring(0,13)"/>
           </div>
 
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1rem;">
+          <div class="dpi-upload-grid">
             <div>
               <label style="display:block;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:.4rem;font-weight:600;">Foto DPI (frente)</label>
               <label id="verif-dpi-front-label" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.2rem;border:1.5px dashed var(--border);border-radius:var(--r);cursor:pointer;transition:.2s;min-height:80px;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border)'">
@@ -1756,6 +1813,25 @@
 
   </div><!-- /portal-content -->
 </div><!-- /dashboard-view -->
+
+<!-- ── MOBILE NAVIGATION MENU ──────────────────────────── -->
+<div class="portal-mobile-menu" id="portalMobileMenu">
+  <div class="portal-mobile-menu-header">
+    <img src="assets/logo-letras.png" alt="Virtual Estate"/>
+    <button class="portal-mobile-close" onclick="closePortalMenu()" aria-label="Cerrar menú"><i class="fas fa-times"></i></button>
+  </div>
+  <nav>
+    <button class="portal-mobile-menu-item" onclick="setTab('inicio');closePortalMenu()"><i class="fas fa-chart-line"></i> Resumen</button>
+    <button class="portal-mobile-menu-item" onclick="setTab('favoritos');closePortalMenu()"><i class="fas fa-building"></i> Propiedades</button>
+    <button class="portal-mobile-menu-item" onclick="setTab('cotizaciones');closePortalMenu()"><i class="fas fa-file-invoice-dollar"></i> Mis cotizaciones</button>
+    <button class="portal-mobile-menu-item" onclick="setTab('visitas');closePortalMenu()"><i class="fas fa-calendar-check"></i> Visitas</button>
+    <button class="portal-mobile-menu-item" onclick="setTab('agente');closePortalMenu()"><i class="fas fa-id-badge"></i> Código de agente</button>
+    <button class="portal-mobile-menu-item" onclick="setTab('pagos');closePortalMenu()"><i class="fas fa-credit-card"></i> Pagos</button>
+    <button class="portal-mobile-menu-item" onclick="setTab('perfil');closePortalMenu()"><i class="fas fa-user"></i> Mi perfil</button>
+    <button class="portal-mobile-menu-item" onclick="setTab('verificacion');closePortalMenu()"><i class="fas fa-id-card"></i> Verificación</button>
+    <button class="portal-mobile-menu-item" onclick="window.location.href='index.html'" style="border-bottom:none;"><i class="fas fa-globe"></i> Sitio web</button>
+  </nav>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════
      PROPERTY DETAIL MODAL
@@ -2023,6 +2099,12 @@ function closePropModal() {
   document.getElementById('prop-modal-overlay').classList.remove('open');
   document.body.style.overflow = '';
 }
+
+/* ── MOBILE MENU ────────────────────────────────────────── */
+function openPortalMenu(){document.getElementById('portalMobileMenu').classList.add('open');document.body.style.overflow='hidden';}
+function closePortalMenu(){document.getElementById('portalMobileMenu').classList.remove('open');document.body.style.overflow='';}
+function openBrowseFilters(){document.getElementById('browse-filters-aside').classList.add('open');document.getElementById('browseFilterBackdrop').classList.add('open');document.body.style.overflow='hidden';}
+function closeBrowseFilters(){document.getElementById('browse-filters-aside').classList.remove('open');document.getElementById('browseFilterBackdrop').classList.remove('open');document.body.style.overflow='';}
 
 /* ── TABS ───────────────────────────────────────────────── */
 function setTab(tab) {
