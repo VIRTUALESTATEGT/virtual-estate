@@ -272,7 +272,10 @@
     }
     .form-control:focus { outline:none; border-color:var(--gold); }
     .form-control option { background:var(--bg2); }
-    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+    .form-row    { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+    .promo-grid  { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-bottom:1.4rem; }
+    .cfg-grid    { display:grid; grid-template-columns:1fr 1fr; gap:1.4rem; }
+    .integ-grid  { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
     .modal-actions { display:flex; gap:.7rem; margin-top:1.4rem; }
     textarea.form-control { min-height:80px; resize:vertical; }
 
@@ -304,6 +307,7 @@
       .admin-hamburger{display:flex;}
       .kpi-grid,.kpi-row { grid-template-columns:1fr 1fr; }
       .dash-grid { grid-template-columns:1fr; }
+      .form-row,.promo-grid,.cfg-grid,.integ-grid { grid-template-columns:1fr; }
 
       /* ── TANDA 4B: TABLAS COMO TARJETAS ──────────────── */
       .content table { display:block; width:100%; overflow:hidden; }
@@ -1013,7 +1017,7 @@
 
     <!-- ── CODIGOS PROMO VIEW ────────────────── -->
     <div class="view" id="view-promos">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.4rem;">
+      <div class="promo-grid">
         <!-- Generador -->
         <div class="panel">
           <div class="panel-head">
@@ -1255,7 +1259,7 @@
     <!-- ── CONFIGURACIÓN VIEW ─────────────────── -->
     <div class="view" id="view-config">
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;">
+      <div class="cfg-grid">
 
         <!-- Empresa -->
         <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;">
@@ -1434,7 +1438,7 @@
         <!-- Integraciones -->
         <div style="grid-column:1/-1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;">
           <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem;"><i class="fas fa-plug"></i> Integraciones</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
+          <div class="integ-grid">
             <div style="padding:1rem;border:1px solid var(--border);border-radius:var(--r);text-align:center;">
               <i class="fas fa-envelope" style="font-size:1.4rem;color:var(--gold);margin-bottom:.6rem;display:block;"></i>
               <div style="font-size:.75rem;font-weight:700;margin-bottom:.3rem;">Email SMTP</div>
@@ -4525,7 +4529,7 @@
         <td class="td-bold">${p.nombre||'—'}</td>
         <td>${p.tipo||'—'}</td>
         <td><span class="badge ${(Array.isArray(p.modalidad)?p.modalidad.includes('renta'):p.modalidad==='Renta')?'badge-renta':'badge-venta'}">${Array.isArray(p.modalidad)?p.modalidad.map(v=>v==='venta'?'Venta':'Renta').join('+'):(p.modalidad||'—')}</span></td>
-        <td class="td-gold">${p.precio?'$'+Number(p.precio).toLocaleString():'—'}</td>
+        <td class="td-gold">${p.precio?(p.moneda==='GTQ'?'Q':'$')+Number(p.precio).toLocaleString():'—'}</td>
         <td>${p.m2?p.m2+' m²':'—'}</td>
         <td>${p.zona||'—'}</td>
         <td>${p.linktour3d?'<a href="'+p.linktour3d+'" target="_blank" style="color:var(--gold);"><i class="fas fa-vr-cardboard"></i> Ver</a>':'<span style="color:var(--gray);">—</span>'}</td>
