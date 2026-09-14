@@ -276,6 +276,10 @@
     .promo-grid  { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-bottom:1.4rem; }
     .cfg-grid    { display:grid; grid-template-columns:1fr 1fr; gap:1.4rem; }
     .integ-grid  { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+    .specs-grid,.feat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:.8rem; }
+    .disp-grid   { display:grid; grid-template-columns:repeat(4,1fr); gap:.5rem; margin-bottom:.8rem; }
+    .sol-data-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.2rem; }
+    .sol-img-grid  { display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; margin-bottom:1.2rem; }
     .modal-actions { display:flex; gap:.7rem; margin-top:1.4rem; }
     textarea.form-control { min-height:80px; resize:vertical; }
 
@@ -308,6 +312,21 @@
       .kpi-grid,.kpi-row { grid-template-columns:1fr 1fr; }
       .dash-grid { grid-template-columns:1fr; }
       .form-row,.promo-grid,.cfg-grid,.integ-grid { grid-template-columns:1fr; }
+      /* ── TANDA 4C: MODALES + TEXTOS ─────────────────── */
+      /* Modal padding y tamaño */
+      .modal-overlay { padding:.5rem !important; }
+      .modal { padding:1.2rem; width:calc(100vw - 1rem); }
+      /* Grids en modal de propiedad → 2 columnas */
+      .specs-grid,.feat-grid,.disp-grid { grid-template-columns:repeat(2,1fr); }
+      /* Grids en modal solicitud agente → apilados */
+      .sol-data-grid { grid-template-columns:1fr 1fr; }
+      .sol-img-grid  { grid-template-columns:1fr; }
+      /* Textos: boost mínimo a .72-.75rem */
+      .form-label { font-size:.75rem; }
+      .badge      { font-size:.72rem !important; }
+      .act-time,.user-role { font-size:.72rem; }
+      [style*="font-size:.58rem"],[style*="font-size:.55rem"] { font-size:.72rem !important; }
+      [style*="font-size:.62rem"],[style*="font-size:.65rem"] { font-size:.75rem !important; }
 
       /* ── TANDA 4B: TABLAS COMO TARJETAS ──────────────── */
       .content table { display:block; width:100%; overflow:hidden; }
@@ -1194,7 +1213,7 @@
           <h3 style="font-size:1rem;text-transform:uppercase;letter-spacing:.06em;" id="sol-modal-title">Solicitud de Agente</h3>
           <button onclick="closeSolModal()" style="background:none;border:none;color:var(--gray);font-size:1.1rem;cursor:pointer;"><i class="fas fa-times"></i></button>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1.2rem;">
+        <div class="sol-data-grid">
           <div><div style="font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:.2rem;">Nombre</div><div id="sol-m-nombre" style="font-weight:600;">—</div></div>
           <div><div style="font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:.2rem;">Email</div><div id="sol-m-email" style="color:var(--gray);font-size:.82rem;">—</div></div>
           <div><div style="font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:.2rem;">Fecha</div><div id="sol-m-fecha" style="color:var(--gray);font-size:.82rem;">—</div></div>
@@ -1205,7 +1224,7 @@
         <div style="margin-bottom:.6rem;"><div style="font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:.3rem;">Firma electrónica</div><div id="sol-m-firma" style="font-family:'Raleway',sans-serif;font-style:italic;font-size:.95rem;color:var(--white);">—</div></div>
         <div id="sol-m-notas-wrap" style="margin-bottom:.6rem;display:none;"><div style="font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:.3rem;">Comentarios del solicitante</div><div id="sol-m-notas" style="font-size:.78rem;color:var(--gray);"></div></div>
         <!-- Images -->
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-bottom:1.2rem;" id="sol-img-wrap">
+        <div class="sol-img-grid" id="sol-img-wrap">
           <div><div style="font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:.4rem;">DPI — Frente</div><img id="sol-img-front" src="" style="width:100%;border-radius:var(--r);border:1px solid var(--border);max-height:150px;object-fit:cover;" /></div>
           <div><div style="font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:.4rem;">DPI — Reverso</div><img id="sol-img-back" src="" style="width:100%;border-radius:var(--r);border:1px solid var(--border);max-height:150px;object-fit:cover;" /></div>
           <div><div style="font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:.4rem;">Selfie en vivo</div><img id="sol-img-selfie" src="" style="width:100%;border-radius:var(--r);border:1px solid var(--border);max-height:150px;object-fit:cover;" /></div>
@@ -1877,7 +1896,7 @@
 
     <!-- Sección: Especificaciones físicas -->
     <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;margin-top:.6rem;"><i class="fas fa-ruler-combined" style="margin-right:.3rem;"></i>Especificaciones</div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;">
+    <div class="specs-grid">
       <div class="form-group">
         <label class="form-label">Área (m²)</label>
         <input type="number" class="form-control" id="prop-area" placeholder="120"/>
@@ -1895,7 +1914,7 @@
         <input type="number" class="form-control" id="prop-anio" placeholder="2022"/>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem;">
+    <div class="feat-grid">
       <div class="form-group" style="display:flex;align-items:center;gap:.5rem;margin-bottom:0;">
         <input type="checkbox" id="feat-parqueo" style="accent-color:var(--gold);"/>
         <label for="feat-parqueo" style="font-size:.72rem;cursor:pointer;">Parqueo</label>
@@ -1916,7 +1935,7 @@
 
     <!-- Sección: Disponibilidad -->
     <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.6rem;margin-top:.8rem;"><i class="fas fa-door-open" style="margin-right:.3rem;"></i>Disponibilidad <span style="font-size:.5rem;color:var(--gray);text-transform:none;letter-spacing:0;font-weight:400;">(sin marcar = sin clasificar)</span></div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:.8rem;">
+    <div class="disp-grid">
       <label style="display:flex;align-items:center;gap:.45rem;font-size:.72rem;cursor:pointer;padding:.5rem .7rem;border:1px solid var(--border);border-radius:var(--r);transition:.2s;" onmouseover="this.style.borderColor='#3DB87A'" onmouseout="this.style.borderColor='var(--border)'">
         <input type="checkbox" id="disp-vacia" style="accent-color:#3DB87A;"/> <span style="color:#3DB87A;font-weight:600;">Vacía</span>
       </label>
@@ -2476,6 +2495,13 @@
     document.querySelectorAll('input[type="tel"]').forEach(el => {
       el.addEventListener('blur', () => { el.value = formatearTelefono(el.value); });
     });
+  });
+
+  // En móvil: desplaza el campo activo para que no quede tapado por el teclado
+  document.addEventListener('focusin', function(e) {
+    if (e.target.matches('.modal input, .modal textarea, .modal select')) {
+      setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
+    }
   });
 
   /* ── API & AUTH ─────────────────────────────────────────── */
