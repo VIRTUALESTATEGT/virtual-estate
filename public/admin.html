@@ -98,11 +98,12 @@
       background: rgba(255,255,255,.04); border: 1px solid var(--border);
       border-radius: 3px; padding: .4rem .8rem;
       display: flex; align-items: center; gap: .5rem; color: var(--gray);
+      flex: 1; max-width: 340px;
     }
     .search-box input {
       background: none; border: none; outline: none;
       color: var(--white); font-size: .78rem; font-family: 'Montserrat', sans-serif;
-      width: 180px;
+      width: 100%; min-width: 0;
     }
     .search-box input::placeholder { color: var(--gray); }
 
@@ -301,7 +302,7 @@
       .content{overflow-y:visible;}
       .sidebar { display:none; }
       .admin-hamburger{display:flex;}
-      .kpi-grid { grid-template-columns:1fr 1fr; }
+      .kpi-grid,.kpi-row { grid-template-columns:1fr 1fr; }
       .dash-grid { grid-template-columns:1fr; }
     }
   /* ── ADICIONALES CHECKBOXES ─────────────────── */
