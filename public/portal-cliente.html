@@ -396,7 +396,9 @@
   @media(max-width:640px){
     .tipo-cards{grid-template-columns:1fr;}
     .vs-cal{min-width:auto;width:100%;}
-    .vs-day{height:29px;font-size:.62rem;}
+    .vs-day{height:40px;font-size:.75rem;}
+    .vs-cal-dow{font-size:.68rem;}
+    .vs-cal-btn{width:36px;height:36px;}
   }
 
   #dashboard-view{display:flex !important;}
@@ -405,10 +407,49 @@
     .profile-grid{grid-template-columns:1fr;}
     .form-row{grid-template-columns:1fr;}
     .portal-nav-links{display:none;}
+    .portal-nav-logo img{height:52px;}
+    /* Bottom tab bar — scroll horizontal con todos los items */
+    .portal-tabs{
+      position:fixed;bottom:0;left:0;right:0;z-index:900;
+      background:var(--bg2);border-top:1px solid var(--border);border-bottom:none;
+      margin-bottom:0;overflow-x:auto;-webkit-overflow-scrolling:touch;
+      scrollbar-width:none;padding-bottom:env(safe-area-inset-bottom,0px);
+    }
+    .portal-tabs::-webkit-scrollbar{display:none;}
+    .p-tab{
+      flex-direction:column;align-items:center;justify-content:center;
+      padding:.5rem .8rem .55rem;font-size:.6rem;letter-spacing:.06em;
+      gap:.22rem;min-width:64px;flex-shrink:0;
+      border-bottom:none;border-top:2px solid transparent;
+    }
+    .p-tab.active,.p-tab:hover{border-top-color:var(--gold);border-bottom-color:transparent;}
+    .p-tab i{font-size:.9rem;}
+    .portal-content{padding-bottom:72px;}
+    .table-wrap{overflow-x:auto;}
   }
   @media(max-width:480px){
     .kpi-row{grid-template-columns:1fr 1fr;}
     .auth-card{padding:2rem 1.5rem;}
+    .agent-stat-row{grid-template-columns:1fr 1fr;}
+  }
+  @media(max-width:600px){
+    .label{font-size:.75rem;}
+    .form-label{font-size:.75rem;}
+    .kpi-label{font-size:.75rem;}
+    .kpi-sub{font-size:.75rem;}
+    .w-btn{font-size:.72rem;}
+    .portal-user-code{font-size:.68rem;}
+    .welcome-code{font-size:.72rem;}
+    .agent-stat-label{font-size:.68rem;}
+    .badge{font-size:.68rem;}
+    th{font-size:.68rem;}
+    .profile-code-lg,.profile-form-title{font-size:.72rem;}
+    .re-prop-badge,.re-prop-code{font-size:.72rem;}
+    .re-prop-spec,.re-prop-link{font-size:.72rem;}
+    .vs-step{font-size:.68rem;}
+    .vs-section-label{font-size:.68rem;}
+    .cita-badge{font-size:.65rem;}
+    .detail-section-title{font-size:.72rem;}
   }
   </style>
 </head>
@@ -503,7 +544,7 @@
 
     <!-- TAB: INICIO / RESUMEN -->
     <div class="tab-panel active" id="panel-inicio">
-      <div class="kpi-row" style="grid-template-columns:repeat(4,1fr);">
+      <div class="kpi-row">
         <div class="kpi-card">
           <div class="kpi-label">Propiedades guardadas</div>
           <div class="kpi-val" id="kpi-favs">0</div>
