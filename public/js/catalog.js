@@ -58,7 +58,8 @@ function initCatalog(cfg) {
 
   function _publicCard(p) {
     const icon    = CATALOG_TIPO_ICON[p.tipo] || 'fa-home';
-    const precio  = p.precio ? '$' + Number(p.precio).toLocaleString() : 'Consultar';
+    const sym     = p.moneda === 'GTQ' ? 'Q' : '$';
+    const precio  = p.precio ? sym + Number(p.precio).toLocaleString() : 'Consultar';
     const isRenta = catalogModIsRenta(p.modalidad);
     const code    = 'PROP-' + String(p.id).padStart(5, '0');
     const adics   = (p.propiedades_adicionales || []).map(a => a.nombre);
@@ -88,7 +89,7 @@ function initCatalog(cfg) {
         ${m2Spec  ? `<span class="prop-spec"><i class="fas fa-ruler-combined"></i> ${m2Spec}</span>` : ''}
       </div>
       ${dispBadges}
-      <div class="prop-price" data-usd="${p.precio || 0}">${precio}</div>
+      <div class="prop-price" data-price="${p.precio || 0}" data-moneda="${p.moneda || 'USD'}">${precio}</div>
     </div>
     <div class="prop-foot">
       ${p.linktour3d
@@ -102,7 +103,8 @@ function initCatalog(cfg) {
   // NOTE: pages using cardVariant:'portal' must include .disp-badges/.disp-badge/.disp-{vacia,habitada,airbnb,construccion} CSS
   function _portalCard(p) {
     const icon      = CATALOG_TIPO_ICON[p.tipo] || 'fa-home';
-    const precio    = p.precio ? '$' + Number(p.precio).toLocaleString() : 'Consultar';
+    const sym2      = p.moneda === 'GTQ' ? 'Q' : '$';
+    const precio    = p.precio ? sym2 + Number(p.precio).toLocaleString() : 'Consultar';
     const isRenta   = catalogModIsRenta(p.modalidad);
     const isSaved   = _getFavIds().has(p.id);
     const badgeCls  = isRenta ? 're-badge-renta' : 're-badge-venta';

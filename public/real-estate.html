@@ -881,7 +881,7 @@ function openDetail(code, propId) {
   document.getElementById('detailCode').textContent     = code;
   document.getElementById('detailName').textContent     = p.nombre;
   document.getElementById('detailLoc').textContent      = p.zona || 'Guatemala';
-  document.getElementById('detailPrice').textContent    = p.precio ? '$' + Number(p.precio).toLocaleString() : 'Consultar';
+  document.getElementById('detailPrice').textContent    = p.precio ? (p.moneda === 'GTQ' ? 'Q' : '$') + Number(p.precio).toLocaleString() : 'Consultar';
   document.getElementById('detailModalidad').textContent = catalogModLabel(p.modalidad);
   document.getElementById('detailWA').href = `https://wa.me/50239902399?text=${encodeURIComponent('Hola, me interesa la propiedad ' + code + ' — ' + p.nombre)}`;
 
@@ -1045,17 +1045,29 @@ function quitarChip(val){
 }
 
 /* ── TOGGLE MONEDA REAL ESTATE ────────────────────────── */
-const RE_TASA = 7.90;
+let RE_TASA = 7.90;
 let reCurrency = 'USD';
 
+(async function _cargarTasaRE(){
+  try {
+    const r = await fetch((window.API_URL || '') + '/api/config/public');
+    if (!r.ok) return;
+    const cfg = await r.json();
+    if (cfg.tasa_cambio_usd_gtq) RE_TASA = parseFloat(cfg.tasa_cambio_usd_gtq) || 7.90;
+  } catch {}
+})();
+
 function applyCurrency() {
-  document.querySelectorAll('.prop-price[data-usd]').forEach(el=>{
-    const usd = parseFloat(el.getAttribute('data-usd'));
-    if(!usd) return;
-    if(reCurrency==='GTQ'){
-      el.textContent = 'Q' + Math.round(usd * RE_TASA).toLocaleString('es-GT');
+  document.querySelectorAll('.prop-price[data-price]').forEach(el=>{
+    const raw    = parseFloat(el.getAttribute('data-price'));
+    const moneda = el.getAttribute('data-moneda') || 'USD';
+    if (!raw) return;
+    // Normalize to USD equivalent, then apply selected currency
+    const usdVal = moneda === 'GTQ' ? raw / RE_TASA : raw;
+    if (reCurrency === 'GTQ') {
+      el.textContent = 'Q' + Math.round(usdVal * RE_TASA).toLocaleString('es-GT');
     } else {
-      el.textContent = '$' + usd.toLocaleString('en-US');
+      el.textContent = '$' + usdVal.toLocaleString('en-US');
     }
   });
 }

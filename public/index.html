@@ -1684,7 +1684,7 @@ document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
       const icon = TIPO_ICON[p.tipo] || 'fa-home';
       const isRenta = Array.isArray(p.modalidad) ? p.modalidad.includes('renta') : String(p.modalidad||'').includes('renta');
       const modLabel = Array.isArray(p.modalidad) ? p.modalidad.map(v=>v==='venta'?'Venta':'Renta').join(' · ') : (p.modalidad||'Venta');
-      const precio = p.precio ? '$' + Number(p.precio).toLocaleString() : 'Consultar';
+      const precio = p.precio ? (p.moneda === 'GTQ' ? 'Q' : '$') + Number(p.precio).toLocaleString() : 'Consultar';
       const code = 'PROP-' + String(p.id).padStart(5,'0');
       const imgHtml = p.foto_principal_url
         ? `<img src="${p.foto_principal_url}" alt="${esc(p.nombre)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`

@@ -1233,6 +1233,21 @@
           </button>
         </div>
 
+        <!-- Tasa de Cambio -->
+        <div style="grid-column:1/-1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;">
+          <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem;"><i class="fas fa-exchange-alt"></i> Tasa de Cambio USD → GTQ</div>
+          <p style="font-size:.75rem;color:var(--gray);line-height:1.6;margin-bottom:1.1rem;font-weight:400;">
+            Se usa para convertir precios entre dólares y quetzales en el sitio público y en cotizaciones. Actualizala cuando cambie el tipo de cambio.
+          </p>
+          <div class="form-group" style="max-width:220px;">
+            <label class="form-label">1 USD = Q __</label>
+            <input type="number" class="form-control" id="cfg-tasa-cambio" placeholder="7.90" min="1" step="0.01" style="font-family:monospace;font-size:.85rem;"/>
+          </div>
+          <button onclick="guardarTasaCambio()" style="padding:.65rem 1.4rem;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-family:'Montserrat',sans-serif;transition:.2s;" onmouseover="this.style.background='var(--gold-lt)'" onmouseout="this.style.background='var(--gold)'">
+            <i class="fas fa-save" style="margin-right:.4rem;"></i> Guardar Tasa
+          </button>
+        </div>
+
         <!-- Integraciones -->
         <div style="grid-column:1/-1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;">
           <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1.1rem;display:flex;align-items:center;gap:.5rem;"><i class="fas fa-plug"></i> Integraciones</div>
@@ -2259,8 +2274,10 @@
     return String(nombre).toLowerCase().split(' ').map(w => w ? w.charAt(0).toUpperCase() + w.slice(1) : '').join(' ');
   }
 
+  let _tasaUsdGtq = 7.90;
+
   function convertirMoneda(monto, desde, hacia, tasa) {
-    tasa = tasa || 7.90;
+    tasa = tasa || _tasaUsdGtq;
     monto = Number(monto) || 0;
     if (desde === hacia) return monto;
     if (desde === 'USD' && hacia === 'GTQ') return monto * tasa;
@@ -2833,14 +2850,19 @@
     }
   })();
 
-  /* ── RECORRIDO VIRTUAL (config_sitio) ───────────────── */
-  (async function cargarTourUrl(){
+  /* ── RECORRIDO VIRTUAL + TASA DE CAMBIO (config_sitio) ─ */
+  (async function cargarConfigPublica(){
     try {
       const r = await fetch(API_URL + '/api/config/public');
       if (!r.ok) return;
       const cfg = await r.json();
-      const el = document.getElementById('cfg-tour-url');
-      if (el && cfg.tour_demo_url) el.value = cfg.tour_demo_url;
+      const elTour = document.getElementById('cfg-tour-url');
+      if (elTour && cfg.tour_demo_url) elTour.value = cfg.tour_demo_url;
+      if (cfg.tasa_cambio_usd_gtq) {
+        _tasaUsdGtq = parseFloat(cfg.tasa_cambio_usd_gtq) || 7.90;
+        const elTasa = document.getElementById('cfg-tasa-cambio');
+        if (elTasa) elTasa.value = cfg.tasa_cambio_usd_gtq;
+      }
     } catch {}
   })();
 
@@ -2852,6 +2874,20 @@
         body: JSON.stringify({ valor: val }),
       });
       showToast('✅ URL del tour guardada');
+    } catch (e) { showToast('❌ ' + e.message); }
+  }
+
+  async function guardarTasaCambio() {
+    const raw = (document.getElementById('cfg-tasa-cambio')?.value || '').trim();
+    const tasa = parseFloat(raw);
+    if (!tasa || tasa <= 0) { showToast('❌ Ingresá una tasa válida'); return; }
+    try {
+      await apiFetch('/api/admin/config/tasa_cambio_usd_gtq', {
+        method: 'PUT',
+        body: JSON.stringify({ valor: String(tasa) }),
+      });
+      _tasaUsdGtq = tasa;
+      showToast('✅ Tasa de cambio guardada');
     } catch (e) { showToast('❌ ' + e.message); }
   }
 
@@ -3028,6 +3064,7 @@
       nombre, tipo,
       modalidad: ['venta','renta'].filter(v => document.getElementById('mod-'+v)?.checked),
       precio: Number(precio),
+      moneda: document.getElementById('prop-moneda')?.value || 'USD',
       m2: document.getElementById('prop-area').value ? Number(document.getElementById('prop-area').value) : null,
       zona: document.getElementById('prop-zona').value.trim() || null,
       linkTour3D: document.getElementById('prop-tour').value.trim() || null,
@@ -4324,6 +4361,7 @@
     document.getElementById('prop-tipo').value=p.tipo||'Casa';
     const modArr=Array.isArray(p.modalidad)?p.modalidad:[];['venta','renta'].forEach(v=>{const el=document.getElementById('mod-'+v);if(el)el.checked=modArr.includes(v);});
     document.getElementById('prop-precio').value=p.precio||'';
+    const elMoneda=document.getElementById('prop-moneda');if(elMoneda)elMoneda.value=p.moneda||'USD';
     document.getElementById('prop-area').value=p.m2||'';
     document.getElementById('prop-zona').value=p.zona||'';
     document.getElementById('prop-tour').value=p.linktour3d||'';

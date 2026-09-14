@@ -140,7 +140,7 @@ app.get('/api/propiedades/public/:id/fotos', async (req, res) => {
 });
 
 // GET /api/config/public — público, sin auth (leído por el landing)
-const PUBLIC_CONFIG_KEYS = new Set(['tour_demo_url']);
+const PUBLIC_CONFIG_KEYS = new Set(['tour_demo_url', 'tasa_cambio_usd_gtq']);
 app.get('/api/config/public', async (_req, res) => {
   try {
     const { data, error } = await supabasePublic
