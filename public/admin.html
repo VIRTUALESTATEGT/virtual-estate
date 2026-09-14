@@ -304,6 +304,189 @@
       .admin-hamburger{display:flex;}
       .kpi-grid,.kpi-row { grid-template-columns:1fr 1fr; }
       .dash-grid { grid-template-columns:1fr; }
+
+      /* ── TANDA 4B: TABLAS COMO TARJETAS ──────────────── */
+      .content table { display:block; width:100%; overflow:hidden; }
+      .content table thead { display:none; }
+      .content table tbody { display:block; width:100%; }
+      .content table tbody tr {
+        display:block;
+        border:1px solid var(--border);
+        border-radius:var(--r);
+        margin-bottom:.7rem;
+        padding:.55rem .75rem .3rem;
+        background:var(--bg2);
+      }
+      .content table td {
+        display:flex;
+        align-items:center;
+        gap:.45rem;
+        padding:.27rem 0;
+        font-size:.77rem;
+        border:none;
+        border-bottom:1px solid rgba(255,255,255,.04);
+        line-height:1.4;
+        flex-wrap:wrap;
+      }
+      .content table td:last-child { border-bottom:none; }
+      .content table td::before {
+        font-size:.59rem;
+        color:var(--gray);
+        font-weight:700;
+        text-transform:uppercase;
+        letter-spacing:.06em;
+        min-width:76px;
+        flex-shrink:0;
+      }
+      /* Botones de acción táctiles */
+      .act-btn { width:38px !important; height:38px !important; font-size:.8rem !important; }
+      .action-btns { display:flex; gap:.4rem; flex-wrap:wrap; }
+
+      /* ── Etiquetas por tabla ─────────────────────────── */
+      /* Dashboard — leads recientes (Nombre | Servicio | Estado | Fecha) */
+      #dash-leads-tbody tr td:nth-child(1)::before{content:"Nombre"}
+      #dash-leads-tbody tr td:nth-child(2)::before{content:"Servicio"}
+      #dash-leads-tbody tr td:nth-child(3)::before{content:"Estado"}
+      #dash-leads-tbody tr td:nth-child(4)::before{content:"Fecha"}
+      /* Dashboard — proyectos (Proyecto | Cliente | Avance | Entrega | Estado) */
+      #dash-proyectos-tbody tr td:nth-child(1)::before{content:"Proyecto"}
+      #dash-proyectos-tbody tr td:nth-child(2)::before{content:"Cliente"}
+      #dash-proyectos-tbody tr td:nth-child(3)::before{content:"Avance"}
+      #dash-proyectos-tbody tr td:nth-child(4)::before{content:"Entrega"}
+      #dash-proyectos-tbody tr td:nth-child(5)::before{content:"Estado"}
+      /* Leads (ID | Nombre | Empresa | Servicio | Origen | Presupuesto | Estado | Seguimiento | Acciones) */
+      #leads-tbody tr td:nth-child(1)::before{content:"ID"}
+      #leads-tbody tr td:nth-child(2)::before{content:"Nombre"}
+      #leads-tbody tr td:nth-child(3)::before{content:"Empresa"}
+      #leads-tbody tr td:nth-child(4)::before{content:"Servicio"}
+      #leads-tbody tr td:nth-child(5)::before{content:"Origen"}
+      #leads-tbody tr td:nth-child(6)::before{content:"Presupuesto"}
+      #leads-tbody tr td:nth-child(7)::before{content:"Estado"}
+      #leads-tbody tr td:nth-child(8)::before{content:"Seguimiento"}
+      /* Cotizaciones (Nro. | Cliente | Canal | Monto | Anticipo | Moneda | Estado | Fecha | Acciones) */
+      #cotizaciones-tbody tr td:nth-child(1)::before{content:"Nro."}
+      #cotizaciones-tbody tr td:nth-child(2)::before{content:"Cliente"}
+      #cotizaciones-tbody tr td:nth-child(3)::before{content:"Canal"}
+      #cotizaciones-tbody tr td:nth-child(4)::before{content:"Monto"}
+      #cotizaciones-tbody tr td:nth-child(5)::before{content:"Anticipo"}
+      #cotizaciones-tbody tr td:nth-child(6)::before{content:"Moneda"}
+      #cotizaciones-tbody tr td:nth-child(7)::before{content:"Estado"}
+      #cotizaciones-tbody tr td:nth-child(8)::before{content:"Fecha"}
+      /* Clientes (ID | Nombre | Empresa | Tipo | Email | Teléfono | Alta | Acciones) */
+      #clientes-tbody tr td:nth-child(1)::before{content:"ID"}
+      #clientes-tbody tr td:nth-child(2)::before{content:"Nombre"}
+      #clientes-tbody tr td:nth-child(3)::before{content:"Empresa"}
+      #clientes-tbody tr td:nth-child(4)::before{content:"Tipo"}
+      #clientes-tbody tr td:nth-child(5)::before{content:"Email"}
+      #clientes-tbody tr td:nth-child(6)::before{content:"Teléfono"}
+      #clientes-tbody tr td:nth-child(7)::before{content:"Alta"}
+      /* Constructores (ID | Empresa | Contacto | Especialidad | Email | Teléfono | Estado | Acciones) */
+      #constructores-tbody tr td:nth-child(1)::before{content:"ID"}
+      #constructores-tbody tr td:nth-child(2)::before{content:"Empresa"}
+      #constructores-tbody tr td:nth-child(3)::before{content:"Contacto"}
+      #constructores-tbody tr td:nth-child(4)::before{content:"Especialidad"}
+      #constructores-tbody tr td:nth-child(5)::before{content:"Email"}
+      #constructores-tbody tr td:nth-child(6)::before{content:"Teléfono"}
+      #constructores-tbody tr td:nth-child(7)::before{content:"Estado"}
+      /* Proyectos (ID | Nombre | Cliente | Inicio | Fin Est. | Avance | Valor | Estado | Acciones) */
+      #proyectos-tbody tr td:nth-child(1)::before{content:"ID"}
+      #proyectos-tbody tr td:nth-child(2)::before{content:"Nombre"}
+      #proyectos-tbody tr td:nth-child(3)::before{content:"Cliente"}
+      #proyectos-tbody tr td:nth-child(4)::before{content:"Inicio"}
+      #proyectos-tbody tr td:nth-child(5)::before{content:"Fin Est."}
+      #proyectos-tbody tr td:nth-child(6)::before{content:"Avance"}
+      #proyectos-tbody tr td:nth-child(7)::before{content:"Valor"}
+      #proyectos-tbody tr td:nth-child(8)::before{content:"Estado"}
+      /* Propiedades (ID | Título | Tipo | Modalidad | Precio | M² | Zona | Tour 3D | Disponib. | Acciones) */
+      #propiedades-tbody tr td:nth-child(1)::before{content:"ID"}
+      #propiedades-tbody tr td:nth-child(2)::before{content:"Título"}
+      #propiedades-tbody tr td:nth-child(3)::before{content:"Tipo"}
+      #propiedades-tbody tr td:nth-child(4)::before{content:"Modalidad"}
+      #propiedades-tbody tr td:nth-child(5)::before{content:"Precio"}
+      #propiedades-tbody tr td:nth-child(6)::before{content:"M²"}
+      #propiedades-tbody tr td:nth-child(7)::before{content:"Zona"}
+      #propiedades-tbody tr td:nth-child(8)::before{content:"Tour 3D"}
+      #propiedades-tbody tr td:nth-child(9)::before{content:"Disponib."}
+      /* Citas lista (Fecha | Hora | Tipo | Cliente | Estado | Acciones) */
+      #citas-lista-tbody tr td:nth-child(1)::before{content:"Fecha"}
+      #citas-lista-tbody tr td:nth-child(2)::before{content:"Hora"}
+      #citas-lista-tbody tr td:nth-child(3)::before{content:"Tipo"}
+      #citas-lista-tbody tr td:nth-child(4)::before{content:"Cliente"}
+      #citas-lista-tbody tr td:nth-child(5)::before{content:"Estado"}
+      /* Precios (Código | Categoría | Descripción | Tipo | Tarifa | Mínimo | Estado | IA Auto | Acciones) */
+      #precios-tbody tr td:nth-child(1)::before{content:"Código"}
+      #precios-tbody tr td:nth-child(2)::before{content:"Categoría"}
+      #precios-tbody tr td:nth-child(3)::before{content:"Descripción"}
+      #precios-tbody tr td:nth-child(4)::before{content:"Tipo"}
+      #precios-tbody tr td:nth-child(5)::before{content:"Tarifa"}
+      #precios-tbody tr td:nth-child(6)::before{content:"Mínimo"}
+      #precios-tbody tr td:nth-child(7)::before{content:"Estado"}
+      #precios-tbody tr td:nth-child(8)::before{content:"IA Auto"}
+      /* Adicionales (Nombre | Categoría | Orden | En uso | Estado | Acciones) */
+      #adicionales-tbody tr td:nth-child(1)::before{content:"Nombre"}
+      #adicionales-tbody tr td:nth-child(2)::before{content:"Categoría"}
+      #adicionales-tbody tr td:nth-child(3)::before{content:"Orden"}
+      #adicionales-tbody tr td:nth-child(4)::before{content:"En uso"}
+      #adicionales-tbody tr td:nth-child(5)::before{content:"Estado"}
+      /* Promociones (Código | Descripción | Tipo | Valor | Vence | Estado | Acciones) */
+      #promo-tbody tr td:nth-child(1)::before{content:"Código"}
+      #promo-tbody tr td:nth-child(2)::before{content:"Descripción"}
+      #promo-tbody tr td:nth-child(3)::before{content:"Tipo"}
+      #promo-tbody tr td:nth-child(4)::before{content:"Valor"}
+      #promo-tbody tr td:nth-child(5)::before{content:"Vence"}
+      #promo-tbody tr td:nth-child(6)::before{content:"Estado"}
+      /* Agentes (ID | Nombre | Email | Comisión | Estado | Acciones) */
+      #agentes-tbody tr td:nth-child(1)::before{content:"ID"}
+      #agentes-tbody tr td:nth-child(2)::before{content:"Nombre"}
+      #agentes-tbody tr td:nth-child(3)::before{content:"Email"}
+      #agentes-tbody tr td:nth-child(4)::before{content:"Comisión"}
+      #agentes-tbody tr td:nth-child(5)::before{content:"Estado"}
+      /* Solicitudes de agente (ID | Nombre | Email | Banco | Cuenta | Titular | Estado | Código | Fecha | Acciones) */
+      #solicitudes-agente-tbody tr td:nth-child(1)::before{content:"ID"}
+      #solicitudes-agente-tbody tr td:nth-child(2)::before{content:"Nombre"}
+      #solicitudes-agente-tbody tr td:nth-child(3)::before{content:"Email"}
+      #solicitudes-agente-tbody tr td:nth-child(4)::before{content:"Banco"}
+      #solicitudes-agente-tbody tr td:nth-child(5)::before{content:"Cuenta"}
+      #solicitudes-agente-tbody tr td:nth-child(6)::before{content:"Titular"}
+      #solicitudes-agente-tbody tr td:nth-child(7)::before{content:"Estado"}
+      #solicitudes-agente-tbody tr td:nth-child(8)::before{content:"Código"}
+      #solicitudes-agente-tbody tr td:nth-child(9)::before{content:"Fecha"}
+      /* Usuarios (ID | Nombre | Email | Rol | Cód.CLI | Cód.AGT | Estado | SuperAdmin | Acciones) */
+      #usuarios-tbody tr td:nth-child(1)::before{content:"ID"}
+      #usuarios-tbody tr td:nth-child(2)::before{content:"Nombre"}
+      #usuarios-tbody tr td:nth-child(3)::before{content:"Email"}
+      #usuarios-tbody tr td:nth-child(4)::before{content:"Rol"}
+      #usuarios-tbody tr td:nth-child(5)::before{content:"Cód. CLI"}
+      #usuarios-tbody tr td:nth-child(6)::before{content:"Cód. AGT"}
+      #usuarios-tbody tr td:nth-child(7)::before{content:"Estado"}
+      #usuarios-tbody tr td:nth-child(8)::before{content:"SuperAdmin"}
+      /* Clientes portal (ID | Nombre | Email | Rol | Cód.CLI | Cód.AGT | Estado | Acciones) */
+      #clientes-portal-tbody tr td:nth-child(1)::before{content:"ID"}
+      #clientes-portal-tbody tr td:nth-child(2)::before{content:"Nombre"}
+      #clientes-portal-tbody tr td:nth-child(3)::before{content:"Email"}
+      #clientes-portal-tbody tr td:nth-child(4)::before{content:"Rol"}
+      #clientes-portal-tbody tr td:nth-child(5)::before{content:"Cód. CLI"}
+      #clientes-portal-tbody tr td:nth-child(6)::before{content:"Cód. AGT"}
+      #clientes-portal-tbody tr td:nth-child(7)::before{content:"Estado"}
+      /* Reporte (Fecha | Código | Tipo | Concepto | Cliente | Monto | Estado) */
+      #rpt-tbody tr td:nth-child(1)::before{content:"Fecha"}
+      #rpt-tbody tr td:nth-child(2)::before{content:"Código"}
+      #rpt-tbody tr td:nth-child(3)::before{content:"Tipo"}
+      #rpt-tbody tr td:nth-child(4)::before{content:"Concepto"}
+      #rpt-tbody tr td:nth-child(5)::before{content:"Cliente"}
+      #rpt-tbody tr td:nth-child(6)::before{content:"Monto"}
+      #rpt-tbody tr td:nth-child(7)::before{content:"Estado"}
+      /* Conversaciones (ID | Cliente | Canal | Último msg | Estado | Acciones) */
+      #conv-tbody tr td:nth-child(1)::before{content:"ID"}
+      #conv-tbody tr td:nth-child(2)::before{content:"Cliente"}
+      #conv-tbody tr td:nth-child(3)::before{content:"Canal"}
+      #conv-tbody tr td:nth-child(4)::before{content:"Último msg"}
+      #conv-tbody tr td:nth-child(5)::before{content:"Estado"}
+      /* WhatsApp contactos (Número | Tipo | Nombre | Actualizado | Acciones) */
+      #wac-tbody tr td:nth-child(1)::before{content:"Número"}
+      #wac-tbody tr td:nth-child(2)::before{content:"Tipo"}
+      #wac-tbody tr td:nth-child(3)::before{content:"Nombre"}
+      #wac-tbody tr td:nth-child(4)::before{content:"Actualizado"}
     }
   /* ── ADICIONALES CHECKBOXES ─────────────────── */
   .adic-check {
