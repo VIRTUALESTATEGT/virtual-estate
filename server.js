@@ -111,12 +111,12 @@ app.get('/api/propiedades/public', async (req, res) => {
     // Try with adicionales join first; fall back to base select if table doesn't exist yet
     let { data, error } = await decorateQuery(applyFilters(
       supabasePublic.from('propiedades')
-        .select('id,nombre,tipo,modalidad,precio,m2,zona,linktour3d,disponibilidad,foto_principal_url,descripcion,habitaciones,banos,anio_construccion,propiedades_adicionales(tipo,nombre)')
+        .select('id,nombre,tipo,modalidad,precio,moneda,m2,zona,linktour3d,disponibilidad,foto_principal_url,descripcion,habitaciones,banos,anio_construccion,propiedades_adicionales(tipo,nombre)')
     ));
     if (error && error.message && error.message.includes('propiedades_adicionales')) {
       ({ data, error } = await decorateQuery(applyFilters(
         supabasePublic.from('propiedades')
-          .select('id,nombre,tipo,modalidad,precio,m2,zona,linktour3d,disponibilidad,foto_principal_url,descripcion,habitaciones,banos,anio_construccion')
+          .select('id,nombre,tipo,modalidad,precio,moneda,m2,zona,linktour3d,disponibilidad,foto_principal_url,descripcion,habitaciones,banos,anio_construccion')
       )));
     }
     if (error) throw error;
