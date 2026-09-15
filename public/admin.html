@@ -2482,6 +2482,8 @@
 
   let _tasaUsdGtq = 7.90;
 
+  function fmtPrecio(n){const num=Math.round((Number(n)||0)*100)/100;const d=num%1!==0;return num.toLocaleString('en-US',{minimumFractionDigits:d?2:0,maximumFractionDigits:2});}
+
   function convertirMoneda(monto, desde, hacia, tasa) {
     tasa = tasa || _tasaUsdGtq;
     monto = Number(monto) || 0;
@@ -4555,7 +4557,7 @@
         <td class="td-bold">${p.nombre||'—'}</td>
         <td>${p.tipo||'—'}</td>
         <td><span class="badge ${(Array.isArray(p.modalidad)?p.modalidad.includes('renta'):p.modalidad==='Renta')?'badge-renta':'badge-venta'}">${Array.isArray(p.modalidad)?p.modalidad.map(v=>v==='venta'?'Venta':'Renta').join('+'):(p.modalidad||'—')}</span></td>
-        <td class="td-gold">${p.precio?(p.moneda==='GTQ'?'Q':'$')+Number(p.precio).toLocaleString():'—'}</td>
+        <td class="td-gold">${p.precio?(p.moneda==='GTQ'?'Q':'$')+fmtPrecio(p.precio):'—'}</td>
         <td>${p.m2?p.m2+' m²':'—'}</td>
         <td>${p.zona||'—'}</td>
         <td>${p.linktour3d?'<a href="'+p.linktour3d+'" target="_blank" style="color:var(--gold);"><i class="fas fa-vr-cardboard"></i> Ver</a>':'<span style="color:var(--gray);">—</span>'}</td>

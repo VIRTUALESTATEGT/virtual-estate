@@ -881,7 +881,7 @@ function openDetail(code, propId) {
   document.getElementById('detailCode').textContent     = code;
   document.getElementById('detailName').textContent     = p.nombre;
   document.getElementById('detailLoc').textContent      = p.zona || 'Guatemala';
-  document.getElementById('detailPrice').textContent    = p.precio ? (p.moneda === 'GTQ' ? 'Q' : '$') + Number(p.precio).toLocaleString() : 'Consultar';
+  document.getElementById('detailPrice').textContent    = p.precio ? (p.moneda === 'GTQ' ? 'Q' : '$') + fmtPrecio(p.precio) : 'Consultar';
   document.getElementById('detailModalidad').textContent = catalogModLabel(p.modalidad);
   document.getElementById('detailWA').href = `https://wa.me/50239902399?text=${encodeURIComponent('Hola, me interesa la propiedad ' + code + ' — ' + p.nombre)}`;
 
@@ -1065,9 +1065,9 @@ function applyCurrency() {
     // Normalize to USD equivalent, then apply selected currency
     const usdVal = moneda === 'GTQ' ? raw / RE_TASA : raw;
     if (reCurrency === 'GTQ') {
-      el.textContent = 'Q' + Math.round(usdVal * RE_TASA).toLocaleString('es-GT');
+      el.textContent = 'Q' + fmtPrecio(usdVal * RE_TASA);
     } else {
-      el.textContent = '$' + usdVal.toLocaleString('en-US');
+      el.textContent = '$' + fmtPrecio(usdVal);
     }
   });
 }

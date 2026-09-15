@@ -1989,7 +1989,7 @@ let browseCatalog = null; // initCatalog instance for the explore panel
 
 function propCardHTML(p, isSaved) {
   const icon = tipoIcon[p.tipo] || 'fa-home';
-  const precio = p.precio ? (p.moneda === 'GTQ' ? 'Q' : '$') + Number(p.precio).toLocaleString() : '—';
+  const precio = p.precio ? (p.moneda === 'GTQ' ? 'Q' : '$') + fmtPrecio(p.precio) : '—';
   const isRenta = _modIsRenta(p.modalidad);
   const badgeClass = isRenta ? 're-badge-renta' : 're-badge-venta';
   const favClass = isSaved ? 'active' : '';
@@ -2059,7 +2059,7 @@ function _fillPropModal(p, isFav) {
   document.getElementById('pmod-code').textContent = `PROP-${String(p.id).padStart(5,'0')}`;
   document.getElementById('pmod-name').textContent = p.nombre;
   document.getElementById('pmod-loc').innerHTML = `<i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.65rem;"></i> ${p.zona || '—'}`;
-  document.getElementById('pmod-price').textContent = p.precio ? (p.moneda === 'GTQ' ? 'Q' : '$') + Number(p.precio).toLocaleString() : '—';
+  document.getElementById('pmod-price').textContent = p.precio ? (p.moneda === 'GTQ' ? 'Q' : '$') + fmtPrecio(p.precio) : '—';
   document.getElementById('pmod-badge').textContent = _modLabel(p.modalidad);
 
   PropDetail.renderSpecs(document.getElementById('pmod-specs'), p, tipoIcon[p.tipo] || 'fa-home');

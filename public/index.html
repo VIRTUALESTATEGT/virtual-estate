@@ -1663,6 +1663,7 @@ document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
   const grid = document.getElementById('re-preview-grid');
   if (!grid) return;
   const TIPO_ICON = { Apartamento:'fa-building', Casa:'fa-home', Terreno:'fa-map', 'Local comercial':'fa-store', Oficina:'fa-briefcase', Penthouse:'fa-city', 'Bodega / Galera':'fa-warehouse', Finca:'fa-tractor' };
+  function fmtPrecio(n){const num=Math.round((Number(n)||0)*100)/100;const d=num%1!==0;return num.toLocaleString('en-US',{minimumFractionDigits:d?2:0,maximumFractionDigits:2});}
   const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const skeleton = `<div class="prop-card" style="opacity:.35;pointer-events:none;">
     <div class="prop-img" style="background:var(--bg3);"></div>
@@ -1684,7 +1685,7 @@ document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
       const icon = TIPO_ICON[p.tipo] || 'fa-home';
       const isRenta = Array.isArray(p.modalidad) ? p.modalidad.includes('renta') : String(p.modalidad||'').includes('renta');
       const modLabel = Array.isArray(p.modalidad) ? p.modalidad.map(v=>v==='venta'?'Venta':'Renta').join(' · ') : (p.modalidad||'Venta');
-      const precio = p.precio ? (p.moneda === 'GTQ' ? 'Q' : '$') + Number(p.precio).toLocaleString() : 'Consultar';
+      const precio = p.precio ? (p.moneda === 'GTQ' ? 'Q' : '$') + fmtPrecio(p.precio) : 'Consultar';
       const code = 'PROP-' + String(p.id).padStart(5,'0');
       const imgHtml = p.foto_principal_url
         ? `<img src="${p.foto_principal_url}" alt="${esc(p.nombre)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">`

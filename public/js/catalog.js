@@ -7,6 +7,14 @@
 window.API_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://localhost:3000' : '';
 
+// Formatea un precio sin decimales si son cero, con 2 si los tiene.
+// 6600 → "6,600"  |  6600.50 → "6,600.50"  |  835.443 → "835.44"
+function fmtPrecio(n) {
+  const num = Math.round((Number(n) || 0) * 100) / 100;
+  const d = num % 1 !== 0;
+  return num.toLocaleString('en-US', { minimumFractionDigits: d ? 2 : 0, maximumFractionDigits: 2 });
+}
+
 const CATALOG_TIPO_ICON = {
   Apartamento: 'fa-building', Casa: 'fa-home', Terreno: 'fa-map',
   'Local comercial': 'fa-store', Oficina: 'fa-briefcase',
@@ -59,7 +67,7 @@ function initCatalog(cfg) {
   function _publicCard(p) {
     const icon    = CATALOG_TIPO_ICON[p.tipo] || 'fa-home';
     const sym     = p.moneda === 'GTQ' ? 'Q' : '$';
-    const precio  = p.precio ? sym + Number(p.precio).toLocaleString() : 'Consultar';
+    const precio  = p.precio ? sym + fmtPrecio(p.precio) : 'Consultar';
     const isRenta = catalogModIsRenta(p.modalidad);
     const code    = 'PROP-' + String(p.id).padStart(5, '0');
     const adics   = (p.propiedades_adicionales || []).map(a => a.nombre);
@@ -104,7 +112,7 @@ function initCatalog(cfg) {
   function _portalCard(p) {
     const icon      = CATALOG_TIPO_ICON[p.tipo] || 'fa-home';
     const sym2      = p.moneda === 'GTQ' ? 'Q' : '$';
-    const precio    = p.precio ? sym2 + Number(p.precio).toLocaleString() : 'Consultar';
+    const precio    = p.precio ? sym2 + fmtPrecio(p.precio) : 'Consultar';
     const isRenta   = catalogModIsRenta(p.modalidad);
     const isSaved   = _getFavIds().has(p.id);
     const badgeCls  = isRenta ? 're-badge-renta' : 're-badge-venta';
