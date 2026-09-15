@@ -149,12 +149,10 @@ window.PropDetail = (() => {
     _destCSSInjected = true;
     const s = document.createElement('style');
     s.textContent =
-      '.adic-dest-row{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:.85rem;}' +
-      '.adic-dest-pill{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;' +
-        'padding:.3rem .75rem;border-radius:2px;white-space:nowrap;' +
-        'background:rgba(193,146,89,.1);color:var(--gold,#C1925A);' +
-        'border:1px solid rgba(193,146,89,.28);}' +
-      '.adic-dest-pill i{font-size:.66rem;opacity:.8;}' +
+      '.adic-dest-grid{display:grid;grid-template-columns:1fr 1fr;gap:.3rem .9rem;margin-bottom:.9rem;}' +
+      '@media(max-width:640px){.adic-dest-grid{grid-template-columns:1fr;}}' +
+      '.adic-dest-item{display:flex;align-items:flex-start;gap:.45rem;font-size:.78rem;min-width:0;line-height:1.35;}' +
+      '.adic-dest-item i{color:var(--gold,#C1925A);font-size:.68rem;flex-shrink:0;width:.9rem;text-align:center;margin-top:.17em;}' +
       '.adic-ver-todas-btn{display:inline-flex;align-items:center;gap:.4rem;' +
         'font-size:.72rem;color:var(--gray,#8A9A8E);background:none;border:none;' +
         'cursor:pointer;padding:.15rem 0;margin-bottom:.5rem;' +
@@ -198,13 +196,19 @@ window.PropDetail = (() => {
 
     _ensureDestCSS();
     const uid = p.id != null ? p.id : Math.random().toString(36).slice(2, 7);
-    const pills = destItems.map(a => {
+
+    // Sort by category order so same-type items are adjacent (visual grouping without headers)
+    const catOrder = {};
+    (ADIC_CATS || []).forEach((c, i) => { catOrder[c.tipo] = i; });
+    const destSorted = [...destItems].sort((a, b) => (catOrder[a.tipo] ?? 99) - (catOrder[b.tipo] ?? 99));
+
+    const rows = destSorted.map(a => {
       const icon = _ADIC_CAT_ICON[a.tipo] || 'fa-check-circle';
-      return `<span class="adic-dest-pill"><i class="fas ${icon}"></i> ${a.nombre}</span>`;
+      return `<div class="adic-dest-item"><i class="fas ${icon}"></i>${a.nombre}</div>`;
     }).join('');
 
     if (listEl) listEl.innerHTML =
-      `<div class="adic-dest-row">${pills}</div>` +
+      `<div class="adic-dest-grid">${rows}</div>` +
       `<button class="adic-ver-todas-btn" onclick="` +
         `this.style.display='none';` +
         `document.getElementById('adic-full-${uid}').style.display='block'` +
