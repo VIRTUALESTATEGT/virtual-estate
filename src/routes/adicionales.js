@@ -57,7 +57,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const id = Number(req.params.id);
-    const { tipo, nombre, activo, orden } = req.body;
+    const { tipo, nombre, activo, destacado, orden } = req.body;
 
     const { data: current, error: fetchErr } = await supabase
       .from('adicionales_catalogo')
@@ -108,8 +108,9 @@ router.put('/:id', async (req, res) => {
     const patch = {};
     if (tipo   !== undefined) patch.tipo   = tipo;
     if (nombre !== undefined) patch.nombre = nuevoNombre;
-    if (activo !== undefined) patch.activo = activo;
-    if (orden  !== undefined) patch.orden  = Number(orden);
+    if (activo    !== undefined) patch.activo    = activo;
+    if (destacado !== undefined) patch.destacado = Boolean(destacado);
+    if (orden     !== undefined) patch.orden     = Number(orden);
 
     const { data: updated, error: updErr } = await supabase
       .from('adicionales_catalogo')

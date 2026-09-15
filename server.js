@@ -69,7 +69,7 @@ app.get('/api/adicionales/catalogo', async (_req, res) => {
   try {
     const { data, error } = await supabasePublic
       .from('adicionales_catalogo')
-      .select('id, tipo, nombre, orden')
+      .select('id, tipo, nombre, orden, destacado')
       .eq('activo', true)
       .order('tipo')
       .order('orden');

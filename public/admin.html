@@ -446,12 +446,13 @@
       #precios-tbody tr td:nth-child(6)::before{content:"Mínimo"}
       #precios-tbody tr td:nth-child(7)::before{content:"Estado"}
       #precios-tbody tr td:nth-child(8)::before{content:"IA Auto"}
-      /* Adicionales (Nombre | Categoría | Orden | En uso | Estado | Acciones) */
+      /* Adicionales (Nombre | Categoría | Orden | En uso | Estado | Destacado | Acciones) */
       #adicionales-tbody tr td:nth-child(1)::before{content:"Nombre"}
       #adicionales-tbody tr td:nth-child(2)::before{content:"Categoría"}
       #adicionales-tbody tr td:nth-child(3)::before{content:"Orden"}
       #adicionales-tbody tr td:nth-child(4)::before{content:"En uso"}
       #adicionales-tbody tr td:nth-child(5)::before{content:"Estado"}
+      #adicionales-tbody tr td:nth-child(6)::before{content:"Destacado"}
       /* Promociones (Código | Descripción | Tipo | Valor | Vence | Estado | Acciones) */
       #promo-tbody tr td:nth-child(1)::before{content:"Código"}
       #promo-tbody tr td:nth-child(2)::before{content:"Descripción"}
@@ -1047,9 +1048,9 @@
           </div>
         </div>
         <table>
-          <thead><tr><th>Nombre</th><th>Categoría</th><th>Orden</th><th>En uso</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>Nombre</th><th>Categoría</th><th>Orden</th><th>En uso</th><th>Estado</th><th>Destacado</th><th>Acciones</th></tr></thead>
           <tbody id="adicionales-tbody">
-            <tr><td colspan="6" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
+            <tr><td colspan="7" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -5447,7 +5448,7 @@
     const filtro = document.getElementById('adic-filtro-tipo')?.value || '';
     const items = filtro ? _adicCache.filter(a => a.tipo === filtro) : _adicCache;
     if (!items.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem;">Sin adicionales para este filtro.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:2rem;">Sin adicionales para este filtro.</td></tr>';
       return;
     }
     tbody.innerHTML = items.map(a => {
@@ -5463,6 +5464,10 @@
           onchange="cambiarOrdenAdic(${a.id}, this.value)"/></td>
         <td>${enUsoBadge}</td>
         <td><span class="badge ${a.activo ? 'badge-active' : 'badge-lost'}" style="cursor:pointer;" onclick="toggleActivoAdic(${a.id})">${a.activo ? 'Activo' : 'Oculto'}</span></td>
+        <td>${a.destacado
+          ? `<span class="badge" style="background:rgba(200,147,74,.18);color:var(--gold);border:1px solid rgba(200,147,74,.4);cursor:pointer;font-size:.62rem;" onclick="toggleDestacadoAdic(${a.id})">⭐ Destacado</span>`
+          : `<span class="badge badge-lost" style="cursor:pointer;font-size:.62rem;" onclick="toggleDestacadoAdic(${a.id})">—</span>`
+        }</td>
         <td><div class="action-btns">
           <button class="act-btn" title="Editar" onclick="abrirEditarAdic(${a.id})"><i class="fas fa-pencil-alt"></i></button>
           <button class="act-btn danger" title="Eliminar" onclick="eliminarAdic(${a.id})"><i class="fas fa-trash"></i></button>
@@ -5476,6 +5481,15 @@
     if (!a) return;
     try {
       await apiFetch(`/api/admin/adicionales/${id}`, { method: 'PUT', body: JSON.stringify({ activo: !a.activo }) });
+      loadAdicionales();
+    } catch(e) { showToast('Error: ' + e.message); }
+  }
+
+  async function toggleDestacadoAdic(id) {
+    const a = _adicCache.find(x => x.id === id);
+    if (!a) return;
+    try {
+      await apiFetch(`/api/admin/adicionales/${id}`, { method: 'PUT', body: JSON.stringify({ destacado: !a.destacado }) });
       loadAdicionales();
     } catch(e) { showToast('Error: ' + e.message); }
   }
@@ -5497,6 +5511,8 @@
     document.getElementById('adic-nombre').value = '';
     document.getElementById('adic-tipo').value = 'servicios_infraestructura';
     document.getElementById('adic-orden').value = '0';
+    document.getElementById('adic-activo').checked = true;
+    document.getElementById('adic-destacado').checked = false;
     document.getElementById('adicModal').classList.add('open');
   }
 
@@ -5508,13 +5524,17 @@
     document.getElementById('adic-nombre').value = a.nombre;
     document.getElementById('adic-tipo').value = a.tipo;
     document.getElementById('adic-orden').value = a.orden;
+    document.getElementById('adic-activo').checked = !!a.activo;
+    document.getElementById('adic-destacado').checked = !!a.destacado;
     document.getElementById('adicModal').classList.add('open');
   }
 
   async function guardarAdic() {
-    const nombre = document.getElementById('adic-nombre').value.trim();
-    const tipo   = document.getElementById('adic-tipo').value;
-    const orden  = Number(document.getElementById('adic-orden').value) || 0;
+    const nombre    = document.getElementById('adic-nombre').value.trim();
+    const tipo      = document.getElementById('adic-tipo').value;
+    const orden     = Number(document.getElementById('adic-orden').value) || 0;
+    const activo    = document.getElementById('adic-activo').checked;
+    const destacado = document.getElementById('adic-destacado').checked;
     if (!nombre) { showToast('El nombre es requerido.'); return; }
 
     if (_adicEditId !== null) {
@@ -5525,14 +5545,14 @@
       }
       try {
         const res = await apiFetch(`/api/admin/adicionales/${_adicEditId}`, {
-          method: 'PUT', body: JSON.stringify({ nombre, tipo, orden })
+          method: 'PUT', body: JSON.stringify({ nombre, tipo, orden, activo, destacado })
         });
         const n = res.propiedades_actualizadas || 0;
         showToast(n > 0 ? `✅ Actualizado. ${n} propiedad(es) renombradas.` : '✅ Adicional actualizado.');
       } catch(e) { showToast('Error: ' + e.message); return; }
     } else {
       try {
-        await apiFetch('/api/admin/adicionales', { method: 'POST', body: JSON.stringify({ nombre, tipo, orden }) });
+        await apiFetch('/api/admin/adicionales', { method: 'POST', body: JSON.stringify({ nombre, tipo, orden, activo, destacado }) });
         showToast('✅ Adicional creado.');
       } catch(e) { showToast('Error: ' + e.message); return; }
     }
@@ -5928,6 +5948,14 @@
     <div class="form-group">
       <label class="form-label">Orden</label>
       <input type="number" id="adic-orden" class="form-control" min="0" placeholder="0"/>
+    </div>
+    <div class="form-group" style="display:flex;gap:1.8rem;align-items:center;padding:.4rem 0;">
+      <label style="display:flex;align-items:center;gap:.45rem;font-size:.8rem;cursor:pointer;">
+        <input type="checkbox" id="adic-activo" style="accent-color:var(--gold);width:14px;height:14px;"/> Activo
+      </label>
+      <label style="display:flex;align-items:center;gap:.45rem;font-size:.8rem;cursor:pointer;">
+        <input type="checkbox" id="adic-destacado" style="accent-color:var(--gold);width:14px;height:14px;"/> Destacado
+      </label>
     </div>
     <div style="display:flex;gap:.6rem;margin-top:1.2rem;">
       <button class="topbar-btn btn-primary" onclick="guardarAdic()" style="flex:2;justify-content:center;"><i class="fas fa-save"></i> Guardar</button>
