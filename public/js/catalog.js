@@ -93,8 +93,11 @@ function initCatalog(cfg) {
       <div class="prop-name"><i class="fas ${icon}" style="color:var(--gold);font-size:.8rem;margin-right:.4rem;opacity:.8;"></i>${p.nombre}</div>
       <div class="prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> ${p.zona || 'Guatemala'}</div>
       <div class="prop-specs">
-        ${p.tipo  ? `<span class="prop-spec"><i class="fas ${icon}"></i> ${p.tipo}</span>` : ''}
-        ${m2Spec  ? `<span class="prop-spec"><i class="fas fa-ruler-combined"></i> ${m2Spec}</span>` : ''}
+        ${p.habitaciones ? `<span class="prop-spec"><i class="fas fa-bed"></i> ${p.habitaciones}</span>` : ''}
+        ${p.banos        ? `<span class="prop-spec"><i class="fas fa-bath"></i> ${p.banos}</span>` : ''}
+        ${p.parqueos     ? `<span class="prop-spec"><i class="fas fa-car"></i> ${p.parqueos}</span>` : ''}
+        ${m2Spec         ? `<span class="prop-spec"><i class="fas fa-ruler-combined"></i> ${m2Spec}</span>` : ''}
+        ${!p.habitaciones && !p.banos && !p.parqueos && p.tipo ? `<span class="prop-spec"><i class="fas ${icon}"></i> ${p.tipo}</span>` : ''}
       </div>
       ${dispBadges}
       <div class="prop-price" data-price="${p.precio || 0}" data-moneda="${p.moneda || 'USD'}">${precio}</div>
@@ -141,8 +144,11 @@ function initCatalog(cfg) {
       <div class="re-prop-name">${p.nombre}</div>
       <div class="re-prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> ${p.zona || 'Guatemala'}</div>
       <div class="re-prop-specs">
-        ${p.tipo ? `<span class="re-prop-spec"><i class="fas ${icon}"></i> ${p.tipo}</span>` : ''}
-        ${p.m2   ? `<span class="re-prop-spec"><i class="fas fa-ruler-combined"></i> ${p.m2} m²</span>` : ''}
+        ${p.habitaciones ? `<span class="re-prop-spec"><i class="fas fa-bed"></i> ${p.habitaciones}</span>` : ''}
+        ${p.banos        ? `<span class="re-prop-spec"><i class="fas fa-bath"></i> ${p.banos}</span>` : ''}
+        ${p.parqueos     ? `<span class="re-prop-spec"><i class="fas fa-car"></i> ${p.parqueos}</span>` : ''}
+        ${p.m2           ? `<span class="re-prop-spec"><i class="fas fa-ruler-combined"></i> ${p.m2} m²</span>` : ''}
+        ${!p.habitaciones && !p.banos && !p.parqueos && p.tipo ? `<span class="re-prop-spec"><i class="fas ${icon}"></i> ${p.tipo}</span>` : ''}
       </div>
       ${dispBadges}
       <div class="re-prop-price">${precio}</div>
@@ -181,6 +187,7 @@ function initCatalog(cfg) {
     const numericMap = {
       precio_min: fids.precioMin, precio_max: fids.precioMax,
       m2_min:     fids.m2Min,     m2_max:     fids.m2Max,
+      hab_min:    fids.habMin,    ban_min:    fids.banMin,    parq_min: fids.parqMin,
     };
     for (const [key, id] of Object.entries(numericMap)) {
       if (id) { const v = document.getElementById(id)?.value; if (v) params.set(key, v); }
@@ -294,4 +301,23 @@ function initCatalog(cfg) {
   function getData() { return _data; }
 
   return { load, sort, getData };
+}
+
+// ── Quantity pill helpers (used by real-estate.html and portal-cliente.html) ──
+
+function setPill(btn) {
+  const group = btn.closest('.qty-pills');
+  if (!group) return;
+  group.querySelectorAll('.qty-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const el = document.getElementById(group.dataset.inputId || '');
+  if (el) el.value = btn.dataset.val || '';
+}
+
+function resetPills(containerSel) {
+  document.querySelectorAll((containerSel ? containerSel + ' ' : '') + '.qty-pills').forEach(group => {
+    group.querySelectorAll('.qty-pill').forEach((b, i) => b.classList.toggle('active', i === 0));
+    const el = document.getElementById(group.dataset.inputId || '');
+    if (el) el.value = '';
+  });
 }

@@ -79,6 +79,14 @@
   .filter-btn:hover{background:var(--gold-lt);}
   .filter-reset{width:100%;padding:.55rem;background:transparent;color:var(--gray);border:1px solid var(--border);border-radius:var(--r);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:500;cursor:pointer;transition:var(--tr);margin-top:.4rem;}
   .filter-reset:hover{border-color:var(--gold);color:var(--gold);}
+  .qty-group{margin-bottom:.75rem;}
+  .qty-group:last-child{margin-bottom:0;}
+  .qty-group-label{font-size:.63rem;color:var(--gray);margin-bottom:.3rem;}
+  .qty-group-label i{color:var(--gold);margin-right:.3rem;}
+  .qty-pills{display:flex;gap:.3rem;flex-wrap:wrap;}
+  .qty-pill{background:transparent;border:1px solid var(--border);color:var(--gray);font-family:'Montserrat',sans-serif;font-size:.67rem;padding:.28rem .62rem;border-radius:20px;cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent;}
+  .qty-pill:hover{border-color:var(--gold);color:var(--white);}
+  .qty-pill.active{background:var(--gold);border-color:var(--gold);color:var(--bg);font-weight:600;}
 
   /* ── LISTINGS ────────────────────────── */
   .listings-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;flex-wrap:wrap;gap:.8rem;}
@@ -460,6 +468,43 @@
       <div class="filter-title">Filtros de búsqueda</div>
 
       <div class="filter-section">
+        <div class="filter-section-title">Cantidades</div>
+        <div class="qty-group">
+          <div class="qty-group-label"><i class="fas fa-bed"></i>Habitaciones</div>
+          <div class="qty-pills" data-input-id="f-hab-min">
+            <button type="button" class="qty-pill active" data-val="" onclick="setPill(this);aplicarFiltros()">Cualquiera</button>
+            <button type="button" class="qty-pill" data-val="1" onclick="setPill(this);aplicarFiltros()">1+</button>
+            <button type="button" class="qty-pill" data-val="2" onclick="setPill(this);aplicarFiltros()">2+</button>
+            <button type="button" class="qty-pill" data-val="3" onclick="setPill(this);aplicarFiltros()">3+</button>
+            <button type="button" class="qty-pill" data-val="4" onclick="setPill(this);aplicarFiltros()">4+</button>
+          </div>
+          <input type="hidden" id="f-hab-min"/>
+        </div>
+        <div class="qty-group">
+          <div class="qty-group-label"><i class="fas fa-bath"></i>Baños</div>
+          <div class="qty-pills" data-input-id="f-ban-min">
+            <button type="button" class="qty-pill active" data-val="" onclick="setPill(this);aplicarFiltros()">Cualquiera</button>
+            <button type="button" class="qty-pill" data-val="1" onclick="setPill(this);aplicarFiltros()">1+</button>
+            <button type="button" class="qty-pill" data-val="2" onclick="setPill(this);aplicarFiltros()">2+</button>
+            <button type="button" class="qty-pill" data-val="3" onclick="setPill(this);aplicarFiltros()">3+</button>
+            <button type="button" class="qty-pill" data-val="4" onclick="setPill(this);aplicarFiltros()">4+</button>
+          </div>
+          <input type="hidden" id="f-ban-min"/>
+        </div>
+        <div class="qty-group">
+          <div class="qty-group-label"><i class="fas fa-car"></i>Parqueos</div>
+          <div class="qty-pills" data-input-id="f-parq-min">
+            <button type="button" class="qty-pill active" data-val="" onclick="setPill(this);aplicarFiltros()">Cualquiera</button>
+            <button type="button" class="qty-pill" data-val="1" onclick="setPill(this);aplicarFiltros()">1+</button>
+            <button type="button" class="qty-pill" data-val="2" onclick="setPill(this);aplicarFiltros()">2+</button>
+            <button type="button" class="qty-pill" data-val="3" onclick="setPill(this);aplicarFiltros()">3+</button>
+            <button type="button" class="qty-pill" data-val="4" onclick="setPill(this);aplicarFiltros()">4+</button>
+          </div>
+          <input type="hidden" id="f-parq-min"/>
+        </div>
+      </div>
+
+      <div class="filter-section">
         <div class="filter-section-title">Modalidad</div>
         <div class="filter-checks">
           <label class="filter-check"><input type="checkbox" class="fc-modalidad" value="venta" checked/> Venta</label>
@@ -782,6 +827,7 @@ const catalog = initCatalog({
     disponibilidad: '.fc-disponibilidad',
     precioMin: 'f-min',    precioMax: 'f-max',
     m2Min:     'f-m2-min', m2Max:    'f-m2-max',
+    habMin:    'f-hab-min', banMin:  'f-ban-min', parqMin: 'f-parq-min',
     zona: 'f-zona',
   },
   onToggleFav:   (el, code, propId) => toggleFav(el, code, propId),
@@ -800,7 +846,8 @@ function setView(v){
 function aplicarFiltros(){ catalog.load(); }
 function resetFiltros(){
   document.querySelectorAll('.fc-tipo,.fc-modalidad,.fc-disponibilidad').forEach(cb=>cb.checked=true);
-  ['f-min','f-max','f-m2-min','f-m2-max','f-zona'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-min','f-max','f-m2-min','f-m2-max','f-zona','f-hab-min','f-ban-min','f-parq-min'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  resetPills('.filters-sidebar');
   limpiarAdic();
   catalog.load();
 }
@@ -1123,10 +1170,11 @@ function _updateFabBadge() {
   const sidebar = document.querySelector('.filters-sidebar');
   if (!sidebar) return;
   // Cuenta filtros no-default: checkboxes desmarcados + inputs con valor
-  const unchecked = [...sidebar.querySelectorAll('input[type="checkbox"]')].filter(c => !c.checked).length;
-  const filled    = [...sidebar.querySelectorAll('input[type="number"],input[type="text"]')].filter(i => i.value.trim()).length;
-  const adicCount = parseInt(document.getElementById('adic-sidebar-count')?.textContent || '0') || 0;
-  const total = unchecked + filled + adicCount;
+  const unchecked    = [...sidebar.querySelectorAll('input[type="checkbox"]')].filter(c => !c.checked).length;
+  const filled       = [...sidebar.querySelectorAll('input[type="number"],input[type="text"]')].filter(i => i.value.trim()).length;
+  const adicCount    = parseInt(document.getElementById('adic-sidebar-count')?.textContent || '0') || 0;
+  const activePills  = [...sidebar.querySelectorAll('.qty-pill.active')].filter(b => b.dataset.val).length;
+  const total = unchecked + filled + adicCount + activePills;
   const badge = document.getElementById('filterFabBadge');
   if (badge) { badge.textContent = total; badge.style.display = total > 0 ? 'inline-flex' : 'none'; }
 }

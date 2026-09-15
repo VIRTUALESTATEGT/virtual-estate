@@ -84,7 +84,7 @@ const MOD_ALLOWED  = new Set(['venta', 'renta']);
 
 app.get('/api/propiedades/public', async (req, res) => {
   try {
-    const { zona, tipo, modalidad, precio_min, precio_max, m2_min, m2_max, disponibilidad, limit, foto_first } = req.query;
+    const { zona, tipo, modalidad, precio_min, precio_max, m2_min, m2_max, disponibilidad, limit, foto_first, hab_min, ban_min, parq_min } = req.query;
     const dispVals = disponibilidad
       ? disponibilidad.split(',').map(v => v.trim()).filter(v => DISP_ALLOWED.has(v))
       : [];
@@ -99,6 +99,9 @@ app.get('/api/propiedades/public', async (req, res) => {
       if (precio_max)      q = q.lte('precio', Number(precio_max));
       if (m2_min)          q = q.gte('m2', Number(m2_min));
       if (m2_max)          q = q.lte('m2', Number(m2_max));
+      if (hab_min)         q = q.gte('habitaciones', Number(hab_min));
+      if (ban_min)         q = q.gte('banos', Number(ban_min));
+      if (parq_min)        q = q.gte('parqueos', Number(parq_min));
       if (dispVals.length) q = q.overlaps('disponibilidad', dispVals);
       return q;
     };
@@ -111,12 +114,12 @@ app.get('/api/propiedades/public', async (req, res) => {
     // Try with adicionales join first; fall back to base select if table doesn't exist yet
     let { data, error } = await decorateQuery(applyFilters(
       supabasePublic.from('propiedades')
-        .select('id,nombre,tipo,modalidad,precio,moneda,m2,zona,linktour3d,disponibilidad,foto_principal_url,descripcion,habitaciones,banos,anio_construccion,propiedades_adicionales(tipo,nombre)')
+        .select('id,nombre,tipo,modalidad,precio,moneda,m2,zona,linktour3d,disponibilidad,foto_principal_url,descripcion,habitaciones,banos,parqueos,anio_construccion,propiedades_adicionales(tipo,nombre)')
     ));
     if (error && error.message && error.message.includes('propiedades_adicionales')) {
       ({ data, error } = await decorateQuery(applyFilters(
         supabasePublic.from('propiedades')
-          .select('id,nombre,tipo,modalidad,precio,moneda,m2,zona,linktour3d,disponibilidad,foto_principal_url,descripcion,habitaciones,banos,anio_construccion')
+          .select('id,nombre,tipo,modalidad,precio,moneda,m2,zona,linktour3d,disponibilidad,foto_principal_url,descripcion,habitaciones,banos,parqueos,anio_construccion')
       )));
     }
     if (error) throw error;

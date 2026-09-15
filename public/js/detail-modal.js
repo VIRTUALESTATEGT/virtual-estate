@@ -110,8 +110,9 @@ window.PropDetail = (() => {
     if (p.tipo)              rows.push({ i: icon,                t: p.tipo });
     if (p.m2)                rows.push({ i: 'fa-ruler-combined', t: p.m2 + ' m²' });
     if (p.habitaciones)      rows.push({ i: 'fa-bed',            t: p.habitaciones + ' hab.' });
-    if (p.banos)             rows.push({ i: 'fa-bath',           t: p.banos + ' baños' });
-    if (p.anio_construccion) rows.push({ i: 'fa-calendar-alt',   t: String(p.anio_construccion) });
+    if (p.banos)             rows.push({ i: 'fa-bath',         t: p.banos + ' baños' });
+    if (p.parqueos)          rows.push({ i: 'fa-car',          t: p.parqueos + (p.parqueos > 1 ? ' parqueos' : ' parqueo') });
+    if (p.anio_construccion) rows.push({ i: 'fa-calendar-alt', t: String(p.anio_construccion) });
     el.innerHTML = rows.map(r =>
       `<div class="detail-spec"><i class="fas ${r.i}"></i> ${r.t}</div>`
     ).join('');

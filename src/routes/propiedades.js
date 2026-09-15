@@ -44,7 +44,7 @@ router.get('/', async (req, res) => {
 router.post('/', verificarPermiso('crear_propiedad'), async (req, res) => {
   try {
     const { nombre, tipo, modalidad, precio, moneda, m2, zona, linkTour3D, disponibilidad,
-            descripcion, habitaciones, banos, anio_construccion } = req.body;
+            descripcion, habitaciones, banos, parqueos, anio_construccion } = req.body;
     const disp = Array.isArray(disponibilidad) ? disponibilidad.filter(v => DISP_ALLOWED.has(v)) : [];
     const mod  = Array.isArray(modalidad)      ? modalidad.filter(v => MOD_ALLOWED.has(v))       : [];
     const monedaVal = moneda === 'GTQ' ? 'GTQ' : 'USD';
@@ -55,6 +55,7 @@ router.post('/', verificarPermiso('crear_propiedad'), async (req, res) => {
         descripcion:       descripcion       || null,
         habitaciones:      habitaciones      != null ? Number(habitaciones)      : null,
         banos:             banos             != null ? Number(banos)             : null,
+        parqueos:          parqueos          != null ? Number(parqueos)          : null,
         anio_construccion: anio_construccion != null ? Number(anio_construccion) : null,
       }])
       .select();
@@ -67,7 +68,7 @@ router.post('/', verificarPermiso('crear_propiedad'), async (req, res) => {
 router.put('/:id', verificarPermiso('editar_propiedad'), async (req, res) => {
   try {
     const { nombre, tipo, modalidad, precio, moneda, m2, zona, linkTour3D, disponibilidad,
-            descripcion, habitaciones, banos, anio_construccion } = req.body;
+            descripcion, habitaciones, banos, parqueos, anio_construccion } = req.body;
     const disp = Array.isArray(disponibilidad) ? disponibilidad.filter(v => DISP_ALLOWED.has(v)) : [];
     const mod  = Array.isArray(modalidad)      ? modalidad.filter(v => MOD_ALLOWED.has(v))       : [];
     const monedaVal = moneda === 'GTQ' ? 'GTQ' : 'USD';
@@ -78,6 +79,7 @@ router.put('/:id', verificarPermiso('editar_propiedad'), async (req, res) => {
         descripcion:       descripcion       ?? null,
         habitaciones:      habitaciones      != null ? Number(habitaciones)      : null,
         banos:             banos             != null ? Number(banos)             : null,
+        parqueos:          parqueos          != null ? Number(parqueos)          : null,
         anio_construccion: anio_construccion != null ? Number(anio_construccion) : null,
       })
       .eq('id', req.params.id)

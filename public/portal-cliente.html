@@ -190,6 +190,14 @@
   .re-filter-check{display:flex;align-items:center;gap:.55rem;font-size:.73rem;color:rgba(245,240,232,.7);cursor:pointer;transition:color .15s;}
   .re-filter-check:hover{color:var(--white);}
   .re-filter-check input{accent-color:var(--gold);width:13px;height:13px;flex-shrink:0;}
+  .qty-group{margin-bottom:.75rem;}
+  .qty-group:last-child{margin-bottom:0;}
+  .qty-group-label{font-size:.63rem;color:var(--gray);margin-bottom:.3rem;}
+  .qty-group-label i{color:var(--gold);margin-right:.3rem;}
+  .qty-pills{display:flex;gap:.3rem;flex-wrap:wrap;}
+  .qty-pill{background:transparent;border:1px solid var(--border);color:var(--gray);font-family:'Montserrat',sans-serif;font-size:.67rem;padding:.28rem .62rem;border-radius:20px;cursor:pointer;transition:.15s;-webkit-tap-highlight-color:transparent;}
+  .qty-pill:hover{border-color:var(--gold);color:var(--white);}
+  .qty-pill.active{background:var(--gold);border-color:var(--gold);color:var(--bg);font-weight:600;}
 
   /* Property grid (real-estate style) */
   .re-props-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;}
@@ -692,6 +700,43 @@
           <!-- Sidebar filtros (estilo real-estate.html) -->
           <aside id="browse-filters-aside" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;">
             <div style="font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:1rem;">Filtros</div>
+
+            <div class="re-filter-section">
+              <div class="re-filter-title">Cantidades</div>
+              <div class="qty-group">
+                <div class="qty-group-label"><i class="fas fa-bed"></i>Habitaciones</div>
+                <div class="qty-pills" data-input-id="filt-hab-min">
+                  <button type="button" class="qty-pill active" data-val="" onclick="setPill(this);buscarPropiedades()">Cualquiera</button>
+                  <button type="button" class="qty-pill" data-val="1" onclick="setPill(this);buscarPropiedades()">1+</button>
+                  <button type="button" class="qty-pill" data-val="2" onclick="setPill(this);buscarPropiedades()">2+</button>
+                  <button type="button" class="qty-pill" data-val="3" onclick="setPill(this);buscarPropiedades()">3+</button>
+                  <button type="button" class="qty-pill" data-val="4" onclick="setPill(this);buscarPropiedades()">4+</button>
+                </div>
+                <input type="hidden" id="filt-hab-min"/>
+              </div>
+              <div class="qty-group">
+                <div class="qty-group-label"><i class="fas fa-bath"></i>Baños</div>
+                <div class="qty-pills" data-input-id="filt-ban-min">
+                  <button type="button" class="qty-pill active" data-val="" onclick="setPill(this);buscarPropiedades()">Cualquiera</button>
+                  <button type="button" class="qty-pill" data-val="1" onclick="setPill(this);buscarPropiedades()">1+</button>
+                  <button type="button" class="qty-pill" data-val="2" onclick="setPill(this);buscarPropiedades()">2+</button>
+                  <button type="button" class="qty-pill" data-val="3" onclick="setPill(this);buscarPropiedades()">3+</button>
+                  <button type="button" class="qty-pill" data-val="4" onclick="setPill(this);buscarPropiedades()">4+</button>
+                </div>
+                <input type="hidden" id="filt-ban-min"/>
+              </div>
+              <div class="qty-group">
+                <div class="qty-group-label"><i class="fas fa-car"></i>Parqueos</div>
+                <div class="qty-pills" data-input-id="filt-parq-min">
+                  <button type="button" class="qty-pill active" data-val="" onclick="setPill(this);buscarPropiedades()">Cualquiera</button>
+                  <button type="button" class="qty-pill" data-val="1" onclick="setPill(this);buscarPropiedades()">1+</button>
+                  <button type="button" class="qty-pill" data-val="2" onclick="setPill(this);buscarPropiedades()">2+</button>
+                  <button type="button" class="qty-pill" data-val="3" onclick="setPill(this);buscarPropiedades()">3+</button>
+                  <button type="button" class="qty-pill" data-val="4" onclick="setPill(this);buscarPropiedades()">4+</button>
+                </div>
+                <input type="hidden" id="filt-parq-min"/>
+              </div>
+            </div>
 
             <div class="re-filter-section">
               <div class="re-filter-title">Tipo de propiedad</div>
@@ -2030,10 +2075,11 @@ function sortBrowse(value)   { browseCatalog?.sort(value); }
 
 function limpiarFiltros() {
   document.querySelectorAll('.fc-tipo, .fc-modalidad, .fc-disp').forEach(cb => cb.checked = true);
-  ['filt-zona','filt-precio-min','filt-precio-max','filt-m2-min','filt-m2-max'].forEach(id => {
+  ['filt-zona','filt-precio-min','filt-precio-max','filt-m2-min','filt-m2-max','filt-hab-min','filt-ban-min','filt-parq-min'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  resetPills('#browse-filters-aside');
   limpiarAdic();
   browseCatalog?.load();
 }
@@ -2682,6 +2728,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         precioMax:      'filt-precio-max',
         m2Min:          'filt-m2-min',
         m2Max:          'filt-m2-max',
+        habMin:         'filt-hab-min',
+        banMin:         'filt-ban-min',
+        parqMin:        'filt-parq-min',
         zona:           'filt-zona',
       },
       getFavIds:    () => new Set(dbFavs.map(f => f.propiedad_id)),
