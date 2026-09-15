@@ -1939,6 +1939,7 @@
 <script src="js/adicionales-cats.js"></script>
 <script src="js/catalog.js"></script>
 <script src="js/detail-modal.js"></script>
+<script src="js/adic-modal.js"></script>
 <script>
 /* ── API ────────────────────────────────────────────────── */
 const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:3000' : '';
@@ -2603,31 +2604,7 @@ async function _renderAdicModal() {
     }
   }
 
-  const modeToggleHtml = `
-    <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:1.4rem;padding:.7rem 1rem;background:rgba(193,146,89,.05);border:1px solid var(--border);border-radius:var(--r);">
-      <span style="font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);flex:1;">Modo de filtro:</span>
-      <button id="adic-mode-some"  onclick="setAdicionalesMode('some')"  style="padding:.3rem .85rem;border:1px solid var(--border);border-radius:var(--r);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;transition:.2s;">Alguna de estas</button>
-      <button id="adic-mode-every" onclick="setAdicionalesMode('every')" style="padding:.3rem .85rem;border:1px solid var(--border);border-radius:var(--r);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;cursor:pointer;transition:.2s;">Todas estas</button>
-    </div>`;
-
-  const byTipo = {};
-  (_adicCatalogCache || []).forEach(a => { (byTipo[a.tipo] = byTipo[a.tipo] || []).push(a); });
-
-  const sections = _ADIC_CATS.map(cat => {
-    const items = byTipo[cat.tipo] || [];
-    if (!items.length) return '';
-    const checks = items.map(a => {
-      const sel = adicSeleccionados.has(a.nombre) ? 'selected' : '';
-      return `<label class="adic-check ${sel}" data-nombre="${a.nombre}">
-        <input type="checkbox" ${sel ? 'checked' : ''} onchange="actualizarAdic('${a.nombre.replace(/'/g,"\\'")}',this.checked,this.closest('label'))">
-        ${a.nombre}
-      </label>`;
-    }).join('');
-    return `<div class="adic-cat-title"><i class="fas ${cat.icon}" style="margin-right:.4rem;"></i>${cat.label}</div>
-      <div class="adic-grid">${checks}</div>`;
-  }).join('');
-
-  body.innerHTML = modeToggleHtml + sections;
+  AdicModal.render('adic-body-content', _adicCatalogCache, _ADIC_CATS, adicSeleccionados, adicMode);
   _syncModeToggle();
   _actualizarBadge();
 }
@@ -2637,6 +2614,7 @@ function actualizarAdic(nombre, checked, labelEl) {
   else         adicSeleccionados.delete(nombre);
   if (labelEl) labelEl.classList.toggle('selected', checked);
   _actualizarBadge();
+  AdicModal.syncCounts('adic-body-content', adicSeleccionados, _adicCatalogCache || [], _ADIC_CATS);
 }
 
 function _actualizarBadge() {
@@ -2670,6 +2648,7 @@ function limpiarAdic() {
     const cb = l.querySelector('input');
     if (cb) cb.checked = false;
   });
+  AdicModal.syncCounts('adic-body-content', adicSeleccionados, _adicCatalogCache || [], _ADIC_CATS);
   renderChips();
 }
 
@@ -2699,13 +2678,14 @@ function renderChips() {
 
 function quitarChip(nombre) {
   adicSeleccionados.delete(nombre);
-  const label = document.querySelector(`#adic-body-content .adic-check[data-nombre="${nombre}"]`);
-  if (label) {
-    label.classList.remove('selected');
-    const cb = label.querySelector('input');
-    if (cb) cb.checked = false;
-  }
+  document.querySelectorAll('#adic-body-content .adic-check').forEach(l => {
+    if (l.dataset.nombre === nombre) {
+      l.classList.remove('selected');
+      const cb = l.querySelector('input'); if (cb) cb.checked = false;
+    }
+  });
   _actualizarBadge();
+  AdicModal.syncCounts('adic-body-content', adicSeleccionados, _adicCatalogCache || [], _ADIC_CATS);
   renderChips();
   buscarPropiedades();
 }

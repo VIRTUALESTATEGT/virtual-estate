@@ -360,6 +360,7 @@
   <script src="js/adicionales-cats.js"></script>
   <script src="js/catalog.js"></script>
   <script src="js/detail-modal.js"></script>
+  <script src="js/adic-modal.js"></script>
 </head>
 <body>
 
@@ -983,31 +984,7 @@ async function _renderAdicModal(){
     }
   }
 
-  const groups = {};
-  _ADIC_RE_CATS.forEach(c => { groups[c.tipo] = []; });
-  _adicCatalogCache.forEach(a => { if (groups[a.tipo]) groups[a.tipo].push(a); });
-
-  const modeToggle = `<div style="display:flex;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1.1rem;font-family:'Montserrat',sans-serif;">
-    <button id="adic-mode-some" onclick="setAdicionalesMode('some')" style="flex:1;padding:.45rem .5rem;font-size:.68rem;letter-spacing:.06em;border:none;border-right:1px solid var(--border);cursor:pointer;transition:.15s;font-family:inherit;">Alguna de estas</button>
-    <button id="adic-mode-every" onclick="setAdicionalesMode('every')" style="flex:1;padding:.45rem .5rem;font-size:.68rem;letter-spacing:.06em;border:none;cursor:pointer;transition:.15s;font-family:inherit;">Todas estas</button>
-  </div>`;
-
-  container.innerHTML = modeToggle + _ADIC_RE_CATS.map(({ tipo, label, icon }) => {
-    const items = groups[tipo];
-    if (!items.length) return '';
-    const checks = items.map(a =>
-      `<label class="adic-check"><input type="checkbox" value="${a.nombre}" onchange="actualizarAdic(this)"/> ${a.nombre}</label>`
-    ).join('');
-    return `<div class="adic-cat-title"><i class="fas ${icon}" style="margin-right:.4rem;"></i> ${label}</div><div class="adic-grid">${checks}</div>`;
-  }).join('');
-
-  // Restore current selection and mode state
-  container.querySelectorAll('.adic-check input').forEach(cb => {
-    if (adicSeleccionados.has(cb.value)) {
-      cb.checked = true;
-      cb.closest('.adic-check').classList.add('selected');
-    }
-  });
+  AdicModal.render('adic-body-content', _adicCatalogCache, _ADIC_RE_CATS, adicSeleccionados, adicMode);
   _syncModeToggle();
   const count = adicSeleccionados.size;
   document.getElementById('adic-count-badge').textContent = count + ' seleccionado' + (count !== 1 ? 's' : '');
@@ -1019,17 +996,13 @@ function cerrarAdicBtn(){
   document.getElementById('adicOverlay').classList.remove('open');
   document.body.style.overflow='';
 }
-function actualizarAdic(cb){
-  const label = cb.closest('.adic-check');
-  if(cb.checked){
-    adicSeleccionados.add(cb.value);
-    label.classList.add('selected');
-  } else {
-    adicSeleccionados.delete(cb.value);
-    label.classList.remove('selected');
-  }
+function actualizarAdic(nombre, checked, labelEl){
+  if (checked) adicSeleccionados.add(nombre);
+  else         adicSeleccionados.delete(nombre);
+  if (labelEl) labelEl.classList.toggle('selected', checked);
   const count = adicSeleccionados.size;
   document.getElementById('adic-count-badge').textContent = count + ' seleccionado' + (count!==1?'s':'');
+  AdicModal.syncCounts('adic-body-content', adicSeleccionados, _adicCatalogCache || [], _ADIC_RE_CATS);
 }
 function setAdicionalesMode(mode){
   adicMode = mode;
@@ -1046,14 +1019,15 @@ function _syncModeToggle(){
   btnEvery.style.color       = isSome ? 'var(--gray)' : 'var(--bg)';
 }
 function limpiarAdic(){
-  document.querySelectorAll('#adicModal .adic-check input').forEach(cb=>{
-    cb.checked=false;
-    cb.closest('.adic-check').classList.remove('selected');
+  document.querySelectorAll('#adic-body-content .adic-check').forEach(l=>{
+    l.classList.remove('selected');
+    const cb = l.querySelector('input'); if(cb) cb.checked=false;
   });
   adicSeleccionados.clear();
   adicMode = 'some';
   _syncModeToggle();
   document.getElementById('adic-count-badge').textContent='0 seleccionados';
+  AdicModal.syncCounts('adic-body-content', adicSeleccionados, _adicCatalogCache || [], _ADIC_RE_CATS);
   renderChips();
 }
 function aplicarAdicionales(){
@@ -1087,11 +1061,12 @@ function renderChips(){
 }
 function quitarChip(val){
   adicSeleccionados.delete(val);
-  // Uncheck in modal
-  document.querySelectorAll('#adicModal .adic-check input').forEach(cb=>{
-    if(cb.value===val){ cb.checked=false; cb.closest('.adic-check').classList.remove('selected'); }
+  document.querySelectorAll('#adic-body-content .adic-check').forEach(l=>{
+    if(l.dataset.nombre===val){ l.classList.remove('selected'); const cb=l.querySelector('input'); if(cb) cb.checked=false; }
   });
-  document.getElementById('adic-count-badge').textContent=adicSeleccionados.size+' seleccionado'+(adicSeleccionados.size!==1?'s':'');
+  const count=adicSeleccionados.size;
+  document.getElementById('adic-count-badge').textContent=count+' seleccionado'+(count!==1?'s':'');
+  AdicModal.syncCounts('adic-body-content', adicSeleccionados, _adicCatalogCache || [], _ADIC_RE_CATS);
   aplicarAdicionales();
 }
 
