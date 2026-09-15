@@ -2111,7 +2111,8 @@ function _fillPropModal(p, isFav) {
   PropDetail.renderSpecs(document.getElementById('pmod-specs'), p, tipoIcon[p.tipo] || 'fa-home');
   PropDetail.renderDisp(document.getElementById('pmod-disp'), p);
   PropDetail.renderDesc(document.getElementById('pmod-desc'), document.getElementById('pmod-desc-section'), p);
-  PropDetail.renderAdics(document.getElementById('pmod-adics'), document.getElementById('pmod-adics-section'), p);
+  const _destSetPC = _adicCatalogCache ? new Set(_adicCatalogCache.filter(a => a.destacado).map(a => a.nombre)) : null;
+  PropDetail.renderAdics(document.getElementById('pmod-adics'), document.getElementById('pmod-adics-section'), p, _destSetPC);
 
   // Tour 3D box — show only if linktour3d is present
   const tourBox = document.getElementById('pmod-tour-box');
@@ -2568,6 +2569,9 @@ function showToast(m) {
 let adicSeleccionados = new Set();
 let adicMode = 'some';
 let _adicCatalogCache = null;
+// Pre-load so destacadas are ready when the first property modal opens
+fetch((window.API_URL || '') + '/api/adicionales/catalogo')
+  .then(r => r.ok ? r.json() : null).then(d => { if (d) _adicCatalogCache = d; }).catch(() => {});
 
 const _ADIC_CATS = window.ADIC_CATS;
 

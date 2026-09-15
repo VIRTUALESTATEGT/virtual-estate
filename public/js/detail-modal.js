@@ -8,6 +8,9 @@
 window.PropDetail = (() => {
 
   const ADIC_CATS = window.ADIC_CATS;
+  // icon lookup by tipo — built once at module init
+  const _ADIC_CAT_ICON = {};
+  (ADIC_CATS || []).forEach(c => { _ADIC_CAT_ICON[c.tipo] = c.icon; });
   const DISP_CLASS = {
     vacia: 'disp-vacia', habitada: 'disp-habitada',
     airbnb: 'disp-airbnb', en_construccion: 'disp-construccion',
@@ -139,16 +142,40 @@ window.PropDetail = (() => {
     }
   }
 
-  function renderAdics(listEl, sectionEl, p) {
+  // Injected once for the destacadas view
+  let _destCSSInjected = false;
+  function _ensureDestCSS() {
+    if (_destCSSInjected) return;
+    _destCSSInjected = true;
+    const s = document.createElement('style');
+    s.textContent =
+      '.adic-dest-row{display:flex;flex-wrap:wrap;gap:.45rem;margin-bottom:.85rem;}' +
+      '.adic-dest-pill{display:inline-flex;align-items:center;gap:.35rem;font-size:.72rem;' +
+        'padding:.3rem .75rem;border-radius:2px;white-space:nowrap;' +
+        'background:rgba(193,146,89,.1);color:var(--gold,#C1925A);' +
+        'border:1px solid rgba(193,146,89,.28);}' +
+      '.adic-dest-pill i{font-size:.66rem;opacity:.8;}' +
+      '.adic-ver-todas-btn{display:inline-flex;align-items:center;gap:.4rem;' +
+        'font-size:.72rem;color:var(--gray,#8A9A8E);background:none;border:none;' +
+        'cursor:pointer;padding:.15rem 0;margin-bottom:.5rem;' +
+        'text-decoration:underline;text-underline-offset:2px;transition:color .15s;}' +
+      '.adic-ver-todas-btn i{font-size:.58rem;}' +
+      '.adic-ver-todas-btn:hover{color:var(--gold,#C1925A);}';
+    document.head.appendChild(s);
+  }
+
+  function renderAdics(listEl, sectionEl, p, destacadasSet) {
     if (!sectionEl) return;
     const items = p.propiedades_adicionales || [];
     if (!items.length) { sectionEl.style.display = 'none'; return; }
     sectionEl.style.display = '';
-    let html = '';
+
+    // Build full categorized HTML (always needed)
+    let fullHtml = '';
     for (const cat of ADIC_CATS) {
       const catItems = items.filter(a => a.tipo === cat.tipo);
       if (!catItems.length) continue;
-      html +=
+      fullHtml +=
         `<div style="margin-bottom:.85rem;">` +
         `<div class="detail-section-title" style="margin-top:.6rem;">` +
         `<i class="fas ${cat.icon}" style="margin-right:.35rem;opacity:.8;"></i>${cat.label}</div>` +
@@ -157,7 +184,32 @@ window.PropDetail = (() => {
         ).join('')}</div>` +
         `</div>`;
     }
-    if (listEl) listEl.innerHTML = html;
+
+    // Decide whether destacadas view applies
+    const destItems = (destacadasSet && destacadasSet.size > 0)
+      ? items.filter(a => destacadasSet.has(a.nombre))
+      : [];
+    const useDestMode = destItems.length > 0 && items.length >= 8;
+
+    if (!useDestMode) {
+      if (listEl) listEl.innerHTML = fullHtml;
+      return;
+    }
+
+    _ensureDestCSS();
+    const uid = p.id != null ? p.id : Math.random().toString(36).slice(2, 7);
+    const pills = destItems.map(a => {
+      const icon = _ADIC_CAT_ICON[a.tipo] || 'fa-check-circle';
+      return `<span class="adic-dest-pill"><i class="fas ${icon}"></i> ${a.nombre}</span>`;
+    }).join('');
+
+    if (listEl) listEl.innerHTML =
+      `<div class="adic-dest-row">${pills}</div>` +
+      `<button class="adic-ver-todas-btn" onclick="` +
+        `this.style.display='none';` +
+        `document.getElementById('adic-full-${uid}').style.display='block'` +
+      `"><i class="fas fa-chevron-down"></i> Ver todas las características</button>` +
+      `<div id="adic-full-${uid}" style="display:none;margin-top:.4rem;">${fullHtml}</div>`;
   }
 
   // ── Gallery factory ───────────────────────────────────────────────────────

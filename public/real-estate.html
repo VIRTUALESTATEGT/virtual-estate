@@ -816,6 +816,9 @@ function _favSheetOutside(e){if(!document.getElementById('favLoginSheet').contai
 let adicSeleccionados = new Set();
 let adicMode = 'some'; // 'some' = OR (alguna), 'every' = AND (todas)
 let _adicCatalogCache = null; // fetched once per page load from /api/adicionales/catalogo
+// Pre-load so destacadas are ready when the first property modal opens
+fetch((window.API_URL || '') + '/api/adicionales/catalogo')
+  .then(r => r.ok ? r.json() : null).then(d => { if (d) _adicCatalogCache = d; }).catch(() => {});
 
 const catalog = initCatalog({
   gridId:      'propsGrid',
@@ -935,7 +938,8 @@ function openDetail(code, propId) {
   PropDetail.renderSpecs(document.getElementById('detailSpecs'), p, icon);
   PropDetail.renderDisp(document.getElementById('detailDisp'), p);
   PropDetail.renderDesc(document.getElementById('detailDesc'), document.getElementById('detailDescSection'), p);
-  PropDetail.renderAdics(document.getElementById('detailAdics'), document.getElementById('detailAdicsSection'), p);
+  const _destSetRE = _adicCatalogCache ? new Set(_adicCatalogCache.filter(a => a.destacado).map(a => a.nombre)) : null;
+  PropDetail.renderAdics(document.getElementById('detailAdics'), document.getElementById('detailAdicsSection'), p, _destSetRE);
 
   _gal.reset();
   document.getElementById('detailOverlay').classList.add('open');
