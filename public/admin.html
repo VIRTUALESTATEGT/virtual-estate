@@ -510,6 +510,10 @@
       #wac-tbody tr td:nth-child(2)::before{content:"Tipo"}
       #wac-tbody tr td:nth-child(3)::before{content:"Nombre"}
       #wac-tbody tr td:nth-child(4)::before{content:"Actualizado"}
+      /* Calendario: ocultar grilla, mostrar lista móvil */
+      #citas-cal-grid .cal-week,
+      #citas-cal-grid .cal-month { display:none !important; }
+      #cal-mobile-list { display:block !important; }
     }
   /* ── ADICIONALES CHECKBOXES ─────────────────── */
   .adic-check {
@@ -576,6 +580,20 @@
   .citas-filters select,.citas-filters input[type=date] { background:rgba(255,255,255,.04); border:1px solid var(--border); color:var(--text); font-family:'Montserrat',sans-serif; font-size:.72rem; padding:.36rem .65rem; border-radius:3px; }
   .citas-filters select:focus,.citas-filters input:focus { outline:none; border-color:var(--gold); }
   .citas-filters select option { background:var(--bg2); }
+  /* ── CALENDARIO MÓVIL (lista agrupada por día) ── */
+  #cal-mobile-list { display:none; }
+  .cal-mob-day { margin-bottom:1.1rem; }
+  .cal-mob-day-hd { font-size:.7rem; font-weight:700; color:var(--gold); text-transform:capitalize; padding:.4rem 0 .3rem; border-bottom:1px solid var(--border); margin-bottom:.5rem; letter-spacing:.02em; }
+  .cal-mob-cita { display:flex; align-items:center; gap:.6rem; padding:.55rem .7rem; border-radius:5px; margin-bottom:.4rem; cursor:pointer; border-left:3px solid transparent; transition:.12s; }
+  .cal-mob-cita:hover { filter:brightness(1.1); }
+  .cal-mob-cita.pendiente  { background:rgba(224,184,64,.12); border-left-color:#E0B840; }
+  .cal-mob-cita.aprobada   { background:rgba(90,224,138,.10); border-left-color:#5AE08A; }
+  .cal-mob-cita.rechazada,.cal-mob-cita.cancelada { background:rgba(160,160,170,.08); border-left-color:#888; opacity:.7; }
+  .cal-mob-hora   { font-size:.68rem; font-weight:600; color:var(--white); min-width:5.2rem; flex-shrink:0; }
+  .cal-mob-info   { flex:1; min-width:0; }
+  .cal-mob-tipo   { font-size:.62rem; color:var(--gray); }
+  .cal-mob-nombre { font-size:.74rem; color:rgba(245,240,232,.9); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .cal-mob-estado { flex-shrink:0; }
   </style>
 </head>
 <body>
@@ -961,6 +979,8 @@
         </div>
         <!-- Grid generado por JS -->
         <div id="citas-cal-grid"></div>
+        <!-- Lista agrupada por día (visible solo en móvil) -->
+        <div id="cal-mobile-list"></div>
       </div>
 
       <!-- ── Vista Lista ── -->
@@ -5561,12 +5581,58 @@
     return t === 'visita_propiedades' ? 'Visita a propiedades' : 'Visita técnica';
   }
 
+  function _renderMobileCitas() {
+    const el = document.getElementById('cal-mobile-list'); if (!el) return;
+    const hoy = _citasHoyGT();
+    let dateFrom, dateTo;
+    if (_citasCalModo === 'sem') {
+      if (!_citasWeekStart) _citasWeekStart = _citasMondayOf(hoy);
+      dateFrom = _citasWeekStart;
+      dateTo   = _citasAddDays(_citasWeekStart, 4);
+    } else {
+      if (!_citasMesStart) { const t = hoy.split('-'); _citasMesStart = `${t[0]}-${t[1]}-01`; }
+      dateFrom = _citasMesStart;
+      const [y, mo] = _citasMesStart.split('-').map(Number);
+      const lastDay = new Date(y, mo, 0).getDate();
+      dateTo = `${_citasMesStart.slice(0,8)}${String(lastDay).padStart(2,'0')}`;
+    }
+    const items = _citasAll
+      .filter(c => c.fecha >= dateFrom && c.fecha <= dateTo)
+      .sort((a, b) => a.fecha < b.fecha ? -1 : a.fecha > b.fecha ? 1 : (a.hora_inicio||'') < (b.hora_inicio||'') ? -1 : 1);
+    if (!items.length) {
+      el.innerHTML = `<div style="text-align:center;color:var(--gray);padding:2rem;font-size:.8rem;">Sin citas en este período.</div>`;
+      return;
+    }
+    const byDay = {};
+    items.forEach(c => { (byDay[c.fecha] = byDay[c.fecha] || []).push(c); });
+    el.innerHTML = Object.keys(byDay).sort().map(day => {
+      const hd = _citasFmt(day, {weekday:'long', day:'numeric', month:'long'});
+      const hdCap = hd.charAt(0).toUpperCase() + hd.slice(1);
+      const cards = byDay[day].map(c =>
+        `<div class="cal-mob-cita ${_citaEstadoCls(c.estado)}" onclick="openCitaModal('${c.id}')">
+          <div class="cal-mob-hora">${(c.hora_inicio||'').slice(0,5)}–${(c.hora_fin||'').slice(0,5)}</div>
+          <div class="cal-mob-info">
+            <div class="cal-mob-tipo">${_citasTipoLabel(c.tipo)}</div>
+            <div class="cal-mob-nombre">${c.nombre_contacto||'—'}</div>
+          </div>
+          <div class="cal-mob-estado">${_citaEstadoBadge(c.estado)}</div>
+        </div>`).join('');
+      return `<div class="cal-mob-day"><div class="cal-mob-day-hd">${hdCap}</div>${cards}</div>`;
+    }).join('');
+  }
+
   async function loadCitas() {
     try {
       _citasAll = await apiFetch('/api/citas');
       _citasUpdateBadge();
       _citasUpdateStats();
-      if (_citasVista === 'cal') _citasRenderCal(); else citasRenderLista();
+      if (window.innerWidth < 768 && _citasVista === 'cal') {
+        citaSetVista('lista');
+      } else if (_citasVista === 'cal') {
+        _citasRenderCal();
+      } else {
+        citasRenderLista();
+      }
     } catch(e) { showToast('Error cargando citas: ' + e.message); }
   }
 
@@ -5664,6 +5730,7 @@
       }
       grid.innerHTML = `<div class="cal-month">${hdrs}${cells}</div>`;
     }
+    _renderMobileCitas();
   }
 
   function citaCalDia(iso) {
