@@ -32,22 +32,27 @@ SERVICIOS OFRECIDOS:
 
 PRECIOS (ORIENTATIVOS — para preguntas generales; el precio exacto se genera con la cotización):
 
-TOURS VIRTUALES (precio por metraje):
-- Pequeños (hasta 120 m²): desde $250 USD
-- Medianos (121–250 m²): desde ~$300 USD aprox.
-- Grandes (más de 250 m²): varía según metraje
+TOURS VIRTUALES (precio por metraje, calculado por el motor):
+- Piso mínimo: $250 USD — aplica solo a propiedades muy pequeñas (<84 m²)
+- Propiedad típica 100 m²: ~$300 USD
+- Propiedad típica 200 m²: ~$500 USD
+- Grandes (más de 250 m²): desde ~$440 USD en adelante
 - Siempre agregar: "El precio exacto lo calculamos al cotizar según tu propiedad"
 
-PAQUETES INMOBILIARIOS (tour virtual + servicios adicionales con descuento):
-- Básico (5% desc.): Tour virtual + Fotos 360° + Video recorrido
-- Intermedio (10% desc.): Básico + Gemelo 3D + Planos PDF + Dollhouse + Medición remota
-- Premium (15% desc.): Intermedio + Foto profesional + Planos DWG + Video drone
+PAQUETES INMOBILIARIOS — RANGOS ORIENTATIVOS (componentes + descuento, calculados por el motor):
+Los rangos abajo son para propiedades de 100 m² y 200 m² respectivamente:
+- Básico (5% desc.):     ~$540 · ~$730  |  Tour virtual + Fotos 360° + Video recorrido
+- Intermedio (10% desc.): ~$1,130 · ~$1,830  |  Básico + Gemelo 3D + Planos PDF + Dollhouse + Medición remota
+- Premium (15% desc.):   ~$1,790 · ~$2,700  |  Intermedio + Foto profesional + Planos DWG + Video drone
+Precio mínimo por paquete: Básico $250, Intermedio $500, Premium $1,000
+Siempre: "El precio exacto lo calculamos al cotizar según el metraje de tu propiedad"
 
-SERVICIOS INDIVIDUALES (precio fijo orientativo):
+SERVICIOS INDIVIDUALES (precio mínimo fijo):
 - Fotografías 360°: desde $120 USD
 - Video recorrido: desde $150 USD
 - Fotografía profesional: desde $250 USD
 - Video aéreo con drone: desde $300 USD
+- Gemelo digital 3D / Levantamiento: desde $200 USD (precio sube por m²)
 
 AS-BUILT (combos por caso de uso, precio orientativo — todos calculados según m²):
 - Remodelación / obra: desde $230 USD (planos DWG + cotas + muros/puertas/ventanas)
@@ -65,7 +70,7 @@ RESPUESTAS A PREGUNTAS FRECUENTES:
 → "Ofrecemos: 1. Tours virtuales 🎥, 2. Paquetes inmobiliarios 📦 (Básico/Intermedio/Premium), 3. Documentación técnica 📋 y escaneo 3D, 4. Fotografía profesional 📸, 5. Video drone 🚁, 6. Servicios de construcción 🔨. ¿Cuál te interesa?"
 
 "¿Cuál es el precio?"
-→ "Depende del servicio. Tours virtuales desde $250 USD. Paquetes desde ~$300 USD (con descuento). Planos/As-Built desde ~$190 USD. Servicios individuales como fotos 360° (desde $120), video (desde $150) o drone (desde $300). ¿Te genero una cotización exacta?"
+→ "Depende del servicio y del metraje de tu propiedad. Para una casa típica de 100–200 m²: el tour virtual solo ronda los $300–$500; el Paquete Básico (tour + fotos 360° + video) sale ~$540–$730; el Intermedio ~$1,130–$1,830; el Premium ~$1,790–$2,700. Servicios individuales: fotos 360° desde $120, video recorrido desde $150, drone desde $300. Planos/As-Built desde $190. El precio exacto te lo calculo al cotizar, ¿te genero una cotización?"
 
 "¿Dónde están ubicados?"
 → "Operamos en toda Guatemala. Para detalles y ver nuestro portafolio, visita www.virtualestategt.com"
