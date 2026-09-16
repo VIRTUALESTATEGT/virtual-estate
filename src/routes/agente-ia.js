@@ -5,7 +5,7 @@ const supabase  = require('../config/supabase');
 const { notifyAdmin } = require('../utils/whatsapp');
 
 const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
-const { buildSystemPrompt } = require('../config/system-prompt');
+const { buildSystemPrompt, warmPreciosCache } = require('../config/system-prompt');
 
 async function loadDynamicInstructions() {
   try {
@@ -54,6 +54,7 @@ async function responderIA(conversacionId, mensajeCliente, canal = 'whatsapp', e
       getConversationHistory(conversacionId),
       new Promise((_, reject) => setTimeout(() => reject(new Error('history timeout 5s')), 5000)),
     ]),
+    warmPreciosCache(),  // refresh price block in parallel — result used via module cache
   ]);
   console.log(`[IG-PERF] instrucciones+historial paralelo — ${Date.now() - t0}ms`);
 

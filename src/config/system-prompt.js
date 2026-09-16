@@ -2,6 +2,12 @@
 // WhatsApp: {bloque_handoff} is empty string.
 // Instagram / Messenger: {bloque_handoff} contains handoff-to-WhatsApp rules.
 // {instrucciones_dinamicas}: injected at runtime from instrucciones_ia_dinamicas table.
+// {bloque_precios}: injected at runtime from precios_servicios table (TTL 6 min cache).
+//   Contains tours, servicios individuales and as-built component prices — never paquete ranges.
+//   RULE: agent uses this as internal reference only; never recites tarifas/m² to clients.
+
+'use strict';
+const supabase = require('./supabase');
 
 const MASTER_PROMPT = `Eres el asistente virtual de Virtual Estate GT, especializado en tours virtuales, paquetes inmobiliarios (Básico/Intermedio/Premium), documentación técnica (escaneo 3D, gemelo digital, planos as-built), fotografía profesional, video drone y servicios de construcción en Guatemala.
 
@@ -32,12 +38,7 @@ SERVICIOS OFRECIDOS:
 
 PRECIOS (ORIENTATIVOS — para preguntas generales; el precio exacto se genera con la cotización):
 
-TOURS VIRTUALES (precio por metraje, calculado por el motor):
-- Piso mínimo: $250 USD — aplica solo a propiedades muy pequeñas (<84 m²)
-- Propiedad típica 100 m²: ~$300 USD
-- Propiedad típica 200 m²: ~$500 USD
-- Grandes (más de 250 m²): desde ~$440 USD en adelante
-- Siempre agregar: "El precio exacto lo calculamos al cotizar según tu propiedad"
+{bloque_precios}
 
 PAQUETES INMOBILIARIOS — RANGOS ORIENTATIVOS (componentes + descuento, calculados por el motor):
 Los rangos abajo son para propiedades de 100 m² y 200 m² respectivamente:
@@ -47,18 +48,7 @@ Los rangos abajo son para propiedades de 100 m² y 200 m² respectivamente:
 Precio mínimo por paquete: Básico $250, Intermedio $500, Premium $1,000
 Siempre: "El precio exacto lo calculamos al cotizar según el metraje de tu propiedad"
 
-SERVICIOS INDIVIDUALES (precio mínimo fijo):
-- Fotografías 360°: desde $120 USD
-- Video recorrido: desde $150 USD
-- Fotografía profesional: desde $250 USD
-- Video aéreo con drone: desde $300 USD
-- Gemelo digital 3D / Levantamiento: desde $200 USD (precio sube por m²)
-
-AS-BUILT (combos por caso de uso, precio orientativo — todos calculados según m²):
-- Remodelación / obra: desde $230 USD (planos DWG + cotas + muros/puertas/ventanas)
-- Levantamiento / documentación: desde $380 USD (gemelo 3D + medición remota + fotos 360°)
-- Avalúo / trámite: desde $190 USD (planos PDF + anotaciones básicas)
-- Siempre: "El precio exacto lo calculamos al cotizar según el metraje"
+NOTA PRECIO AL CLIENTE: Nunca recites tarifas por m² ni precios de componentes individuales al cliente. Comunica únicamente el total calculado por la cotización. El precio exacto siempre se genera al cotizar.
 
 CONSTRUCCIÓN:
 - Presupuestos personalizados (proceso manual — no cotizar automáticamente)
@@ -279,21 +269,127 @@ DEBES hacer exactamente lo siguiente en esta respuesta:
 3. Al final añade: "Para atención más rápida y envío de cotizaciones, también puedes escribirnos por WhatsApp: wa.me/50239902399 😊"
 NO omitas ninguno de estos tres puntos en esta respuesta.`;
 
+// ── Precios cache ─────────────────────────────────────────────────────────────
+
+const PRECIOS_TTL_MS = 6 * 60 * 1000; // 6 minutes
+
+// Fallback used when the DB is unreachable or cache is cold on first request.
+const PRECIOS_FALLBACK = `TOURS VIRTUALES (precio por metraje, calculado por el motor):
+- Piso mínimo: $250 USD — aplica solo a propiedades muy pequeñas (<84 m²)
+- Propiedad típica 100 m²: ~$300 USD
+- Propiedad típica 200 m²: ~$500 USD
+- Grandes (más de 250 m²): desde ~$440 USD en adelante
+- Siempre agregar: "El precio exacto lo calculamos al cotizar según tu propiedad"
+
+SERVICIOS INDIVIDUALES (precio mínimo fijo):
+- Fotografías 360°: desde $120 USD
+- Video recorrido: desde $150 USD
+- Fotografía profesional: desde $250 USD
+- Video aéreo con drone: desde $300 USD
+- Gemelo digital 3D / Levantamiento: desde $200 USD (precio sube por m²)
+
+AS-BUILT (combos por caso de uso, precio orientativo — calculados según m²):
+- Remodelación / obra: desde $230 USD (planos DWG + cotas + muros/puertas/ventanas)
+- Levantamiento / documentación: desde $380 USD (gemelo 3D + medición remota + fotos 360°)
+- Avalúo / trámite: desde $190 USD (planos PDF + anotaciones básicas)
+- Siempre: "El precio exacto lo calculamos al cotizar según el metraje"`;
+
+let _preciosCache = { block: null, ts: 0 };
+
+function _formatBloquePreciosFromRows(rows) {
+  const tours    = rows.filter(r => r.categoria === 'Tours Virtuales');
+  const svcFijo  = rows.filter(r => r.categoria !== 'Tours Virtuales' && r.categoria !== 'AS-BUILT' && r.tipo_precio === 'fijo' && !r.codigo.startsWith('2.'));
+  const asbuilt  = rows.filter(r => r.categoria === 'AS-BUILT');
+
+  const fmtPrice = (r) => {
+    if (r.tipo_precio === 'fijo') return `fijo $${r.precio_minimo ?? r.precio_fijo ?? '?'}`;
+    if (r.tipo_precio === 'por_m2') {
+      const base = `$${Number(r.precio_por_m2).toFixed(2)}/m²`;
+      return r.precio_minimo ? `${base}, piso $${r.precio_minimo}` : base;
+    }
+    return 'cotizar';
+  };
+
+  const lines = [];
+
+  lines.push('TOURS VIRTUALES (precio por metraje, desde la DB):');
+  if (tours.length) {
+    tours.forEach(r => {
+      const rango = r.rango_m2_max ? `${r.rango_m2_min || 0}–${r.rango_m2_max} m²` : `>${r.rango_m2_min || 0} m²`;
+      lines.push(`- [${r.codigo}] ${rango}: ${fmtPrice(r)}`);
+    });
+  } else {
+    lines.push('- (sin datos)');
+  }
+  lines.push('- Siempre agregar: "El precio exacto lo calculamos al cotizar según tu propiedad"');
+
+  lines.push('');
+  lines.push('SERVICIOS INDIVIDUALES (precio mínimo, desde la DB):');
+  if (svcFijo.length) {
+    svcFijo.forEach(r => lines.push(`- [${r.codigo}] ${r.servicio}: ${fmtPrice(r)}`));
+  } else {
+    lines.push('- (sin datos)');
+  }
+
+  lines.push('');
+  lines.push('AS-BUILT — componentes activos (precio por m², desde la DB):');
+  if (asbuilt.length) {
+    asbuilt.forEach(r => {
+      if (r.tipo_precio !== 'cotizar') lines.push(`- [${r.codigo}] ${r.servicio}: ${fmtPrice(r)}`);
+    });
+  } else {
+    lines.push('- (sin datos)');
+  }
+  lines.push('- Siempre: "El precio exacto lo calculamos al cotizar según el metraje"');
+
+  return lines.join('\n');
+}
+
+/**
+ * Refresh the precios cache from precios_servicios if stale (TTL 6 min).
+ * Safe to call in parallel — concurrent calls both fetch but only the last one wins,
+ * which is fine since all fetch the same data.
+ */
+async function warmPreciosCache() {
+  if (_preciosCache.block && (Date.now() - _preciosCache.ts) < PRECIOS_TTL_MS) {
+    return _preciosCache.block;
+  }
+  try {
+    const { data, error } = await supabase
+      .from('precios_servicios')
+      .select('codigo, categoria, servicio, tipo_precio, precio_fijo, precio_por_m2, rango_m2_min, rango_m2_max, precio_minimo')
+      .eq('activo', true)
+      .not('codigo', 'like', '2.%')   // exclude paquetes — their ranges are hardcoded
+      .not('codigo', 'like', '5.%')   // exclude as-built combos — they're calculated
+      .order('orden');
+    if (error) throw error;
+    const block = _formatBloquePreciosFromRows(data || []);
+    _preciosCache = { block, ts: Date.now() };
+    return block;
+  } catch (e) {
+    console.warn('[PRECIOS-CACHE] Error refreshing — using fallback:', e.message);
+    return _preciosCache.block || PRECIOS_FALLBACK;
+  }
+}
+
 /**
  * Build the final system prompt for a given channel.
+ * Call warmPreciosCache() in parallel before this to ensure fresh prices.
  * @param {string} canal - 'whatsapp' | 'instagram' | 'messenger'
  * @param {string} instruccionesDinamicas - content from instrucciones_ia_dinamicas table
  * @param {boolean} esPrimerContacto - true when the conv was just created this request
  */
 function buildSystemPrompt(canal, instruccionesDinamicas = '', esPrimerContacto = false) {
   const handoff = (canal === 'instagram' || canal === 'messenger') ? HANDOFF_BLOCK : '';
+  const bloquePreciosActual = _preciosCache.block || PRECIOS_FALLBACK;
   let prompt = MASTER_PROMPT
+    .replace('{bloque_precios}',          bloquePreciosActual)
     .replace('{instrucciones_dinamicas}', instruccionesDinamicas || 'Sin instrucciones adicionales.')
-    .replace('{bloque_handoff}', handoff);
+    .replace('{bloque_handoff}',          handoff);
   if (esPrimerContacto && (canal === 'instagram' || canal === 'messenger')) {
     prompt += PRIMER_CONTACTO_BLOCK;
   }
   return prompt;
 }
 
-module.exports = { buildSystemPrompt };
+module.exports = { buildSystemPrompt, warmPreciosCache };
