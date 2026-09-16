@@ -438,7 +438,9 @@ async function _waGenerateResponse(phone, userMessage) {
     }));
     historyMessages.push({ role: 'user', content: userMessage });
 
-    const { buildSystemPrompt } = require('./src/config/system-prompt');
+    const { buildSystemPrompt, warmPreciosCache } = require('./src/config/system-prompt');
+    // Warm prices cache in parallel with a 2s ceiling — if DB is slow, proceed with fallback.
+    await Promise.race([warmPreciosCache(), new Promise(r => setTimeout(r, 2000))]);
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 1000,
