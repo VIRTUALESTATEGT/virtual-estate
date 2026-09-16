@@ -40,24 +40,60 @@ router.get('/', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Shared helper: build the property patch object from request body
+function _buildPropPatch(body, isUpdate = false) {
+  const {
+    nombre, tipo, modalidad, moneda, m2, zona, linkTour3D, disponibilidad,
+    descripcion, habitaciones, banos, parqueos, anio_construccion,
+    // new fields
+    precio_venta, precio_renta,
+    comision_ve, municipio, m2_construccion, m2_terreno,
+    impuestos_incluidos, gastos_adicionales, gastos_adicionales_detalle, precio_min,
+  } = body;
+
+  const disp = Array.isArray(disponibilidad) ? disponibilidad.filter(v => DISP_ALLOWED.has(v)) : [];
+  const mod  = Array.isArray(modalidad)      ? modalidad.filter(v => MOD_ALLOWED.has(v))       : [];
+
+  const pv = precio_venta != null ? Number(precio_venta) : null;
+  const pr = precio_renta != null ? Number(precio_renta) : null;
+  // Canonical precio for backward-compat (filters, display): prefer venta, fallback renta
+  const precioCanon = pv != null ? pv : pr;
+
+  const patch = {
+    nombre, tipo,
+    modalidad:   mod,
+    precio:      precioCanon,
+    precio_venta: pv,
+    precio_renta: pr,
+    moneda:      moneda === 'GTQ' ? 'GTQ' : 'USD',
+    m2:          m2          != null ? Number(m2)          : null,
+    zona:        zona        || null,
+    linktour3d:  linkTour3D  || null,
+    disponibilidad: disp,
+    descripcion:       isUpdate ? (descripcion ?? null) : (descripcion || null),
+    habitaciones:      habitaciones      != null ? Number(habitaciones)      : null,
+    banos:             banos             != null ? Number(banos)             : null,
+    parqueos:          parqueos          != null ? Number(parqueos)          : null,
+    anio_construccion: anio_construccion != null ? Number(anio_construccion) : null,
+    // new columns
+    municipio:                 municipio           || null,
+    m2_construccion:           m2_construccion     != null ? Number(m2_construccion)  : null,
+    m2_terreno:                m2_terreno          != null ? Number(m2_terreno)        : null,
+    comision_ve:               comision_ve         != null ? Number(comision_ve)       : 5,
+    impuestos_incluidos:       Boolean(impuestos_incluidos),
+    gastos_adicionales:        gastos_adicionales  != null ? Number(gastos_adicionales) : null,
+    gastos_adicionales_detalle: gastos_adicionales_detalle || null,
+    precio_min:                precio_min != null ? Number(precio_min) : null,
+  };
+  return patch;
+}
+
 // POST / — create property
 router.post('/', verificarPermiso('crear_propiedad'), async (req, res) => {
   try {
-    const { nombre, tipo, modalidad, precio, moneda, m2, zona, linkTour3D, disponibilidad,
-            descripcion, habitaciones, banos, parqueos, anio_construccion } = req.body;
-    const disp = Array.isArray(disponibilidad) ? disponibilidad.filter(v => DISP_ALLOWED.has(v)) : [];
-    const mod  = Array.isArray(modalidad)      ? modalidad.filter(v => MOD_ALLOWED.has(v))       : [];
-    const monedaVal = moneda === 'GTQ' ? 'GTQ' : 'USD';
     const { data, error } = await supabase
       .from('propiedades')
-      .insert([{
-        nombre, tipo, modalidad: mod, precio, moneda: monedaVal, m2, zona, linktour3d: linkTour3D, disponibilidad: disp,
-        descripcion:       descripcion       || null,
-        habitaciones:      habitaciones      != null ? Number(habitaciones)      : null,
-        banos:             banos             != null ? Number(banos)             : null,
-        parqueos:          parqueos          != null ? Number(parqueos)          : null,
-        anio_construccion: anio_construccion != null ? Number(anio_construccion) : null,
-      }])
+      .insert([_buildPropPatch(req.body, false)])
       .select();
     if (error) throw error;
     res.status(201).json(data[0]);
@@ -67,21 +103,9 @@ router.post('/', verificarPermiso('crear_propiedad'), async (req, res) => {
 // PUT /:id — update property (must be registered before /:id/fotos/*)
 router.put('/:id', verificarPermiso('editar_propiedad'), async (req, res) => {
   try {
-    const { nombre, tipo, modalidad, precio, moneda, m2, zona, linkTour3D, disponibilidad,
-            descripcion, habitaciones, banos, parqueos, anio_construccion } = req.body;
-    const disp = Array.isArray(disponibilidad) ? disponibilidad.filter(v => DISP_ALLOWED.has(v)) : [];
-    const mod  = Array.isArray(modalidad)      ? modalidad.filter(v => MOD_ALLOWED.has(v))       : [];
-    const monedaVal = moneda === 'GTQ' ? 'GTQ' : 'USD';
     const { data, error } = await supabase
       .from('propiedades')
-      .update({
-        nombre, tipo, modalidad: mod, precio, moneda: monedaVal, m2, zona, linktour3d: linkTour3D, disponibilidad: disp,
-        descripcion:       descripcion       ?? null,
-        habitaciones:      habitaciones      != null ? Number(habitaciones)      : null,
-        banos:             banos             != null ? Number(banos)             : null,
-        parqueos:          parqueos          != null ? Number(parqueos)          : null,
-        anio_construccion: anio_construccion != null ? Number(anio_construccion) : null,
-      })
+      .update(_buildPropPatch(req.body, true))
       .eq('id', req.params.id)
       .select();
     if (error) throw error;

@@ -39,6 +39,24 @@ function catalogModIsRenta(m) {
   return Array.isArray(m) ? m.includes('renta') : String(m || '').toLowerCase().includes('renta');
 }
 
+// Returns the card price text, showing dual prices when both exist
+function _catalogPriceText(p) {
+  const sym = p.moneda === 'GTQ' ? 'Q' : '$';
+  const v = p.precio_venta ? sym + fmtPrecio(p.precio_venta) : null;
+  const r = p.precio_renta ? sym + fmtPrecio(p.precio_renta) + '/mes' : null;
+  if (v && r) return `${v} · ${r}`;
+  return v || r || (p.precio ? sym + fmtPrecio(p.precio) : 'Consultar');
+}
+
+// Returns m2 spec string, preferring m2_construccion/m2_terreno over legacy m2
+function _catalogM2Text(p) {
+  const parts = [];
+  if (p.m2_construccion) parts.push(p.m2_construccion + ' m² const.');
+  if (p.m2_terreno)      parts.push(p.m2_terreno + ' m² terreno');
+  if (!parts.length && p.m2) parts.push(p.m2 + ' m²');
+  return parts.join(' · ');
+}
+
 function initCatalog(cfg) {
   const {
     gridId,
@@ -67,11 +85,11 @@ function initCatalog(cfg) {
   function _publicCard(p) {
     const icon    = CATALOG_TIPO_ICON[p.tipo] || 'fa-home';
     const sym     = p.moneda === 'GTQ' ? 'Q' : '$';
-    const precio  = p.precio ? sym + fmtPrecio(p.precio) : 'Consultar';
+    const precio  = _catalogPriceText(p);
     const isRenta = catalogModIsRenta(p.modalidad);
     const code    = 'PROP-' + String(p.id).padStart(5, '0');
     const adics   = (p.propiedades_adicionales || []).map(a => a.nombre);
-    const m2Spec  = p.m2 ? `${p.m2} m²` : '';
+    const m2Spec  = _catalogM2Text(p);
     const dispArr = p.disponibilidad || [];
     const dispBadges = dispArr.length
       ? `<div class="disp-badges">${dispArr.map(d =>
@@ -114,8 +132,7 @@ function initCatalog(cfg) {
   // NOTE: pages using cardVariant:'portal' must include .disp-badges/.disp-badge/.disp-{vacia,habitada,airbnb,construccion} CSS
   function _portalCard(p) {
     const icon      = CATALOG_TIPO_ICON[p.tipo] || 'fa-home';
-    const sym2      = p.moneda === 'GTQ' ? 'Q' : '$';
-    const precio    = p.precio ? sym2 + fmtPrecio(p.precio) : 'Consultar';
+    const precio    = _catalogPriceText(p);
     const isRenta   = catalogModIsRenta(p.modalidad);
     const isSaved   = _getFavIds().has(p.id);
     const badgeCls  = isRenta ? 're-badge-renta' : 're-badge-venta';
@@ -147,7 +164,7 @@ function initCatalog(cfg) {
         ${p.habitaciones ? `<span class="re-prop-spec"><i class="fas fa-bed"></i> ${p.habitaciones}</span>` : ''}
         ${p.banos        ? `<span class="re-prop-spec"><i class="fas fa-bath"></i> ${p.banos}</span>` : ''}
         ${p.parqueos     ? `<span class="re-prop-spec"><i class="fas fa-car"></i> ${p.parqueos}</span>` : ''}
-        ${p.m2           ? `<span class="re-prop-spec"><i class="fas fa-ruler-combined"></i> ${p.m2} m²</span>` : ''}
+        ${_catalogM2Text(p) ? `<span class="re-prop-spec"><i class="fas fa-ruler-combined"></i> ${_catalogM2Text(p)}</span>` : ''}
         ${!p.habitaciones && !p.banos && !p.parqueos && p.tipo ? `<span class="re-prop-spec"><i class="fas ${icon}"></i> ${p.tipo}</span>` : ''}
       </div>
       ${dispBadges}
@@ -185,9 +202,11 @@ function initCatalog(cfg) {
     }
 
     const numericMap = {
-      precio_min: fids.precioMin, precio_max: fids.precioMax,
-      m2_min:     fids.m2Min,     m2_max:     fids.m2Max,
-      hab_min:    fids.habMin,    ban_min:    fids.banMin,    parq_min: fids.parqMin,
+      precio_min:   fids.precioMin,  precio_max:   fids.precioMax,
+      m2_min:       fids.m2Min,      m2_max:       fids.m2Max,
+      m2_const_min: fids.m2ConstMin, m2_const_max: fids.m2ConstMax,
+      m2_ter_min:   fids.m2TerMin,   m2_ter_max:   fids.m2TerMax,
+      hab_min:      fids.habMin,     ban_min:      fids.banMin,    parq_min: fids.parqMin,
     };
     for (const [key, id] of Object.entries(numericMap)) {
       if (id) { const v = document.getElementById(id)?.value; if (v) params.set(key, v); }

@@ -536,10 +536,26 @@
       </div>
 
       <div class="filter-section">
-        <div class="filter-section-title">Metraje de construcción (m²)</div>
+        <div class="filter-section-title">Metraje total (m²)</div>
         <div class="price-row">
           <input type="number" class="filter-input" id="f-m2-min" placeholder="Desde"/>
           <input type="number" class="filter-input" id="f-m2-max" placeholder="Hasta"/>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-section-title">M² construcción</div>
+        <div class="price-row">
+          <input type="number" class="filter-input" id="f-m2-const-min" placeholder="Desde"/>
+          <input type="number" class="filter-input" id="f-m2-const-max" placeholder="Hasta"/>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-section-title">M² terreno</div>
+        <div class="price-row">
+          <input type="number" class="filter-input" id="f-m2-ter-min" placeholder="Desde"/>
+          <input type="number" class="filter-input" id="f-m2-ter-max" placeholder="Hasta"/>
         </div>
       </div>
 
@@ -748,6 +764,7 @@
           <div class="detail-side-box">
             <div class="detail-section-title">Precio</div>
             <div class="detail-price-big" id="detailPrice">$0</div>
+            <div id="detailTaxBadge" style="display:none;font-size:.6rem;color:rgba(193,146,89,.9);background:rgba(193,146,89,.1);border:1px solid rgba(193,146,89,.25);border-radius:20px;padding:.18rem .65rem;margin-bottom:.5rem;width:fit-content;"><i class="fas fa-check-circle" style="margin-right:.3rem;font-size:.58rem;"></i>Impuestos incluidos</div>
             <div id="detailModalidad" style="font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:1rem;"></div>
 
             <a href="https://wa.me/50239902399?text=Hola%2C+me+interesa+la+propiedad+" id="detailWA"
@@ -829,9 +846,11 @@ const catalog = initCatalog({
     modalidad:      '.fc-modalidad',
     tipo:           '.fc-tipo',
     disponibilidad: '.fc-disponibilidad',
-    precioMin: 'f-min',    precioMax: 'f-max',
-    m2Min:     'f-m2-min', m2Max:    'f-m2-max',
-    habMin:    'f-hab-min', banMin:  'f-ban-min', parqMin: 'f-parq-min',
+    precioMin: 'f-min',        precioMax:   'f-max',
+    m2Min:     'f-m2-min',    m2Max:       'f-m2-max',
+    m2ConstMin:'f-m2-const-min', m2ConstMax:'f-m2-const-max',
+    m2TerMin:  'f-m2-ter-min',   m2TerMax:  'f-m2-ter-max',
+    habMin:    'f-hab-min',   banMin:      'f-ban-min', parqMin: 'f-parq-min',
     zona: 'f-zona',
   },
   onToggleFav:   (el, code, propId) => toggleFav(el, code, propId),
@@ -850,7 +869,7 @@ function setView(v){
 function aplicarFiltros(){ catalog.load(); }
 function resetFiltros(){
   document.querySelectorAll('.fc-tipo,.fc-modalidad,.fc-disponibilidad').forEach(cb=>cb.checked=true);
-  ['f-min','f-max','f-m2-min','f-m2-max','f-zona','f-hab-min','f-ban-min','f-parq-min'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-min','f-max','f-m2-min','f-m2-max','f-m2-const-min','f-m2-const-max','f-m2-ter-min','f-m2-ter-max','f-zona','f-hab-min','f-ban-min','f-parq-min'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   resetPills('.filters-sidebar');
   limpiarAdic();
   catalog.load();
@@ -932,7 +951,17 @@ function openDetail(code, propId) {
   document.getElementById('detailCode').textContent     = code;
   document.getElementById('detailName').textContent     = p.nombre;
   document.getElementById('detailLoc').textContent      = p.zona || 'Guatemala';
-  document.getElementById('detailPrice').textContent    = p.precio ? (p.moneda === 'GTQ' ? 'Q' : '$') + fmtPrecio(p.precio) : 'Consultar';
+  const _sym = p.moneda === 'GTQ' ? 'Q' : '$';
+  const _pv  = p.precio_venta ? `Venta: ${_sym}${fmtPrecio(p.precio_venta)}` : null;
+  const _pr  = p.precio_renta ? `Renta: ${_sym}${fmtPrecio(p.precio_renta)}/mes` : null;
+  const priceEl = document.getElementById('detailPrice');
+  if (_pv && _pr) {
+    priceEl.innerHTML = _pv + `<span style="display:block;font-size:.65em;color:var(--gray);margin-top:.2rem;font-weight:400;">${_pr}</span>`;
+  } else {
+    priceEl.textContent = _pv || _pr || (p.precio ? _sym + fmtPrecio(p.precio) : 'Consultar');
+  }
+  const taxEl = document.getElementById('detailTaxBadge');
+  if (taxEl) taxEl.style.display = p.impuestos_incluidos ? '' : 'none';
   document.getElementById('detailModalidad').textContent = catalogModLabel(p.modalidad);
   document.getElementById('detailWA').href = `https://wa.me/50239902399?text=${encodeURIComponent('Hola, me interesa la propiedad ' + code + ' — ' + p.nombre)}`;
 

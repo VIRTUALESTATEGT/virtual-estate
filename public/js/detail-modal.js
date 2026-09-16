@@ -111,7 +111,10 @@ window.PropDetail = (() => {
     const icon = iconClass || 'fa-home';
     const rows = [];
     if (p.tipo)              rows.push({ i: icon,                t: p.tipo });
-    if (p.m2)                rows.push({ i: 'fa-ruler-combined', t: p.m2 + ' m²' });
+    if (p.m2_construccion)   rows.push({ i: 'fa-ruler-combined', t: p.m2_construccion + ' m² const.' });
+    if (p.m2_terreno)        rows.push({ i: 'fa-map',            t: p.m2_terreno + ' m² terreno' });
+    if (!p.m2_construccion && !p.m2_terreno && p.m2)
+                             rows.push({ i: 'fa-ruler-combined', t: p.m2 + ' m²' });
     if (p.habitaciones)      rows.push({ i: 'fa-bed',            t: p.habitaciones + ' hab.' });
     if (p.banos)             rows.push({ i: 'fa-bath',         t: p.banos + ' baños' });
     if (p.parqueos)          rows.push({ i: 'fa-car',          t: p.parqueos + (p.parqueos > 1 ? ' parqueos' : ' parqueo') });

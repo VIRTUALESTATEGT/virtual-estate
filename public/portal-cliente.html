@@ -769,10 +769,26 @@
             </div>
 
             <div class="re-filter-section">
-              <div class="re-filter-title">Metraje (m²)</div>
+              <div class="re-filter-title">Metraje total (m²)</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
                 <input type="number" class="re-filter-input" id="filt-m2-min" placeholder="Desde"/>
                 <input type="number" class="re-filter-input" id="filt-m2-max" placeholder="Hasta"/>
+              </div>
+            </div>
+
+            <div class="re-filter-section">
+              <div class="re-filter-title">M² construcción</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+                <input type="number" class="re-filter-input" id="filt-m2-const-min" placeholder="Desde"/>
+                <input type="number" class="re-filter-input" id="filt-m2-const-max" placeholder="Hasta"/>
+              </div>
+            </div>
+
+            <div class="re-filter-section">
+              <div class="re-filter-title">M² terreno</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+                <input type="number" class="re-filter-input" id="filt-m2-ter-min" placeholder="Desde"/>
+                <input type="number" class="re-filter-input" id="filt-m2-ter-max" placeholder="Hasta"/>
               </div>
             </div>
 
@@ -1903,6 +1919,7 @@
           <div style="font-size:.78rem;color:var(--gray);display:flex;align-items:center;gap:.4rem;" id="pmod-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.65rem;"></i> —</div>
         </div>
         <div style="font-family:'Raleway',sans-serif;font-size:1.6rem;font-weight:700;color:var(--gold);" id="pmod-price">—</div>
+        <div id="pmod-tax-badge" style="display:none;font-size:.6rem;color:rgba(193,146,89,.9);background:rgba(193,146,89,.1);border:1px solid rgba(193,146,89,.25);border-radius:20px;padding:.18rem .65rem;margin-top:.35rem;width:fit-content;"><i class="fas fa-check-circle" style="margin-right:.3rem;font-size:.58rem;"></i>Impuestos incluidos</div>
       </div>
 
       <div id="pmod-disp" class="disp-badges" style="margin:.4rem 0 .9rem;display:none;"></div>
@@ -2035,7 +2052,7 @@ let browseCatalog = null; // initCatalog instance for the explore panel
 
 function propCardHTML(p, isSaved) {
   const icon = tipoIcon[p.tipo] || 'fa-home';
-  const precio = p.precio ? (p.moneda === 'GTQ' ? 'Q' : '$') + fmtPrecio(p.precio) : '—';
+  const precio = _catalogPriceText(p);
   const isRenta = _modIsRenta(p.modalidad);
   const badgeClass = isRenta ? 're-badge-renta' : 're-badge-venta';
   const favClass = isSaved ? 'active' : '';
@@ -2058,7 +2075,7 @@ function propCardHTML(p, isSaved) {
       <div class="re-prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> ${p.zona||'Guatemala'}</div>
       <div class="re-prop-specs">
         ${p.tipo?`<span class="re-prop-spec"><i class="fas ${icon}"></i> ${p.tipo}</span>`:''}
-        ${p.m2?`<span class="re-prop-spec"><i class="fas fa-ruler-combined"></i> ${p.m2} m²</span>`:''}
+        ${_catalogM2Text(p)?`<span class="re-prop-spec"><i class="fas fa-ruler-combined"></i> ${_catalogM2Text(p)}</span>`:''}
       </div>
       <div class="re-prop-price">${precio}</div>
     </div>
@@ -2076,7 +2093,7 @@ function sortBrowse(value)   { browseCatalog?.sort(value); }
 
 function limpiarFiltros() {
   document.querySelectorAll('.fc-tipo, .fc-modalidad, .fc-disp').forEach(cb => cb.checked = true);
-  ['filt-zona','filt-precio-min','filt-precio-max','filt-m2-min','filt-m2-max','filt-hab-min','filt-ban-min','filt-parq-min'].forEach(id => {
+  ['filt-zona','filt-precio-min','filt-precio-max','filt-m2-min','filt-m2-max','filt-m2-const-min','filt-m2-const-max','filt-m2-ter-min','filt-m2-ter-max','filt-hab-min','filt-ban-min','filt-parq-min'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -2106,7 +2123,17 @@ function _fillPropModal(p, isFav) {
   document.getElementById('pmod-code').textContent = `PROP-${String(p.id).padStart(5,'0')}`;
   document.getElementById('pmod-name').textContent = p.nombre;
   document.getElementById('pmod-loc').innerHTML = `<i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.65rem;"></i> ${p.zona || '—'}`;
-  document.getElementById('pmod-price').textContent = p.precio ? (p.moneda === 'GTQ' ? 'Q' : '$') + fmtPrecio(p.precio) : '—';
+  const _psym = p.moneda === 'GTQ' ? 'Q' : '$';
+  const _ppv  = p.precio_venta ? `Venta: ${_psym}${fmtPrecio(p.precio_venta)}` : null;
+  const _ppr  = p.precio_renta ? `Renta: ${_psym}${fmtPrecio(p.precio_renta)}/mes` : null;
+  const pmodPriceEl = document.getElementById('pmod-price');
+  if (_ppv && _ppr) {
+    pmodPriceEl.innerHTML = _ppv + `<span style="display:block;font-size:.55em;color:var(--gray);margin-top:.15rem;font-weight:400;">${_ppr}</span>`;
+  } else {
+    pmodPriceEl.textContent = _ppv || _ppr || (p.precio ? _psym + fmtPrecio(p.precio) : '—');
+  }
+  const pmodTaxEl = document.getElementById('pmod-tax-badge');
+  if (pmodTaxEl) pmodTaxEl.style.display = p.impuestos_incluidos ? '' : 'none';
   document.getElementById('pmod-badge').textContent = _modLabel(p.modalidad);
 
   PropDetail.renderSpecs(document.getElementById('pmod-specs'), p, tipoIcon[p.tipo] || 'fa-home');
@@ -2712,6 +2739,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         precioMax:      'filt-precio-max',
         m2Min:          'filt-m2-min',
         m2Max:          'filt-m2-max',
+        m2ConstMin:     'filt-m2-const-min',
+        m2ConstMax:     'filt-m2-const-max',
+        m2TerMin:       'filt-m2-ter-min',
+        m2TerMax:       'filt-m2-ter-max',
         habMin:         'filt-hab-min',
         banMin:         'filt-ban-min',
         parqMin:        'filt-parq-min',
