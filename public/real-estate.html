@@ -508,22 +508,22 @@
       <div class="filter-section">
         <div class="filter-section-title">Modalidad</div>
         <div class="filter-checks">
-          <label class="filter-check"><input type="checkbox" class="fc-modalidad" value="venta" checked/> Venta</label>
-          <label class="filter-check"><input type="checkbox" class="fc-modalidad" value="renta" checked/> Renta</label>
+          <label class="filter-check"><input type="checkbox" class="fc-modalidad" value="venta"/> Venta</label>
+          <label class="filter-check"><input type="checkbox" class="fc-modalidad" value="renta"/> Renta</label>
         </div>
       </div>
 
       <div class="filter-section">
         <div class="filter-section-title">Tipo de Propiedad</div>
         <div class="filter-checks">
-          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Casa" checked/> Casa</label>
-          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Apartamento" checked/> Apartamento</label>
-          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Penthouse" checked/> Penthouse</label>
-          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Oficina" checked/> Oficina</label>
-          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Bodega / Galera" checked/> Bodega / Galera</label>
-          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Local comercial" checked/> Local comercial</label>
-          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Terreno" checked/> Terreno</label>
-          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Finca" checked/> Finca</label>
+          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Casa"/> Casa</label>
+          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Apartamento"/> Apartamento</label>
+          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Penthouse"/> Penthouse</label>
+          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Oficina"/> Oficina</label>
+          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Bodega / Galera"/> Bodega / Galera</label>
+          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Local comercial"/> Local comercial</label>
+          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Terreno"/> Terreno</label>
+          <label class="filter-check"><input type="checkbox" class="fc-tipo" value="Finca"/> Finca</label>
         </div>
       </div>
 
@@ -567,10 +567,10 @@
       <div class="filter-section">
         <div class="filter-section-title">Disponibilidad</div>
         <div class="filter-checks">
-          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="vacia" checked/> Vacía</label>
-          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="habitada" checked/> Habitada</label>
-          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="airbnb" checked/> Airbnb</label>
-          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="en_construccion" checked/> En construcción</label>
+          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="vacia"/> Vacía</label>
+          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="habitada"/> Habitada</label>
+          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="airbnb"/> Airbnb</label>
+          <label class="filter-check"><input type="checkbox" class="fc-disponibilidad" value="en_construccion"/> En construcción</label>
         </div>
       </div>
 
@@ -868,7 +868,7 @@ function setView(v){
 }
 function aplicarFiltros(){ catalog.load(); }
 function resetFiltros(){
-  document.querySelectorAll('.fc-tipo,.fc-modalidad,.fc-disponibilidad').forEach(cb=>cb.checked=true);
+  document.querySelectorAll('.fc-tipo,.fc-modalidad,.fc-disponibilidad').forEach(cb=>cb.checked=false);
   ['f-min','f-max','f-m2-min','f-m2-max','f-m2-const-min','f-m2-const-max','f-m2-ter-min','f-m2-ter-max','f-zona','f-hab-min','f-ban-min','f-parq-min'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   resetPills('.filters-sidebar');
   limpiarAdic();
@@ -1177,8 +1177,8 @@ function _syncDrawerToSidebar(e) {
 function _updateFabBadge() {
   const sidebar = document.querySelector('.filters-sidebar');
   if (!sidebar) return;
-  // Cuenta filtros no-default: checkboxes desmarcados + inputs con valor
-  const unchecked    = [...sidebar.querySelectorAll('input[type="checkbox"]')].filter(c => !c.checked).length;
+  // Cuenta filtros activos: checkboxes marcados + inputs con valor
+  const unchecked    = [...sidebar.querySelectorAll('input[type="checkbox"]')].filter(c => c.checked).length;
   const filled       = [...sidebar.querySelectorAll('input[type="number"],input[type="text"]')].filter(i => i.value.trim()).length;
   const adicCount    = parseInt(document.getElementById('adic-sidebar-count')?.textContent || '0') || 0;
   const activePills  = [...sidebar.querySelectorAll('.qty-pill.active')].filter(b => b.dataset.val).length;

@@ -741,22 +741,22 @@
             <div class="re-filter-section">
               <div class="re-filter-title">Tipo de propiedad</div>
               <div class="re-filter-checks">
-                <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Casa" checked/> Casa</label>
-                <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Apartamento" checked/> Apartamento</label>
-                <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Penthouse" checked/> Penthouse</label>
-                <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Oficina" checked/> Oficina</label>
-                <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Local comercial" checked/> Local comercial</label>
-                <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Terreno" checked/> Terreno</label>
-                <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Bodega / Galera" checked/> Bodega / Galera</label>
-                <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Finca" checked/> Finca</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Casa"/> Casa</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Apartamento"/> Apartamento</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Penthouse"/> Penthouse</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Oficina"/> Oficina</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Local comercial"/> Local comercial</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Terreno"/> Terreno</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Bodega / Galera"/> Bodega / Galera</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-tipo" value="Finca"/> Finca</label>
               </div>
             </div>
 
             <div class="re-filter-section">
               <div class="re-filter-title">Modalidad</div>
               <div class="re-filter-checks">
-                <label class="re-filter-check"><input type="checkbox" class="fc-modalidad" value="venta" checked/> Venta</label>
-                <label class="re-filter-check"><input type="checkbox" class="fc-modalidad" value="renta" checked/> Renta</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-modalidad" value="venta"/> Venta</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-modalidad" value="renta"/> Renta</label>
               </div>
             </div>
 
@@ -795,10 +795,10 @@
             <div class="re-filter-section">
               <div class="re-filter-title">Disponibilidad</div>
               <div class="re-filter-checks">
-                <label class="re-filter-check"><input type="checkbox" class="fc-disp" value="vacia" checked/> Disponible</label>
-                <label class="re-filter-check"><input type="checkbox" class="fc-disp" value="habitada" checked/> Habitada</label>
-                <label class="re-filter-check"><input type="checkbox" class="fc-disp" value="airbnb" checked/> Airbnb</label>
-                <label class="re-filter-check"><input type="checkbox" class="fc-disp" value="en_construccion" checked/> En construcción</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-disp" value="vacia"/> Disponible</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-disp" value="habitada"/> Habitada</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-disp" value="airbnb"/> Airbnb</label>
+                <label class="re-filter-check"><input type="checkbox" class="fc-disp" value="en_construccion"/> En construcción</label>
               </div>
             </div>
 
@@ -2092,7 +2092,7 @@ function buscarPropiedades() { browseCatalog?.load(); }
 function sortBrowse(value)   { browseCatalog?.sort(value); }
 
 function limpiarFiltros() {
-  document.querySelectorAll('.fc-tipo, .fc-modalidad, .fc-disp').forEach(cb => cb.checked = true);
+  document.querySelectorAll('.fc-tipo, .fc-modalidad, .fc-disp').forEach(cb => cb.checked = false);
   ['filt-zona','filt-precio-min','filt-precio-max','filt-m2-min','filt-m2-max','filt-m2-const-min','filt-m2-const-max','filt-m2-ter-min','filt-m2-ter-max','filt-hab-min','filt-ban-min','filt-parq-min'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
