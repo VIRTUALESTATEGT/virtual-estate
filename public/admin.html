@@ -529,6 +529,39 @@
   .adic-check.adic-oculto { border-color: rgba(200,147,74,.3); }
   .adic-check.adic-oculto:hover { border-color: rgba(200,147,74,.55); }
 
+  /* ── FOTO DRAG & DROP ───────────────────────── */
+  .foto-drag-item { cursor: grab; user-select: none; }
+  .foto-drag-item:active { cursor: grabbing; }
+  .foto-drag-item.drag-over { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  /* ── ADICIONALES COLLAPSIBLE + SEARCH ──────── */
+  .adic-grupo { margin-bottom: .35rem; }
+  .adic-grupo-header {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: .6rem; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--gray); font-weight: 600; padding: .35rem .2rem;
+    cursor: pointer; border-bottom: 1px solid rgba(255,255,255,.06);
+    transition: color .15s; user-select: none;
+  }
+  .adic-grupo-header:hover { color: var(--white); }
+  .adic-grupo-header i.adic-chev { transition: transform .2s; font-size: .55rem; }
+  .adic-grupo-header.open i.adic-chev { transform: rotate(90deg); }
+  .adic-grupo-body { padding-top: .35rem; }
+  .adic-grupo-body.collapsed { display: none; }
+  .adic-search-wrap { position: relative; margin-bottom: .65rem; }
+  .adic-search-input {
+    width: 100%; box-sizing: border-box;
+    background: rgba(255,255,255,.05); border: 1px solid var(--border);
+    border-radius: var(--r); color: var(--white);
+    font-size: .72rem; padding: .45rem .75rem .45rem 2rem;
+    outline: none; transition: border-color .15s;
+  }
+  .adic-search-input:focus { border-color: rgba(193,146,89,.55); }
+  .adic-search-input::placeholder { color: var(--gray); }
+  .adic-search-icon { position: absolute; left: .65rem; top: 50%; transform: translateY(-50%); color: var(--gray); font-size: .65rem; pointer-events: none; }
+  .adic-search-clear { position: absolute; right: .5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--gray); cursor: pointer; font-size: .65rem; padding: .2rem; line-height: 1; transition: color .15s; display: none; }
+  .adic-search-clear:hover { color: var(--white); }
+
   /* ── PERMISOS CHECKBOXES ─────────────────────── */
   .perm-group { margin-bottom: 1rem; }
   .perm-group-title { font-size: .58rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: .5rem; }
@@ -1991,8 +2024,13 @@
 
     <!-- Sección: Adicionales (renderizado dinámico desde /api/admin/adicionales) -->
     <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;margin-top:1rem;"><i class="fas fa-list-check" style="margin-right:.3rem;"></i>Adicionales de la propiedad</div>
-    <div id="adic-form-container" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:.6rem;">
-      <div style="grid-column:1/-1;text-align:center;color:var(--gray);padding:1rem;font-size:.78rem;"><i class="fas fa-spinner fa-spin"></i> Cargando adicionales...</div>
+    <div class="adic-search-wrap">
+      <i class="fas fa-search adic-search-icon"></i>
+      <input type="text" id="adic-search" class="adic-search-input" placeholder="Buscar adicionales…" oninput="filtrarAdics(this.value)"/>
+      <button id="adic-search-clear" class="adic-search-clear" onclick="document.getElementById('adic-search').value='';filtrarAdics('');" title="Limpiar">&#10005;</button>
+    </div>
+    <div id="adic-form-container" style="margin-bottom:.6rem;">
+      <div style="text-align:center;color:var(--gray);padding:1rem;font-size:.78rem;"><i class="fas fa-spinner fa-spin"></i> Cargando adicionales...</div>
     </div>
 
     <!-- Sección: Precio -->
@@ -3409,36 +3447,78 @@
   async function cargarAdicionalesCRM(isEdit, adicSet = new Set()) {
     const container = document.getElementById('adic-form-container');
     if (!container) return;
-    container.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--gray);padding:1rem;font-size:.78rem;"><i class="fas fa-spinner fa-spin"></i> Cargando adicionales...</div>';
+    // Reset search
+    const srch = document.getElementById('adic-search');
+    if (srch) srch.value = '';
+    const clr = document.getElementById('adic-search-clear');
+    if (clr) clr.style.display = 'none';
+    container.innerHTML = '<div style="text-align:center;color:var(--gray);padding:1rem;font-size:.78rem;"><i class="fas fa-spinner fa-spin"></i> Cargando adicionales...</div>';
     let catalogo;
     try {
       catalogo = await apiFetch('/api/admin/adicionales');
     } catch(e) {
-      container.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:#E08080;padding:1rem;font-size:.78rem;"><i class="fas fa-triangle-exclamation"></i> No se pudo cargar el catálogo de adicionales: ${e.message}</div>`;
+      container.innerHTML = `<div style="text-align:center;color:#E08080;padding:1rem;font-size:.78rem;"><i class="fas fa-triangle-exclamation"></i> No se pudo cargar: ${e.message}</div>`;
       return;
     }
-    // Group by tipo (API returns ordered by tipo, orden)
     const groups = {};
     _ADIC_TIPO_ORDER.forEach(t => { groups[t] = []; });
     catalogo.forEach(a => {
-      // Active always shown; inactive only shown in edit mode when already assigned
       if (!a.activo && !(isEdit && adicSet.has(a.nombre))) return;
       if (groups[a.tipo]) groups[a.tipo].push(a);
     });
     container.innerHTML = _ADIC_TIPO_ORDER.map(tipo => {
       const items = groups[tipo];
       if (!items.length) return '';
+      // Categories with checked items start expanded
+      const hasChecked  = items.some(a => adicSet.has(a.nombre));
+      const headerClass = hasChecked ? 'adic-grupo-header open' : 'adic-grupo-header';
+      const bodyClass   = hasChecked ? 'adic-grupo-body' : 'adic-grupo-body collapsed';
       const checks = items.map(a => {
         const ch = adicSet.has(a.nombre) ? ' checked' : '';
         const ocultoClass = a.activo ? '' : ' adic-oculto';
-        const ocultoTag = a.activo ? '' : ' <span style="font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:#C8934A;font-weight:700;">[oculto]</span>';
+        const ocultoTag   = a.activo ? '' : ' <span style="font-size:.5rem;letter-spacing:.1em;text-transform:uppercase;color:#C8934A;font-weight:700;">[oculto]</span>';
         return `<label class="adic-check${ocultoClass}"><input type="checkbox" value="${a.nombre}" data-tipo="${a.tipo}"${ch}/> ${a.nombre}${ocultoTag}</label>`;
       }).join('');
-      return `<div>
-        <div style="font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gray);margin-bottom:.5rem;font-weight:600;">${_ADIC_TIPO_LABEL_FORM[tipo]}</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem;">${checks}</div>
+      return `<div class="adic-grupo" data-tipo="${tipo}">
+        <div class="${headerClass}" onclick="toggleAdicGrupo(this)">
+          <span>${_ADIC_TIPO_LABEL_FORM[tipo]} <span style="font-size:.55rem;opacity:.55;">(${items.length})</span></span>
+          <i class="fas fa-chevron-right adic-chev"></i>
+        </div>
+        <div class="${bodyClass}">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem;padding-bottom:.4rem;">${checks}</div>
+        </div>
       </div>`;
     }).join('');
+  }
+
+  function toggleAdicGrupo(header) {
+    const body  = header.nextElementSibling;
+    const isOpen = header.classList.toggle('open');
+    body.classList.toggle('collapsed', !isOpen);
+  }
+
+  function filtrarAdics(q) {
+    const term   = q.trim().toLowerCase();
+    const clrBtn = document.getElementById('adic-search-clear');
+    if (clrBtn) clrBtn.style.display = term ? '' : 'none';
+    document.querySelectorAll('#adic-form-container .adic-grupo').forEach(grupo => {
+      const items = [...grupo.querySelectorAll('.adic-check')];
+      let visible = 0;
+      items.forEach(item => {
+        const txt     = item.textContent.toLowerCase();
+        const checked = item.querySelector('input')?.checked;
+        const show    = !term || checked || txt.includes(term);
+        item.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      grupo.style.display = visible ? '' : 'none';
+      if (term && visible) {
+        const header = grupo.querySelector('.adic-grupo-header');
+        const body   = grupo.querySelector('.adic-grupo-body');
+        header.classList.add('open');
+        body.classList.remove('collapsed');
+      }
+    });
   }
 
   /* ── CLIENTES ───────────────────────────────────────────── */
@@ -4764,9 +4844,9 @@
       return;
     }
     grid.innerHTML = _propFotos.map((f, i) => `
-      <div style="position:relative;border-radius:6px;overflow:hidden;background:#111;aspect-ratio:4/3;">
-        <img src="${f.url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy"/>
-        ${f.es_principal ? '<div style="position:absolute;top:3px;left:3px;background:var(--gold);color:#000;font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:3px;">PORTADA</div>' : ''}
+      <div class="foto-drag-item" data-id="${f.id}" draggable="true" style="position:relative;border-radius:6px;overflow:hidden;background:#111;aspect-ratio:4/3;transition:opacity .15s;">
+        <img src="${f.url}" style="width:100%;height:100%;object-fit:cover;pointer-events:none;" loading="lazy"/>
+        ${f.es_principal ? '<div style="position:absolute;top:3px;left:3px;background:var(--gold);color:#000;font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:3px;pointer-events:none;">PORTADA</div>' : ''}
         <div style="position:absolute;bottom:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:2px 4px;background:rgba(0,0,0,.55);gap:2px;">
           <button onclick="moverFotoPropiedad(${f.id},-1)" ${i===0?'disabled':''} style="background:none;border:none;color:#fff;cursor:pointer;font-size:.75rem;padding:2px 4px;opacity:${i===0?'.3':'1'};" title="Mover izq">&#9664;</button>
           <button onclick="eliminarFotoPropiedad(${f.id})" style="background:none;border:none;color:#f88;cursor:pointer;font-size:.75rem;padding:2px 4px;" title="Eliminar">&#10005;</button>
@@ -4774,6 +4854,91 @@
           <button onclick="moverFotoPropiedad(${f.id},1)" ${i===_propFotos.length-1?'disabled':''} style="background:none;border:none;color:#fff;cursor:pointer;font-size:.75rem;padding:2px 4px;opacity:${i===_propFotos.length-1?'.3':'1'};" title="Mover der">&#9654;</button>
         </div>
       </div>`).join('');
+    _initFotosDrag(grid);
+  }
+
+  function _initFotosDrag(grid) {
+    let dragId = null;
+    grid.querySelectorAll('.foto-drag-item').forEach(item => {
+      item.addEventListener('dragstart', e => {
+        dragId = +item.dataset.id;
+        item.style.opacity = '.35';
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      item.addEventListener('dragend', () => {
+        item.style.opacity = '';
+        grid.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      });
+      item.addEventListener('dragover',  e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+      item.addEventListener('dragenter', () => { if (+item.dataset.id !== dragId) item.classList.add('drag-over'); });
+      item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+      item.addEventListener('drop', async e => {
+        e.preventDefault();
+        item.classList.remove('drag-over');
+        await _dropFoto(dragId, +item.dataset.id);
+      });
+    });
+
+    // Touch drag
+    let touchId = null, touchClone = null, touchOver = null;
+    grid.querySelectorAll('.foto-drag-item').forEach(item => {
+      item.addEventListener('touchstart', e => {
+        touchId = +item.dataset.id;
+        const t = e.touches[0];
+        const r = item.getBoundingClientRect();
+        touchClone = item.cloneNode(true);
+        Object.assign(touchClone.style, {
+          position: 'fixed', zIndex: '9999', opacity: '.85', pointerEvents: 'none',
+          width: r.width + 'px', height: r.height + 'px',
+          left: (t.clientX - r.width / 2) + 'px', top: (t.clientY - r.height / 2) + 'px',
+          borderRadius: '6px', boxShadow: '0 8px 24px rgba(0,0,0,.6)',
+        });
+        document.body.appendChild(touchClone);
+        item.style.opacity = '.3';
+      }, { passive: true });
+
+      item.addEventListener('touchmove', e => {
+        e.preventDefault();
+        if (!touchClone) return;
+        const t  = e.touches[0];
+        const cw = parseFloat(touchClone.style.width);
+        const ch = parseFloat(touchClone.style.height);
+        touchClone.style.left = (t.clientX - cw / 2) + 'px';
+        touchClone.style.top  = (t.clientY - ch / 2) + 'px';
+        touchClone.style.display = 'none';
+        const el = document.elementFromPoint(t.clientX, t.clientY);
+        touchClone.style.display = '';
+        const target = el?.closest('.foto-drag-item');
+        if (touchOver && touchOver !== target) touchOver.classList.remove('drag-over');
+        if (target && +target.dataset.id !== touchId) { target.classList.add('drag-over'); touchOver = target; }
+      }, { passive: false });
+
+      item.addEventListener('touchend', async () => {
+        if (touchClone) { touchClone.remove(); touchClone = null; }
+        grid.querySelectorAll('.foto-drag-item').forEach(el => { el.style.opacity = ''; el.classList.remove('drag-over'); });
+        const dropId = touchOver ? +touchOver.dataset.id : null;
+        touchOver = null;
+        if (dropId && dropId !== touchId) await _dropFoto(touchId, dropId);
+      });
+    });
+  }
+
+  async function _dropFoto(fromId, toId) {
+    if (!fromId || !toId || fromId === toId) return;
+    const fromIdx = _propFotos.findIndex(f => f.id === fromId);
+    const toIdx   = _propFotos.findIndex(f => f.id === toId);
+    if (fromIdx < 0 || toIdx < 0) return;
+    const [moved] = _propFotos.splice(fromIdx, 1);
+    _propFotos.splice(toIdx, 0, moved);
+    renderFotosPropiedad();
+    try {
+      await apiFetch(`/api/propiedades/${_editPropiedadId}/fotos/orden`, {
+        method: 'PUT', body: JSON.stringify({ ids: _propFotos.map(f => f.id) }),
+      });
+    } catch(err) {
+      await cargarFotosPropiedad(_editPropiedadId);
+      showToast('Error al reordenar: ' + err.message);
+    }
   }
   async function eliminarFotoPropiedad(fotoId) {
     if (!confirm('¿Eliminar esta foto?')) return;
