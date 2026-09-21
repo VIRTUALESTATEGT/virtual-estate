@@ -16,6 +16,10 @@
       "schedule": "0 6 * * *"
     },
     {
+      "path": "/api/cron/recordatorio-citas",
+      "schedule": "0 14 * * *"
+    },
+    {
       "path": "/api/meta/refresh-token?platform=instagram",
       "schedule": "0 2 * * 0"
     }

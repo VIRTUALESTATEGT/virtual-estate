@@ -1897,6 +1897,10 @@
       <label class="form-label">Título de la propiedad *</label>
       <input type="text" class="form-control" id="prop-titulo" placeholder="Ej: Apartamento moderno Zona 14"/>
     </div>
+    <div class="form-group">
+      <label class="form-label">Dirección</label>
+      <input type="text" class="form-control" id="prop-direccion" placeholder="Ej: 15 Calle 0-50, Zona 10, Guatemala"/>
+    </div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Tipo de propiedad *</label>
@@ -2081,6 +2085,16 @@
           <input type="text" class="form-control" id="prop-gastos-detalle" placeholder="Ej: Cuota mantenimiento + parqueo visita"/>
         </div>
       </div>
+      <div class="form-group">
+        <label class="form-label">Agente responsable</label>
+        <select class="form-control" id="prop-agente">
+          <option value="">— Sin asignar —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas internas</label>
+        <textarea class="form-control" id="prop-notas" placeholder="Notas de uso interno (no visibles al cliente)..." style="min-height:60px;"></textarea>
+      </div>
     </div>
 
     <!-- Sección: Media -->
@@ -2116,33 +2130,15 @@
       <textarea class="form-control" id="prop-descripcion" placeholder="Describe el inmueble con todos sus atributos y puntos de valor..." style="min-height:90px;"></textarea>
     </div>
 
-    <!-- Sección: Estado CRM -->
-    <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;margin-top:.6rem;"><i class="fas fa-tasks" style="margin-right:.3rem;"></i>Estado CRM</div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Estado de publicación</label>
-        <select class="form-control" id="prop-estado">
-          <option>Activa — en portafolio</option>
-          <option>Borrador</option>
-          <option>En revisión</option>
-          <option>Vendida</option>
-          <option>Rentada</option>
-          <option>Archivada</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Agente responsable</label>
-        <select class="form-control" id="prop-agente">
-          <option value="">— Sin asignar —</option>
-          <option>Admin VE</option>
-          <option>AGT-0003 — Cliente referido</option>
-          <option>AGT-0005 — Agente externo</option>
-        </select>
-      </div>
-    </div>
+    <!-- Sección: Estado de publicación -->
+    <div style="font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;margin-top:.6rem;"><i class="fas fa-tasks" style="margin-right:.3rem;"></i>Estado</div>
     <div class="form-group">
-      <label class="form-label">Notas internas</label>
-      <textarea class="form-control" id="prop-notas" placeholder="Notas de uso interno (no visibles al cliente)..." style="min-height:60px;"></textarea>
+      <label class="form-label">Estado de publicación</label>
+      <select class="form-control" id="prop-estado">
+        <option value="borrador">Borrador</option>
+        <option value="publicada">Publicada</option>
+        <option value="pausada">Pausada</option>
+      </select>
     </div>
 
     <div class="modal-actions" style="margin-top:1.4rem;">
@@ -2583,6 +2579,7 @@
   }
 
   let _tasaUsdGtq = 7.90;
+  let _comisionGlobal = 5;
 
   function fmtPrecio(n){const num=Math.round((Number(n)||0)*100)/100;const d=num%1!==0;return num.toLocaleString('en-US',{minimumFractionDigits:d?2:0,maximumFractionDigits:2});}
 
@@ -3150,22 +3147,19 @@
     document.getElementById('ej-agente').textContent = '$' + agente;
     document.getElementById('ej-ve').textContent = '$' + veRetiene;
   }
-  function guardarComisionGlobal(){
-    const pct = document.getElementById('cfg-comision-pct').value;
-    localStorage.setItem('ve_comision_global', pct);
-    showToast('✅ Comisión estándar guardada: ' + pct + '%');
+  async function guardarComisionGlobal(){
+    const pct = (document.getElementById('cfg-comision-pct')?.value || '').trim();
+    const num = parseFloat(pct);
+    if (isNaN(num) || num < 0) { showToast('❌ Ingresá un porcentaje válido'); return; }
+    try {
+      await apiFetch('/api/admin/config/comision_global_pct', {
+        method: 'PUT', body: JSON.stringify({ valor: String(num) }),
+      });
+      _comisionGlobal = num;
+      showToast('✅ Comisión estándar guardada: ' + num + '%');
+    } catch (e) { showToast('❌ ' + e.message); }
   }
-  function getComisionGlobal(){
-    return localStorage.getItem('ve_comision_global') || '8';
-  }
-  // Load saved global commission on page load
-  (function(){
-    const saved = localStorage.getItem('ve_comision_global');
-    if(saved){
-      const el = document.getElementById('cfg-comision-pct');
-      if(el){ el.value = saved; actualizarEjemploComision(); }
-    }
-  })();
+  function getComisionGlobal(){ return String(_comisionGlobal); }
 
   /* ── RECORRIDO VIRTUAL + TASA DE CAMBIO (config_sitio) ─ */
   (async function cargarConfigPublica(){
@@ -3179,6 +3173,11 @@
         _tasaUsdGtq = parseFloat(cfg.tasa_cambio_usd_gtq) || 7.90;
         const elTasa = document.getElementById('cfg-tasa-cambio');
         if (elTasa) elTasa.value = cfg.tasa_cambio_usd_gtq;
+      }
+      if (cfg.comision_global_pct) {
+        _comisionGlobal = parseFloat(cfg.comision_global_pct) || 5;
+        const elCom = document.getElementById('cfg-comision-pct');
+        if (elCom) { elCom.value = cfg.comision_global_pct; actualizarEjemploComision(); }
       }
     } catch {}
   })();
@@ -3351,17 +3350,28 @@
   }
 
   /* ── NUEVA PROPIEDAD MODAL (#6) ─────────────────────── */
+  async function cargarAgentesSelect(selectedId){
+    const el=document.getElementById('prop-agente'); if(!el)return;
+    try{
+      const agentes=await apiFetch('/api/agentes');
+      el.innerHTML='<option value="">— Sin asignar —</option>'+
+        agentes.map(a=>`<option value="${a.id}"${String(a.id)===String(selectedId)?'  selected':''}>${a.nombre}</option>`).join('');
+    }catch{ /* mantiene opción por defecto */ }
+  }
+
   function abrirFormPropiedad(){
     _editPropiedadId=null;
     const titleSpan=document.querySelector('#propModalOverlay .modal-title span');
     if(titleSpan) titleSpan.innerHTML='<i class="fas fa-building" style="color:var(--gold);margin-right:.5rem;"></i>Nueva Propiedad';
-    ['prop-titulo','prop-zona','prop-tour','prop-descripcion','prop-gastos-detalle'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    ['prop-titulo','prop-zona','prop-tour','prop-video','prop-direccion','prop-descripcion','prop-gastos-detalle','prop-notas'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     ['prop-precio-venta','prop-precio-renta','prop-area','prop-habs','prop-banos','prop-parqueos','prop-anio','prop-m2-construccion','prop-m2-terreno','prop-precio-min','prop-comision-ve','prop-gastos-adicionales'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     ['prop-tipo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     ['mod-venta','mod-renta'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
     ['disp-vacia','disp-habitada','disp-airbnb','disp-en-construccion'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
     const elImp=document.getElementById('prop-impuestos-incluidos');if(elImp)elImp.checked=false;
+    const elEst=document.getElementById('prop-estado');if(elEst)elEst.value='borrador';
     initMunicipios('prop-depto','prop-municipio',null,null);
+    cargarAgentesSelect(null);
     _propFotosEstado(false);
     document.getElementById('propModalOverlay').classList.add('open');
     cargarAdicionalesCRM(false);
@@ -3405,6 +3415,11 @@
       impuestos_incluidos: document.getElementById('prop-impuestos-incluidos')?.checked || false,
       gastos_adicionales:  _n('prop-gastos-adicionales'),
       gastos_adicionales_detalle: document.getElementById('prop-gastos-detalle')?.value.trim() || null,
+      direccion:             document.getElementById('prop-direccion')?.value.trim() || null,
+      video_url:             document.getElementById('prop-video')?.value.trim() || null,
+      estado_publicacion:    document.getElementById('prop-estado')?.value || 'borrador',
+      agente_responsable_id: parseInt(document.getElementById('prop-agente')?.value) || null,
+      notas_internas:        document.getElementById('prop-notas')?.value.trim() || null,
     };
     try {
       if(_editPropiedadId){
@@ -3692,7 +3707,7 @@
     let nombre='',tel='',email='';
     if(c.clientes){ nombre=capitalizarNombre([c.clientes.nombre,c.clientes.apellido].filter(Boolean).join(' '))||''; tel=c.clientes.telefono||''; email=c.clientes.email||''; }
     else if(c.leads){ nombre=capitalizarNombre([c.leads.nombre,c.leads.apellido].filter(Boolean).join(' '))||''; tel=c.leads.telefono||''; email=c.leads.email||''; }
-    mostrarEnvioModal(id, portalLink, {nombre, tel, email});
+    mostrarEnvioModal(id, portalLink, {nombre, tel, email, created_at: c.created_at});
   }
 
   async function desaprobarCotizacion(id){
@@ -4311,7 +4326,7 @@
         showToast('✅ Cotización creada');
         loadCotizaciones();
         const portalLink=`${window.location.origin}/portal/cotizacion/${result.confirm_token}`;
-        mostrarEnvioModal(result.id, portalLink);
+        mostrarEnvioModal(result.id, portalLink, {created_at: result.created_at});
       }
     }catch(e){
       showToast('Error: '+e.message);
@@ -4743,6 +4758,8 @@
     document.getElementById('prop-zona').value=p.zona||'';
     initMunicipios('prop-depto','prop-municipio',getMunicipioDepto(p.municipio),p.municipio||null);
     document.getElementById('prop-tour').value=p.linktour3d||'';
+    document.getElementById('prop-video').value=p.video_url||'';
+    document.getElementById('prop-direccion').value=p.direccion||'';
     document.getElementById('prop-descripcion').value=p.descripcion||'';
     document.getElementById('prop-habs').value=p.habitaciones!=null?p.habitaciones:'';
     document.getElementById('prop-banos').value=p.banos!=null?p.banos:'';
@@ -4753,6 +4770,9 @@
     const elImp2=document.getElementById('prop-impuestos-incluidos');if(elImp2)elImp2.checked=!!p.impuestos_incluidos;
     document.getElementById('prop-gastos-adicionales').value=p.gastos_adicionales!=null?p.gastos_adicionales:'';
     document.getElementById('prop-gastos-detalle').value=p.gastos_adicionales_detalle||'';
+    const elEst2=document.getElementById('prop-estado');if(elEst2)elEst2.value=p.estado_publicacion||'borrador';
+    document.getElementById('prop-notas').value=p.notas_internas||'';
+    cargarAgentesSelect(p.agente_responsable_id);
     const titleSpan=document.querySelector('#propModalOverlay .modal-title span');
     if(titleSpan) titleSpan.innerHTML='<i class="fas fa-building" style="color:var(--gold);margin-right:.5rem;"></i>Editar Propiedad #'+id;
     const dispArr = Array.isArray(p.disponibilidad) ? p.disponibilidad : [];
@@ -5473,7 +5493,9 @@
     _envioCanalesData={tel,email,nombre};
     const sub=document.getElementById('envio-cot-subtitulo');
     if(sub) sub.textContent=nombre?`Cliente: ${nombre}`:'';
-    const yr=String(new Date().getFullYear()).slice(-2);
+    const yr = opts?.created_at
+      ? String(new Date(opts.created_at).getFullYear()).slice(-2)
+      : String(new Date().getFullYear()).slice(-2);
     const codigo=`COT-${yr}-${String(cotId).padStart(5,'0')}`;
     const canales=document.getElementById('envio-canales');
     const opt=(icon,label,val,disabled,hint,checked=false)=>`

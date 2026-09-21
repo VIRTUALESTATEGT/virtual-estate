@@ -49,6 +49,7 @@ function _buildPropPatch(body, isUpdate = false) {
     precio_venta, precio_renta,
     comision_ve, municipio, m2_construccion, m2_terreno,
     impuestos_incluidos, gastos_adicionales, gastos_adicionales_detalle, precio_min,
+    direccion, video_url, estado_publicacion, agente_responsable_id, notas_internas,
   } = body;
 
   const disp = Array.isArray(disponibilidad) ? disponibilidad.filter(v => DISP_ALLOWED.has(v)) : [];
@@ -84,6 +85,12 @@ function _buildPropPatch(body, isUpdate = false) {
     gastos_adicionales:        gastos_adicionales  != null ? Number(gastos_adicionales) : null,
     gastos_adicionales_detalle: gastos_adicionales_detalle || null,
     precio_min:                precio_min != null ? Number(precio_min) : null,
+    direccion:             direccion             || null,
+    video_url:             video_url             || null,
+    estado_publicacion:    ['borrador','publicada','pausada'].includes(estado_publicacion)
+                             ? estado_publicacion : 'borrador',
+    agente_responsable_id: agente_responsable_id ? (Number(agente_responsable_id) || null) : null,
+    notas_internas:        notas_internas        || null,
   };
   return patch;
 }

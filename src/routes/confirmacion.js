@@ -4,6 +4,7 @@ const supabase = require('../config/supabase');
 const nodemailer = require('nodemailer');
 const { checkRateLimit: checkRL, recordAttempt } = require('../utils/rateLimit');
 const { maskEmail } = require('../utils/mask');
+const { sendWhatsAppTemplate } = require('../utils/whatsapp');
 
 const RL_TOKEN_GET  = { max: 20, windowMs: 15 * 60 * 1000 }; // 20 / 15 min
 const RL_CONFIRMAR  = { max: 10, windowMs: 30 * 60 * 1000 }; // 10 / 30 min
@@ -51,13 +52,13 @@ async function smtpWithRetry(buildMailOpts, label, maxAttempts = 3, preDelay = 0
   }
 }
 
-async function enviarEmailConfirmacion({ email, nombre, apellido, cotizacion_id, monto, anticipo, codigo_cliente, timestamp, detalles_json, moneda }) {
+async function enviarEmailConfirmacion({ email, nombre, apellido, cotizacion_id, monto, anticipo, codigo_cliente, timestamp, detalles_json, moneda, created_at }) {
   console.log('[CONFIRM-EMAIL] enviarEmailConfirmacion ▶ destinatario:', maskEmail(email), '| SMTP_HOST set:', !!process.env.SMTP_HOST, '| SMTP_USER set:', !!process.env.SMTP_USER, '| SMTP_PASS set:', !!process.env.SMTP_PASS);
   if (!crearTransportador()) {
     console.error('[CONFIRM-EMAIL] ✗ SMTP no configurado — agrega SMTP_HOST, SMTP_USER y SMTP_PASS en Vercel');
     return;
   }
-  const year    = new Date().getFullYear().toString().slice(-2);
+  const year    = new Date(created_at || timestamp || Date.now()).getFullYear().toString().slice(-2);
   const nroCot  = `COT-${year}-${String(cotizacion_id).padStart(5, '0')}`;
   const fecha   = new Date(timestamp).toLocaleString('es-GT', { dateStyle: 'long', timeStyle: 'short' });
   const nombreCompleto = capitalizarNombre([nombre, apellido].filter(Boolean).join(' ')) || 'Cliente';
@@ -503,6 +504,7 @@ async function procesarConfirmacion({ confirm_token, lead_id, anticipo_confirmad
         timestamp:     ahora,
         detalles_json: cot.detalles_json || null,
         moneda:        cot.moneda || 'USD',
+        created_at:    cot.created_at,
       });
       console.log('[CONFIRM-EMAIL] ✅ Enviado a:', maskEmail(cliente.email));
     } catch (e) {
@@ -512,7 +514,7 @@ async function procesarConfirmacion({ confirm_token, lead_id, anticipo_confirmad
     console.warn('[CONFIRM-EMAIL] ✗ Sin email — cliente no tiene dirección registrada');
   }
 
-  const yr2 = String(new Date().getFullYear()).slice(-2);
+  const yr2 = String(new Date(cot.created_at || Date.now()).getFullYear()).slice(-2);
   const codigo_cotizacion = `COT-${yr2}-${String(cotizacion_id).padStart(5, '0')}`;
   return {
     cliente_id:     cliente.id,
@@ -616,5 +618,50 @@ async function limpiarHandler(req, res) {
 
 router.get('/limpiar',  limpiarHandler);
 router.post('/limpiar', limpiarHandler);
+
+// ── GET /api/cron/recordatorio-citas — Vercel cron, 0 14 * * * (8am Guatemala) ──
+async function recordatorioHandler(req, res) {
+  const auth   = req.headers['authorization'];
+  const bearer = auth && auth.startsWith('Bearer ') ? auth.slice(7) : null;
+  const secret = bearer || req.headers['x-cron-secret'] || req.query.secret;
+  if (secret !== process.env.CRON_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Guatemala' })
+    .format(new Date());
+
+  const { data: citas, error } = await supabase
+    .from('citas')
+    .select('id, nombre_contacto, telefono_contacto, hora_inicio')
+    .eq('estado', 'aprobada')
+    .eq('fecha', hoy);
+
+  if (error) {
+    console.error('[CRON] recordatorio-citas error:', error.message);
+    return res.status(500).json({ error: error.message });
+  }
+
+  let enviados = 0;
+  for (const cita of (citas || [])) {
+    if (!cita.telefono_contacto) continue;
+    const [h, m] = (cita.hora_inicio || '00:00').split(':').map(Number);
+    const suffix = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    const horaFmt = `${h12}:${String(m).padStart(2, '0')} ${suffix}`;
+    try {
+      await sendWhatsAppTemplate(cita.telefono_contacto, 'cita_recordatorio',
+        [cita.nombre_contacto, horaFmt]);
+      enviados++;
+    } catch (e) {
+      console.error(`[CRON] recordatorio-citas cita #${cita.id}: ${e.message}`);
+    }
+  }
+
+  console.log(`[CRON] recordatorio-citas — hoy: ${hoy} | encontradas: ${(citas||[]).length} | enviados: ${enviados}`);
+  res.json({ success: true, hoy, encontradas: (citas || []).length, enviados });
+}
+
+router.get('/recordatorio-citas', recordatorioHandler);
 
 module.exports = router;
