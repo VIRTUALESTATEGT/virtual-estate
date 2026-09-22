@@ -356,6 +356,55 @@
     .detail-gallery-btn{width:48px;height:48px;}
     .detail-close{width:44px;height:44px;}
   }
+  /* ── AGENDAMIENTO VISITANTE ─────────────────────────────── */
+  #re-gate-modal,#re-wizard-modal{display:none;position:fixed;inset:0;z-index:1300;background:rgba(0,0,0,.82);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:1.2rem;}
+  #re-gate-modal.open,#re-wizard-modal.open{display:flex;}
+  .re-modal-box{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:1.8rem;max-width:430px;width:100%;position:relative;max-height:90vh;overflow-y:auto;}
+  .re-wizard-box{max-width:500px;}
+  .re-modal-close{position:absolute;top:.85rem;right:.85rem;background:none;border:none;color:var(--gray);font-size:.95rem;cursor:pointer;line-height:1;padding:.2rem;}
+  .re-modal-close:hover{color:var(--white);}
+  .re-modal-eyebrow{font-size:.49rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.45rem;}
+  .re-modal-title{font-size:.94rem;font-weight:700;color:var(--white);margin:0 0 1.3rem;}
+  .re-gate-opt{display:flex;align-items:flex-start;gap:.85rem;padding:.85rem 1rem;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;margin-bottom:.5rem;transition:.2s;text-decoration:none;color:inherit;background:none;width:100%;text-align:left;}
+  .re-gate-opt:hover{border-color:var(--gold);background:rgba(193,146,89,.04);}
+  .re-gate-opt-icon{font-size:1rem;color:var(--gold);padding-top:.08rem;flex-shrink:0;width:17px;text-align:center;}
+  .re-gate-opt-title{font-size:.74rem;font-weight:700;color:var(--white);margin-bottom:.15rem;}
+  .re-gate-opt-desc{font-size:.64rem;color:var(--gray);line-height:1.45;}
+  .re-stepper{display:flex;align-items:center;margin-bottom:1.5rem;}
+  .re-step{display:flex;align-items:center;gap:.38rem;font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);font-weight:600;white-space:nowrap;}
+  .re-step.active{color:var(--gold);}
+  .re-step.done{color:rgba(193,146,89,.45);}
+  .re-step-num{width:20px;height:20px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:.53rem;font-weight:700;flex-shrink:0;}
+  .re-step.active .re-step-num{background:var(--gold);color:var(--bg);border-color:var(--gold);}
+  .re-step.done .re-step-num{background:rgba(193,146,89,.2);}
+  .re-step-line{flex:1;height:1px;background:var(--border);margin:0 .4rem;}
+  .re-cal{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:1rem;width:100%;}
+  .re-cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem;}
+  .re-cal-title{font-size:.68rem;font-weight:700;color:var(--white);letter-spacing:.05em;text-transform:capitalize;}
+  .re-cal-btn{background:none;border:1px solid var(--border);color:var(--gray);width:24px;height:24px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.54rem;transition:.18s;}
+  .re-cal-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold);}
+  .re-cal-btn:disabled{opacity:.3;cursor:default;}
+  .re-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.12rem;}
+  .re-cal-dow{font-size:.47rem;letter-spacing:.06em;text-transform:uppercase;color:var(--gray);text-align:center;padding:.2rem 0;font-weight:600;}
+  .re-day{height:32px;display:flex;align-items:center;justify-content:center;border-radius:var(--r);font-size:.67rem;border:1px solid transparent;transition:.15s;}
+  .re-day.empty,.re-day.disabled{color:rgba(138,153,144,.26);cursor:default;pointer-events:none;}
+  .re-day.available{cursor:pointer;}
+  .re-day.available:hover{background:rgba(193,146,89,.13);border-color:var(--gold);color:var(--gold);}
+  .re-day.selected{background:var(--gold);color:var(--bg);font-weight:700;}
+  .re-slots-grid{display:flex;flex-wrap:wrap;gap:.42rem;margin:.55rem 0 1.1rem;}
+  .re-slot-pill{padding:.33rem .78rem;border-radius:20px;border:1.5px solid var(--border);background:var(--bg3);color:var(--white);font-size:.67rem;cursor:pointer;transition:.18s;font-weight:500;}
+  .re-slot-pill:hover{border-color:var(--gold);color:var(--gold);}
+  .re-slot-pill.selected{background:var(--gold);color:var(--bg);border-color:var(--gold);font-weight:700;}
+  .re-section-label{font-size:.5rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.6rem;}
+  .re-back-link{font-size:.61rem;color:var(--gray);display:inline-flex;align-items:center;gap:.3rem;margin-bottom:1rem;text-decoration:none;background:none;border:none;cursor:pointer;padding:0;}
+  .re-back-link:hover{color:var(--white);}
+  .re-field-err{color:#E08080;font-size:.67rem;margin-bottom:.7rem;display:none;}
+  .re-prop-badge{display:inline-flex;align-items:center;gap:.42rem;font-size:.67rem;color:var(--white);background:rgba(193,146,89,.09);border:1px solid var(--border);border-radius:var(--r);padding:.32rem .65rem;margin-bottom:1rem;}
+  .re-input{background:var(--bg3);border:1px solid var(--border);color:var(--white);border-radius:var(--r);padding:.53rem .68rem;width:100%;font-size:.72rem;font-family:inherit;box-sizing:border-box;}
+  .re-input:focus{outline:none;border-color:var(--gold);}
+  .re-submit-btn{margin-top:.85rem;width:100%;background:var(--gold);color:var(--bg);border:none;border-radius:var(--r);padding:.76rem;font-size:.7rem;font-weight:700;cursor:pointer;letter-spacing:.05em;transition:.2s;}
+  .re-submit-btn:hover:not(:disabled){background:var(--gold-lt);}
+  .re-submit-btn:disabled{opacity:.6;cursor:default;}
   </style>
   <script src="js/adicionales-cats.js"></script>
   <script src="js/catalog.js"></script>
@@ -972,6 +1021,7 @@ function openDetail(code, propId) {
   PropDetail.renderAdics(document.getElementById('detailAdics'), document.getElementById('detailAdicsSection'), p, _destSetRE);
 
   _gal.reset();
+  window._currentDetailPropId = propId;
   document.getElementById('detailOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 
@@ -980,9 +1030,286 @@ function openDetail(code, propId) {
 
 function galNav(dir) { _gal.nav(dir); }
 function agendarVisitaRE() {
-  const code = document.getElementById('detailCode').textContent;
-  const name = document.getElementById('detailName').textContent;
+  const propId = window._currentDetailPropId;
+  const code   = document.getElementById('detailCode').textContent;
+  const name   = document.getElementById('detailName').textContent;
+  // Close detail modal first so wizard sits on top cleanly
+  closeDetailBtn();
+  reWizOpen(propId, code, name);
+}
+
+/* ── AGENDAMIENTO VISITANTE ──────────────────────────────── */
+let _reWizPropId = null, _reWizCode = '', _reWizName = '';
+let _reWizFecha = null, _reWizHora = null;
+let _reWizCalMes = { y: 0, m: 0 };
+
+function reWizOpen(propId, code, name) {
+  if (sessionStorage.getItem('_reWizSubmitted')) {
+    reShowMultiprops(code, name);
+    return;
+  }
+  _reWizPropId = propId; _reWizCode = code; _reWizName = name;
+  const gate = document.getElementById('re-gate-modal');
+  gate.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function reCloseGate() {
+  document.getElementById('re-gate-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function reGateWhatsApp() {
+  reCloseGate();
+  const code = _reWizCode, name = _reWizName;
   window.open(`https://wa.me/50239902399?text=${encodeURIComponent(`Hola, quiero agendar una visita a ${code} — ${name}`)}`, '_blank');
+}
+
+function reGateWizard() {
+  reCloseGate();
+  _reWizFecha = null; _reWizHora = null;
+  const hoy = new Date();
+  _reWizCalMes = { y: hoy.getFullYear(), m: hoy.getMonth() + 1 };
+  document.getElementById('re-wizard-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  reWizGoStep(1);
+}
+
+function reCloseWizard() {
+  document.getElementById('re-wizard-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function reWizGoStep(n) {
+  [1, 2, 3, 'ok', 'multi'].forEach(s => {
+    const el = document.getElementById('re-wiz-s' + s);
+    if (el) el.style.display = 'none';
+  });
+  const show = document.getElementById('re-wiz-s' + n);
+  if (show) show.style.display = '';
+  // update stepper
+  [1, 2, 3].forEach(i => {
+    const st = document.getElementById('re-st' + i);
+    if (!st) return;
+    st.className = 're-step' + (i < n ? ' done' : i === n ? ' active' : '');
+  });
+  if (n === 1) { const d = new Date(); _reWizCalMes = { y: d.getFullYear(), m: d.getMonth() + 1 }; reRenderCal(); }
+  if (n === 2) {
+    const badge = document.getElementById('re-prop-badge');
+    if (badge) badge.textContent = '🏠 ' + _reWizCode + ' — ' + _reWizName;
+    const sum = document.getElementById('re-sum-fecha');
+    if (sum) sum.textContent = reFmtFecha(_reWizFecha) + ' · ' + reHora12(_reWizHora);
+    const errEl = document.getElementById('re-field-err');
+    if (errEl) errEl.style.display = 'none';
+  }
+}
+
+function reRenderCal() {
+  const { y, m } = _reWizCalMes;
+  const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('re-cal-title').textContent = monthNames[m - 1] + ' ' + y;
+  const grid = document.getElementById('re-cal-grid');
+  const days = grid.querySelectorAll('.re-day');
+  days.forEach(d => d.remove());
+
+  const firstDow = new Date(y, m - 1, 1).getDay();
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Guatemala' });
+  const [ty, tm] = todayStr.split('-').map(Number);
+
+  // Empty cells
+  for (let i = 0; i < firstDow; i++) {
+    const e = document.createElement('div');
+    e.className = 're-day empty';
+    grid.appendChild(e);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const el = document.createElement('div');
+    const dateStr = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow = new Date(y, m - 1, d).getDay();
+    const isPast = (y < ty) || (y === ty && m < tm) || (y === ty && m === tm && d < ty);
+    // Note: ty here is the numeric day from the today string parsed above
+    const todayDay = parseInt(todayStr.split('-')[2]);
+    const isPastDay = (y < ty) || (y === ty && m < tm) || (y === ty && m === tm && d < parseInt(todayStr.split('-')[2]));
+    const isWeekend = (dow === 0 || dow === 6);
+    el.className = 're-day' + ((isPastDay || isWeekend) ? ' disabled' : ' available');
+    el.textContent = d;
+    if (dateStr === _reWizFecha) el.classList.add('selected');
+    if (!isPastDay && !isWeekend) {
+      el.onclick = () => reSelectFecha(dateStr, el);
+    }
+    grid.appendChild(el);
+  }
+
+  const prevBtn = document.getElementById('re-cal-prev');
+  if (prevBtn) prevBtn.disabled = (y === ty && m === tm);
+}
+
+function reCalNav(dir) {
+  let { y, m } = _reWizCalMes;
+  m += dir;
+  if (m < 1) { m = 12; y--; }
+  if (m > 12) { m = 1; y++; }
+  _reWizCalMes = { y, m };
+  reRenderCal();
+}
+
+function reSelectFecha(dateStr, el) {
+  _reWizFecha = dateStr;
+  _reWizHora = null;
+  document.querySelectorAll('#re-cal-grid .re-day').forEach(d => d.classList.remove('selected'));
+  el.classList.add('selected');
+  reLoadSlots(dateStr);
+}
+
+async function reLoadSlots(fecha) {
+  const container = document.getElementById('re-slots-container');
+  container.innerHTML = '<span style="font-size:.65rem;color:var(--gray);">Cargando horarios…</span>';
+  try {
+    const res = await fetch(API_URL + '/api/citas/disponibles?fecha=' + fecha + '&tipo=visita_propiedades');
+    const slots = await res.json();
+    if (!Array.isArray(slots) || !slots.length) {
+      container.innerHTML = '<span style="font-size:.65rem;color:var(--gray);">Sin disponibilidad para este día.</span>';
+      return;
+    }
+    container.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 're-slots-grid';
+    slots.forEach(s => {
+      const pill = document.createElement('button');
+      pill.className = 're-slot-pill' + (s.hora === _reWizHora ? ' selected' : '');
+      pill.textContent = reHora12(s.hora);
+      pill.onclick = () => {
+        _reWizHora = s.hora;
+        grid.querySelectorAll('.re-slot-pill').forEach(p => p.classList.remove('selected'));
+        pill.classList.add('selected');
+      };
+      grid.appendChild(pill);
+    });
+    container.appendChild(grid);
+  } catch (e) {
+    container.innerHTML = '<span style="font-size:.65rem;color:#E08080;">Error al cargar horarios.</span>';
+  }
+}
+
+function reWizNext1() {
+  if (!_reWizFecha || !_reWizHora) {
+    const errEl = document.getElementById('re-slot-err');
+    if (errEl) { errEl.textContent = 'Seleccioná un día y un horario para continuar.'; errEl.style.display = ''; }
+    return;
+  }
+  reWizGoStep(2);
+}
+
+async function reWizSubmit() {
+  const nombre  = document.getElementById('re-nombre').value.trim();
+  const telefono = document.getElementById('re-telefono').value.trim();
+  const errEl   = document.getElementById('re-field-err');
+  if (!nombre || !telefono) {
+    errEl.textContent = 'Completá tu nombre y teléfono.';
+    errEl.style.display = '';
+    return;
+  }
+  const btn = document.getElementById('re-submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Enviando…';
+  try {
+    const r = await fetch(API_URL + '/api/citas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tipo: 'visita_propiedades',
+        fecha: _reWizFecha,
+        hora_inicio: _reWizHora,
+        nombre_contacto: nombre,
+        telefono_contacto: telefono,
+        propiedad_ids: [_reWizPropId],
+      }),
+    });
+    if (!r.ok) { const d = await r.json(); throw new Error(d.error || r.statusText); }
+    sessionStorage.setItem('_reWizSubmitted', '1');
+    reWizGoStep(3);
+  } catch (e) {
+    errEl.textContent = 'Error: ' + e.message;
+    errEl.style.display = '';
+    btn.disabled = false;
+    btn.textContent = 'Confirmar visita';
+  }
+}
+
+function reShowMultiprops(code, name) {
+  const el = document.getElementById('re-multi-prop-name');
+  if (el) el.textContent = code + ' — ' + name;
+  const wiz = document.getElementById('re-wizard-modal');
+  wiz.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  [1, 2, 3, 'ok'].forEach(s => {
+    const e = document.getElementById('re-wiz-s' + s);
+    if (e) e.style.display = 'none';
+  });
+  const multi = document.getElementById('re-wiz-smulti');
+  if (multi) multi.style.display = '';
+}
+
+function reHora12(hora) {
+  if (!hora) return '';
+  const [h, m] = hora.split(':').map(Number);
+  const suffix = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(m).padStart(2,'0')} ${suffix}`;
+}
+
+function reGtHoy() {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Guatemala' });
+}
+
+function reCalMonthStr({ y, m }) {
+  const names = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  return names[m - 1] + ' ' + y;
+}
+
+function reGtNow() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Guatemala' }).format(new Date());
+}
+
+function reGtTodayParts() {
+  const s = reGtNow();
+  const [y, m, d] = s.split('-').map(Number);
+  return { y, m, d };
+}
+
+function reIsPast(y, m, d) {
+  const t = reGtTodayParts();
+  if (y < t.y) return true;
+  if (y === t.y && m < t.m) return true;
+  if (y === t.y && m === t.m && d < t.d) return true;
+  return false;
+}
+
+function reCalNavSafe(dir) {
+  let { y, m } = _reWizCalMes;
+  m += dir;
+  if (m < 1) { m = 12; y--; }
+  if (m > 12) { m = 1; y++; }
+  const t = reGtTodayParts();
+  // Don't go before current month
+  if (y < t.y || (y === t.y && m < t.m)) return;
+  _reWizCalMes = { y, m };
+  reRenderCal();
+}
+
+function reCalNavWrap(dir) { reCalNavSafe(dir); }
+
+function reFmtFecha(dateStr) {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  return d + ' de ' + monthNames[m - 1] + ' ' + y;
+}
+
+function rePortalUrl() {
+  return '/portal-cliente.html';
 }
 function closeDetail(e) { if (e.target === document.getElementById('detailOverlay')) closeDetailBtn(); }
 function closeDetailBtn() {
@@ -1188,6 +1515,39 @@ function _updateFabBadge() {
 }
 
 // Actualiza badge cuando se aplican filtros desde el sidebar (desktop)
+/* ── CALENDAR FIX: use safe helpers ─── */
+// Override reCalNav to use safe version
+const _reCalNavReal = reCalNav;
+// reRenderCal references reIsPast/reGtTodayParts — ensure calendar prev-btn disabled state uses safe helper
+const _reRenderCalOrig = reRenderCal;
+reRenderCal = function() {
+  const { y, m } = _reWizCalMes;
+  const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('re-cal-title').textContent = monthNames[m - 1] + ' ' + y;
+  const grid = document.getElementById('re-cal-grid');
+  grid.querySelectorAll('.re-day').forEach(d => d.remove());
+  const firstDow = new Date(y, m - 1, 1).getDay();
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const t = reGtTodayParts();
+  for (let i = 0; i < firstDow; i++) {
+    const e = document.createElement('div'); e.className = 're-day empty'; grid.appendChild(e);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const el = document.createElement('div');
+    const dateStr = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow = new Date(y, m - 1, d).getDay();
+    const past = reIsPast(y, m, d);
+    const weekend = (dow === 0 || dow === 6);
+    el.className = 're-day' + ((past || weekend) ? ' disabled' : ' available');
+    el.textContent = d;
+    if (dateStr === _reWizFecha) el.classList.add('selected');
+    if (!past && !weekend) el.onclick = () => reSelectFecha(dateStr, el);
+    grid.appendChild(el);
+  }
+  const prevBtn = document.getElementById('re-cal-prev');
+  if (prevBtn) prevBtn.disabled = (y === t.y && m === t.m);
+};
+
 const _origAplicar = aplicarFiltros;
 aplicarFiltros = function() { _origAplicar(); _updateFabBadge(); };
 const _origReset = resetFiltros;
@@ -1199,5 +1559,102 @@ resetFiltros = function() {
   _updateFabBadge();
 };
 </script>
+
+<!-- GATE MODAL -->
+<div id="re-gate-modal" onclick="if(event.target===this){reCloseGate();}">
+  <div class="re-modal-box">
+    <button class="re-modal-close" onclick="reCloseGate()">✕ cerrar</button>
+    <div class="re-modal-eyebrow">Agendar visita</div>
+    <div class="re-modal-title">¿Cómo querés coordinar?</div>
+    <button class="re-gate-opt" onclick="reGateWizard()">
+      <span class="re-gate-opt-icon"><i class="fas fa-calendar-check"></i></span>
+      <span>
+        <div class="re-gate-opt-title">Elegir fecha y hora</div>
+        <div class="re-gate-opt-desc">Seleccioná un horario disponible. Nuestro equipo confirmará la visita.</div>
+      </span>
+    </button>
+    <button class="re-gate-opt" onclick="reGateWhatsApp()">
+      <span class="re-gate-opt-icon"><i class="fab fa-whatsapp"></i></span>
+      <span>
+        <div class="re-gate-opt-title">Escribirnos por WhatsApp</div>
+        <div class="re-gate-opt-desc">Contacto directo con un asesor para coordinar la visita.</div>
+      </span>
+    </button>
+  </div>
+</div>
+
+<!-- WIZARD MODAL -->
+<div id="re-wizard-modal" onclick="if(event.target===this){reCloseWizard();}">
+  <div class="re-modal-box re-wizard-box">
+    <button class="re-modal-close" onclick="reCloseWizard()">✕ cerrar</button>
+
+    <!-- Stepper -->
+    <div class="re-stepper" id="re-stepper">
+      <div class="re-step active" id="re-st1"><div class="re-step-num">1</div>Fecha</div>
+      <div class="re-step-line"></div>
+      <div class="re-step" id="re-st2"><div class="re-step-num">2</div>Datos</div>
+      <div class="re-step-line"></div>
+      <div class="re-step" id="re-st3"><div class="re-step-num">3</div>Listo</div>
+    </div>
+
+    <!-- Step 1: Calendar + Slots -->
+    <div id="re-wiz-s1">
+      <div class="re-modal-eyebrow">Elegí un día</div>
+      <div class="re-cal" id="re-cal">
+        <div class="re-cal-nav">
+          <button class="re-cal-btn" id="re-cal-prev" onclick="reCalNavWrap(-1)"><i class="fas fa-chevron-left"></i></button>
+          <span class="re-cal-title" id="re-cal-title"></span>
+          <button class="re-cal-btn" onclick="reCalNavWrap(1)"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="re-cal-grid" id="re-cal-grid">
+          <div class="re-cal-dow">D</div><div class="re-cal-dow">L</div><div class="re-cal-dow">M</div>
+          <div class="re-cal-dow">X</div><div class="re-cal-dow">J</div><div class="re-cal-dow">V</div>
+          <div class="re-cal-dow">S</div>
+        </div>
+      </div>
+      <div style="margin-top:1rem;">
+        <div class="re-section-label">Horario disponible</div>
+        <div id="re-slots-container" style="min-height:36px;"><span style="font-size:.65rem;color:var(--gray);">Seleccioná un día primero.</span></div>
+      </div>
+      <div id="re-slot-err" class="re-field-err"></div>
+      <button class="re-submit-btn" onclick="reWizNext1()">Continuar →</button>
+    </div>
+
+    <!-- Step 2: Contact data -->
+    <div id="re-wiz-s2" style="display:none;">
+      <button class="re-back-link" onclick="reWizGoStep(1)"><i class="fas fa-arrow-left"></i> Cambiar fecha</button>
+      <div class="re-prop-badge" id="re-prop-badge"></div>
+      <div id="re-sum-fecha" style="font-size:.68rem;color:var(--gold);font-weight:700;margin-bottom:1.2rem;"></div>
+      <div class="re-modal-eyebrow">Tus datos de contacto</div>
+      <input id="re-nombre" class="re-input" type="text" placeholder="Nombre completo" style="margin-bottom:.6rem;" />
+      <input id="re-telefono" class="re-input" type="tel" placeholder="Teléfono (ej. 50230001234)" />
+      <div id="re-field-err" class="re-field-err"></div>
+      <button id="re-submit-btn" class="re-submit-btn" onclick="reWizSubmit()">Confirmar visita</button>
+    </div>
+
+    <!-- Step 3: Success -->
+    <div id="re-wiz-s3" style="display:none;text-align:center;padding:.5rem 0 .8rem;">
+      <div style="font-size:2rem;margin-bottom:.8rem;">✅</div>
+      <div class="re-modal-title" style="margin-bottom:.4rem;">¡Solicitud enviada!</div>
+      <p style="font-size:.72rem;color:var(--gray);line-height:1.55;margin:0 0 1.5rem;">
+        Tu solicitud de visita fue recibida. Nuestro equipo la revisará y recibirás confirmación pronto.
+      </p>
+      <button class="re-submit-btn" style="max-width:240px;margin:0 auto;" onclick="reCloseWizard()">Cerrar</button>
+    </div>
+
+    <!-- Multi-property notice -->
+    <div id="re-wiz-smulti" style="display:none;text-align:center;padding:.5rem 0 .8rem;">
+      <div style="font-size:2rem;margin-bottom:.8rem;">🗓️</div>
+      <div class="re-modal-title" style="margin-bottom:.4rem;">Ya tenés una visita pendiente</div>
+      <p style="font-size:.72rem;color:var(--gray);line-height:1.55;margin:0 0 .5rem;">
+        Ya agendaste una visita en esta sesión. Para agregar <strong id="re-multi-prop-name" style="color:var(--white);"></strong> a tu visita, ingresá al portal de clientes.
+      </p>
+      <a id="re-multi-portal-link" href="/portal-cliente.html" class="re-submit-btn" style="display:block;max-width:280px;margin:.8rem auto 0;text-decoration:none;text-align:center;">
+        Ir al portal →
+      </a>
+      <button class="re-back-link" style="display:block;margin:.7rem auto 0;" onclick="reCloseWizard()">Cerrar</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

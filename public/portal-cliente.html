@@ -2760,6 +2760,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (window.location.hash === '#agente') setTab('agente');
     if (window.location.hash === '#verificacion') setTab('verificacion');
     if (window.location.hash === '#visitas') setTab('visitas');
+    const _agendarId = parseInt(new URLSearchParams(location.search).get('agendar'));
+    if (_agendarId) {
+      setTab('visitas');
+      setTimeout(() => {
+        vsState.tipo = 'visita_propiedades';
+        vsState.propIds = [_agendarId];
+        const hoy = gtHoyStr();
+        const [y, m] = hoy.split('-').map(Number);
+        vsCalMes = { y, m };
+        vsGoStep(2);
+        renderVsCal();
+      }, 50);
+    }
   } catch {
     clearToken();
     window.location.href = '/portal.html';
