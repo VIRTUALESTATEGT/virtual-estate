@@ -1049,6 +1049,8 @@ function reWizOpen(propId, code, name) {
     return;
   }
   _reWizPropId = propId; _reWizCode = code; _reWizName = name;
+  const portalLink = document.getElementById('re-gate-portal-link');
+  if (portalLink) portalLink.href = '/portal-cliente.html?agendar=' + propId;
   const gate = document.getElementById('re-gate-modal');
   gate.classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -1168,7 +1170,8 @@ async function reLoadSlots(fecha) {
   container.innerHTML = '<span style="font-size:.65rem;color:var(--gray);">Cargando horarios…</span>';
   try {
     const res = await fetch(API_URL + '/api/citas/disponibles?fecha=' + fecha + '&tipo=visita_propiedades');
-    const slots = await res.json();
+    const data = await res.json();
+    const slots = data.slots;
     if (!Array.isArray(slots) || !slots.length) {
       container.innerHTML = '<span style="font-size:.65rem;color:var(--gray);">Sin disponibilidad para este día.</span>';
       return;
@@ -1311,6 +1314,13 @@ function reFmtFecha(dateStr) {
 function rePortalUrl() {
   return '/portal-cliente.html';
 }
+
+window.onAgendarCard = function(propId) {
+  const p = catalog.getData().find(x => x.id === propId);
+  if (!p) return;
+  const code = 'PROP-' + String(p.id).padStart(5, '0');
+  reWizOpen(propId, code, p.nombre);
+};
 function closeDetail(e) { if (e.target === document.getElementById('detailOverlay')) closeDetailBtn(); }
 function closeDetailBtn() {
   document.getElementById('detailOverlay').classList.remove('open');
@@ -1529,6 +1539,10 @@ reRenderCal = function() {
   const firstDow = new Date(y, m - 1, 1).getDay();
   const daysInMonth = new Date(y, m, 0).getDate();
   const t = reGtTodayParts();
+  // Server requires fecha >= today + 2 days
+  const todayDt   = new Date(reGtNow() + 'T12:00:00');
+  todayDt.setDate(todayDt.getDate() + 2);
+  const minFecha  = todayDt.toLocaleDateString('en-CA', { timeZone: 'America/Guatemala' });
   for (let i = 0; i < firstDow; i++) {
     const e = document.createElement('div'); e.className = 're-day empty'; grid.appendChild(e);
   }
@@ -1537,11 +1551,12 @@ reRenderCal = function() {
     const dateStr = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dow = new Date(y, m - 1, d).getDay();
     const past = reIsPast(y, m, d);
+    const tooSoon = dateStr < minFecha;
     const weekend = (dow === 0 || dow === 6);
-    el.className = 're-day' + ((past || weekend) ? ' disabled' : ' available');
+    el.className = 're-day' + ((past || tooSoon || weekend) ? ' disabled' : ' available');
     el.textContent = d;
     if (dateStr === _reWizFecha) el.classList.add('selected');
-    if (!past && !weekend) el.onclick = () => reSelectFecha(dateStr, el);
+    if (!past && !tooSoon && !weekend) el.onclick = () => reSelectFecha(dateStr, el);
     grid.appendChild(el);
   }
   const prevBtn = document.getElementById('re-cal-prev');
@@ -1580,6 +1595,13 @@ resetFiltros = function() {
         <div class="re-gate-opt-desc">Contacto directo con un asesor para coordinar la visita.</div>
       </span>
     </button>
+    <a class="re-gate-opt" id="re-gate-portal-link" href="/portal-cliente.html">
+      <span class="re-gate-opt-icon"><i class="fas fa-user-circle"></i></span>
+      <span>
+        <div class="re-gate-opt-title">Ya tengo cuenta</div>
+        <div class="re-gate-opt-desc">Ingresá al portal para agendar y hacer seguimiento de tus visitas.</div>
+      </span>
+    </a>
   </div>
 </div>
 
