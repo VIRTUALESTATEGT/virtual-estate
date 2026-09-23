@@ -201,6 +201,10 @@ app.post('/api/leads/public', async (req, res) => {
 const webhookIGRouter = require('./src/routes/webhook-instagram');
 app.use('/api/instagram/webhook', webhookIGRouter);
 
+// ── Public: Facebook Messenger webhook (no auth) ─────────────────
+const webhookFBRouter = require('./src/routes/webhook-messenger');
+app.use('/api/messenger/webhook', webhookFBRouter);
+
 // ── Meta token management (cron-protected) ───────────────────────
 const metaTokensRouter = require('./src/routes/meta-tokens');
 app.use('/api/meta', metaTokensRouter);
