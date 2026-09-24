@@ -3761,6 +3761,7 @@
           <button class="act-btn" title="Detalle" onclick="verDetalleCotizacion(${c.id})"><i class="fas fa-eye"></i></button>
           <button class="act-btn" title="Editar" onclick="editCotizacion(${c.id})"><i class="fas fa-pencil-alt"></i></button>
           <button class="act-btn" title="${(c.estado==='enviada'||c.estado==='confirmada')?'Reenviar':'Enviar'}" style="color:#3ECF8E;" onclick="enviarCotizacion(${c.id})"><i class="fas fa-${(c.estado==='enviada'||c.estado==='confirmada')?'redo':'paper-plane'}"></i></button>
+          ${c.documento_url?`<a class="act-btn" href="${c.documento_url}" target="_blank" title="Descargar PDF" style="color:#E08080;"><i class="fas fa-file-pdf"></i></a>`:`<button class="act-btn" title="PDF no generado aún" style="opacity:.35;cursor:default;" disabled><i class="fas fa-file-pdf"></i></button>`}
           ${c.estado!=='rechazada'?`<button class="act-btn" title="Rechazar" style="color:#E08080;" onclick="desaprobarCotizacion(${c.id})"><i class="fas fa-times"></i></button>`:''}
           <button class="act-btn danger" onclick="deleteCotizacion(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
         </div></td>
