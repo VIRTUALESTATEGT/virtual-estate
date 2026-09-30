@@ -2888,16 +2888,18 @@
     const tbody = document.getElementById('leads-tbody'); if (!tbody) return;
     const _q = (document.getElementById('leads-search')?.value||'').toLowerCase().trim();
     let filtrados = _leadsFiltro ? _leadsAll.filter(l=>l.estado===_leadsFiltro) : _leadsAll;
-    if (_q) filtrados = filtrados.filter(l=>[l.nombre,l.apellido,l.email,l.telefono,l.empresa,l.servicio,l._origen==='web'?'Web':'WhatsApp',l.presupuesto,l.estado].some(v=>v&&String(v).toLowerCase().includes(_q)));
+    if (_q) filtrados = filtrados.filter(l=>[l.nombre,l.apellido,l.email,l.telefono,l.empresa,l.servicio,l._origen,l.presupuesto,l.estado].some(v=>v&&String(v).toLowerCase().includes(_q)));
     if (!filtrados.length) {
       tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">${_q?'Sin resultados para "'+_q+'".':`No hay leads${_leadsFiltro?' con estado "'+_leadsFiltro+'"':''}.`}</td></tr>`;
       return;
     }
     tbody.innerHTML = filtrados.map(l => {
-      const ORIG = l._origen === 'web'
-        ? '<span style="background:rgba(88,139,204,.18);color:#7BB3F0;font-size:.65rem;padding:2px 7px;border-radius:3px;font-weight:600;">Web</span>'
-        : '<span style="background:rgba(37,211,102,.12);color:#25D366;font-size:.65rem;padding:2px 7px;border-radius:3px;font-weight:600;">WhatsApp</span>';
-      const ACCIONES = l._origen === 'web'
+      const ORIG = l._origen === 'whatsapp'
+        ? '<span style="background:rgba(37,211,102,.12);color:#25D366;font-size:.65rem;padding:2px 7px;border-radius:3px;font-weight:600;">WhatsApp</span>'
+        : l._origen === 'web-cotizador'
+          ? '<span style="background:rgba(160,100,220,.18);color:#C17EEA;font-size:.65rem;padding:2px 7px;border-radius:3px;font-weight:600;">Cotizador</span>'
+          : '<span style="background:rgba(88,139,204,.18);color:#7BB3F0;font-size:.65rem;padding:2px 7px;border-radius:3px;font-weight:600;">Web</span>';
+      const ACCIONES = l._origen !== 'whatsapp'
         ? `<button class="act-btn" title="Editar" onclick="editLead('${l._id}')"><i class="fas fa-pencil-alt"></i></button>
            <button class="act-btn danger" title="Eliminar" onclick="deleteLead('${l._id}')"><i class="fas fa-trash"></i></button>`
         : `<button class="act-btn" title="Ver cotización" onclick="verCotizacion('${l._id}')"><i class="fas fa-file-invoice"></i></button>`;

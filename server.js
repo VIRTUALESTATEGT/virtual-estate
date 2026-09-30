@@ -170,7 +170,7 @@ app.post('/api/leads/public', async (req, res) => {
     if (rl.blocked)
       return res.status(429).json({ error: 'Demasiados mensajes enviados. Esperá una hora e intentá de nuevo.' });
 
-    const { nombre, apellido, email, telefono, empresa, servicio, fuente, seguimiento, mensaje } = req.body;
+    const { nombre, apellido, email, telefono, empresa, servicio, fuente, seguimiento, mensaje, m2 } = req.body;
     if (!nombre || (!email && !telefono))
       return res.status(400).json({ error: 'Nombre y correo o teléfono son requeridos' });
 
@@ -180,18 +180,32 @@ app.post('/api/leads/public', async (req, res) => {
       .from('leads')
       .insert([{
         nombre,
-        apellido:   apellido   || null,
-        email:      email      || null,
-        telefono:   telefono   || null,
-        empresa:    empresa    || mensaje || null,
-        servicio:   servicio   || null,
-        fuente:     fuente     || 'web',
-        seguimiento: seguimiento || null,
+        apellido:    apellido    || null,
+        email:       email       || null,
+        telefono:    telefono    || null,
+        empresa:     empresa     || null,
+        servicio:    servicio    || null,
+        fuente:      fuente      || 'web',
+        seguimiento: seguimiento || mensaje || null,
+        m2:          m2 != null ? parseInt(m2, 10) : null,
         estado: 'Nuevo',
       }])
       .select();
     if (error) throw error;
     res.status(201).json(data[0]);
+
+    // Notificación WA al dueño — fire-and-forget
+    const _waLines = [
+      `🔔 Nuevo lead desde la web`,
+      `Nombre: ${nombre}${apellido ? ' ' + apellido : ''}`,
+      email    ? `Email: ${email}`       : null,
+      telefono ? `Tel: ${telefono}`      : null,
+      servicio ? `Servicio: ${servicio}` : null,
+      m2       ? `Metraje: ${m2} m²`    : null,
+      `Fuente: ${fuente || 'web'}`,
+      seguimiento || mensaje ? `Detalle: ${seguimiento || mensaje}` : null,
+    ].filter(Boolean).join('\n');
+    _waSendMessage('50250175832', _waLines).catch(e => console.error('[leads/public] WA owner notif error:', e.message));
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

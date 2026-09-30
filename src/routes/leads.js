@@ -41,7 +41,7 @@ router.get('/pipeline', async (req, res) => {
 
     const webLeads = (leadsRes.data || []).map(l => ({
       _id:         `L-${l.id}`,
-      _origen:     'web',
+      _origen:     l.fuente || 'web',
       nombre:      l.nombre,
       apellido:    l.apellido    || null,
       email:       l.email       || null,
