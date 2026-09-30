@@ -3575,7 +3575,7 @@
     if(!tbody)return;
     tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
     try{
-      const items=await apiFetch('/api/clientes?tipo=Cliente');
+      const items=await apiFetch('/api/clientes');
       _clientesCache={}; _clientesAll=items;
       items.forEach(c=>_clientesCache[c.id]=c);
       buscarClientes();
