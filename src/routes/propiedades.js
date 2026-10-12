@@ -50,6 +50,7 @@ function _buildPropPatch(body, isUpdate = false) {
     comision_ve, municipio, m2_construccion, m2_terreno,
     impuestos_incluidos, gastos_adicionales, gastos_adicionales_detalle, precio_min,
     direccion, video_url, estado_publicacion, agente_responsable_id, notas_internas,
+    mantenimiento, arras_porcentaje, arras_penitenciarias, hipotecada,
   } = body;
 
   const disp = Array.isArray(disponibilidad) ? disponibilidad.filter(v => DISP_ALLOWED.has(v)) : [];
@@ -91,6 +92,10 @@ function _buildPropPatch(body, isUpdate = false) {
                              ? estado_publicacion : 'borrador',
     agente_responsable_id: agente_responsable_id ? (Number(agente_responsable_id) || null) : null,
     notas_internas:        notas_internas        || null,
+    mantenimiento:         mantenimiento         != null ? Number(mantenimiento)     : null,
+    arras_porcentaje:      arras_porcentaje      != null ? Number(arras_porcentaje)  : null,
+    arras_penitenciarias:  arras_penitenciarias  != null ? Boolean(arras_penitenciarias) : false,
+    hipotecada:            hipotecada            != null ? Boolean(hipotecada)       : false,
   };
   return patch;
 }

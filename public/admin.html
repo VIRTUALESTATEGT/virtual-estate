@@ -1969,7 +1969,7 @@
       </div>
       <div class="form-group">
         <label class="form-label">Baños</label>
-        <input type="number" class="form-control" id="prop-banos" placeholder="2" min="0"/>
+        <input type="number" class="form-control" id="prop-banos" placeholder="2" min="0" step="0.5"/>
       </div>
       <div class="form-group">
         <label class="form-label">Parqueos</label>
@@ -2083,6 +2083,26 @@
         <div class="form-group">
           <label class="form-label">Detalle de gastos</label>
           <input type="text" class="form-control" id="prop-gastos-detalle" placeholder="Ej: Cuota mantenimiento + parqueo visita"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Mantenimiento mensual</label>
+          <input type="number" class="form-control" id="prop-mantenimiento" placeholder="Q 0.00" min="0" step="0.01"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Arras para apartar (%)</label>
+          <input type="number" class="form-control" id="prop-arras-pct" placeholder="10" min="0" max="100" step="0.5"/>
+        </div>
+      </div>
+      <div class="form-row" style="align-items:center;">
+        <div class="form-group" style="display:flex;align-items:center;gap:.5rem;padding-top:1.55rem;">
+          <input type="checkbox" id="prop-arras-pen" style="accent-color:var(--gold);"/>
+          <label for="prop-arras-pen" style="font-size:.72rem;cursor:pointer;line-height:1.2;">¿Arras penitenciarias?</label>
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:.5rem;padding-top:1.55rem;">
+          <input type="checkbox" id="prop-hipotecada" style="accent-color:var(--gold);"/>
+          <label for="prop-hipotecada" style="font-size:.72rem;cursor:pointer;line-height:1.2;">¿Propiedad hipotecada?</label>
         </div>
       </div>
       <div class="form-group">
@@ -3366,11 +3386,13 @@
     const titleSpan=document.querySelector('#propModalOverlay .modal-title span');
     if(titleSpan) titleSpan.innerHTML='<i class="fas fa-building" style="color:var(--gold);margin-right:.5rem;"></i>Nueva Propiedad';
     ['prop-titulo','prop-zona','prop-tour','prop-video','prop-direccion','prop-descripcion','prop-gastos-detalle','prop-notas'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-    ['prop-precio-venta','prop-precio-renta','prop-area','prop-habs','prop-banos','prop-parqueos','prop-anio','prop-m2-construccion','prop-m2-terreno','prop-precio-min','prop-comision-ve','prop-gastos-adicionales'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    ['prop-precio-venta','prop-precio-renta','prop-area','prop-habs','prop-banos','prop-parqueos','prop-anio','prop-m2-construccion','prop-m2-terreno','prop-precio-min','prop-comision-ve','prop-gastos-adicionales','prop-mantenimiento','prop-arras-pct'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     ['prop-tipo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     ['mod-venta','mod-renta'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
     ['disp-vacia','disp-habitada','disp-airbnb','disp-en-construccion'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
     const elImp=document.getElementById('prop-impuestos-incluidos');if(elImp)elImp.checked=false;
+    const elArrasPenR=document.getElementById('prop-arras-pen');if(elArrasPenR)elArrasPenR.checked=false;
+    const elHipotR=document.getElementById('prop-hipotecada');if(elHipotR)elHipotR.checked=false;
     const elEst=document.getElementById('prop-estado');if(elEst)elEst.value='borrador';
     initMunicipios('prop-depto','prop-municipio',null,null);
     cargarAgentesSelect(null);
@@ -3422,6 +3444,10 @@
       estado_publicacion:    document.getElementById('prop-estado')?.value || 'borrador',
       agente_responsable_id: parseInt(document.getElementById('prop-agente')?.value) || null,
       notas_internas:        document.getElementById('prop-notas')?.value.trim() || null,
+      mantenimiento:         _n('prop-mantenimiento'),
+      arras_porcentaje:      _n('prop-arras-pct'),
+      arras_penitenciarias:  document.getElementById('prop-arras-pen')?.checked || false,
+      hipotecada:            document.getElementById('prop-hipotecada')?.checked || false,
     };
     try {
       if(_editPropiedadId){
@@ -4775,6 +4801,10 @@
     document.getElementById('prop-gastos-detalle').value=p.gastos_adicionales_detalle||'';
     const elEst2=document.getElementById('prop-estado');if(elEst2)elEst2.value=p.estado_publicacion||'borrador';
     document.getElementById('prop-notas').value=p.notas_internas||'';
+    document.getElementById('prop-mantenimiento').value=p.mantenimiento!=null?p.mantenimiento:'';
+    document.getElementById('prop-arras-pct').value=p.arras_porcentaje!=null?p.arras_porcentaje:'';
+    const elArrasPen=document.getElementById('prop-arras-pen');if(elArrasPen)elArrasPen.checked=!!p.arras_penitenciarias;
+    const elHipot=document.getElementById('prop-hipotecada');if(elHipot)elHipot.checked=!!p.hipotecada;
     cargarAgentesSelect(p.agente_responsable_id);
     const titleSpan=document.querySelector('#propModalOverlay .modal-title span');
     if(titleSpan) titleSpan.innerHTML='<i class="fas fa-building" style="color:var(--gold);margin-right:.5rem;"></i>Editar Propiedad #'+id;

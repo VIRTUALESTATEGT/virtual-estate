@@ -160,6 +160,7 @@ app.get('/api/propiedades/public/:id/detail', async (req, res) => {
         m2, m2_construccion, m2_terreno, zona, municipio, direccion, descripcion,
         habitaciones, banos, parqueos, anio_construccion, disponibilidad,
         linktour3d, video_url, foto_principal_url, estado_publicacion,
+        mantenimiento, arras_porcentaje, arras_penitenciarias, hipotecada,
         propiedades_adicionales(tipo, nombre)
       `)
       .eq('id', id)
