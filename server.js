@@ -503,18 +503,18 @@ async function _waGenerateResponse(phone, userMessage) {
 
     // ── Inyectar contexto de propiedad si hay código VE-XXX ───────────────
     let propContextBlock = '';
-    const _veMatch = userMessage.match(/\bVE-\d{3}\b/i);
+    const _veMatch = userMessage.match(/\bve[-\s]?(\d{3})\b/i);
     if (_veMatch) {
-      const _codigo = _veMatch[0].toUpperCase();
+      const _codigo = 'VE-' + _veMatch[1];
+      console.log('[BOT-PROP] código detectado:', _codigo);
       try {
-        const { data: _prop } = await _waSupabase
+        const { data: _prop, error: _propErr } = await _waSupabase
           .from('propiedades')
           .select('id,codigo,nombre,tipo,modalidad,precio,precio_venta,precio_renta,moneda,m2,m2_construccion,m2_terreno,zona,municipio,descripcion,habitaciones,banos,parqueos,linktour3d,video_url,direccion,estado_publicacion,mantenimiento,arras_porcentaje,arras_penitenciarias,hipotecada')
           .eq('codigo', _codigo)
           .maybeSingle();
-        if (_prop && _prop.estado_publicacion !== 'publicada') {
-          propContextBlock = `[DATOS DE PROPIEDAD ${_codigo}]\nEstado: no disponible al público (${_prop.estado_publicacion})`;
-        } else if (_prop) {
+        console.log('[BOT-PROP] resultado Supabase:', JSON.stringify({ found: !!_prop, error: _propErr?.message, estado: _prop?.estado_publicacion }));
+        if (_prop) {
           const [_adicsRes, _catRes] = await Promise.all([
             _waSupabase.from('propiedades_adicionales').select('tipo,nombre').eq('propiedad_id', _prop.id).order('tipo'),
             _waSupabase.from('adicionales_catalogo').select('nombre').eq('destacado', true),
@@ -539,6 +539,7 @@ async function _waGenerateResponse(phone, userMessage) {
           ].filter(Boolean).join(' · ');
           propContextBlock = [
             `[DATOS DE PROPIEDAD ${_codigo}]`,
+            _prop.estado_publicacion !== 'publicada' ? `Estado: ${_prop.estado_publicacion}` : null,
             `Nombre: ${_prop.nombre}`,
             `Tipo: ${_prop.tipo || '—'} | Zona: ${_prop.zona || '—'}${_prop.municipio ? ', ' + _prop.municipio : ''}`,
             `Precio: ${_precio}`,
@@ -557,9 +558,9 @@ async function _waGenerateResponse(phone, userMessage) {
         } else {
           propContextBlock = `[DATOS DE PROPIEDAD ${_codigo}]\nNo se encontró esta propiedad en la base de datos.`;
         }
-        console.log('[WA-PROP] Contexto inyectado para:', _codigo, '| found:', !!_prop);
+        console.log('[BOT-PROP] bloque inyectado:', propContextBlock ? 'SÍ' : 'NO');
       } catch (e) {
-        console.warn('[WA-PROP] Error buscando propiedad:', e.message);
+        console.warn('[BOT-PROP] Error buscando propiedad:', e.message);
       }
     }
 
