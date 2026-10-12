@@ -522,6 +522,16 @@ async function _waGenerateResponse(phone, userMessage) {
           const _adicTodos  = _adicsRes.data || [];
           const _destSet    = new Set((_catRes.data || []).map(c => c.nombre));
           const _adicsDesat = _adicTodos.filter(a => _destSet.has(a.nombre)).slice(0, 8);
+          console.log('[BOT-PROP] adicionales_todos count:', _adicTodos.length, JSON.stringify(_adicTodos.slice(0, 3)));
+          // Build full list grouped by tipo for PASO 2
+          const _grupos = {};
+          _adicTodos.forEach(a => {
+            if (!_grupos[a.tipo]) _grupos[a.tipo] = [];
+            _grupos[a.tipo].push(a.nombre);
+          });
+          const _adicsFullBlock = Object.entries(_grupos)
+            .map(([tipo, names]) => `  ${tipo}: ${names.join(', ')}`)
+            .join('\n');
           const _sym   = _prop.moneda === 'GTQ' ? 'Q' : '$';
           const _precio = _prop.precio_venta && _prop.precio_renta
             ? `Venta: ${_sym}${Number(_prop.precio_venta).toLocaleString('es-GT')} | Renta: ${_sym}${Number(_prop.precio_renta).toLocaleString('es-GT')}`
@@ -546,8 +556,7 @@ async function _waGenerateResponse(phone, userMessage) {
             _specs                     ? `Características: ${_specs}` : null,
             _prop.descripcion          ? `Descripción: ${_prop.descripcion}` : null,
             _adics                     ? `Amenidades destacadas: ${_adics}` : null,
-            _adicTodos.length > _adicsDesat.length
-              ? `(+${_adicTodos.length - _adicsDesat.length} adicionales más — disponibles si el cliente los pide)` : null,
+            _adicsFullBlock            ? `Adicionales completos (PASO 2):\n${_adicsFullBlock}` : null,
             _prop.linktour3d           ? `Tour 3D: ${_prop.linktour3d}` : null,
             _prop.video_url            ? `Video: ${_prop.video_url}` : null,
             _prop.mantenimiento  != null ? `Mantenimiento: ${_sym}${_prop.mantenimiento}/mes` : null,
