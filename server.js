@@ -153,21 +153,44 @@ app.get('/api/propiedades/public/:id/detail', async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (!id) return res.status(400).json({ error: 'ID inválido' });
-    const { data, error } = await supabasePublic
-      .from('propiedades')
-      .select(`
-        id, codigo, nombre, tipo, modalidad, precio, precio_venta, precio_renta, moneda,
-        m2, m2_construccion, m2_terreno, zona, municipio, direccion, descripcion,
-        habitaciones, banos, parqueos, anio_construccion, disponibilidad,
-        linktour3d, video_url, foto_principal_url, estado_publicacion,
-        mantenimiento, arras_porcentaje, arras_penitenciarias, hipotecada,
-        propiedades_adicionales(tipo, nombre)
-      `)
-      .eq('id', id)
-      .maybeSingle();
-    if (error) throw error;
-    if (!data) return res.status(404).json({ error: 'Propiedad no encontrada' });
-    res.json(data);
+
+    const [propRes, adicsRes] = await Promise.all([
+      supabasePublic
+        .from('propiedades')
+        .select(`
+          id, codigo, nombre, tipo, modalidad, precio, precio_venta, precio_renta, moneda,
+          m2, m2_construccion, m2_terreno, zona, municipio, direccion, descripcion,
+          habitaciones, banos, parqueos, anio_construccion, disponibilidad,
+          linktour3d, video_url, foto_principal_url, estado_publicacion,
+          mantenimiento, arras_porcentaje, arras_penitenciarias, hipotecada
+        `)
+        .eq('id', id)
+        .maybeSingle(),
+      supabasePublic
+        .from('propiedades_adicionales')
+        .select('tipo, nombre')
+        .eq('propiedad_id', id)
+        .order('tipo'),
+    ]);
+
+    if (propRes.error) throw propRes.error;
+    if (!propRes.data) return res.status(404).json({ error: 'Propiedad no encontrada' });
+
+    const adicionales_todos = adicsRes.data || [];
+    let adicionales_destacados = adicionales_todos;
+
+    if (adicionales_todos.length) {
+      const { data: catData } = await supabasePublic
+        .from('adicionales_catalogo')
+        .select('nombre, destacado')
+        .in('nombre', adicionales_todos.map(a => a.nombre));
+      if (catData) {
+        const destacadoSet = new Set(catData.filter(c => c.destacado).map(c => c.nombre));
+        adicionales_destacados = adicionales_todos.filter(a => destacadoSet.has(a.nombre));
+      }
+    }
+
+    res.json({ ...propRes.data, adicionales_destacados, adicionales_todos });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -486,25 +509,32 @@ async function _waGenerateResponse(phone, userMessage) {
       try {
         const { data: _prop } = await _waSupabase
           .from('propiedades')
-          .select('id,codigo,nombre,tipo,modalidad,precio,precio_venta,precio_renta,moneda,m2,m2_construccion,m2_terreno,zona,municipio,descripcion,habitaciones,banos,parqueos,linktour3d,video_url,direccion,estado_publicacion,propiedades_adicionales(tipo,nombre)')
+          .select('id,codigo,nombre,tipo,modalidad,precio,precio_venta,precio_renta,moneda,m2,m2_construccion,m2_terreno,zona,municipio,descripcion,habitaciones,banos,parqueos,linktour3d,video_url,direccion,estado_publicacion,mantenimiento,arras_porcentaje,arras_penitenciarias,hipotecada')
           .eq('codigo', _codigo)
           .maybeSingle();
         if (_prop && _prop.estado_publicacion !== 'publicada') {
           propContextBlock = `[DATOS DE PROPIEDAD ${_codigo}]\nEstado: no disponible al público (${_prop.estado_publicacion})`;
         } else if (_prop) {
+          const [_adicsRes, _catRes] = await Promise.all([
+            _waSupabase.from('propiedades_adicionales').select('tipo,nombre').eq('propiedad_id', _prop.id).order('tipo'),
+            _waSupabase.from('adicionales_catalogo').select('nombre').eq('destacado', true),
+          ]);
+          const _adicTodos  = _adicsRes.data || [];
+          const _destSet    = new Set((_catRes.data || []).map(c => c.nombre));
+          const _adicsDesat = _adicTodos.filter(a => _destSet.has(a.nombre)).slice(0, 8);
           const _sym   = _prop.moneda === 'GTQ' ? 'Q' : '$';
           const _precio = _prop.precio_venta && _prop.precio_renta
             ? `Venta: ${_sym}${Number(_prop.precio_venta).toLocaleString('es-GT')} | Renta: ${_sym}${Number(_prop.precio_renta).toLocaleString('es-GT')}`
             : _prop.precio_venta ? `Venta: ${_sym}${Number(_prop.precio_venta).toLocaleString('es-GT')}`
             : _prop.precio_renta ? `Renta: ${_sym}${Number(_prop.precio_renta).toLocaleString('es-GT')}`
             : _prop.precio ? `${_sym}${Number(_prop.precio).toLocaleString('es-GT')}` : 'Precio a consultar';
-          const _adics = (_prop.propiedades_adicionales || []).map(a => a.nombre).join(', ');
+          const _adics = _adicsDesat.map(a => a.nombre).join(', ');
           const _specs = [
-            _prop.habitaciones   ? `${_prop.habitaciones} hab.`         : null,
-            _prop.banos          ? `${_prop.banos} baños`               : null,
-            _prop.parqueos       ? `${_prop.parqueos} parqueos`         : null,
-            _prop.m2_construccion ? `${_prop.m2_construccion} m² constr.` : null,
-            _prop.m2_terreno     ? `${_prop.m2_terreno} m² terreno`    : null,
+            _prop.habitaciones    ? `${_prop.habitaciones} hab.`           : null,
+            _prop.banos           ? `${_prop.banos} baños`                 : null,
+            _prop.parqueos        ? `${_prop.parqueos} parqueos`           : null,
+            _prop.m2_construccion ? `${_prop.m2_construccion} m² constr.`  : null,
+            _prop.m2_terreno      ? `${_prop.m2_terreno} m² terreno`       : null,
             _prop.m2 && !_prop.m2_construccion && !_prop.m2_terreno ? `${_prop.m2} m²` : null,
           ].filter(Boolean).join(' · ');
           propContextBlock = [
@@ -512,12 +542,17 @@ async function _waGenerateResponse(phone, userMessage) {
             `Nombre: ${_prop.nombre}`,
             `Tipo: ${_prop.tipo || '—'} | Zona: ${_prop.zona || '—'}${_prop.municipio ? ', ' + _prop.municipio : ''}`,
             `Precio: ${_precio}`,
-            _specs                ? `Características: ${_specs}` : null,
-            _prop.descripcion    ? `Descripción: ${_prop.descripcion}` : null,
-            _adics               ? `Adicionales: ${_adics}` : null,
-            _prop.direccion      ? `Dirección: ${_prop.direccion}` : null,
-            _prop.linktour3d     ? `Tour 3D: ${_prop.linktour3d}` : null,
-            _prop.video_url      ? `Video: ${_prop.video_url}` : null,
+            _specs                     ? `Características: ${_specs}` : null,
+            _prop.descripcion          ? `Descripción: ${_prop.descripcion}` : null,
+            _adics                     ? `Amenidades destacadas: ${_adics}` : null,
+            _adicTodos.length > _adicsDesat.length
+              ? `(+${_adicTodos.length - _adicsDesat.length} adicionales más — disponibles si el cliente los pide)` : null,
+            _prop.linktour3d           ? `Tour 3D: ${_prop.linktour3d}` : null,
+            _prop.video_url            ? `Video: ${_prop.video_url}` : null,
+            _prop.mantenimiento  != null ? `Mantenimiento: ${_sym}${_prop.mantenimiento}/mes` : null,
+            _prop.arras_porcentaje != null
+              ? `Arras: ${_prop.arras_porcentaje}%${_prop.arras_penitenciarias ? ' (penitenciarias)' : ''}` : null,
+            _prop.hipotecada != null   ? `Hipotecada: ${_prop.hipotecada ? 'Sí' : 'No'}` : null,
           ].filter(Boolean).join('\n');
         } else {
           propContextBlock = `[DATOS DE PROPIEDAD ${_codigo}]\nNo se encontró esta propiedad en la base de datos.`;
