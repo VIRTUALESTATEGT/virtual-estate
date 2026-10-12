@@ -87,7 +87,7 @@ function initCatalog(cfg) {
     const sym     = p.moneda === 'GTQ' ? 'Q' : '$';
     const precio  = _catalogPriceText(p);
     const isRenta = catalogModIsRenta(p.modalidad);
-    const code    = 'PROP-' + String(p.id).padStart(5, '0');
+    const code    = p.codigo || ('PROP-' + String(p.id).padStart(5, '0'));
     const adics   = (p.propiedades_adicionales || []).map(a => a.nombre);
     const m2Spec  = _catalogM2Text(p);
     const dispArr = p.disponibilidad || [];
@@ -157,7 +157,7 @@ function initCatalog(cfg) {
       </div>
     </div>
     <div class="re-prop-body">
-      <div class="re-prop-code">PROP-${String(p.id).padStart(5, '0')}</div>
+      <div class="re-prop-code">${p.codigo || ('PROP-' + String(p.id).padStart(5, '0'))}</div>
       <div class="re-prop-name">${p.nombre}</div>
       <div class="re-prop-loc"><i class="fas fa-map-marker-alt" style="color:var(--gold);font-size:.6rem;"></i> ${p.zona || 'Guatemala'}</div>
       <div class="re-prop-specs">

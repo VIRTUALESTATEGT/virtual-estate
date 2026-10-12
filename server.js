@@ -120,12 +120,12 @@ app.get('/api/propiedades/public', async (req, res) => {
     // Try with adicionales join first; fall back to base select if table doesn't exist yet
     let { data, error } = await decorateQuery(applyFilters(
       supabasePublic.from('propiedades')
-        .select('id,nombre,tipo,modalidad,precio,precio_venta,precio_renta,moneda,m2,m2_construccion,m2_terreno,municipio,zona,linktour3d,disponibilidad,foto_principal_url,descripcion,habitaciones,banos,parqueos,anio_construccion,impuestos_incluidos,propiedades_adicionales(tipo,nombre)')
+        .select('id,codigo,nombre,tipo,modalidad,precio,precio_venta,precio_renta,moneda,m2,m2_construccion,m2_terreno,municipio,zona,linktour3d,disponibilidad,foto_principal_url,descripcion,habitaciones,banos,parqueos,anio_construccion,impuestos_incluidos,propiedades_adicionales(tipo,nombre)')
     ));
     if (error && error.message && error.message.includes('propiedades_adicionales')) {
       ({ data, error } = await decorateQuery(applyFilters(
         supabasePublic.from('propiedades')
-          .select('id,nombre,tipo,modalidad,precio,precio_venta,precio_renta,moneda,m2,m2_construccion,m2_terreno,municipio,zona,linktour3d,disponibilidad,foto_principal_url,descripcion,habitaciones,banos,parqueos,anio_construccion,impuestos_incluidos')
+          .select('id,codigo,nombre,tipo,modalidad,precio,precio_venta,precio_renta,moneda,m2,m2_construccion,m2_terreno,municipio,zona,linktour3d,disponibilidad,foto_principal_url,descripcion,habitaciones,banos,parqueos,anio_construccion,impuestos_incluidos')
       )));
     }
     if (error) throw error;
@@ -144,6 +144,28 @@ app.get('/api/propiedades/public/:id/fotos', async (req, res) => {
       .order('orden')
       .order('id');
     if (error) throw error;
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// GET /api/propiedades/public/:id/detail — detalle completo público (excluye campos sensibles)
+app.get('/api/propiedades/public/:id/detail', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (!id) return res.status(400).json({ error: 'ID inválido' });
+    const { data, error } = await supabasePublic
+      .from('propiedades')
+      .select(`
+        id, codigo, nombre, tipo, modalidad, precio, precio_venta, precio_renta, moneda,
+        m2, m2_construccion, m2_terreno, zona, municipio, direccion, descripcion,
+        habitaciones, banos, parqueos, anio_construccion, disponibilidad,
+        linktour3d, video_url, foto_principal_url, estado_publicacion,
+        propiedades_adicionales(tipo, nombre)
+      `)
+      .eq('id', id)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return res.status(404).json({ error: 'Propiedad no encontrada' });
     res.json(data);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -439,7 +461,7 @@ async function _waGenerateResponse(phone, userMessage) {
     const Anthropic = require('@anthropic-ai/sdk');
     const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
     const { TOOL_CREAR_COTIZACION, ejecutarCrearCotizacion,
-            TOOL_ESCALAR_HUMANO,  ejecutarEscalarHumano   } = require('./src/config/tools-cotizacion');
+            TOOL_ESCALAR_HUMANO                            } = require('./src/config/tools-cotizacion');
 
     const { data: history } = await _waSupabase
       .from('whatsapp_messages')
@@ -454,7 +476,61 @@ async function _waGenerateResponse(phone, userMessage) {
       role: m.direction === 'incoming' ? 'user' : 'assistant',
       content: m.message
     }));
-    historyMessages.push({ role: 'user', content: userMessage });
+
+    // ── Inyectar contexto de propiedad si hay código VE-XXX ───────────────
+    let propContextBlock = '';
+    const _veMatch = userMessage.match(/\bVE-\d{3}\b/i);
+    if (_veMatch) {
+      const _codigo = _veMatch[0].toUpperCase();
+      try {
+        const { data: _prop } = await _waSupabase
+          .from('propiedades')
+          .select('id,codigo,nombre,tipo,modalidad,precio,precio_venta,precio_renta,moneda,m2,m2_construccion,m2_terreno,zona,municipio,descripcion,habitaciones,banos,parqueos,linktour3d,video_url,direccion,estado_publicacion,propiedades_adicionales(tipo,nombre)')
+          .eq('codigo', _codigo)
+          .maybeSingle();
+        if (_prop && _prop.estado_publicacion !== 'publicada') {
+          propContextBlock = `[DATOS DE PROPIEDAD ${_codigo}]\nEstado: no disponible al público (${_prop.estado_publicacion})`;
+        } else if (_prop) {
+          const _sym   = _prop.moneda === 'GTQ' ? 'Q' : '$';
+          const _precio = _prop.precio_venta && _prop.precio_renta
+            ? `Venta: ${_sym}${Number(_prop.precio_venta).toLocaleString('es-GT')} | Renta: ${_sym}${Number(_prop.precio_renta).toLocaleString('es-GT')}`
+            : _prop.precio_venta ? `Venta: ${_sym}${Number(_prop.precio_venta).toLocaleString('es-GT')}`
+            : _prop.precio_renta ? `Renta: ${_sym}${Number(_prop.precio_renta).toLocaleString('es-GT')}`
+            : _prop.precio ? `${_sym}${Number(_prop.precio).toLocaleString('es-GT')}` : 'Precio a consultar';
+          const _adics = (_prop.propiedades_adicionales || []).map(a => a.nombre).join(', ');
+          const _specs = [
+            _prop.habitaciones   ? `${_prop.habitaciones} hab.`         : null,
+            _prop.banos          ? `${_prop.banos} baños`               : null,
+            _prop.parqueos       ? `${_prop.parqueos} parqueos`         : null,
+            _prop.m2_construccion ? `${_prop.m2_construccion} m² constr.` : null,
+            _prop.m2_terreno     ? `${_prop.m2_terreno} m² terreno`    : null,
+            _prop.m2 && !_prop.m2_construccion && !_prop.m2_terreno ? `${_prop.m2} m²` : null,
+          ].filter(Boolean).join(' · ');
+          propContextBlock = [
+            `[DATOS DE PROPIEDAD ${_codigo}]`,
+            `Nombre: ${_prop.nombre}`,
+            `Tipo: ${_prop.tipo || '—'} | Zona: ${_prop.zona || '—'}${_prop.municipio ? ', ' + _prop.municipio : ''}`,
+            `Precio: ${_precio}`,
+            _specs                ? `Características: ${_specs}` : null,
+            _prop.descripcion    ? `Descripción: ${_prop.descripcion}` : null,
+            _adics               ? `Adicionales: ${_adics}` : null,
+            _prop.direccion      ? `Dirección: ${_prop.direccion}` : null,
+            _prop.linktour3d     ? `Tour 3D: ${_prop.linktour3d}` : null,
+            _prop.video_url      ? `Video: ${_prop.video_url}` : null,
+          ].filter(Boolean).join('\n');
+        } else {
+          propContextBlock = `[DATOS DE PROPIEDAD ${_codigo}]\nNo se encontró esta propiedad en la base de datos.`;
+        }
+        console.log('[WA-PROP] Contexto inyectado para:', _codigo, '| found:', !!_prop);
+      } catch (e) {
+        console.warn('[WA-PROP] Error buscando propiedad:', e.message);
+      }
+    }
+
+    const finalUserMessage = propContextBlock
+      ? `${propContextBlock}\n\n[MENSAJE DEL CLIENTE]\n${userMessage}`
+      : userMessage;
+    historyMessages.push({ role: 'user', content: finalUserMessage });
 
     const { buildSystemPrompt, warmPreciosCache } = require('./src/config/system-prompt');
     // Warm prices cache in parallel with a 2s ceiling — if DB is slow, proceed with fallback.
@@ -494,13 +570,26 @@ async function _waGenerateResponse(phone, userMessage) {
 
     if (toolUseBlock?.name === 'escalar_a_humano') {
       console.log('[HANDOFF] El agente escaló a humano:', JSON.stringify(toolUseBlock.input));
-      // Fire-and-forget — no bloqueamos la respuesta al cliente
-      ejecutarEscalarHumano(toolUseBlock.input, phone).catch(e =>
-        console.error('[HANDOFF] ejecutarEscalarHumano error:', e.message)
-      );
-      // Devuelve el texto conversacional de Claude (sigue atendiendo al cliente)
-      return textBlock?.text
-        ?? 'Con gusto traslado tu consulta a uno de nuestros encargados, quien te atenderá personalmente en cuanto le sea posible. Mientras tanto, sigo aquí para cualquier otra duda que tengas. 😊';
+      const { resumen, motivo } = toolUseBlock.input || {};
+
+      // Marcar modo_humano en whatsapp_contacts (fire-and-forget)
+      const _phoneNorm = normalizarNumero(phone);
+      _waSupabase.from('whatsapp_contacts').upsert(
+        { phone_number: _phoneNorm, modo_humano: true, modo_humano_desde: new Date().toISOString(), contact_type: 'client', respond: true },
+        { onConflict: 'phone_number' }
+      ).then(() => {}).catch(e => console.error('[HANDOFF] modo_humano upsert error:', e.message));
+
+      // Notificación WA al owner (fire-and-forget)
+      const _notifText = `🔔 *Cliente solicita asesor*\nNúmero: ${phone}\nMotivo: ${resumen || motivo || 'sin detalle'}\nÚltimo mensaje: ${userMessage.slice(0, 120)}\nConversación activa en WhatsApp.`;
+      _waSendMessage('50250175832', _notifText).catch(e => console.error('[HANDOFF] WA notif error:', e.message));
+
+      // Insert en notificaciones_admin (fire-and-forget)
+      _waSupabase.from('notificaciones_admin').insert([{
+        tipo: 'handoff_humano',
+        contenido: `Handoff ${phone} — ${resumen || motivo || 'sin detalle'}`,
+      }]).then(() => {}).catch(e => console.error('[HANDOFF] notificaciones_admin insert error:', e.message));
+
+      return 'Perfecto, voy a notificar a un asesor para que te contacte. Por favor esperá un momento. ⏳\n\nSi en 3 horas no recibís respuesta, nuestro asistente se reactivará automáticamente.';
     }
 
     if (toolUseBlock) {
@@ -798,6 +887,29 @@ async function _waWebhookPost(req, res) {
     // zx [numero] → personal (no responder) | zc [numero] → cliente (responder)
     if (isOwner) {
       const trimmed  = text.trim();
+
+      // bot on [numero] → reactivar bot (limpiar modo_humano)
+      const botOnMatch = trimmed.match(/^bot\s+on(?:\s+(.+))?$/i);
+      if (botOnMatch) {
+        const rawTarget = botOnMatch[1]?.trim();
+        let reply;
+        if (rawTarget) {
+          const targetNum = normalizarNumero(rawTarget);
+          await _waSupabase.from('whatsapp_contacts')
+            .update({ modo_humano: false, modo_humano_desde: null })
+            .eq('phone_number', targetNum);
+          reply = `✅ Bot reactivado para ${targetNum}`;
+        } else {
+          await _waSupabase.from('whatsapp_contacts')
+            .update({ modo_humano: false, modo_humano_desde: null })
+            .eq('modo_humano', true);
+          reply = '✅ Bot reactivado para todos los números en modo asesor.';
+        }
+        await _waSendMessage(phone, reply);
+        res.sendStatus(200);
+        return;
+      }
+
       const zxMatch  = trimmed.match(/^zx\s+(.*)/i);
       const zcMatch  = trimmed.match(/^zc\s+(.*)/i);
       const isZCmd   = zxMatch || zcMatch;
@@ -835,7 +947,7 @@ async function _waWebhookPost(req, res) {
     console.log('[WA] Consultando contact_type para:', maskPhone(phoneNorm), '...');
     const { data: contact, error: contactErr } = await _waSupabase
       .from('whatsapp_contacts')
-      .select('contact_type, respond, name')
+      .select('contact_type, respond, name, modo_humano, modo_humano_desde')
       .eq('phone_number', phoneNorm)
       .single();
 
@@ -915,13 +1027,64 @@ async function _waWebhookPost(req, res) {
     if (esPersonal) {
       console.log('[WA] Número', maskPhone(phone), 'es personal — sin respuesta.');
     } else {
-      // ── PASO 5: Si es nuevo chat → enviar bienvenida primero ─────────
+      // ── MODO HUMANO: si el asesor tiene activa la pausa ──────────────
+      if (contact?.modo_humano) {
+        const _modoDesde    = new Date(contact.modo_humano_desde || 0);
+        const _horasEnModo  = (Date.now() - _modoDesde.getTime()) / 3_600_000;
+
+        if (_horasEnModo >= 3) {
+          // Auto-reactivación tras 3 horas
+          console.log('[WA] modo_humano expirado (', _horasEnModo.toFixed(1), 'h) — reactivando bot');
+          await _waSupabase.from('whatsapp_contacts')
+            .update({ modo_humano: false, modo_humano_desde: null })
+            .eq('phone_number', phoneNorm);
+          const _reactivMsg = 'Han pasado 3 horas sin respuesta del asesor. Nuestro asistente está nuevamente disponible. ¿En qué más puedo ayudarte? 😊';
+          await _waSendMessage(phone, _reactivMsg);
+          await _waSupabase.from('whatsapp_messages')
+            .insert({ phone_number: phone, message: _reactivMsg, direction: 'outgoing' });
+          // Continuar al LLM normalmente
+        } else {
+          // Bot pausado — solo avisar una vez cada 30 min
+          const { data: _lastOut } = await _waSupabase
+            .from('whatsapp_messages')
+            .select('created_at')
+            .eq('phone_number', phone)
+            .eq('direction', 'outgoing')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          const _minDesdeUltimo = _lastOut
+            ? (Date.now() - new Date(_lastOut.created_at).getTime()) / 60_000
+            : 31;
+          if (_minDesdeUltimo >= 30) {
+            const _espMsg = 'Tu consulta está siendo atendida por un asesor. Te contactarán pronto. 🙏';
+            await _waSendMessage(phone, _espMsg);
+            await _waSupabase.from('whatsapp_messages')
+              .insert({ phone_number: phone, message: _espMsg, direction: 'outgoing' });
+          }
+          console.log('[WA] Modo humano activo — sin respuesta LLM (', _horasEnModo.toFixed(1), 'h en modo, ', _minDesdeUltimo.toFixed(0), 'min desde último outgoing)');
+          // No llamar al LLM
+          return; // ← sale del try block; res.sendStatus(200) en el finally-equivalent
+        }
+      }
+
+      const _WA_BIENVENIDA = `¡Hola! 👋 Bienvenido/a a *Virtual Estate GT*\n\nPuedo ayudarte con:\n*1.* Información sobre nuestros servicios (tours virtuales, escaneo 3D, planos)\n*2.* Cotización de un servicio\n*3.* Información sobre una propiedad en venta o renta 🏠\n*4.* Hablar con un asesor 👤\n\nRespondé con el número de tu opción o escribí tu consulta directamente.`;
+
+      // ── PASO 5: Nuevo chat — evitar doble mensaje ─────────────────────
       if (esNuevoChat) {
-        console.log('[WA] Nuevo chat detectado — enviando bienvenida');
-        const bienvenida = `¡Hola! 👋 Bienvenido/a a Virtual Estate GT. Soy tu asistente virtual y estoy aquí para ayudarte.\n\nSomos especialistas en:\n1. Real estate 🏠\n2. Escaneo 3D 📐\n3. Fotografía inmobiliaria 📸\n4. Tours virtuales 🎥\n5. Documentación técnica 📋\n6. Servicios de construcción 🔨\n\n¿Qué necesitas hoy?\n(Puedes escribir el número o tu pregunta)`;
-        await _waSendMessage(phone, bienvenida);
-        await _waSupabase.from('whatsapp_messages')
-          .insert({ phone_number: phone, message: bienvenida, direction: 'outgoing' });
+        const _ES_SALUDO = /^(hola|buenas|buenos\s+d[ií]as|buenas\s+tardes|buenas\s+noches|hi|hello|hey|buen\s+d[ií]a|saludos|qu[eé]\s+tal|q\.?\s*tal|ola|holis|buen\s+d[ií]a)\b/i;
+        const esSoloSaludo = _ES_SALUDO.test(text.trim()) && text.trim().length <= 30;
+
+        if (esSoloSaludo) {
+          // Solo bienvenida — el LLM responderá al próximo mensaje
+          console.log('[WA] Nuevo chat + saludo — enviando solo bienvenida');
+          await _waSendMessage(phone, _WA_BIENVENIDA);
+          await _waSupabase.from('whatsapp_messages')
+            .insert({ phone_number: phone, message: _WA_BIENVENIDA, direction: 'outgoing' });
+          return;
+        }
+        // Hay intención real → no enviar bienvenida separada, el LLM la integra
+        console.log('[WA] Nuevo chat + intención — enviando directamente al LLM');
       }
 
       // ── Recordatorio 1h ───────────────────────────────────────────────
