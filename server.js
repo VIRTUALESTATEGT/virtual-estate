@@ -503,7 +503,14 @@ async function _waGenerateResponse(phone, userMessage) {
 
     // ── Inyectar contexto de propiedad si hay código VE-XXX ───────────────
     let propContextBlock = '';
-    const _veMatch = userMessage.match(/\bve[-\s]?(\d{2,3})\b/i);
+    let _veMatch = userMessage.match(/\bve[-\s]?(\d{2,3})\b/i);
+    // Si no viene en el mensaje actual, buscar en el historial reciente (últimos 5)
+    if (!_veMatch) {
+      for (const msg of historyMessages.slice(-5).reverse()) {
+        const _histMatch = (msg.content || '').match(/\bve[-\s]?(\d{2,3})\b/i);
+        if (_histMatch) { _veMatch = _histMatch; break; }
+      }
+    }
     if (_veMatch) {
       const _codigo = 'VE-' + _veMatch[1].padStart(3, '0');
       console.log('[BOT-PROP] código detectado:', _codigo);
