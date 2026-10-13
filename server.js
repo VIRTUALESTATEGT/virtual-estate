@@ -522,7 +522,9 @@ async function _waGenerateResponse(phone, userMessage) {
           const _adicTodos  = _adicsRes.data || [];
           const _destSet    = new Set((_catRes.data || []).map(c => c.nombre));
           const _adicsDesat = _adicTodos.filter(a => _destSet.has(a.nombre)).slice(0, 8);
-          console.log('[BOT-PROP] adicionales_todos count:', _adicTodos.length, JSON.stringify(_adicTodos.slice(0, 3)));
+          console.log('[BOT-PROP] _adicsRes.error:', _adicsRes?.error?.message ?? 'ninguno');
+          console.log('[BOT-PROP] adicionales_todos count:', _adicTodos?.length ?? 0);
+          console.log('[BOT-PROP] adicionales_destacados count:', _adicsDesat?.length ?? 0);
           // Build full list grouped by tipo for PASO 2
           const _grupos = {};
           _adicTodos.forEach(a => {
@@ -556,7 +558,7 @@ async function _waGenerateResponse(phone, userMessage) {
             _specs                     ? `Características: ${_specs}` : null,
             _prop.descripcion          ? `Descripción: ${_prop.descripcion}` : null,
             _adics                     ? `Amenidades destacadas: ${_adics}` : null,
-            _adicsFullBlock            ? `Adicionales completos (PASO 2):\n${_adicsFullBlock}` : null,
+            _adicTodos.length > 0      ? `Adicionales completos (PASO 2):\n${_adicsFullBlock}` : null,
             _prop.linktour3d           ? `Tour 3D: ${_prop.linktour3d}` : null,
             _prop.video_url            ? `Video: ${_prop.video_url}` : null,
             _prop.mantenimiento  != null ? `Mantenimiento: ${_sym}${_prop.mantenimiento}/mes` : null,
@@ -567,7 +569,8 @@ async function _waGenerateResponse(phone, userMessage) {
         } else {
           propContextBlock = `[DATOS DE PROPIEDAD ${_codigo}]\nNo se encontró esta propiedad en la base de datos.`;
         }
-        console.log('[BOT-PROP] bloque inyectado:', propContextBlock ? 'SÍ' : 'NO');
+        console.log('[BOT-PROP] bloque length:', propContextBlock?.length);
+        console.log('[BOT-PROP] tiene adicionales_todos:', propContextBlock?.includes('Adicionales completos'));
       } catch (e) {
         console.warn('[BOT-PROP] Error buscando propiedad:', e.message);
       }
