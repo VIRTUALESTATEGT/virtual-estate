@@ -1126,21 +1126,19 @@ async function _waWebhookPost(req, res) {
 
       const _WA_BIENVENIDA = `¡Hola! 👋 Bienvenido/a a *Virtual Estate GT*\n\nPuedo ayudarte con:\n*1.* Información sobre nuestros servicios (tours virtuales, escaneo 3D, planos)\n*2.* Cotización de un servicio\n*3.* Información sobre una propiedad en venta o renta 🏠\n*4.* Hablar con un asesor 👤\n\nRespondé con el número de tu opción o escribí tu consulta directamente.`;
 
-      // ── PASO 5: Nuevo chat — evitar doble mensaje ─────────────────────
+      // ── PASO 5: Nuevo chat — bienvenida siempre primero ──────────────
       if (esNuevoChat) {
         const _ES_SALUDO = /^(hola|buenas|buenos\s+d[ií]as|buenas\s+tardes|buenas\s+noches|hi|hello|hey|buen\s+d[ií]a|saludos|qu[eé]\s+tal|q\.?\s*tal|ola|holis|buen\s+d[ií]a)\b/i;
         const esSoloSaludo = _ES_SALUDO.test(text.trim()) && text.trim().length <= 30;
 
-        if (esSoloSaludo) {
-          // Solo bienvenida — el LLM responderá al próximo mensaje
-          console.log('[WA] Nuevo chat + saludo — enviando solo bienvenida');
-          await _waSendMessage(phone, _WA_BIENVENIDA);
-          await _waSupabase.from('whatsapp_messages')
-            .insert({ phone_number: phone, message: _WA_BIENVENIDA, direction: 'outgoing' });
-          return;
-        }
-        // Hay intención real → no enviar bienvenida separada, el LLM la integra
-        console.log('[WA] Nuevo chat + intención — enviando directamente al LLM');
+        // Siempre enviar bienvenida en nuevo chat
+        console.log('[WA] Nuevo chat — enviando bienvenida', esSoloSaludo ? '(solo saludo)' : '(+ intención real)');
+        await _waSendMessage(phone, _WA_BIENVENIDA);
+        await _waSupabase.from('whatsapp_messages')
+          .insert({ phone_number: phone, message: _WA_BIENVENIDA, direction: 'outgoing' });
+
+        if (esSoloSaludo) return; // Solo saludo → el LLM responderá al próximo mensaje
+        // Hay intención real → continuar al LLM para responderla (sin repetir menú)
       }
 
       // ── Recordatorio 1h ───────────────────────────────────────────────
