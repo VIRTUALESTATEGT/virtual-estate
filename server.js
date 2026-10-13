@@ -503,9 +503,9 @@ async function _waGenerateResponse(phone, userMessage) {
 
     // ── Inyectar contexto de propiedad si hay código VE-XXX ───────────────
     let propContextBlock = '';
-    const _veMatch = userMessage.match(/\bve[-\s]?(\d{3})\b/i);
+    const _veMatch = userMessage.match(/\bve[-\s]?(\d{2,3})\b/i);
     if (_veMatch) {
-      const _codigo = 'VE-' + _veMatch[1];
+      const _codigo = 'VE-' + _veMatch[1].padStart(3, '0');
       console.log('[BOT-PROP] código detectado:', _codigo);
       try {
         const { data: _prop, error: _propErr } = await _waSupabase
