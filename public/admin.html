@@ -421,7 +421,7 @@
       #proyectos-tbody tr td:nth-child(6)::before{content:"Avance"}
       #proyectos-tbody tr td:nth-child(7)::before{content:"Valor"}
       #proyectos-tbody tr td:nth-child(8)::before{content:"Estado"}
-      /* Propiedades (ID | Título | Tipo | Modalidad | Precio | M² | Zona | Tour 3D | Disponib. | Acciones) */
+      /* Propiedades (ID | Título | Tipo | Modalidad | Precio | M² | Zona | Estado | Disponib. | Acciones) */
       #propiedades-tbody tr td:nth-child(1)::before{content:"ID"}
       #propiedades-tbody tr td:nth-child(2)::before{content:"Título"}
       #propiedades-tbody tr td:nth-child(3)::before{content:"Tipo"}
@@ -429,7 +429,7 @@
       #propiedades-tbody tr td:nth-child(5)::before{content:"Precio"}
       #propiedades-tbody tr td:nth-child(6)::before{content:"M²"}
       #propiedades-tbody tr td:nth-child(7)::before{content:"Zona"}
-      #propiedades-tbody tr td:nth-child(8)::before{content:"Tour 3D"}
+      #propiedades-tbody tr td:nth-child(8)::before{content:"Estado"}
       #propiedades-tbody tr td:nth-child(9)::before{content:"Disponib."}
       /* Citas lista (Fecha | Hora | Tipo | Cliente | Estado | Acciones) */
       #citas-lista-tbody tr td:nth-child(1)::before{content:"Fecha"}
@@ -975,7 +975,7 @@
           <button class="topbar-btn btn-primary" onclick="abrirFormPropiedad()"><i class="fas fa-plus"></i> Nueva Propiedad</button>
         </div>
         <table>
-          <thead><tr><th>ID</th><th>Título</th><th>Tipo</th><th>Modalidad</th><th>Precio</th><th>M²</th><th>Zona</th><th>Tour 3D</th><th>Disponibilidad</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>ID</th><th>Título</th><th>Tipo</th><th>Modalidad</th><th>Precio</th><th>M²</th><th>Zona</th><th>Estado</th><th>Disponibilidad</th><th>Acciones</th></tr></thead>
           <tbody id="propiedades-tbody">
             <tr><td colspan="10" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
           </tbody>
@@ -4771,7 +4771,7 @@
         <td class="td-gold">${p.precio?(p.moneda==='GTQ'?'Q':'$')+fmtPrecio(p.precio):'—'}</td>
         <td>${p.m2?p.m2+' m²':'—'}</td>
         <td>${p.zona||'—'}</td>
-        <td>${p.linktour3d?'<a href="'+p.linktour3d+'" target="_blank" style="color:var(--gold);"><i class="fas fa-vr-cardboard"></i> Ver</a>':'<span style="color:var(--gray);">—</span>'}</td>
+        <td>${(()=>{const _e=p.estado_publicacion||'borrador';const _b={'publicada':'badge-active','pausada':'badge-contact','borrador':'badge-cot-gris'};const _l={'publicada':'Publicada','pausada':'Pausada','borrador':'Borrador'};return`<span class="badge ${_b[_e]||'badge-cot-gris'}">${_l[_e]||'Borrador'}</span>`})()}</td>
         <td>${_dispBadges(p.disponibilidad)}</td>
         <td><div class="action-btns">
           <button class="act-btn" title="Editar" onclick="editPropiedad(${p.id})"><i class="fas fa-pencil-alt"></i></button>
