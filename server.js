@@ -94,6 +94,7 @@ app.get('/api/propiedades/public', async (req, res) => {
       ? modalidad.split(',').map(v => v.trim()).filter(v => MOD_ALLOWED.has(v))
       : [];
     const applyFilters = (q) => {
+      q = q.eq('estado_publicacion', 'publicada');
       if (zona)            q = q.ilike('zona', `%${zona}%`);
       if (tipo)            q = q.eq('tipo', tipo);
       if (modVals.length)  q = q.overlaps('modalidad', modVals);
@@ -165,6 +166,7 @@ app.get('/api/propiedades/public/:id/detail', async (req, res) => {
           mantenimiento, arras_porcentaje, arras_penitenciarias, hipotecada
         `)
         .eq('id', id)
+        .eq('estado_publicacion', 'publicada')
         .maybeSingle(),
       supabasePublic
         .from('propiedades_adicionales')

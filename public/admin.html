@@ -3411,8 +3411,16 @@
     const tipo = document.getElementById('prop-tipo').value;
     const precioVenta = document.getElementById('prop-precio-venta').value.trim();
     const precioRenta = document.getElementById('prop-precio-renta').value.trim();
-    if(!nombre||!tipo){ showToast('Completa nombre y tipo (*)'); return; }
-    if(!precioVenta&&!precioRenta){ showToast('Ingresá al menos un precio (venta o renta)'); return; }
+    const estadoPub = document.getElementById('prop-estado')?.value || 'borrador';
+    if (estadoPub === 'publicada') {
+      const modalidadSel = ['venta','renta'].filter(v => document.getElementById('mod-'+v)?.checked);
+      const faltantes = [];
+      if (!nombre)           faltantes.push('nombre');
+      if (!tipo)             faltantes.push('tipo');
+      if (!modalidadSel.length) faltantes.push('modalidad');
+      if (!precioVenta && !precioRenta) faltantes.push('precio (venta o renta)');
+      if (faltantes.length) { showToast('Para publicar completá: ' + faltantes.join(', ')); return; }
+    }
     const disponibilidad = ['vacia','habitada','airbnb','en_construccion']
       .filter(v => document.getElementById('disp-'+v.replace('_','-'))?.checked);
     const _n = id => { const v=document.getElementById(id)?.value; return v?Number(v):null; };

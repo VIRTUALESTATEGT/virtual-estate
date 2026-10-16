@@ -100,8 +100,21 @@ function _buildPropPatch(body, isUpdate = false) {
   return patch;
 }
 
+function _validateForPublicacion(body) {
+  if (body.estado_publicacion !== 'publicada') return null;
+  const faltantes = [];
+  if (!body.nombre?.toString().trim()) faltantes.push('nombre');
+  if (!body.tipo) faltantes.push('tipo');
+  const mod = Array.isArray(body.modalidad) ? body.modalidad : [];
+  if (!mod.length) faltantes.push('modalidad');
+  if (!body.precio_venta && !body.precio_renta) faltantes.push('precio (venta o renta)');
+  return faltantes.length ? faltantes : null;
+}
+
 // POST / — create property
 router.post('/', verificarPermiso('crear_propiedad'), async (req, res) => {
+  const faltantes = _validateForPublicacion(req.body);
+  if (faltantes) return res.status(400).json({ error: `Para publicar completá: ${faltantes.join(', ')}` });
   try {
     const { data, error } = await supabase
       .from('propiedades')
@@ -114,6 +127,8 @@ router.post('/', verificarPermiso('crear_propiedad'), async (req, res) => {
 
 // PUT /:id — update property (must be registered before /:id/fotos/*)
 router.put('/:id', verificarPermiso('editar_propiedad'), async (req, res) => {
+  const faltantes = _validateForPublicacion(req.body);
+  if (faltantes) return res.status(400).json({ error: `Para publicar completá: ${faltantes.join(', ')}` });
   try {
     const { data, error } = await supabase
       .from('propiedades')
