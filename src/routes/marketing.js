@@ -361,8 +361,8 @@ function buildSystemVideoStudio(permitirVoces = false, usarMarca = true) {
     ? ''
     : '\n- Cada prompt debe incluir al final: "ambient sound only, no dialogue, no speech"';
   const encabezado = usarMarca
-    ? `Eres director de fotografía y guionista de video especializado en bienes raíces premium de Guatemala.\nCreas prompts para Veo 3.1 (IA generativa de Google). Virtual Estate GT se especializa en escaneo 3D Matterport, tours virtuales y documentación inmobiliaria. Responde ÚNICAMENTE con JSON válido, sin markdown ni texto extra.`
-    : `Eres director de fotografía y guionista de video especializado en producción audiovisual premium.\nCreas prompts para Veo 3.1 (IA generativa de Google). Responde ÚNICAMENTE con JSON válido, sin markdown ni texto extra.`;
+    ? `Eres director de fotografía y guionista de video especializado en bienes raíces premium de Guatemala.\nCreas prompts para Gemini Omni 1.1 Flash (IA generativa de Google). Virtual Estate GT se especializa en escaneo 3D Matterport, tours virtuales y documentación inmobiliaria. Responde ÚNICAMENTE con JSON válido, sin markdown ni texto extra.`
+    : `Eres director de fotografía y guionista de video especializado en producción audiovisual premium.\nCreas prompts para Gemini Omni 1.1 Flash (IA generativa de Google). Responde ÚNICAMENTE con JSON válido, sin markdown ni texto extra.`;
   return `${encabezado}
 
 ESTRUCTURA OBLIGATORIA por cada clip:
@@ -370,7 +370,7 @@ ESTRUCTURA OBLIGATORIA por cada clip:
 
 Reglas absolutas:
 - Inglés, máximo 100 palabras por clip
-- UNA sola acción por clip (Veo falla con múltiples acciones simultáneas)
+- UNA sola acción por clip (el modelo puede fallar con múltiples acciones simultáneas)
 - Prohibido: texto en pantalla, logos visibles
 - Personas sí permitidas (familias, agentes, compradores) cuando la idea lo requiera
 - En multi-clip: consistencia visual entre todos los clips (misma paleta, iluminación y locación coherentes para que al editarlos en secuencia se sientan continuos)
@@ -395,7 +395,7 @@ Para MULTI-CLIP (>8 seg) responde EXACTAMENTE con este JSON:
 }
 
 El campo "limitantes" va en español, 80-120 palabras. Debe ser específico a la idea del usuario:
-qué puede hacer Veo bien con esa idea, qué probablemente no puede lograr (texto en pantalla,
+qué puede hacer el modelo bien con esa idea, qué probablemente no puede lograr (texto en pantalla,
 logos, múltiples acciones distintas dentro de un clip, continuidad perfecta de movimiento entre
 clips, escenas muy complejas), y cómo resolverlo en edición externa (agregar texto/logo en
 post-producción, unir clips con corte o transición, etc.).`;
@@ -405,7 +405,7 @@ function buildSystemVideoModify(usarMarca) {
   const rol = usarMarca
     ? 'Eres asistente de dirección de video especializado en bienes raíces premium de Guatemala.'
     : 'Eres asistente de dirección de video.';
-  return `${rol} El usuario quiere modificar ÚNICAMENTE un aspecto específico de un prompt de video para Veo 3.1.
+  return `${rol} El usuario quiere modificar ÚNICAMENTE un aspecto específico de un prompt de video para Gemini Omni 1.1 Flash.
 
 Aplica SOLO el cambio solicitado. No modifiques nada más: mantén la estructura, el movimiento de cámara, la iluminación, el ambiente y todos los demás detalles idénticos salvo lo pedido explícitamente.
 
@@ -526,7 +526,7 @@ router.post('/prompt-studio/modificar', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// ── Video con Veo 3.1 ─────────────────────────────────────────────────────────
+// ── Video con Gemini Omni 1.1 Flash ──────────────────────────────────────────
 const REGLAS_VIDEO = `Reglas para prompt_video:
 - Inglés, 80-120 palabras, estilo cinematográfico editorial
 - Describe movimiento de cámara (drone tracking shot, slow dolly, cinematic pan, aerial orbit, etc.)
@@ -539,8 +539,8 @@ const REGLAS_VIDEO = `Reglas para prompt_video:
 
 function buildSystemVideo(usarMarca) {
   const encabezado = usarMarca
-    ? `Eres director creativo de una agencia de marketing premium de bienes raíces en Guatemala.\nCreas prompts de video para Veo (IA generativa de Google). Responde ÚNICAMENTE con JSON válido, sin markdown.\n\nEstructura exacta:\n{\n  "prompt_video": "...",\n  "copy_texto":   "...",\n  "hashtags":     "..."\n}\n\n${REGLAS_VIDEO}\n- copy_texto: español, máx 150 palabras, listo para publicar en redes\n- hashtags: mezcla español/inglés, relevantes a bienes raíces Guatemala`
-    : `Eres director creativo de una agencia de marketing premium.\nCreas prompts de video para Veo (IA generativa de Google). Responde ÚNICAMENTE con JSON válido, sin markdown.\n\nEstructura exacta:\n{\n  "prompt_video": "...",\n  "copy_texto":   "...",\n  "hashtags":     "..."\n}\n\n${REGLAS_VIDEO}\n- copy_texto: español, máx 150 palabras, listo para publicar en redes\n- hashtags: relevantes al tema y la plataforma, separados por espacio`;
+    ? `Eres director creativo de una agencia de marketing premium de bienes raíces en Guatemala.\nCreas prompts de video para Gemini Omni (IA generativa de Google). Responde ÚNICAMENTE con JSON válido, sin markdown.\n\nEstructura exacta:\n{\n  "prompt_video": "...",\n  "copy_texto":   "...",\n  "hashtags":     "..."\n}\n\n${REGLAS_VIDEO}\n- copy_texto: español, máx 150 palabras, listo para publicar en redes\n- hashtags: mezcla español/inglés, relevantes a bienes raíces Guatemala`
+    : `Eres director creativo de una agencia de marketing premium.\nCreas prompts de video para Gemini Omni (IA generativa de Google). Responde ÚNICAMENTE con JSON válido, sin markdown.\n\nEstructura exacta:\n{\n  "prompt_video": "...",\n  "copy_texto":   "...",\n  "hashtags":     "..."\n}\n\n${REGLAS_VIDEO}\n- copy_texto: español, máx 150 palabras, listo para publicar en redes\n- hashtags: relevantes al tema y la plataforma, separados por espacio`;
   return encabezado;
 }
 
@@ -670,10 +670,11 @@ router.post('/ordenes/:id/generar-video', async (req, res) => {
         prompt_usado:    prompt_video,
         formato:         aspectRatio,
         duracion_seg:    duracionSeg,
-        video_operation: operationName,
-        video_url:       null,
-        imagen_url:      null,
-        estado:          'pendiente'
+        video_operation:  operationName,
+        video_iniciado_en: new Date().toISOString(),
+        video_url:        null,
+        imagen_url:       null,
+        estado:           'pendiente'
       })
       .select().single();
     if (insErr) throw insErr;
@@ -707,13 +708,14 @@ router.post('/contenido/:id/clips/:idx/iniciar', async (req, res) => {
       aspectRatio:   aspectRatio  ?? '16:9',
       duracionSeg:   duracionSeg  ?? 8,
       imagenInicial: imagenInicial ?? null,
-      calidad
+      calidad,
+      esMultiClip:   true,
     });
 
     const { data: updated, error } = await supabase.rpc('mkt_set_clip', {
       p_contenido_id: Number(req.params.id),
       p_clip_idx:     idx,
-      p_patch:        { operation: operationName, estado: 'generando' }
+      p_patch:        { operation: operationName, estado: 'generando', iniciado_en: new Date().toISOString() }
     });
     if (error) throw error;
 
@@ -737,8 +739,8 @@ router.get('/contenido/:id/clips/:idx/estado', async (req, res) => {
     if (!clip.operation) throw new Error(`Clip ${idx} sin operation`);
 
     const { consultarVideo } = require('../services/videoProvider');
-    const result = await consultarVideo(clip.operation);
-    if (!result.listo) return res.json({ listo: false });
+    const result = await consultarVideo(clip.operation, { iniciado_en: clip.iniciado_en ?? null });
+    if (!result.listo) return res.json({ listo: false, error: result.error ?? null });
 
     const slug = (cont.formato ?? '16-9').replace(':', '-');
     const path = `ordenes/${cont.orden_id}/clip-${idx}-${slug}-${Date.now()}.mp4`;
@@ -769,16 +771,16 @@ router.get('/contenido/:id/estado-video', async (req, res) => {
   try {
     const { data: cont, error: contErr } = await supabase
       .from('contenido_generado')
-      .select('video_operation, video_url, orden_id, formato, duracion_seg')
+      .select('video_operation, video_url, orden_id, formato, duracion_seg, video_iniciado_en')
       .eq('id', req.params.id).single();
     if (contErr) throw contErr;
     if (!cont.video_operation) throw new Error('Sin video_operation para consultar');
     if (cont.video_url) return res.json({ listo: true, video_url: cont.video_url });
 
     const { consultarVideo } = require('../services/videoProvider');
-    const result = await consultarVideo(cont.video_operation);
+    const result = await consultarVideo(cont.video_operation, { iniciado_en: cont.video_iniciado_en ?? null });
 
-    if (!result.listo) return res.json({ listo: false });
+    if (!result.listo) return res.json({ listo: false, error: result.error ?? null });
 
     const slug = (cont.formato ?? '16-9').replace(':', '-');
     const path = `ordenes/${cont.orden_id}/video-${slug}-${Date.now()}.mp4`;
@@ -826,7 +828,7 @@ router.post('/contenido/:id/regenerar-video', async (req, res) => {
 
     const { data: updated, error: updErr } = await supabase
       .from('contenido_generado')
-      .update({ video_operation: operationName, video_url: null, prompt_usado: promptFinal })
+      .update({ video_operation: operationName, video_url: null, prompt_usado: promptFinal, video_iniciado_en: new Date().toISOString() })
       .eq('id', req.params.id).select().single();
     if (updErr) throw updErr;
 

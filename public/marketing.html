@@ -1171,8 +1171,13 @@ async function generarVideo(ordenId, oIdx) {
           setOrdenStatus(ordenId, '');
           btn.disabled = false; spin.style.display = 'none';
           toast('Video generado ✓');
+        } else if (result.error) {
+          clearInterval(pollInterval);
+          _ordenes[oIdx].estado = 'error'; renderOrdenes();
+          btn.disabled = false; spin.style.display = 'none';
+          toast('Error generando video: ' + result.error, 'err');
         }
-      } catch(_) { /* error de polling no es fatal — seguir intentando */ }
+      } catch(_) { /* error de red en polling — seguir intentando */ }
     }, 10000);
 
   } catch(e) {
@@ -1239,6 +1244,7 @@ async function generarVideoMultiClip(ordenId, oIdx, clipsData) {
             const r = await api('GET', `/contenido/${cid}/clips/${i}/estado`);
             erroresConsec = 0;
             if (r.listo) { clearInterval(poll); resolve(r.video_url); }
+            else if (r.error) { clearInterval(poll); reject(new Error(`Clip ${i + 1}: ${r.error}`)); }
           } catch(_) {
             if (++erroresConsec >= 5) {
               clearInterval(poll);

@@ -10,9 +10,9 @@ async function iniciarVideo(prompt, opts = {}) {
   return provider.iniciarVideo(prompt, opts);
 }
 
-async function consultarVideo(operationName) {
+async function consultarVideo(operationName, opts = {}) {
   const provider = require(`./providers/${PROVIDER}`);
-  return provider.consultarVideo(operationName);
+  return provider.consultarVideo(operationName, opts);
 }
 
 module.exports = { iniciarVideo, consultarVideo };
