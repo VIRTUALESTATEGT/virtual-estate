@@ -41,7 +41,7 @@ function truncateB64(jsonStr) {
   return jsonStr.replace(/"data":"([^"]{0,80})[^"]*"/g, '"data":"$1[…]"');
 }
 
-async function iniciarVideo(prompt, { calidad = 'fast', imagenInicial = null, esMultiClip = false } = {}) {
+async function iniciarVideo(prompt, { calidad = 'fast', imagenInicial = null, tomaContinua = true, permitirVoces = false } = {}) {
   const resolution = RESOLUTION[calidad] ?? RESOLUTION.fast;
 
   const input = [];
@@ -53,14 +53,17 @@ async function iniciarVideo(prompt, { calidad = 'fast', imagenInicial = null, es
     });
   }
 
-  // Clips de una orden multi-clip deben ser tomas continuas sin cortes internos.
-  // No agregar si el prompt ya lo pide o si el usuario pidió explícitamente cortes/tomas múltiples.
+  // Por defecto, forzar toma continua en todos los clips (evita cortes internos inesperados).
+  // El usuario puede desactivarlo con tomaContinua=false cuando quiere cortes explícitos.
+  // No agregar si el prompt ya lo pide o si describe múltiples tomas/cortes.
   let textPrompt = prompt;
-  if (esMultiClip) {
-    const yaIncluye = /single continuous shot|no scene cuts/i.test(prompt);
-    const pideCorts = /\b(scene cuts?|multiple\s+(takes?|shots?|scenes?)|cut\s+to|jump\s+cuts?|cross[\s-]?cut|quick\s+cuts?|inter[\s-]?cut)\b/i.test(prompt);
+  if (tomaContinua) {
+    const yaIncluye  = /single continuous shot|no scene cuts/i.test(prompt);
+    const pideCorts  = /\b(scene cuts?|multiple\s+(takes?|shots?|scenes?)|cut\s+to|jump\s+cuts?|cross[\s-]?cut|quick\s+cuts?|inter[\s-]?cut)\b/i.test(prompt);
+    const pideDialog = /\b(dialogue|dialog|voices?|speech|speaking|talking|narration)\b/i.test(prompt);
     if (!yaIncluye && !pideCorts) {
-      textPrompt = `${prompt}. Single continuous shot, no scene cuts, no dialogue.`;
+      const noDialog = (!permitirVoces && !pideDialog) ? ', no dialogue' : '';
+      textPrompt = `${prompt}. Single continuous shot, no scene cuts${noDialog}.`;
     }
   }
   input.push({ type: 'text', text: textPrompt });

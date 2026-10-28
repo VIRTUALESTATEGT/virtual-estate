@@ -577,8 +577,8 @@ ${ordenSection}`;
 
 // Fase 1: lanza generación de video.
 // - Multi-clip: body.clips[] (del Prompt Studio) → crea contenido con clips jsonb inicializado,
-//   no lanza Veo (el frontend orquesta clip a clip).
-// - Single-clip: Claude genera prompt + lanza Veo directo.
+//   no lanza el proveedor de video (el frontend orquesta clip a clip).
+// - Single-clip: Claude genera prompt + lanza el proveedor de video directo.
 router.post('/ordenes/:id/generar-video', async (req, res) => {
   const ordenId = Number(req.params.id);
   try {
@@ -629,7 +629,7 @@ router.post('/ordenes/:id/generar-video', async (req, res) => {
       return res.json({ contenido: fila });
     }
 
-    // ── Single-clip: Claude genera prompt + lanza Veo
+    // ── Single-clip: Claude genera prompt + lanza el proveedor de video
     const usarMarcaVideo = orden.usar_marca !== false;
     const { leerContextoMarca } = require('../services/contentEngine');
     const ctxVideo = usarMarcaVideo
@@ -659,7 +659,7 @@ router.post('/ordenes/:id/generar-video', async (req, res) => {
     const duracionSeg = orden.duracion_seg ?? 8;
     const calidad     = orden.video_calidad ?? 'fast';
     const { iniciarVideo } = require('../services/videoProvider');
-    const operationName = await iniciarVideo(prompt_video, { aspectRatio, duracionSeg, calidad });
+    const operationName = await iniciarVideo(prompt_video, { aspectRatio, duracionSeg, calidad, tomaContinua: !orden.permitir_cortes, permitirVoces: orden.permitir_voces });
 
     const { data: fila, error: insErr } = await supabase
       .from('contenido_generado')
@@ -684,7 +684,7 @@ router.post('/ordenes/:id/generar-video', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Multi-clip Paso 2a: inicia Veo para un clip específico.
+// Multi-clip Paso 2a: inicia el proveedor de video para un clip específico.
 // imagenInicial opcional: { data: base64, mimeType: 'image/png' } — extraído en frontend.
 // calidad NO se acepta del frontend: se lee desde ordenes_contenido vía contenido.orden_id
 // para evitar mezcla de modelos si el usuario reanuda tras un refresh.
@@ -699,7 +699,7 @@ router.post('/contenido/:id/clips/:idx/iniciar', async (req, res) => {
       .from('contenido_generado').select('orden_id').eq('id', req.params.id).single();
     if (contErr) throw contErr;
     const { data: orden, error: ordErr } = await supabase
-      .from('ordenes_contenido').select('video_calidad').eq('id', cont.orden_id).single();
+      .from('ordenes_contenido').select('video_calidad, permitir_cortes, permitir_voces').eq('id', cont.orden_id).single();
     if (ordErr) throw ordErr;
     const calidad = orden.video_calidad ?? 'fast';
 
@@ -709,7 +709,8 @@ router.post('/contenido/:id/clips/:idx/iniciar', async (req, res) => {
       duracionSeg:   duracionSeg  ?? 8,
       imagenInicial: imagenInicial ?? null,
       calidad,
-      esMultiClip:   true,
+      tomaContinua:  !orden.permitir_cortes,
+      permitirVoces: orden.permitir_voces,
     });
 
     const { data: updated, error } = await supabase.rpc('mkt_set_clip', {
@@ -812,7 +813,7 @@ router.post('/contenido/:id/regenerar-video', async (req, res) => {
     if (contErr) throw contErr;
 
     const { data: orden, error: ordErr } = await supabase
-      .from('ordenes_contenido').select('video_calidad').eq('id', cont.orden_id).single();
+      .from('ordenes_contenido').select('video_calidad, permitir_cortes, permitir_voces').eq('id', cont.orden_id).single();
     if (ordErr) throw ordErr;
 
     const promptFinal = ajuste?.trim()
@@ -821,9 +822,11 @@ router.post('/contenido/:id/regenerar-video', async (req, res) => {
 
     const { iniciarVideo } = require('../services/videoProvider');
     const operationName = await iniciarVideo(promptFinal, {
-      aspectRatio: cont.formato      ?? '16:9',
-      duracionSeg: cont.duracion_seg ?? 8,
-      calidad:     orden.video_calidad ?? 'fast'
+      aspectRatio:  cont.formato      ?? '16:9',
+      duracionSeg:  cont.duracion_seg ?? 8,
+      calidad:      orden.video_calidad ?? 'fast',
+      tomaContinua: !orden.permitir_cortes,
+      permitirVoces: orden.permitir_voces,
     });
 
     const { data: updated, error: updErr } = await supabase
@@ -1180,6 +1183,11 @@ router.post('/referencias/:id/analizar', async (req, res) => {
     if (updErr) throw updErr;
     res.json(data);
   } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Configuración del proveedor activo para que el frontend muestre la etiqueta correcta.
+router.get('/config', (_req, res) => {
+  res.json({ video_provider: process.env.VIDEO_PROVIDER ?? 'veo' });
 });
 
 module.exports = router;

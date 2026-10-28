@@ -370,7 +370,7 @@
             <select id="ord-tipo" onchange="toggleFormatos()">
               <option value="imagen">Imagen</option>
               <option value="texto">Solo texto</option>
-              <option value="video">🎬 Video (Veo 3.1 Fast)</option>
+              <option value="video" id="ord-tipo-video-opt">🎬 Video (Veo 3.1 Fast)</option>
             </select>
           </div>
         </div>
@@ -430,10 +430,14 @@
               <div id="ord-video-cost-lbl" style="font-size:.82rem;padding:.45rem 0;color:var(--gold);font-weight:600">$0.80 USD · Q6.32</div>
             </div>
           </div>
-          <div style="margin-top:.5rem">
+          <div style="margin-top:.5rem;display:flex;gap:1.2rem;flex-wrap:wrap">
             <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.82rem">
               <input type="checkbox" id="ord-permitir-voces"/>
               Permitir diálogo/voces IA
+            </label>
+            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;font-size:.82rem">
+              <input type="checkbox" id="ord-permitir-cortes"/>
+              Permitir cortes de escena
             </label>
           </div>
         </div>
@@ -542,7 +546,7 @@
           <div class="form-group"><label>Tipo de contenido destino</label>
             <select id="ps-destino" onchange="togglePsVideo()">
               <option value="imagen_fotorrealista">Imagen fotorrealista</option>
-              <option value="video">🎬 Video (Veo 3.1)</option>
+              <option value="video" id="ps-destino-video-opt">🎬 Video (Veo 3.1)</option>
               <option value="diseno_grafico">Diseño gráfico</option>
               <option value="texto_publicitario">Texto publicitario</option>
             </select>
@@ -725,6 +729,25 @@ async function saveIdentidad() {
     });
     toast('Identidad guardada ✓');
   } catch(e) { toast('Error: '+e.message,'err'); }
+}
+
+// ── Proveedor de video activo ─────────────────────────────────────────────────
+const VIDEO_PROVIDER_LABELS = {
+  veo:  { short: 'Veo 3.1 Fast', long: 'Veo 3.1',               status: 'Veo' },
+  omni: { short: 'Gemini Omni',  long: 'Gemini Omni 1.1 Flash',  status: 'Gemini Omni' },
+};
+let _videoProviderLabel = VIDEO_PROVIDER_LABELS.veo; // default hasta que cargue config
+
+async function loadConfig() {
+  try {
+    const cfg = await api('GET', '/config');
+    _videoProviderLabel = VIDEO_PROVIDER_LABELS[cfg.video_provider]
+      ?? { short: cfg.video_provider, long: cfg.video_provider, status: cfg.video_provider };
+    const optA = document.getElementById('ord-tipo-video-opt');
+    const optB = document.getElementById('ps-destino-video-opt');
+    if (optA) optA.textContent = `🎬 Video (${_videoProviderLabel.short})`;
+    if (optB) optB.textContent = `🎬 Video (${_videoProviderLabel.long})`;
+  } catch (_) { /* no bloquear el init si falla */ }
 }
 
 // ── Instrucciones ─────────────────────────────────────────────────────────────
@@ -954,7 +977,8 @@ async function crearOrden() {
       plantilla_id:       isVideo ? null : plantillaId,
       duracion_seg:       duracionSeg,
       guion_clips:        (isVideo && _videoResult?.tipo === 'multi') ? _videoResult.clips : null,
-      permitir_voces:     isVideo ? document.getElementById('ord-permitir-voces').checked : false,
+      permitir_voces:     isVideo ? document.getElementById('ord-permitir-voces').checked  : false,
+      permitir_cortes:    isVideo ? document.getElementById('ord-permitir-cortes').checked : false,
       video_calidad:      isVideo ? document.getElementById('ord-video-calidad').value    : null,
       referencia_id:      !isVideo ? (Number(document.getElementById('ord-referencia').value) || null) : null,
       usar_marca:         getOrdMarca()
@@ -1142,13 +1166,13 @@ async function generarVideo(ordenId, oIdx) {
 
   let pollInterval = null;
   try {
-    // Paso 1: Claude genera prompt + inicia Veo
+    // Paso 1: Claude genera prompt + inicia el proveedor de video
     setOrdenStatus(ordenId, '1/2 Generando prompt cinematográfico…');
     const { contenido } = await api('POST', `/ordenes/${ordenId}/generar-video`, { aspectRatio, duracionSeg });
     const cid = contenido.id;
 
     // Paso 2: polling cada 10 s (máx 30 intentos = 5 min)
-    setOrdenStatus(ordenId, '2/2 Veo generando video (~1-2 min)…');
+    setOrdenStatus(ordenId, `2/2 ${_videoProviderLabel.status} generando video (~1-2 min)…`);
     let intentos = 0;
     pollInterval = setInterval(async () => {
       intentos++;
@@ -1320,7 +1344,7 @@ async function reanudarOrdenVideo(ordenId) {
 
   // ── Caso B: fila single-clip con video_operation activa ───────────────────
   if (!c.clips && c.video_operation) {
-    setOrdenStatus(ordenId, 'Retomando video… comprobando estado en Veo.');
+    setOrdenStatus(ordenId, `Retomando video… comprobando estado en ${_videoProviderLabel.status}.`);
     if (spin) spin.style.display = 'inline-block';
     let intentos = 0;
     const poll = setInterval(async () => {
@@ -2396,7 +2420,7 @@ async function uploadLogo(input) {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', loadIdentidad);
+document.addEventListener('DOMContentLoaded', () => { loadIdentidad(); loadConfig(); });
 </script>
 </body>
 </html>
