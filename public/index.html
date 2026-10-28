@@ -617,6 +617,48 @@
     .prop-spec{font-size:.75rem;}
     .marca-cap{font-size:.75rem;}
   }
+
+  /* ─── SHOWCASE VIDEO ─────────────────────────────────── */
+  #showcase-video{background:var(--bg2);padding:3rem 1rem 3rem;}
+  .showcase-header{text-align:center;margin-bottom:2rem;padding:0 1rem;}
+  .showcase-sub{
+    color:var(--gray);font-size:.85rem;font-weight:400;line-height:1.7;
+    max-width:560px;margin:.8rem auto 0;
+  }
+  .showcase-wrap{
+    max-width:686px;width:100%;margin:0 auto;
+    border-radius:6px;overflow:hidden;
+    border:1px solid rgba(176,154,108,.22);
+    line-height:0;
+  }
+  .showcase-wrap video{width:100%;height:auto;display:block;}
+
+  /* ─── VIDEO GRID (comparing / cad / bim) ─────────────── */
+  #video-grid{background:var(--bg);padding:80px 0;}
+  .vg-header{text-align:center;margin-bottom:3rem;}
+  .vg-header h2{font-size:clamp(1.5rem,3vw,2.2rem);}
+  #video-grid > .container{max-width:1400px;width:calc(100% - 4rem);}
+  .vg-grid{
+    display:grid;gap:1rem;
+    grid-template-columns:repeat(3,1fr);
+  }
+  .vg-card{
+    border-radius:6px;overflow:hidden;
+    border:1px solid rgba(176,154,108,.22);
+    background:var(--bg2);
+    aspect-ratio:16/9;
+  }
+  .vg-card video{width:100%;height:100%;object-fit:contain;display:block;}
+  .vg-cap{
+    text-align:center;margin-top:.75rem;
+    font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--gold);font-weight:600;
+  }
+  @media(max-width:767px){
+    #video-grid{padding:60px 0;}
+    .vg-grid{grid-template-columns:1fr;}
+    .vg-figure{max-width:692px;width:100%;margin:0 auto;}
+  }
   </style>
 </head>
 <body>
@@ -738,6 +780,22 @@
   <div class="hero-scroll">
     <span>Scroll</span>
     <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ─── SHOWCASE VIDEO ───────────────────────────────── -->
+<section id="showcase-video">
+  <div class="showcase-header reveal">
+    <span class="label">Tour Virtual 3D</span>
+    <div class="divider center"></div>
+    <h2>Recorre cada espacio como si estuvieras ahí</h2>
+    <p class="showcase-sub">Tour virtual con mediciones precisas y múltiples vistas. Explora la propiedad desde cualquier dispositivo, cuando quieras.</p>
+  </div>
+  <div class="showcase-wrap">
+    <video class="js-vid" autoplay muted loop playsinline preload="none"
+           poster="media/showcase.jpg" width="686" height="392">
+      <source src="media/showcase.mp4" type="video/mp4">
+    </video>
   </div>
 </section>
 
@@ -901,6 +959,46 @@
         <a href="construccion.html" class="btn btn-outline" style="padding:.5rem 1.2rem;font-size:.62rem;">Ver más <i class="fas fa-arrow-right"></i></a>
         <a href="#contacto" class="div-link" style="margin-top:0;">Consultar <i class="fas fa-arrow-right"></i></a>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── VIDEO GRID ───────────────────────────────────── -->
+<section id="video-grid">
+  <div class="container">
+    <div class="vg-header reveal">
+      <span class="label">En Acción</span>
+      <div class="divider center"></div>
+      <h2>Así se ve la captura 3D</h2>
+    </div>
+    <div class="vg-grid">
+      <figure class="vg-figure reveal">
+        <div class="vg-card">
+          <video class="js-vid" muted loop playsinline preload="none"
+                 poster="media/comparing.jpg" width="479" height="279">
+            <source src="media/comparing.mp4" type="video/mp4">
+          </video>
+        </div>
+        <figcaption class="vg-cap">Comparación de espacios</figcaption>
+      </figure>
+      <figure class="vg-figure reveal">
+        <div class="vg-card">
+          <video class="js-vid" muted loop playsinline preload="none"
+                 poster="media/cad.jpg" width="692" height="388">
+            <source src="media/cad.mp4" type="video/mp4">
+          </video>
+        </div>
+        <figcaption class="vg-cap">Planos As Built</figcaption>
+      </figure>
+      <figure class="vg-figure reveal">
+        <div class="vg-card">
+          <video class="js-vid" muted loop playsinline preload="none"
+                 poster="media/bim.jpg" width="692" height="388">
+            <source src="media/bim.mp4" type="video/mp4">
+          </video>
+        </div>
+        <figcaption class="vg-cap">Archivos BIM</figcaption>
+      </figure>
     </div>
   </div>
 </section>
@@ -1640,6 +1738,16 @@ const obs = new IntersectionObserver(es=>{
   es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
 },{threshold:.1});
 document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+/* ── VIDEO AUTOPLAY ON ENTER / PAUSE ON EXIT ─────────── */
+const vidObs = new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    const v = e.target;
+    if(e.isIntersecting){ v.play().catch(()=>{}); }
+    else { v.pause(); }
+  });
+},{threshold:.25});
+document.querySelectorAll('.js-vid').forEach(v=>vidObs.observe(v));
 
 /* ── TOUR VIRTUAL ────────────────────────────────────── */
 (async function loadTour() {
