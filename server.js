@@ -297,6 +297,7 @@ const proyectosRouter = require('./src/routes/proyectos');
 const cotizacionesRouter = require('./src/routes/cotizaciones');
 const agentesRouter = require('./src/routes/agentes');
 const { router: usuariosRouter } = require('./src/routes/usuarios');
+const { router: comisionesRouter, portalRouter: misComisionesRouter } = require('./src/routes/comisiones');
 const agenteIARouter = require('./src/routes/agente-ia');
 const conversacionesRouter = require('./src/routes/conversaciones');
 const verificacionRouter = require('./src/routes/verificacion');
@@ -321,6 +322,8 @@ app.use('/api/marketing',    authMiddleware, requireMinRole('gerente'),   market
 app.use('/api/mkt',          authMiddleware, requireMinRole('gerente'),   marketingRouter);
 app.use('/api/gallery',      authMiddleware, requireMinRole('gerente'),   imageGallery);
 app.use('/api/agentes',       authMiddleware, requireMinRole('gerente'),   agentesRouter);
+app.use('/api/comisiones',    authMiddleware, requireMinRole('gerente'),   comisionesRouter);
+app.use('/api/mis-comisiones',authMiddleware, (req,res,next) => req.usuario?.role === 'cliente' ? next() : res.status(403).json({ error: 'Acceso solo para clientes del portal' }), misComisionesRouter);
 const constructoresRouter = require('./src/routes/constructores');
 app.use('/api/constructores', authMiddleware, requireMinRole('asistente'), constructoresRouter);
 app.use('/api/usuarios',      authMiddleware, requireSuperadmin,           usuariosRouter);
