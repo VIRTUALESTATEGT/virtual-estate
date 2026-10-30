@@ -88,7 +88,7 @@ function _buildPropPatch(body, isUpdate = false) {
     precio_min:                precio_min != null ? Number(precio_min) : null,
     direccion:             direccion             || null,
     video_url:             video_url             || null,
-    estado_publicacion:    ['borrador','publicada','pausada'].includes(estado_publicacion)
+    estado_publicacion:    ['borrador','publicada','pausada','vendida','rentada'].includes(estado_publicacion)
                              ? estado_publicacion : 'borrador',
     agente_responsable_id: agente_responsable_id ? (Number(agente_responsable_id) || null) : null,
     notas_internas:        notas_internas        || null,

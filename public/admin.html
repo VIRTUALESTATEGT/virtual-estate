@@ -2158,6 +2158,8 @@
         <option value="borrador">Borrador</option>
         <option value="publicada">Publicada</option>
         <option value="pausada">Pausada</option>
+        <option value="vendida">Vendida</option>
+        <option value="rentada">Rentada</option>
       </select>
     </div>
 
@@ -4771,7 +4773,7 @@
         <td class="td-gold">${p.precio?(p.moneda==='GTQ'?'Q':'$')+fmtPrecio(p.precio):'—'}</td>
         <td>${p.m2?p.m2+' m²':'—'}</td>
         <td>${p.zona||'—'}</td>
-        <td>${(()=>{const _e=p.estado_publicacion||'borrador';const _b={'publicada':'badge-active','pausada':'badge-contact','borrador':'badge-cot-gris'};const _l={'publicada':'Publicada','pausada':'Pausada','borrador':'Borrador'};return`<span class="badge ${_b[_e]||'badge-cot-gris'}">${_l[_e]||'Borrador'}</span>`})()}</td>
+        <td>${(()=>{const _e=p.estado_publicacion||'borrador';const _b={'publicada':'badge-active','pausada':'badge-contact','borrador':'badge-cot-gris','vendida':'badge-venta','rentada':'badge-renta'};const _l={'publicada':'Publicada','pausada':'Pausada','borrador':'Borrador','vendida':'Vendida','rentada':'Rentada'};return`<span class="badge ${_b[_e]||'badge-cot-gris'}">${_l[_e]||'Borrador'}</span>`})()}</td>
         <td>${_dispBadges(p.disponibilidad)}</td>
         <td><div class="action-btns">
           <button class="act-btn" title="Editar" onclick="editPropiedad(${p.id})"><i class="fas fa-pencil-alt"></i></button>
