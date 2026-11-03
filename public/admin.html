@@ -195,6 +195,16 @@
     .badge-venta::before { background:#6EAAFF; }
     .badge-renta     { background:rgba(193,146,89,.15);  color:var(--gold); }
     .badge-renta::before { background:var(--gold); }
+    .badge-com-nov   { background:rgba(150,150,160,.15); color:#A8A8B8; }
+    .badge-com-nov::before { background:#A8A8B8; }
+    .badge-com-pend  { background:rgba(240,192,64,.15);  color:#F0C040; }
+    .badge-com-pend::before { background:#F0C040; }
+    .badge-com-pay   { background:rgba(110,170,255,.15); color:#6EAAFF; }
+    .badge-com-pay::before { background:#6EAAFF; }
+    .badge-com-done  { background:rgba(60,180,100,.15);  color:#5AE08A; }
+    .badge-com-done::before { background:#5AE08A; }
+    .badge-com-rej   { background:rgba(220,80,80,.15);   color:#E08080; }
+    .badge-com-rej::before { background:#E08080; }
 
     /* ── ACTION BUTTONS ──────────────────── */
     .action-btns { display:flex; gap:.4rem; }
@@ -629,6 +639,60 @@
   .cal-mob-tipo   { font-size:.62rem; color:var(--gray); }
   .cal-mob-nombre { font-size:.74rem; color:rgba(245,240,232,.9); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .cal-mob-estado { flex-shrink:0; }
+
+  /* ── COMISIONES ── */
+  .com-detail-panel {
+    position:fixed; top:0; right:0; bottom:0; width:min(460px,100vw);
+    background:var(--bg2); border-left:1px solid var(--border);
+    z-index:900; overflow-y:auto; transform:translateX(100%);
+    transition:transform .22s cubic-bezier(.4,0,.2,1);
+    display:flex; flex-direction:column;
+  }
+  .com-detail-panel.open { transform:translateX(0); }
+  .com-detail-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:899;
+    display:none; opacity:0; transition:opacity .18s;
+  }
+  .com-detail-overlay.open { display:block; opacity:1; }
+  .com-panel-hd { position:sticky; top:0; background:var(--bg2); z-index:2;
+    padding:1rem 1.2rem .8rem; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between; }
+  .com-panel-hd h3 { font-size:.85rem; margin:0; font-weight:600; }
+  .com-panel-section { font-size:.52rem; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--gold); font-weight:700; padding:.1rem 0 .4rem; border-bottom:1px solid var(--border);
+    margin:1.1rem 0 .65rem; }
+  .com-kv { display:flex; justify-content:space-between; align-items:baseline;
+    padding:.28rem 0; font-size:.78rem; border-bottom:1px solid rgba(255,255,255,.04); }
+  .com-kv:last-child { border-bottom:none; }
+  .com-kv-label { color:var(--gray); font-size:.72rem; }
+  .com-action-row { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:1.1rem; }
+  .com-action-row .topbar-btn { font-size:.7rem; padding:.4rem .85rem; }
+  .com-filters { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; margin-bottom:.9rem; }
+  .com-filters select, .com-filters input {
+    background:var(--bg3); border:1px solid var(--border); color:var(--text);
+    border-radius:var(--r); padding:.34rem .7rem; font-size:.72rem; }
+  .com-hist-item { font-size:.72rem; padding:.45rem 0; border-bottom:1px solid rgba(255,255,255,.05);
+    color:var(--gray); line-height:1.45; }
+  .com-hist-item:last-child { border-bottom:none; }
+  .com-hist-item b { color:var(--text); }
+  .cierre-warn { background:rgba(240,160,40,.08); border:1px solid rgba(240,160,40,.25);
+    border-radius:4px; padding:.65rem .9rem; font-size:.74rem; color:#F0C040;
+    margin-bottom:.9rem; line-height:1.5; }
+  .com-preview-box { background:rgba(193,146,89,.07); border:1px solid rgba(193,146,89,.22);
+    border-radius:4px; padding:.7rem 1rem; font-size:.8rem; margin-top:.7rem; }
+  .com-preview-box .big { font-size:1.1rem; font-weight:700; color:var(--gold); }
+  @media(max-width:640px){
+    #comisiones-tbody tr { display:flex; flex-wrap:wrap; }
+    #comisiones-tbody tr td::before { content:attr(data-label); display:block;
+      font-size:.56rem; text-transform:uppercase; color:var(--gray); margin-bottom:.15rem; }
+    #comisiones-tbody tr td { display:block; width:50%; padding:.45rem .7rem;
+      border-bottom:none; font-size:.75rem; }
+    #cierres-tbody tr { display:flex; flex-wrap:wrap; }
+    #cierres-tbody tr td::before { content:attr(data-label); display:block;
+      font-size:.56rem; text-transform:uppercase; color:var(--gray); margin-bottom:.15rem; }
+    #cierres-tbody tr td { display:block; width:50%; padding:.45rem .7rem;
+      border-bottom:none; font-size:.75rem; }
+  }
   </style>
 </head>
 <body>
@@ -693,6 +757,9 @@
     </div>
     <div class="nav-item" onclick="showView('propiedades', this)">
       <i class="fas fa-building"></i> Propiedades
+    </div>
+    <div class="nav-item" id="nav-comisiones" onclick="showView('comisiones', this)">
+      <i class="fas fa-hand-holding-usd"></i> Comisiones
     </div>
     <div class="nav-item" onclick="showView('reportes', this)">
       <i class="fas fa-chart-bar"></i> Reportes
@@ -1172,6 +1239,132 @@
         </table>
       </div>
     </div>
+
+    <!-- ── COMISIONES VIEW ───────────────── -->
+    <div class="view" id="view-comisiones">
+
+      <!-- KPI franja (GTQ y USD separados) -->
+      <div class="kpi-grid" style="margin-bottom:1.4rem;" id="com-kpi-grid">
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">Por validar · GTQ</div>
+            <div class="kpi-value" id="kpi-com-val-gtq" style="color:#F0C040;">—</div>
+            <div class="kpi-sub" id="kpi-com-val-gtq-n" style="color:var(--gray);font-size:.68rem;">— comisiones</div>
+          </div>
+          <div class="kpi-icon" style="background:rgba(240,192,64,.1);color:#F0C040;"><i class="fas fa-clock"></i></div>
+        </div>
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">Por validar · USD</div>
+            <div class="kpi-value" id="kpi-com-val-usd" style="color:#F0C040;">—</div>
+            <div class="kpi-sub" id="kpi-com-val-usd-n" style="color:var(--gray);font-size:.68rem;">— comisiones</div>
+          </div>
+          <div class="kpi-icon" style="background:rgba(240,192,64,.1);color:#F0C040;"><i class="fas fa-clock"></i></div>
+        </div>
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">Por pagar · GTQ</div>
+            <div class="kpi-value" id="kpi-com-pp-gtq" style="color:#6EAAFF;">—</div>
+            <div class="kpi-sub" id="kpi-com-pp-gtq-n" style="color:var(--gray);font-size:.68rem;">— comisiones</div>
+          </div>
+          <div class="kpi-icon" style="background:rgba(110,170,255,.1);color:#6EAAFF;"><i class="fas fa-wallet"></i></div>
+        </div>
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">Por pagar · USD</div>
+            <div class="kpi-value" id="kpi-com-pp-usd" style="color:#6EAAFF;">—</div>
+            <div class="kpi-sub" id="kpi-com-pp-usd-n" style="color:var(--gray);font-size:.68rem;">— comisiones</div>
+          </div>
+          <div class="kpi-icon" style="background:rgba(110,170,255,.1);color:#6EAAFF;"><i class="fas fa-wallet"></i></div>
+        </div>
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">Pagado este mes · GTQ</div>
+            <div class="kpi-value" id="kpi-com-mes-gtq" style="color:#5AE08A;">—</div>
+            <div class="kpi-sub" id="kpi-com-mes-gtq-n" style="color:var(--gray);font-size:.68rem;">— pagadas</div>
+          </div>
+          <div class="kpi-icon" style="background:rgba(60,180,100,.1);color:#5AE08A;"><i class="fas fa-check-circle"></i></div>
+        </div>
+        <div class="kpi-card">
+          <div>
+            <div class="kpi-label">Pagado este mes · USD</div>
+            <div class="kpi-value" id="kpi-com-mes-usd" style="color:#5AE08A;">—</div>
+            <div class="kpi-sub" id="kpi-com-mes-usd-n" style="color:var(--gray);font-size:.68rem;">— pagadas</div>
+          </div>
+          <div class="kpi-icon" style="background:rgba(60,180,100,.1);color:#5AE08A;"><i class="fas fa-check-circle"></i></div>
+        </div>
+      </div>
+
+      <!-- Lista de comisiones -->
+      <div class="table-wrap">
+        <div class="table-head">
+          <span class="table-head-title">Comisiones</span>
+          <div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;">
+            <select id="com-filter-estado" class="topbar-btn" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);font-size:.7rem;" onchange="loadComisiones()">
+              <option value="">Todos los estados</option>
+              <option value="no_validada">No validada</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="por_pagar">Por pagar</option>
+              <option value="pagada">Pagada</option>
+              <option value="rechazada">Rechazada</option>
+            </select>
+            <select id="com-filter-tipo" class="topbar-btn" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);font-size:.7rem;" onchange="loadComisiones()">
+              <option value="">Todos los tipos</option>
+              <option value="captacion_escaneo">Captación</option>
+              <option value="cotizacion_referida">Referida</option>
+              <option value="cierre_propiedad">Cierre</option>
+            </select>
+            <select id="com-filter-agente" class="topbar-btn" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);font-size:.7rem;max-width:150px;" onchange="loadComisiones()">
+              <option value="">Todos los agentes</option>
+            </select>
+            <button class="topbar-btn" onclick="loadComisiones()"><i class="fas fa-sync-alt"></i></button>
+          </div>
+          <button class="topbar-btn btn-primary" onclick="openRegistrarCierre()"><i class="fas fa-plus"></i> Registrar cierre</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr>
+              <th>ID</th><th>Agente</th><th>Tipo</th><th>Monto</th><th>Moneda</th><th>Origen %</th><th>Estado</th><th>Fecha</th><th></th>
+            </tr></thead>
+            <tbody id="comisiones-tbody">
+              <tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="com-paginacion" style="display:flex;gap:.4rem;justify-content:flex-end;padding:.7rem 1rem;border-top:1px solid var(--border);flex-wrap:wrap;"></div>
+      </div>
+
+      <!-- Lista de cierres -->
+      <div class="table-wrap" style="margin-top:1.4rem;">
+        <div class="table-head">
+          <span class="table-head-title">Cierres de Propiedad</span>
+          <button class="topbar-btn" onclick="loadCierres()"><i class="fas fa-sync-alt"></i></button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr>
+              <th>ID</th><th>Propiedad</th><th>Tipo</th><th>Precio final</th><th>Moneda</th><th>Fecha cierre</th><th>Cobro VE</th><th></th>
+            </tr></thead>
+            <tbody id="cierres-tbody">
+              <tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /view-comisiones -->
+
+    <!-- Panel lateral: detalle de comisión -->
+    <div class="com-detail-overlay" id="com-overlay" onclick="closeComisionDetalle()"></div>
+    <aside class="com-detail-panel" id="com-detail-panel" aria-label="Detalle de comisión">
+      <div class="com-panel-hd">
+        <h3 id="com-panel-titulo">Comisión</h3>
+        <button onclick="closeComisionDetalle()" style="background:none;border:none;color:var(--gray);font-size:1rem;cursor:pointer;padding:.3rem;line-height:1;" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+      </div>
+      <div style="padding:0 1.2rem 1.6rem;" id="com-panel-body">
+        <div style="text-align:center;padding:2rem;color:var(--gray);"><i class="fas fa-spinner fa-spin"></i></div>
+      </div>
+    </aside>
 
     <!-- ── AGENTES / REFERIDOS VIEW ──────── -->
     <div class="view" id="view-agentes">
@@ -1778,6 +1971,7 @@
     <div class="admin-mobile-section">Operaciones</div>
     <button class="admin-mobile-item" onclick="showView('proyectos');closeAdminMenu()"><i class="fas fa-tasks"></i> Proyectos</button>
     <button class="admin-mobile-item" onclick="showView('propiedades');closeAdminMenu()"><i class="fas fa-building"></i> Propiedades</button>
+    <button class="admin-mobile-item" onclick="showView('comisiones');closeAdminMenu()"><i class="fas fa-hand-holding-usd"></i> Comisiones</button>
     <button class="admin-mobile-item" onclick="showView('reportes');closeAdminMenu()"><i class="fas fa-chart-bar"></i> Reportes</button>
     <button class="admin-mobile-item" onclick="showView('calendario');closeAdminMenu()"><i class="fas fa-calendar-alt"></i> Calendario</button>
 
@@ -3025,7 +3219,7 @@
       agentes:'Agentes / Referidos', permisos:'Usuarios & Permisos', config:'Configuración',
       conversaciones:'Conversaciones Multicanal', verificaciones:'Verificaciones de Identidad',
       zonas:'Zonas de Riesgo', notificaciones:'Notificaciones',
-      'wa-contacts':'Contactos WhatsApp'
+      'wa-contacts':'Contactos WhatsApp', comisiones:'Comisiones'
     };
     document.getElementById('topbar-title').textContent = titles[name] || name;
     if (name === 'leads') loadLeads();
@@ -3033,6 +3227,7 @@
     else if (name === 'proyectos') loadProyectos();
     else if (name === 'cotizaciones') loadCotizaciones();
     else if (name === 'agentes') { loadAgentes(); loadSolicitudesAgente(); }
+    else if (name === 'comisiones') { loadComisiones(1); loadCierres(); loadKpisComisiones(); }
     else if (name === 'constructores') loadConstructores();
     else if (name === 'propiedades') loadPropiedades();
     else if (name === 'permisos') loadUsuariosPermisos();
@@ -5171,12 +5366,558 @@
     document.getElementById('propModalOverlay').addEventListener('click',function(e){
       if(e.target===this) cerrarFormPropiedad();
     });
-    ['clienteModal','proyectoModal','cotizacionModal','agenteModal','permisoModal','usuarioModal','constructorModal'].forEach(id=>{
+    ['clienteModal','proyectoModal','cotizacionModal','agenteModal','permisoModal','usuarioModal','constructorModal',
+     'comValidarModal','comPorPagarModal','comPagarModal','comRechazarModal','comRevertirModal','cierreCobroModal','reactivarPropModal'].forEach(id=>{
       const el=document.getElementById(id);
       if(el) el.addEventListener('click',function(e){if(e.target===this) this.classList.remove('open');});
     });
     checkAuth();
   });
+
+  /* ══════════════════════════════════════════════════════
+     COMISIONES — CRM
+  ══════════════════════════════════════════════════════ */
+
+  const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  const COM_ESTADO_BADGE = {
+    no_validada:'badge-com-nov', pendiente:'badge-com-pend',
+    por_pagar:'badge-com-pay', pagada:'badge-com-done', rechazada:'badge-com-rej'
+  };
+  const COM_ESTADO_LABEL = {
+    no_validada:'No validada', pendiente:'Pendiente',
+    por_pagar:'Por pagar', pagada:'Pagada', rechazada:'Rechazada'
+  };
+  const COM_TIPO_LABEL = {
+    captacion_escaneo:'Captación', cotizacion_referida:'Referida', cierre_propiedad:'Cierre'
+  };
+  const fmtMoney = (n, mon) => n != null
+    ? (mon === 'GTQ' ? 'Q' : '$') + Number(n).toLocaleString('es-GT', {minimumFractionDigits:2, maximumFractionDigits:2})
+    : '—';
+  const fmtDate = d => d ? d.split('T')[0] : '—';
+
+  let _comPage = 1;
+  let _comTotal = 0;
+  const COM_LIMIT = 50;
+
+  /* ── KPIs ── */
+  async function loadKpisComisiones() {
+    try {
+      const kpis = await apiFetch('/api/comisiones/kpis');
+
+      const byEstadoMon = {};
+      for (const r of (kpis.por_estado || [])) {
+        byEstadoMon[r.estado + '.' + r.moneda] = r;
+      }
+      const get = (estado, moneda) => byEstadoMon[estado + '.' + moneda] || { count: 0, total: 0 };
+
+      const mesPag = kpis.pagado_mes || {};
+
+      const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+      set('kpi-com-val-gtq',   fmtMoney(get('no_validada','GTQ').total, 'GTQ'));
+      set('kpi-com-val-gtq-n', get('no_validada','GTQ').count + ' comisiones');
+      set('kpi-com-val-usd',   fmtMoney(get('no_validada','USD').total, 'USD'));
+      set('kpi-com-val-usd-n', get('no_validada','USD').count + ' comisiones');
+      set('kpi-com-pp-gtq',    fmtMoney(get('por_pagar','GTQ').total, 'GTQ'));
+      set('kpi-com-pp-gtq-n',  get('por_pagar','GTQ').count + ' comisiones');
+      set('kpi-com-pp-usd',    fmtMoney(get('por_pagar','USD').total, 'USD'));
+      set('kpi-com-pp-usd-n',  get('por_pagar','USD').count + ' comisiones');
+      set('kpi-com-mes-gtq',   fmtMoney((mesPag.GTQ||{}).total||0, 'GTQ'));
+      set('kpi-com-mes-gtq-n', ((mesPag.GTQ||{}).count||0) + ' pagadas');
+      set('kpi-com-mes-usd',   fmtMoney((mesPag.USD||{}).total||0, 'USD'));
+      set('kpi-com-mes-usd-n', ((mesPag.USD||{}).count||0) + ' pagadas');
+    } catch(e) { /* no bloquear */ }
+  }
+
+  /* ── Tabla de comisiones ── */
+  async function loadComisiones(page) {
+    if (page !== undefined) _comPage = page;
+    const tbody = document.getElementById('comisiones-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i></td></tr>';
+    try {
+      const estado = document.getElementById('com-filter-estado')?.value || '';
+      const tipo   = document.getElementById('com-filter-tipo')?.value   || '';
+      const agente = document.getElementById('com-filter-agente')?.value || '';
+      let qs = '?limit=' + COM_LIMIT + '&page=' + _comPage;
+      if (estado) qs += '&estado=' + encodeURIComponent(estado);
+      if (tipo)   qs += '&tipo='   + encodeURIComponent(tipo);
+      if (agente) qs += '&agente_id=' + encodeURIComponent(agente);
+      const items = await apiFetch('/api/comisiones' + qs);
+      if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--gray);padding:2rem;">No hay comisiones con ese filtro.</td></tr>';
+        document.getElementById('com-paginacion').innerHTML = '';
+        return;
+      }
+      tbody.innerHTML = items.map(c => `<tr style="cursor:pointer;" onclick="openComisionDetalle(${c.id})">
+        <td data-label="ID" style="color:var(--gray);font-size:.72rem;">${esc(c.id)}</td>
+        <td data-label="Agente" class="td-bold">${esc(c.agentes?.nombre || '—')}</td>
+        <td data-label="Tipo"><span style="font-size:.72rem;">${esc(COM_TIPO_LABEL[c.tipo] || c.tipo)}</span></td>
+        <td data-label="Monto" class="td-gold">${fmtMoney(c.monto_comision, c.moneda)}</td>
+        <td data-label="Moneda" style="font-size:.72rem;color:var(--gray);">${esc(c.moneda)}</td>
+        <td data-label="Origen %" style="font-size:.68rem;color:var(--gray);">${esc(c.origen_pct||'—')}</td>
+        <td data-label="Estado"><span class="badge ${COM_ESTADO_BADGE[c.estado]||'badge-com-nov'}">${esc(COM_ESTADO_LABEL[c.estado]||c.estado)}</span></td>
+        <td data-label="Fecha" style="font-size:.72rem;color:var(--gray);">${fmtDate(c.created_at)}</td>
+        <td><button class="act-btn" title="Ver detalle" onclick="event.stopPropagation();openComisionDetalle(${c.id})"><i class="fas fa-eye"></i></button></td>
+      </tr>`).join('');
+      // Paginación simple
+      const pag = document.getElementById('com-paginacion');
+      const hasPrev = _comPage > 1, hasNext = items.length === COM_LIMIT;
+      pag.innerHTML = (hasPrev ? `<button class="topbar-btn btn-sec" style="font-size:.68rem;" onclick="loadComisiones(${_comPage-1})"><i class="fas fa-chevron-left"></i> Anterior</button>` : '') +
+        `<span style="font-size:.72rem;color:var(--gray);padding:.4rem .6rem;">Pág. ${_comPage}</span>` +
+        (hasNext ? `<button class="topbar-btn btn-sec" style="font-size:.68rem;" onclick="loadComisiones(${_comPage+1})">Siguiente <i class="fas fa-chevron-right"></i></button>` : '');
+    } catch(e) { tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#E08080;padding:2rem;">${esc(e.message)}</td></tr>`; }
+  }
+
+  /* ── Tabla de cierres ── */
+  async function loadCierres() {
+    const tbody = document.getElementById('cierres-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i></td></tr>';
+    try {
+      const items = await apiFetch('/api/comisiones/cierres?limit=50');
+      if (!items.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:2rem;">No hay cierres registrados.</td></tr>'; return; }
+      tbody.innerHTML = items.map(c => `<tr>
+        <td data-label="ID" style="color:var(--gray);font-size:.72rem;">${esc(c.id)}</td>
+        <td data-label="Propiedad" class="td-bold" style="font-size:.75rem;">${esc(c.propiedades?.direccion || '—')}</td>
+        <td data-label="Tipo"><span class="badge ${c.tipo==='venta'?'badge-venta':'badge-renta'}">${esc(c.tipo)}</span></td>
+        <td data-label="Precio final" class="td-gold">${fmtMoney(c.precio_final, c.moneda)}</td>
+        <td data-label="Moneda" style="font-size:.72rem;color:var(--gray);">${esc(c.moneda)}</td>
+        <td data-label="Fecha" style="font-size:.72rem;color:var(--gray);">${fmtDate(c.fecha_cierre)}</td>
+        <td data-label="Cobro VE">${c.cobro_ve_confirmado
+          ? `<span style="color:#5AE08A;font-size:.72rem;"><i class="fas fa-check"></i> ${fmtDate(c.fecha_cobro)}</span>`
+          : `<button class="topbar-btn btn-sec" style="font-size:.65rem;padding:.28rem .6rem;" onclick="openCierreCobroModal(${c.id})"><i class="fas fa-coins"></i> Confirmar</button>`}</td>
+        <td><div class="action-btns">
+          <button class="act-btn" title="Ver detalle" onclick="openCierreDetalle(${c.id})"><i class="fas fa-eye"></i></button>
+          ${['vendida','rentada'].includes(c.propiedades?.estado_publicacion ?? '')
+            ? `<button class="act-btn" title="Reactivar propiedad" onclick="openReactivarProp(${c.propiedad_id},${esc(JSON.stringify(c.propiedades?.direccion||''))})"><i class="fas fa-redo" style="color:#5AE08A;"></i></button>` : ''}
+        </div></td>
+      </tr>`).join('');
+    } catch(e) { tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#E08080;padding:2rem;">${esc(e.message)}</td></tr>`; }
+  }
+
+  /* ── Panel lateral de detalle ── */
+  async function openComisionDetalle(id) {
+    const panel = document.getElementById('com-detail-panel');
+    const overlay = document.getElementById('com-overlay');
+    const body = document.getElementById('com-panel-body');
+    document.getElementById('com-panel-titulo').textContent = 'Comisión #' + id;
+    body.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--gray);"><i class="fas fa-spinner fa-spin"></i></div>';
+    panel.classList.add('open');
+    overlay.classList.add('open');
+    try {
+      const c = await apiFetch('/api/comisiones/' + id);
+      const cierre = c.cierres_propiedad;
+      const hist = [];
+      if (c.validada_at) hist.push(`<div class="com-hist-item"><b>Validada</b> · ${fmtDate(c.validada_at)}</div>`);
+      if (c.pagada_at)   hist.push(`<div class="com-hist-item"><b>Pagada</b> · ${fmtDate(c.pagada_at)} · ${esc(c.metodo_pago||'')} · ref: ${esc(c.referencia_pago||'')}</div>`);
+      if (c.revertida_at) hist.push(`<div class="com-hist-item"><b>Revertida</b> · ${fmtDate(c.revertida_at)}</div>`);
+      if (c.notas_admin) hist.push(`<div class="com-hist-item"><b>Notas admin:</b> ${esc(c.notas_admin)}</div>`);
+
+      body.innerHTML = `
+        <div class="com-panel-section">Comisión</div>
+        <div class="com-kv"><span class="com-kv-label">Estado</span><span class="badge ${COM_ESTADO_BADGE[c.estado]||''}">${esc(COM_ESTADO_LABEL[c.estado]||c.estado)}</span></div>
+        <div class="com-kv"><span class="com-kv-label">Tipo</span><span>${esc(COM_TIPO_LABEL[c.tipo]||c.tipo)}</span></div>
+        <div class="com-kv"><span class="com-kv-label">Agente</span><span>${esc(c.agentes?.nombre||'—')}</span></div>
+        <div class="com-kv"><span class="com-kv-label">Monto comisión</span><span class="td-gold">${fmtMoney(c.monto_comision, c.moneda)}</span></div>
+        <div class="com-kv"><span class="com-kv-label">Modo / Origen %</span><span>${esc(c.modo||'—')} / ${esc(c.origen_pct||'—')}</span></div>
+        ${c.pct_comision != null ? `<div class="com-kv"><span class="com-kv-label">% comisión</span><span>${esc(c.pct_comision)}%</span></div>` : ''}
+        ${c.subtotal_sin_iva != null ? `<div class="com-kv"><span class="com-kv-label">Base (subtotal sin IVA)</span><span>${fmtMoney(c.subtotal_sin_iva, c.moneda)}</span></div>` : ''}
+        ${cierre ? `
+          <div class="com-panel-section">Cierre</div>
+          <div class="com-kv"><span class="com-kv-label">Tipo</span><span>${esc(cierre.tipo)}</span></div>
+          <div class="com-kv"><span class="com-kv-label">Precio final</span><span>${fmtMoney(cierre.precio_final, cierre.moneda)}</span></div>
+          <div class="com-kv"><span class="com-kv-label">Comisión VE cobrada</span><span>${fmtMoney(cierre.comision_ve_cobrada, cierre.moneda)}</span></div>
+          <div class="com-kv"><span class="com-kv-label">Fecha cierre</span><span>${fmtDate(cierre.fecha_cierre)}</span></div>
+          <div class="com-kv"><span class="com-kv-label">Cobro VE</span><span>${cierre.cobro_ve_confirmado ? '<span style="color:#5AE08A">✓ ' + fmtDate(cierre.fecha_cobro) + '</span>' : '<span style="color:#F0C040">Pendiente</span>'}</span></div>
+        ` : ''}
+        ${c.cotizaciones ? `
+          <div class="com-panel-section">Cotización</div>
+          <div class="com-kv"><span class="com-kv-label">ID / Tipo</span><span>#${esc(c.cotizaciones.id)} · ${esc(c.cotizaciones.tipo_servicio||'—')}</span></div>
+          <div class="com-kv"><span class="com-kv-label">Estado cotización</span><span>${esc(c.cotizaciones.estado||'—')}</span></div>
+        ` : ''}
+        ${c.propiedades ? `
+          <div class="com-panel-section">Propiedad</div>
+          <div class="com-kv"><span class="com-kv-label">Dirección</span><span>${esc(c.propiedades.direccion||'—')}</span></div>
+        ` : ''}
+        ${hist.length ? `<div class="com-panel-section">Historial</div>${hist.join('')}` : ''}
+
+        <div class="com-action-row" id="com-actions-row">
+          ${_buildComActions(c)}
+        </div>`;
+    } catch(e) {
+      body.innerHTML = `<div style="padding:1.5rem;color:#E08080;font-size:.8rem;">${esc(e.message)}</div>`;
+    }
+  }
+
+  function _buildComActions(c) {
+    const btns = [];
+    if (c.estado === 'no_validada')
+      btns.push(`<button class="topbar-btn btn-primary" onclick="openComValidar(${c.id},'${esc(c.tipo)}')"><i class="fas fa-check-circle"></i> Validar</button>`);
+    if (c.estado === 'pendiente')
+      btns.push(`<button class="topbar-btn btn-sec" onclick="openComPorPagar(${c.id})"><i class="fas fa-wallet"></i> Por pagar</button>`);
+    if (c.estado === 'por_pagar')
+      btns.push(`<button class="topbar-btn btn-primary" onclick="openComPagar(${c.id})"><i class="fas fa-money-check-alt"></i> Pagar</button>`);
+    if (c.estado === 'pagada')
+      btns.push(`<button class="topbar-btn" onclick="openComRevertir(${c.id})" style="background:rgba(240,192,64,.12);color:#F0C040;border:1px solid rgba(240,192,64,.3);"><i class="fas fa-undo"></i> Revertir</button>`);
+    if (!['pagada','rechazada'].includes(c.estado))
+      btns.push(`<button class="topbar-btn" onclick="openComRechazar(${c.id})" style="background:rgba(220,80,80,.1);color:#E08080;border:1px solid rgba(220,80,80,.25);"><i class="fas fa-ban"></i> Rechazar</button>`);
+    return btns.join('');
+  }
+
+  function closeComisionDetalle() {
+    document.getElementById('com-detail-panel').classList.remove('open');
+    document.getElementById('com-overlay').classList.remove('open');
+  }
+
+  async function openCierreDetalle(id) {
+    const c = await apiFetch('/api/comisiones/cierres/' + id).catch(e => { showToast('Error: ' + e.message); return null; });
+    if (!c) return;
+    const panel = document.getElementById('com-detail-panel');
+    const body  = document.getElementById('com-panel-body');
+    document.getElementById('com-panel-titulo').textContent = 'Cierre #' + id;
+    const cobrado = c.cobro_ve_confirmado;
+    body.innerHTML = `
+      <div class="com-panel-section">Cierre</div>
+      <div class="com-kv"><span class="com-kv-label">Propiedad</span><span>${esc(c.propiedades?.direccion||'—')}</span></div>
+      <div class="com-kv"><span class="com-kv-label">Tipo</span><span>${esc(c.tipo)}</span></div>
+      <div class="com-kv"><span class="com-kv-label">Precio final</span><span class="td-gold">${fmtMoney(c.precio_final, c.moneda)}</span></div>
+      <div class="com-kv"><span class="com-kv-label">Comisión VE cobrada</span><span>${fmtMoney(c.comision_ve_cobrada, c.moneda)}</span></div>
+      <div class="com-kv"><span class="com-kv-label">Fecha cierre</span><span>${fmtDate(c.fecha_cierre)}</span></div>
+      <div class="com-kv"><span class="com-kv-label">Agente cierre</span><span>${esc(c.agentes?.nombre||'—')}</span></div>
+      <div class="com-kv"><span class="com-kv-label">Cobro VE</span><span>${cobrado ? '<span style="color:#5AE08A">✓ ' + fmtDate(c.fecha_cobro) + '</span>' : '<span style="color:#F0C040">Sin confirmar</span>'}</span></div>
+      ${c.notas ? `<div class="com-kv"><span class="com-kv-label">Notas</span><span style="font-size:.72rem;">${esc(c.notas)}</span></div>` : ''}
+      ${(c.comisiones||[]).length ? `
+        <div class="com-panel-section">Comisiones vinculadas</div>
+        ${c.comisiones.map(cm=>`<div class="com-hist-item"><b>${esc(cm.agentes?.nombre||'—')}</b> · ${fmtMoney(cm.monto_comision,cm.moneda)} · <span class="badge ${COM_ESTADO_BADGE[cm.estado]||''}" style="font-size:.6rem;">${esc(COM_ESTADO_LABEL[cm.estado]||cm.estado)}</span></div>`).join('')}
+      ` : ''}
+      <div class="com-action-row">
+        ${!cobrado ? `<button class="topbar-btn btn-primary" onclick="openCierreCobroModal(${id})"><i class="fas fa-coins"></i> Confirmar cobro VE</button>` : ''}
+        ${c.propiedad_id && ['vendida','rentada'].includes(c.propiedades?.estado_publicacion ?? '')
+            ? `<button class="topbar-btn btn-sec" onclick="openReactivarProp(${c.propiedad_id},${esc(JSON.stringify(c.propiedades?.direccion||''))})"><i class="fas fa-redo"></i> Reactivar propiedad</button>` : ''}
+      </div>`;
+    panel.classList.add('open');
+    document.getElementById('com-overlay').classList.add('open');
+  }
+
+  /* ── Modal helpers ── */
+  function closeComModal(id) { document.getElementById(id)?.classList.remove('open'); }
+
+  function openComValidar(id, tipo) {
+    document.getElementById('val-com-id').value = id;
+    const esCotiz = tipo === 'captacion_escaneo' || tipo === 'cotizacion_referida';
+    document.getElementById('val-com-tipo-warn').style.display = esCotiz ? '' : 'none';
+    document.getElementById('val-notas-req').style.display = esCotiz ? '' : 'none';
+    document.getElementById('val-notas').value = '';
+    document.getElementById('comValidarModal').classList.add('open');
+  }
+  async function doValidarComision() {
+    const id = document.getElementById('val-com-id').value;
+    const notas = document.getElementById('val-notas').value.trim();
+    const btn = document.getElementById('btn-do-validar');
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validando...';
+    try {
+      await apiFetch('/api/comisiones/' + id + '/validar', { method:'POST', body: JSON.stringify({ notas_admin: notas || undefined }) });
+      closeComModal('comValidarModal');
+      showToast('✅ Comisión validada');
+      loadComisiones(); loadKpisComisiones();
+      openComisionDetalle(id);
+    } catch(e) { showToast('Error: ' + e.message); }
+    finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check"></i> Validar'; }
+  }
+
+  function openComPorPagar(id) {
+    document.getElementById('pp-com-id').value = id;
+    document.getElementById('comPorPagarModal').classList.add('open');
+  }
+  async function doPorPagar() {
+    const id = document.getElementById('pp-com-id').value;
+    const btn = document.getElementById('btn-do-porpagar');
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    try {
+      await apiFetch('/api/comisiones/' + id + '/por-pagar', { method:'POST' });
+      closeComModal('comPorPagarModal');
+      showToast('✅ Marcada como Por Pagar');
+      loadComisiones(); loadKpisComisiones(); openComisionDetalle(id);
+    } catch(e) { showToast('Error: ' + e.message); }
+    finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-wallet"></i> Confirmar'; }
+  }
+
+  function openComPagar(id) {
+    document.getElementById('pag-com-id').value = id;
+    document.getElementById('pag-ref').value = '';
+    document.getElementById('comPagarModal').classList.add('open');
+  }
+  async function doPagar() {
+    const id = document.getElementById('pag-com-id').value;
+    const metodo = document.getElementById('pag-metodo').value;
+    const ref    = document.getElementById('pag-ref').value.trim();
+    if (!ref) { showToast('Referencia de pago obligatoria'); return; }
+    const btn = document.getElementById('btn-do-pagar');
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    try {
+      await apiFetch('/api/comisiones/' + id + '/pagar', { method:'POST', body: JSON.stringify({ metodo_pago: metodo, referencia_pago: ref }) });
+      closeComModal('comPagarModal');
+      showToast('✅ Comisión pagada');
+      loadComisiones(); loadKpisComisiones(); openComisionDetalle(id);
+    } catch(e) { showToast('Error: ' + e.message); }
+    finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check"></i> Registrar Pago'; }
+  }
+
+  function openComRechazar(id) {
+    document.getElementById('rej-com-id').value = id;
+    document.getElementById('rej-notas').value = '';
+    document.getElementById('comRechazarModal').classList.add('open');
+  }
+  async function doRechazar() {
+    const id    = document.getElementById('rej-com-id').value;
+    const notas = document.getElementById('rej-notas').value.trim();
+    if (!notas) { showToast('El motivo es obligatorio'); return; }
+    const btn = document.getElementById('btn-do-rechazar');
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    try {
+      await apiFetch('/api/comisiones/' + id + '/rechazar', { method:'POST', body: JSON.stringify({ notas_admin: notas }) });
+      closeComModal('comRechazarModal');
+      showToast('Comisión rechazada');
+      loadComisiones(); loadKpisComisiones(); openComisionDetalle(id);
+    } catch(e) { showToast('Error: ' + e.message); }
+    finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-ban"></i> Rechazar'; }
+  }
+
+  function openComRevertir(id) {
+    document.getElementById('rev-com-id').value = id;
+    document.getElementById('rev-nota').value = '';
+    document.getElementById('comRevertirModal').classList.add('open');
+  }
+  async function doRevertir() {
+    const id   = document.getElementById('rev-com-id').value;
+    const nota = document.getElementById('rev-nota').value.trim();
+    if (!nota) { showToast('La nota de reversión es obligatoria'); return; }
+    const btn = document.getElementById('btn-do-revertir');
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    try {
+      await apiFetch('/api/comisiones/' + id + '/revertir', { method:'POST', body: JSON.stringify({ nota_reversion: nota }) });
+      closeComModal('comRevertirModal');
+      showToast('Pago revertido');
+      loadComisiones(); loadKpisComisiones(); openComisionDetalle(id);
+    } catch(e) { showToast('Error: ' + e.message); }
+    finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-undo"></i> Revertir'; }
+  }
+
+  /* ── Confirmar cobro VE ── */
+  function openCierreCobroModal(cierreId) {
+    document.getElementById('cobro-cierre-id').value = cierreId;
+    document.getElementById('cobro-fecha').value = new Date().toISOString().split('T')[0];
+    document.getElementById('cierreCobroModal').classList.add('open');
+  }
+  async function doConfirmarCobro() {
+    const id    = document.getElementById('cobro-cierre-id').value;
+    const fecha = document.getElementById('cobro-fecha').value;
+    if (!fecha) { showToast('Fecha obligatoria'); return; }
+    const btn = document.getElementById('btn-do-cobro');
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    try {
+      await apiFetch('/api/comisiones/cierres/' + id + '/confirmar-cobro', { method:'POST', body: JSON.stringify({ fecha_cobro: fecha }) });
+      closeComModal('cierreCobroModal');
+      showToast('✅ Cobro VE confirmado');
+      loadCierres(); openCierreDetalle(id);
+    } catch(e) { showToast('Error: ' + e.message); }
+    finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check"></i> Confirmar Cobro'; }
+  }
+
+  /* ── Reactivar propiedad ── */
+  function openReactivarProp(propId, dir) {
+    document.getElementById('react-prop-id').value = propId;
+    document.getElementById('react-prop-texto').innerHTML =
+      'La propiedad <strong>' + esc(dir) + '</strong> volverá a estado <strong style="color:#5AE08A;">Publicada</strong> y será visible en la web y el bot.';
+    document.getElementById('reactivarPropModal').classList.add('open');
+  }
+  async function doReactivarProp() {
+    const id = document.getElementById('react-prop-id').value;
+    const btn = document.getElementById('btn-do-react');
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    try {
+      await apiFetch('/api/propiedades/' + id + '/reactivar', { method:'POST' });
+      closeComModal('reactivarPropModal');
+      closeComisionDetalle();
+      showToast('✅ Propiedad reactivada');
+      loadCierres();
+    } catch(e) { showToast('Error: ' + e.message); }
+    finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-redo"></i> Reactivar'; }
+  }
+
+  /* ── Registrar cierre ── */
+  let _propActivas = [], _agentesListCierre = [], _globalPctCierre = null;
+
+  async function openRegistrarCierre() {
+    document.getElementById('cierreModal').classList.add('open');
+    // Fecha de hoy por defecto
+    document.getElementById('ci-fecha').value = new Date().toISOString().split('T')[0];
+    // Limpiar preview
+    document.getElementById('ci-preview').style.display = 'none';
+    ['ci-precio','ci-comve','ci-pct-ov','ci-monto-ov','ci-notas'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('ci-moneda-ov').value = '';
+    document.getElementById('ci-tipo').value = 'venta';
+
+    // Cargar propiedades activas (publicadas y pausadas solamente)
+    const selProp = document.getElementById('ci-propiedad');
+    selProp.innerHTML = '<option value="">— Cargando... —</option>';
+    try {
+      const props = await apiFetch('/api/propiedades');
+      _propActivas = (Array.isArray(props) ? props : []).filter(p =>
+        !['vendida','rentada'].includes(p.estado_publicacion || '')
+      );
+      selProp.innerHTML = '<option value="">— Seleccionar propiedad —</option>' +
+        _propActivas.map(p => `<option value="${esc(p.id)}">${esc(p.direccion || 'Prop #'+p.id)} (${esc(p.estado_publicacion||'borrador')})</option>`).join('');
+    } catch(e) { selProp.innerHTML = '<option value="">Error cargando propiedades</option>'; }
+
+    // Cargar comision_global_pct para la vista previa
+    apiFetch('/api/config/public').then(cfg => {
+      const g = Array.isArray(cfg) ? cfg.find(c => c.clave === 'comision_global_pct') : null;
+      _globalPctCierre = g ? Number(g.valor) : null;
+    }).catch(() => {});
+
+    // Cargar agentes
+    const selAgt = document.getElementById('ci-agente');
+    selAgt.innerHTML = '<option value="">— Cargando... —</option>';
+    try {
+      const agts = await apiFetch('/api/agentes');
+      _agentesListCierre = Array.isArray(agts) ? agts : [];
+      selAgt.innerHTML = '<option value="">— Seleccionar agente —</option>' +
+        _agentesListCierre.map(a => `<option value="${esc(a.id)}">${esc(a.nombre||'Agente #'+a.id)}</option>`).join('');
+      // También populamos el selector de filtro de agentes si está vacío
+      const filtAgt = document.getElementById('com-filter-agente');
+      if (filtAgt && filtAgt.options.length <= 1) {
+        _agentesListCierre.forEach(a => {
+          const o = document.createElement('option');
+          o.value = a.id; o.textContent = a.nombre || 'Agente #'+a.id;
+          filtAgt.appendChild(o);
+        });
+      }
+    } catch(e) { selAgt.innerHTML = '<option value="">Error cargando agentes</option>'; }
+  }
+
+  function closeCierreModal() { document.getElementById('cierreModal').classList.remove('open'); }
+
+  function onCierrePropiedad() {
+    const pid = document.getElementById('ci-propiedad').value;
+    const prop = _propActivas.find(p => String(p.id) === String(pid));
+    // Si tiene comision_ve, pre-llenar el campo
+    if (prop?.comision_ve) {
+      const precio = Number(document.getElementById('ci-precio').value) || 0;
+      if (precio > 0)
+        document.getElementById('ci-comve').value = (precio * Number(prop.comision_ve) / 100).toFixed(2);
+    }
+    calcularCierrePreview();
+  }
+
+  function onCierrePctOv() {
+    if (document.getElementById('ci-pct-ov').value) {
+      document.getElementById('ci-monto-ov').value = '';
+      document.getElementById('ci-moneda-ov').value = '';
+    }
+    calcularCierrePreview();
+  }
+  function onCierreMontoOv() {
+    if (document.getElementById('ci-monto-ov').value)
+      document.getElementById('ci-pct-ov').value = '';
+    calcularCierrePreview();
+  }
+
+  function calcularCierrePreview() {
+    const precio  = Number(document.getElementById('ci-precio').value) || 0;
+    const moneda  = document.getElementById('ci-moneda').value || 'USD';
+    const comVe   = document.getElementById('ci-comve').value !== ''
+      ? Number(document.getElementById('ci-comve').value) : null;
+    const pctOv   = document.getElementById('ci-pct-ov').value !== ''
+      ? Number(document.getElementById('ci-pct-ov').value) : null;
+    const montoOv = document.getElementById('ci-monto-ov').value !== ''
+      ? Number(document.getElementById('ci-monto-ov').value) : null;
+    const monedaOv = document.getElementById('ci-moneda-ov').value || moneda;
+
+    const prev = document.getElementById('ci-preview');
+    const pid = document.getElementById('ci-propiedad').value;
+    const prop = _propActivas.find(p => String(p.id) === String(pid));
+    const agtId = document.getElementById('ci-agente').value;
+    const agt = _agentesListCierre.find(a => String(a.id) === String(agtId));
+    const tipo = document.getElementById('ci-tipo').value;
+
+    if (!precio || !pid || !agtId) { prev.style.display = 'none'; return; }
+
+    // Calcular comVe para vista previa si no se especificó
+    let veBase = comVe;
+    if (veBase == null) {
+      if (tipo === 'venta' && prop?.comision_ve)
+        veBase = precio * Number(prop.comision_ve) / 100;
+      else if (tipo === 'renta')
+        veBase = precio; // primer mes
+    }
+    if (veBase == null) { prev.style.display = 'none'; return; }
+
+    let monto, detalle, monedaCom;
+    if (montoOv != null) {
+      monto = montoOv; monedaCom = monedaOv;
+      detalle = 'Monto fijo override';
+    } else {
+      // Cascada: pctOv > prop.pct_cierre > agente.comision > global
+      let pct = null, origenPct = '';
+      if      (pctOv            != null) { pct = pctOv;               origenPct = 'override manual'; }
+      else if (prop?.pct_cierre != null) { pct = prop.pct_cierre;     origenPct = 'propiedad'; }
+      else if (agt?.comision    != null) { pct = agt.comision;        origenPct = 'agente'; }
+      else if (_globalPctCierre != null) { pct = _globalPctCierre;    origenPct = 'global'; }
+      if (pct == null) { prev.style.display = 'none'; return; }
+      monto = veBase * pct / 100;
+      monedaCom = moneda;
+      detalle = pct + '% de ' + fmtMoney(veBase, moneda) + ' (VE) · origen: ' + origenPct;
+    }
+
+    prev.style.display = '';
+    document.getElementById('ci-prev-monto').textContent = fmtMoney(monto, monedaCom);
+    document.getElementById('ci-prev-moneda').textContent = monedaCom;
+    document.getElementById('ci-prev-detalle').textContent = detalle;
+  }
+
+  async function saveCierre() {
+    const propId  = document.getElementById('ci-propiedad').value;
+    const tipo    = document.getElementById('ci-tipo').value;
+    const precio  = document.getElementById('ci-precio').value;
+    const moneda  = document.getElementById('ci-moneda').value;
+    const fecha   = document.getElementById('ci-fecha').value;
+    const agtId   = document.getElementById('ci-agente').value;
+    const comVe   = document.getElementById('ci-comve').value || null;
+    const pctOv   = document.getElementById('ci-pct-ov').value || null;
+    const montoOv = document.getElementById('ci-monto-ov').value || null;
+    const monedaOv = document.getElementById('ci-moneda-ov').value || null;
+    const notas   = document.getElementById('ci-notas').value.trim() || null;
+
+    if (!propId || !precio || !fecha || !agtId)
+      return showToast('Propiedad, precio, fecha y agente son obligatorios');
+    if (montoOv && !monedaOv)
+      return showToast('Debes indicar la moneda del monto fijo override');
+
+    const btn = document.getElementById('btn-save-cierre');
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    try {
+      const body = {
+        propiedad_id: Number(propId), tipo, precio_final: Number(precio), moneda, fecha_cierre: fecha,
+        agente_cierre_id: Number(agtId),
+        ...(comVe   ? { comision_ve_cobrada_override: Number(comVe) } : {}),
+        ...(pctOv   ? { pct_cierre_override: Number(pctOv) } : {}),
+        ...(montoOv ? { monto_cierre_fijo_override: Number(montoOv), moneda_cierre_fijo_override: monedaOv } : {}),
+        ...(notas   ? { notas } : {}),
+      };
+      await apiFetch('/api/comisiones/cierres', { method:'POST', body: JSON.stringify(body) });
+      closeCierreModal();
+      showToast('✅ Cierre registrado — propiedad actualizada');
+      loadComisiones(); loadCierres(); loadKpisComisiones();
+    } catch(e) { showToast('Error: ' + e.message); }
+    finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-handshake"></i> Registrar Cierre'; }
+  }
+
+  /* ── showView hook: carga datos al entrar ── */
+  const _origShowViewCom = showView;
+  // Parchamos showView para agregar 'comisiones' sin tocar la función original
+  // (la redefinimos inline aquí; la declaración original queda en scope por hoisting)
 
   /* ══════════════════════════════════════════════════════
      CONVERSACIONES MULTICANAL
@@ -6311,6 +7052,224 @@
       <button class="topbar-btn btn-sec" onclick="cerrarEnvioModal()" style="flex:1;justify-content:center;font-size:.72rem;">No enviar</button>
     </div>
     <div id="envio-result" style="margin-top:.8rem;min-height:1.5rem;font-size:.75rem;text-align:center;color:var(--gold);"></div>
+  </div>
+</div>
+
+<!-- ── Modal: Registrar cierre ───────────────────────────────────────── -->
+<div class="modal-overlay" id="cierreModal" style="align-items:flex-start;padding:1.2rem;overflow-y:auto;" onclick="if(event.target===this)closeCierreModal()">
+  <div class="modal" style="max-width:680px;width:100%;margin:auto;padding:0;max-height:none;">
+    <div style="position:sticky;top:0;background:var(--bg2);z-index:10;padding:1rem 1.4rem .85rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <div class="modal-title" style="font-size:.95rem;margin:0;"><i class="fas fa-handshake" style="color:var(--gold);margin-right:.45rem;"></i>Registrar Cierre</div>
+      <button onclick="closeCierreModal()" style="background:none;border:none;color:var(--gray);font-size:1rem;cursor:pointer;padding:.3rem;line-height:1;"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="padding:1.3rem 1.4rem;">
+      <div class="cierre-warn"><i class="fas fa-exclamation-triangle" style="margin-right:.4rem;"></i><strong>Atención:</strong> Al guardar, la propiedad pasará automáticamente a estado <em>Vendida</em> o <em>Rentada</em> y dejará de aparecer en la web y el bot.</div>
+
+      <div style="font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:.2rem 0 .65rem;padding-bottom:.35rem;border-bottom:1px solid var(--border);">1 · PROPIEDAD Y TIPO</div>
+      <div class="form-row" style="margin-bottom:.7rem;">
+        <div class="form-group" style="flex:2;">
+          <label class="form-label">Propiedad <span style="color:#E08080;">*</span></label>
+          <select id="ci-propiedad" class="form-control" onchange="onCierrePropiedad()">
+            <option value="">— Cargando propiedades activas... —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo <span style="color:#E08080;">*</span></label>
+          <select id="ci-tipo" class="form-control" onchange="calcularCierrePreview()">
+            <option value="venta">Venta</option>
+            <option value="renta">Renta</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:.6rem 0 .65rem;padding-bottom:.35rem;border-bottom:1px solid var(--border);">2 · PRECIO Y FECHA</div>
+      <div class="form-row" style="margin-bottom:.7rem;">
+        <div class="form-group">
+          <label class="form-label">Precio final <span style="color:#E08080;">*</span></label>
+          <input type="number" id="ci-precio" class="form-control" placeholder="0.00" min="0.01" step="0.01" oninput="calcularCierrePreview()"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Moneda <span style="color:#E08080;">*</span></label>
+          <select id="ci-moneda" class="form-control" onchange="calcularCierrePreview()">
+            <option value="USD">USD — Dólar</option>
+            <option value="GTQ">GTQ — Quetzal</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha cierre <span style="color:#E08080;">*</span></label>
+          <input type="date" id="ci-fecha" class="form-control"/>
+        </div>
+      </div>
+
+      <div style="font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:.6rem 0 .65rem;padding-bottom:.35rem;border-bottom:1px solid var(--border);">3 · AGENTE Y COMISIÓN VE</div>
+      <div class="form-row" style="margin-bottom:.7rem;">
+        <div class="form-group" style="flex:2;">
+          <label class="form-label">Agente de cierre <span style="color:#E08080;">*</span></label>
+          <select id="ci-agente" class="form-control" onchange="calcularCierrePreview()">
+            <option value="">— Seleccionar agente —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Comisión VE cobrada</label>
+          <input type="number" id="ci-comve" class="form-control" placeholder="Auto" min="0" step="0.01" oninput="calcularCierrePreview()"/>
+        </div>
+      </div>
+
+      <div style="font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:.6rem 0 .65rem;padding-bottom:.35rem;border-bottom:1px solid var(--border);">4 · OVERRIDE DE COMISIÓN (opcional)</div>
+      <div style="font-size:.72rem;color:var(--gray);margin-bottom:.6rem;">Solo uno de los dos — son mutuamente excluyentes.</div>
+      <div class="form-row" style="margin-bottom:.7rem;">
+        <div class="form-group">
+          <label class="form-label">Override % comisión</label>
+          <input type="number" id="ci-pct-ov" class="form-control" placeholder="Ej: 5" min="0" max="100" step="0.01" oninput="onCierrePctOv()"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Override monto fijo</label>
+          <input type="number" id="ci-monto-ov" class="form-control" placeholder="Ej: 5000" min="0" step="0.01" oninput="onCierreMontoOv()"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Moneda monto fijo</label>
+          <select id="ci-moneda-ov" class="form-control">
+            <option value="">—</option>
+            <option value="USD">USD</option>
+            <option value="GTQ">GTQ</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:.8rem;">
+        <label class="form-label">Notas</label>
+        <textarea id="ci-notas" class="form-control" rows="2" placeholder="Observaciones del cierre..."></textarea>
+      </div>
+
+      <!-- Vista previa -->
+      <div id="ci-preview" class="com-preview-box" style="display:none;">
+        <div style="font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-bottom:.35rem;">Vista previa — comisión del agente</div>
+        <div><span class="big" id="ci-prev-monto">—</span> <span id="ci-prev-moneda" style="color:var(--gray);font-size:.75rem;"></span></div>
+        <div style="font-size:.7rem;color:var(--gray);margin-top:.2rem;" id="ci-prev-detalle"></div>
+      </div>
+
+      <div style="display:flex;gap:.6rem;margin-top:1.1rem;padding-top:1rem;border-top:1px solid var(--border);">
+        <button class="topbar-btn btn-primary" onclick="saveCierre()" style="flex:2;justify-content:center;" id="btn-save-cierre"><i class="fas fa-handshake"></i> Registrar Cierre</button>
+        <button class="topbar-btn btn-sec" onclick="closeCierreModal()" style="flex:1;justify-content:center;font-size:.72rem;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Validar comisión ────────────────────────────────────────── -->
+<div class="modal-overlay" id="comValidarModal" onclick="if(event.target===this)closeComModal('comValidarModal')">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-title"><i class="fas fa-check-circle" style="color:#5AE08A;margin-right:.4rem;"></i>Validar Comisión</div>
+    <input type="hidden" id="val-com-id"/>
+    <div id="val-com-tipo-warn" style="display:none;" class="cierre-warn" style="margin-bottom:.8rem;">Para captación y referida, <strong>notas_admin es obligatorio</strong> — indica el comprobante de pago de la cotización.</div>
+    <div class="form-group">
+      <label class="form-label">Notas admin <span id="val-notas-req" style="color:#E08080;display:none;">*</span></label>
+      <textarea id="val-notas" class="form-control" rows="3" placeholder="Comprobante de pago / observaciones de validación..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="topbar-btn btn-primary" onclick="doValidarComision()" id="btn-do-validar" style="flex:1;justify-content:center;"><i class="fas fa-check"></i> Validar</button>
+      <button class="topbar-btn btn-sec" onclick="closeComModal('comValidarModal')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Marcar por pagar ────────────────────────────────────────── -->
+<div class="modal-overlay" id="comPorPagarModal" onclick="if(event.target===this)closeComModal('comPorPagarModal')">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-title"><i class="fas fa-wallet" style="color:#6EAAFF;margin-right:.4rem;"></i>Marcar Por Pagar</div>
+    <input type="hidden" id="pp-com-id"/>
+    <div style="font-size:.78rem;color:var(--gray);margin-bottom:1rem;">La comisión pasará al estado <strong style="color:#6EAAFF;">Por Pagar</strong>. Para cierres, asegurate de haber confirmado el cobro de VE primero.</div>
+    <div class="modal-actions">
+      <button class="topbar-btn btn-primary" onclick="doPorPagar()" id="btn-do-porpagar" style="flex:1;justify-content:center;"><i class="fas fa-wallet"></i> Confirmar</button>
+      <button class="topbar-btn btn-sec" onclick="closeComModal('comPorPagarModal')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Pagar comisión ─────────────────────────────────────────── -->
+<div class="modal-overlay" id="comPagarModal" onclick="if(event.target===this)closeComModal('comPagarModal')">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-title"><i class="fas fa-money-check-alt" style="color:#5AE08A;margin-right:.4rem;"></i>Registrar Pago</div>
+    <input type="hidden" id="pag-com-id"/>
+    <div style="font-size:.78rem;color:var(--gray);margin-bottom:1rem;">Esta acción marca la comisión como <strong style="color:#5AE08A;">Pagada</strong>. No se puede deshacer fácilmente.</div>
+    <div class="form-group">
+      <label class="form-label">Método de pago <span style="color:#E08080;">*</span></label>
+      <select id="pag-metodo" class="form-control">
+        <option value="transferencia">Transferencia</option>
+        <option value="cheque">Cheque</option>
+        <option value="efectivo">Efectivo</option>
+        <option value="deposito">Depósito</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Referencia / No. comprobante <span style="color:#E08080;">*</span></label>
+      <input type="text" id="pag-ref" class="form-control" placeholder="Ej: TRF-20260901-001"/>
+    </div>
+    <div class="modal-actions">
+      <button class="topbar-btn btn-primary" onclick="doPagar()" id="btn-do-pagar" style="flex:1;justify-content:center;"><i class="fas fa-check"></i> Registrar Pago</button>
+      <button class="topbar-btn btn-sec" onclick="closeComModal('comPagarModal')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Rechazar comisión ───────────────────────────────────────── -->
+<div class="modal-overlay" id="comRechazarModal" onclick="if(event.target===this)closeComModal('comRechazarModal')">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-title"><i class="fas fa-ban" style="color:#E08080;margin-right:.4rem;"></i>Rechazar Comisión</div>
+    <input type="hidden" id="rej-com-id"/>
+    <div class="form-group">
+      <label class="form-label">Motivo <span style="color:#E08080;">*</span></label>
+      <textarea id="rej-notas" class="form-control" rows="3" placeholder="Motivo del rechazo..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="topbar-btn" onclick="doRechazar()" id="btn-do-rechazar" style="flex:1;justify-content:center;background:rgba(220,80,80,.15);color:#E08080;border:1px solid rgba(220,80,80,.3);"><i class="fas fa-ban"></i> Rechazar</button>
+      <button class="topbar-btn btn-sec" onclick="closeComModal('comRechazarModal')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Revertir comisión ───────────────────────────────────────── -->
+<div class="modal-overlay" id="comRevertirModal" onclick="if(event.target===this)closeComModal('comRevertirModal')">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-title"><i class="fas fa-undo" style="color:#F0C040;margin-right:.4rem;"></i>Revertir Pago</div>
+    <input type="hidden" id="rev-com-id"/>
+    <div style="font-size:.78rem;color:var(--gray);margin-bottom:1rem;">La comisión volverá a estado <strong style="color:#F0C040;">Pendiente</strong>. El historial del pago quedará en las notas.</div>
+    <div class="form-group">
+      <label class="form-label">Nota de reversión <span style="color:#E08080;">*</span></label>
+      <textarea id="rev-nota" class="form-control" rows="3" placeholder="Motivo de la reversión..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="topbar-btn" onclick="doRevertir()" id="btn-do-revertir" style="flex:1;justify-content:center;background:rgba(240,192,64,.12);color:#F0C040;border:1px solid rgba(240,192,64,.3);"><i class="fas fa-undo"></i> Revertir</button>
+      <button class="topbar-btn btn-sec" onclick="closeComModal('comRevertirModal')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Confirmar cobro VE ──────────────────────────────────────── -->
+<div class="modal-overlay" id="cierreCobroModal" onclick="if(event.target===this)closeComModal('cierreCobroModal')">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title"><i class="fas fa-coins" style="color:var(--gold);margin-right:.4rem;"></i>Confirmar Cobro de VE</div>
+    <input type="hidden" id="cobro-cierre-id"/>
+    <div class="form-group">
+      <label class="form-label">Fecha de cobro <span style="color:#E08080;">*</span></label>
+      <input type="date" id="cobro-fecha" class="form-control"/>
+    </div>
+    <div class="modal-actions">
+      <button class="topbar-btn btn-primary" onclick="doConfirmarCobro()" id="btn-do-cobro" style="flex:1;justify-content:center;"><i class="fas fa-check"></i> Confirmar Cobro</button>
+      <button class="topbar-btn btn-sec" onclick="closeComModal('cierreCobroModal')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Reactivar propiedad ─────────────────────────────────────── -->
+<div class="modal-overlay" id="reactivarPropModal" onclick="if(event.target===this)closeComModal('reactivarPropModal')">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-title"><i class="fas fa-redo" style="color:#5AE08A;margin-right:.4rem;"></i>Reactivar Propiedad</div>
+    <input type="hidden" id="react-prop-id"/>
+    <div style="font-size:.78rem;color:var(--gray);margin-bottom:1rem;" id="react-prop-texto">La propiedad volverá a estado <strong style="color:#5AE08A;">Publicada</strong> y será visible en la web y el bot.</div>
+    <div class="modal-actions">
+      <button class="topbar-btn btn-primary" onclick="doReactivarProp()" id="btn-do-react" style="flex:1;justify-content:center;"><i class="fas fa-redo"></i> Reactivar</button>
+      <button class="topbar-btn btn-sec" onclick="closeComModal('reactivarPropModal')">Cancelar</button>
+    </div>
   </div>
 </div>
 

@@ -140,6 +140,22 @@ router.put('/:id', verificarPermiso('editar_propiedad'), async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// POST /:id/reactivar — reactivar propiedad vendida/rentada → publicada
+router.post('/:id/reactivar', verificarPermiso('editar_propiedad'), async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('propiedades')
+      .update({ estado_publicacion: 'publicada' })
+      .eq('id', req.params.id)
+      .in('estado_publicacion', ['vendida', 'rentada'])
+      .select('id, estado_publicacion')
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return res.status(409).json({ error: 'La propiedad no está vendida/rentada' });
+    res.json(data);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // DELETE /:id — delete property
 router.delete('/:id', verificarPermiso('eliminar_propiedad'), async (req, res) => {
   try {

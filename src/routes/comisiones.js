@@ -45,6 +45,55 @@ async function _atomicTransition(id, expectedEstado, patch) {
 // ── CRM router (mounted under /api/comisiones, requires gerente+) ─────────────
 const router = express.Router();
 
+// GET /api/comisiones/kpis — agregados por estado y moneda, mes actual por pagada_at
+router.get('/kpis', async (req, res) => {
+  try {
+    const { data: rows, error } = await supabase
+      .from('comisiones')
+      .select('estado, moneda, monto_comision, pagada_at');
+    if (error) throw error;
+
+    const now   = new Date();
+    const mesYM = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+    const agg = {};
+    const ensure = (estado, moneda) => {
+      const k = estado + '.' + moneda;
+      if (!agg[k]) agg[k] = { estado, moneda, count: 0, total: 0 };
+      return agg[k];
+    };
+
+    let pendCobroVeCount = 0;
+    for (const r of (rows || [])) {
+      ensure(r.estado, r.moneda).count++;
+      ensure(r.estado, r.moneda).total += Number(r.monto_comision || 0);
+    }
+
+    // Cierres sin cobro VE confirmado
+    const { count: pendCobroVe } = await supabase
+      .from('cierres_propiedad')
+      .select('id', { count: 'exact', head: true })
+      .eq('cobro_ve_confirmado', false);
+
+    // Pagado este mes (usando pagada_at)
+    const mesRows = (rows || []).filter(
+      r => r.estado === 'pagada' && r.pagada_at && r.pagada_at.startsWith(mesYM)
+    );
+    const mesPorMoneda = {};
+    for (const r of mesRows) {
+      if (!mesPorMoneda[r.moneda]) mesPorMoneda[r.moneda] = { count: 0, total: 0 };
+      mesPorMoneda[r.moneda].count++;
+      mesPorMoneda[r.moneda].total += Number(r.monto_comision || 0);
+    }
+
+    res.json({
+      por_estado: Object.values(agg),
+      pagado_mes: mesPorMoneda,
+      pendiente_cobro_ve: pendCobroVe ?? 0,
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // GET /api/comisiones
 router.get('/', async (req, res) => {
   try {
@@ -112,7 +161,7 @@ router.get('/cierres', async (req, res) => {
     const from  = (Number(page) - 1) * limit;
     let q = supabase
       .from('cierres_propiedad')
-      .select('*, propiedades(id, direccion), agentes(id, nombre)')
+      .select('*, propiedades(id, nombre, direccion, estado_publicacion), agentes(id, nombre)')
       .order('id', { ascending: false })
       .range(from, from + limit - 1);
     if (propiedad_id) q = q.eq('propiedad_id', Number(propiedad_id));
@@ -187,7 +236,7 @@ router.get('/cierres/:id', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('cierres_propiedad')
-      .select('*, propiedades(id, direccion, comision_ve), agentes(id, nombre, email)')
+      .select('*, propiedades(id, nombre, direccion, comision_ve, estado_publicacion), agentes(id, nombre, email)')
       .eq('id', req.params.id)
       .maybeSingle();
     if (error) throw error;
