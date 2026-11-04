@@ -470,12 +470,13 @@
       #promo-tbody tr td:nth-child(4)::before{content:"Valor"}
       #promo-tbody tr td:nth-child(5)::before{content:"Vence"}
       #promo-tbody tr td:nth-child(6)::before{content:"Estado"}
-      /* Agentes (ID | Nombre | Email | Comisión | Estado | Acciones) */
+      /* Agentes (ID | Nombre | Email | Comisión | Estado | Código | Acciones) */
       #agentes-tbody tr td:nth-child(1)::before{content:"ID"}
       #agentes-tbody tr td:nth-child(2)::before{content:"Nombre"}
       #agentes-tbody tr td:nth-child(3)::before{content:"Email"}
       #agentes-tbody tr td:nth-child(4)::before{content:"Comisión"}
       #agentes-tbody tr td:nth-child(5)::before{content:"Estado"}
+      #agentes-tbody tr td:nth-child(6)::before{content:"Código"}
       /* Solicitudes de agente (ID | Nombre | Email | Banco | Cuenta | Titular | Estado | Código | Fecha | Acciones) */
       #solicitudes-agente-tbody tr td:nth-child(1)::before{content:"ID"}
       #solicitudes-agente-tbody tr td:nth-child(2)::before{content:"Nombre"}
@@ -1423,9 +1424,9 @@
           <button class="topbar-btn btn-primary" onclick="openAgenteModal()"><i class="fas fa-plus"></i> Nuevo Agente</button>
         </div>
         <table>
-          <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Comisión</th><th>Estado</th><th>Acciones</th></tr></thead>
+          <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Comisión</th><th>Estado</th><th>Código</th><th>Acciones</th></tr></thead>
           <tbody id="agentes-tbody">
-            <tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
+            <tr><td colspan="7" style="text-align:center;color:var(--gray);padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -2692,7 +2693,22 @@
         <textarea id="cot-notas" class="form-control" rows="3" placeholder="Condiciones especiales, notas para el cliente..."></textarea>
       </div>
 
-      <!-- S5: BOTONES -->
+      <!-- S5: PROPIEDAD Y COMISIÓN AGENTE -->
+      <div style="font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600;margin:1rem 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--border);">5 · PROPIEDAD Y COMISIÓN AGENTE</div>
+      <div class="form-row">
+        <div class="form-group" style="flex:2;">
+          <label class="form-label">Propiedad relacionada (opcional)</label>
+          <select id="cot-propiedad" class="form-control" style="font-size:.78rem;">
+            <option value="">— Sin propiedad —</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">% comisión agente (opcional, sobreescribe)</label>
+          <input type="number" id="cot-pct-agente" class="form-control" placeholder="—" min="0" max="100" step="0.01"/>
+        </div>
+      </div>
+
+      <!-- S6: BOTONES -->
       <div style="display:flex;gap:.6rem;margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--border);">
         <button class="topbar-btn btn-sec" onclick="verPreviaCotizacionPDF()" style="flex:1;justify-content:center;font-size:.72rem;"><i class="fas fa-file-pdf"></i> Vista Previa PDF</button>
         <button class="topbar-btn btn-primary" onclick="saveCotizacion()" style="flex:2;justify-content:center;" id="btn-guardar-cot"><i class="fas fa-save"></i> Guardar Cotización</button>
@@ -2727,15 +2743,63 @@
       <div class="form-group"><label class="form-label">Email *</label><input type="email" id="agt-email" class="form-control" placeholder="correo@ejemplo.com"/></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Comisión (%)</label><input type="number" id="agt-comision" class="form-control" placeholder="8" min="0" max="100"/></div>
+      <div class="form-group"><label class="form-label">Comisión por defecto (%)</label><input type="number" id="agt-comision" class="form-control" placeholder="8" min="0" max="100" step="0.01"/></div>
       <div class="form-group">
         <label class="form-label">Estado</label>
         <select id="agt-estado" class="form-control"><option>Activo</option><option>Inactivo</option></select>
       </div>
     </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Código (AGT-NNN)</label>
+        <input type="text" id="agt-codigo" class="form-control" placeholder="se genera automático" style="text-transform:uppercase;"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Usuario del portal</label>
+        <select id="agt-usuario-portal" class="form-control">
+          <option value="">— Sin vincular —</option>
+        </select>
+      </div>
+    </div>
+    <div id="agt-resumen-box" style="display:none;background:rgba(193,146,89,.07);border:1px solid rgba(193,146,89,.22);border-radius:4px;padding:.6rem .9rem;font-size:.74rem;margin-bottom:.7rem;line-height:1.7;"></div>
     <div class="modal-actions">
       <button class="topbar-btn btn-primary" onclick="saveAgente()" style="flex:1;justify-content:center;"><i class="fas fa-save"></i> Guardar</button>
       <button class="topbar-btn btn-sec" onclick="closeAgenteModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Crear comisión captación -->
+<div class="modal-overlay" id="captacionComisionModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-title"><i class="fas fa-hand-holding-usd" style="color:var(--gold);margin-right:.5rem;"></i>Comisión de Captación</div>
+    <input type="hidden" id="cap-cot-id"/>
+    <div id="cap-preview-box" style="margin:.8rem 0;"></div>
+    <div class="form-group" style="margin-top:.6rem;">
+      <label class="form-label">Agente captador (opcional — sobreescribe el de la propiedad)</label>
+      <select id="cap-agente-override" class="form-control">
+        <option value="">— Auto (desde propiedad) —</option>
+      </select>
+    </div>
+    <div id="cap-warning" style="display:none;" class="cierre-warn"></div>
+    <div class="modal-actions">
+      <button class="topbar-btn btn-primary" onclick="doCaptacion()" id="btn-do-captacion"><i class="fas fa-check"></i> Crear Comisión</button>
+      <button class="topbar-btn btn-sec" onclick="document.getElementById('captacionComisionModal').classList.remove('open')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Crear comisión referida -->
+<div class="modal-overlay" id="referidaComisionModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-title"><i class="fas fa-user-friends" style="color:var(--gold);margin-right:.5rem;"></i>Comisión de Referido</div>
+    <input type="hidden" id="ref-cot-id"/>
+    <input type="hidden" id="ref-agente-id"/>
+    <div id="ref-preview-box" style="margin:.8rem 0;"></div>
+    <div id="ref-warning" style="display:none;" class="cierre-warn"></div>
+    <div class="modal-actions">
+      <button class="topbar-btn btn-primary" onclick="doReferida()" id="btn-do-referida"><i class="fas fa-check"></i> Crear Comisión</button>
+      <button class="topbar-btn btn-sec" onclick="document.getElementById('referidaComisionModal').classList.remove('open')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -3932,7 +3996,7 @@
 
   /* ── COTIZACIONES ───────────────────────────────────────── */
   let _cotizacionesCache={}, _editCotizacionId=null, _cotizacionesServiciosLineas=[], _cotPreciosCache=[];
-  let _cotCliList=[], _cotLeadList=[], _cotMonedaAnterior='USD';
+  let _cotCliList=[], _cotLeadList=[], _cotMonedaAnterior='USD', _cotPropiedadesList=[];
 
   function enviarCotizacion(id){
     const c=_cotizacionesCache[id]; if(!c)return showToast('Cotización no encontrada en caché');
@@ -3981,24 +4045,30 @@
         const monto = convertirMoneda(Number(c.monto)||0,'USD',c.moneda||'USD');
         return c.monto ? sym+monto.toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—';
       };
-      tbody.innerHTML=items.map(c=>`<tr>
-        <td style="font-family:monospace;color:var(--gold);font-size:.72rem;">${cotCode(c)}</td>
-        <td><span class="td-bold">${cliName(c)}</span></td>
-        <td style="color:var(--gray);font-size:.72rem;">${c.canal||'—'}</td>
-        <td class="td-gold">${fmtM(c)}</td>
-        <td style="color:var(--gray);">${c.anticipo?((c.moneda==='GTQ'?'Q':'$')+Number(c.anticipo).toLocaleString()):'—'}</td>
-        <td style="color:var(--gray);font-size:.72rem;">${c.moneda||'USD'}</td>
-        <td><span class="badge ${BADGE[c.estado]||'badge-contact'}">${c.estado||'—'}</span></td>
-        <td style="color:var(--gray);font-size:.7rem;">${c.created_at?new Date(c.created_at).toLocaleDateString('es-GT'):'—'}</td>
-        <td><div class="action-btns">
-          <button class="act-btn" title="Detalle" onclick="verDetalleCotizacion(${c.id})"><i class="fas fa-eye"></i></button>
-          <button class="act-btn" title="Editar" onclick="editCotizacion(${c.id})"><i class="fas fa-pencil-alt"></i></button>
-          <button class="act-btn" title="${(c.estado==='enviada'||c.estado==='confirmada')?'Reenviar':'Enviar'}" style="color:#3ECF8E;" onclick="enviarCotizacion(${c.id})"><i class="fas fa-${(c.estado==='enviada'||c.estado==='confirmada')?'redo':'paper-plane'}"></i></button>
-          ${c.documento_url?`<a class="act-btn" href="${c.documento_url}" target="_blank" title="Descargar PDF" style="color:#E08080;"><i class="fas fa-file-pdf"></i></a>`:`<button class="act-btn" title="PDF no generado aún" style="opacity:.35;cursor:default;" disabled><i class="fas fa-file-pdf"></i></button>`}
-          ${c.estado!=='rechazada'?`<button class="act-btn" title="Rechazar" style="color:#E08080;" onclick="desaprobarCotizacion(${c.id})"><i class="fas fa-times"></i></button>`:''}
-          <button class="act-btn danger" onclick="deleteCotizacion(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
-        </div></td>
-      </tr>`).join('');
+      tbody.innerHTML=items.map(c=>{
+        const cliData = c.cliente_id ? _cotCliList.find(x=>String(x.id)===String(c.cliente_id)) : null;
+        const hasReferido = cliData?.referido_por_agente_id != null;
+        return `<tr>
+          <td style="font-family:monospace;color:var(--gold);font-size:.72rem;">${cotCode(c)}</td>
+          <td><span class="td-bold">${esc(cliName(c))}</span></td>
+          <td style="color:var(--gray);font-size:.72rem;">${esc(c.canal||'—')}</td>
+          <td class="td-gold">${fmtM(c)}</td>
+          <td style="color:var(--gray);">${c.anticipo?((c.moneda==='GTQ'?'Q':'$')+Number(c.anticipo).toLocaleString()):'—'}</td>
+          <td style="color:var(--gray);font-size:.72rem;">${esc(c.moneda||'USD')}</td>
+          <td><span class="badge ${BADGE[c.estado]||'badge-contact'}">${esc(c.estado||'—')}</span></td>
+          <td style="color:var(--gray);font-size:.7rem;">${c.created_at?new Date(c.created_at).toLocaleDateString('es-GT'):'—'}</td>
+          <td><div class="action-btns">
+            <button class="act-btn" title="Detalle" onclick="verDetalleCotizacion(${c.id})"><i class="fas fa-eye"></i></button>
+            <button class="act-btn" title="Editar" onclick="editCotizacion(${c.id})"><i class="fas fa-pencil-alt"></i></button>
+            <button class="act-btn" title="${(c.estado==='enviada'||c.estado==='confirmada')?'Reenviar':'Enviar'}" style="color:#3ECF8E;" onclick="enviarCotizacion(${c.id})"><i class="fas fa-${(c.estado==='enviada'||c.estado==='confirmada')?'redo':'paper-plane'}"></i></button>
+            ${c.documento_url?`<a class="act-btn" href="${c.documento_url}" target="_blank" title="Descargar PDF" style="color:#E08080;"><i class="fas fa-file-pdf"></i></a>`:`<button class="act-btn" title="PDF no generado aún" style="opacity:.35;cursor:default;" disabled><i class="fas fa-file-pdf"></i></button>`}
+            ${c.estado==='confirmada'&&c.propiedad_id?`<button class="act-btn" title="Crear comisión captación" style="color:#C1925A;" onclick="openCaptacionModal(${c.id})"><i class="fas fa-hand-holding-usd"></i></button>`:''}
+            ${c.estado==='confirmada'&&hasReferido?`<button class="act-btn" title="Crear comisión referida" style="color:#9B72CF;" onclick="openReferidaModal(${c.id})"><i class="fas fa-user-friends"></i></button>`:''}
+            ${c.estado!=='rechazada'?`<button class="act-btn" title="Rechazar" style="color:#E08080;" onclick="desaprobarCotizacion(${c.id})"><i class="fas fa-times"></i></button>`:''}
+            <button class="act-btn danger" onclick="deleteCotizacion(${c.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
+          </div></td>
+        </tr>`;
+      }).join('');
     }catch(e){tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
   }
 
@@ -4019,6 +4089,16 @@
       const activos=items.filter(l=>l.estado!=='Ganado'&&l.estado!=='Perdido');
       sel.innerHTML='<option value="">— Sin lead —</option>'+activos.map(l=>`<option value="${l.id}">${capitalizarNombre(l.nombre)}${l.empresa?' ('+l.empresa+')':''}</option>`).join('');
     }catch(e){sel.innerHTML='<option value="">Error cargando leads</option>';}
+  }
+
+  async function cargarPropiedadesCot(){
+    const sel=document.getElementById('cot-propiedad'); if(!sel)return;
+    try{
+      const items=await apiFetch('/api/propiedades');
+      _cotPropiedadesList=Array.isArray(items)?items:[];
+      sel.innerHTML='<option value="">— Sin propiedad —</option>'+
+        _cotPropiedadesList.map(p=>`<option value="${p.id}">${esc(p.nombre||p.direccion||'Prop #'+p.id)} (${esc(p.estado_publicacion||'')})</option>`).join('');
+    }catch(e){sel.innerHTML='<option value="">Error cargando propiedades</option>';}
   }
 
   async function cargarPreciosCot(){
@@ -4050,9 +4130,11 @@
     document.getElementById('cot-desc-tipo').value='porcentaje';
     document.getElementById('cot-anticipo-pct').value='50';
     ['cot-ubic-calle','cot-ubic-zona','cot-ubic-ciudad'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    const ppEl=document.getElementById('cot-pct-agente'); if(ppEl)ppEl.value='';
+    const propEl=document.getElementById('cot-propiedad'); if(propEl)propEl.value='';
     renderServiciosTabla();
     recalcularTotalesCot();
-    await Promise.all([cargarClientesCot(),cargarLeadsCot(),cargarPreciosCot(),cargarCodigoSiguienteCot()]);
+    await Promise.all([cargarClientesCot(),cargarLeadsCot(),cargarPreciosCot(),cargarCodigoSiguienteCot(),cargarPropiedadesCot()]);
     document.getElementById('cot-cli-info').style.display='none';
   }
 
@@ -4473,6 +4555,8 @@
     if(zonaEl)  zonaEl.value=c.ubicacion_zona||det.ubicacion_zona||'';
     if(ciudadEl) ciudadEl.value=c.ubicacion_ciudad||det.ubicacion_ciudad||'Guatemala';
     if(c.anticipo&&c.monto){ const pct=Math.round((c.anticipo/c.monto)*100); document.getElementById('cot-anticipo-pct').value=pct; }
+    const ppEl=document.getElementById('cot-pct-agente'); if(ppEl)ppEl.value=c.pct_agente!=null?c.pct_agente:'';
+    const propEl=document.getElementById('cot-propiedad'); if(propEl&&c.propiedad_id)propEl.value=c.propiedad_id;
     renderServiciosTabla();
     recalcularTotalesCot();
     mostrarInfoCotCliente();
@@ -4533,6 +4617,8 @@
       ubicacion_completa:ubCompleta||null,
       notas:document.getElementById('cot-notas').value||null
     };
+    const pctAgenteVal=document.getElementById('cot-pct-agente')?.value;
+    const propiedadVal=document.getElementById('cot-propiedad')?.value;
     const payload={
       cliente_id:document.getElementById('cot-cli-select').value||null,
       lead_id:document.getElementById('cot-lead-select').value||null,
@@ -4545,6 +4631,8 @@
       ubicacion_zona:ubZona||null,
       ubicacion_ciudad:ubCiudad||null,
       ubicacion_completa:ubCompleta||null,
+      propiedad_id:propiedadVal?Number(propiedadVal):null,
+      pct_agente:pctAgenteVal!==''&&pctAgenteVal!=null?Number(pctAgenteVal):null,
       detalles_json
     };
     const btn=document.getElementById('btn-guardar-cot');
@@ -4577,6 +4665,175 @@
   function copiarLinkCotizacion(){
     const txt=document.getElementById('cot-link-texto').textContent;
     navigator.clipboard.writeText(txt).then(()=>showToast('Link copiado')).catch(()=>showToast('No se pudo copiar'));
+  }
+
+  /* ── Comisión de captación ── */
+  async function openCaptacionModal(cotId){
+    const c=_cotizacionesCache[cotId]; if(!c) return showToast('Cotización no encontrada');
+    document.getElementById('cap-cot-id').value=cotId;
+    document.getElementById('cap-warning').style.display='none';
+    document.getElementById('btn-do-captacion').disabled=false;
+    const previewBox=document.getElementById('cap-preview-box');
+    previewBox.innerHTML='<div style="color:var(--gray);font-size:.75rem;"><i class="fas fa-spinner fa-spin"></i> Calculando...</div>';
+    document.getElementById('captacionComisionModal').classList.add('open');
+
+    try{
+      // Check for existing commission
+      const existing=await apiFetch('/api/comisiones?tipo=captacion_escaneo&cotizacion_id='+cotId);
+      if(existing.length){
+        previewBox.innerHTML='<div class="cierre-warn">Ya existe una comisión de captación para esta cotización.</div>';
+        document.getElementById('btn-do-captacion').disabled=true;
+        return;
+      }
+
+      const dj=c.detalles_json||{};
+      const subtotal=Number(dj.subtotal||0);
+      if(!subtotal){
+        previewBox.innerHTML='<div class="cierre-warn">La cotización no tiene subtotal calculado (detalles_json.subtotal). Guarda la cotización con al menos un servicio primero.</div>';
+        document.getElementById('btn-do-captacion').disabled=true;
+        return;
+      }
+
+      // Load global pct
+      const cfg=await apiFetch('/api/config/public').catch(()=>[]);
+      const globalPct=(()=>{const g=Array.isArray(cfg)?cfg.find(x=>x.clave==='comision_global_pct'):null;return g?Number(g.valor):null;})();
+
+      // Load propiedad for pct_captador and agente_responsable_id
+      let prop=null;
+      if(c.propiedad_id) prop=await apiFetch('/api/propiedades/'+c.propiedad_id).catch(()=>null);
+
+      // Find agente from propiedad
+      const agenteId=prop?.agente_responsable_id;
+      let agente=agenteId ? (_agentesCache[agenteId]||await apiFetch('/api/agentes/'+agenteId).catch(()=>null)) : null;
+
+      // Populate override select
+      const selAgt=document.getElementById('cap-agente-override');
+      selAgt.innerHTML=`<option value="">— Auto (desde propiedad${agente?': '+esc(agente.nombre):''}) —</option>`+
+        Object.values(_agentesCache).map(a=>`<option value="${a.id}">${esc(a.nombre||'Agente #'+a.id)}</option>`).join('');
+
+      // Compute cascade for preview
+      const cotPct=c.pct_agente!=null?Number(c.pct_agente):null;
+      const propPct=prop?.pct_captador!=null?Number(prop.pct_captador):null;
+      const agtPct=agente?.comision!=null?Number(agente.comision):null;
+
+      let pct=null, origen='';
+      if(cotPct!=null){pct=cotPct;origen='cotización (pct_agente)';}
+      else if(propPct!=null){pct=propPct;origen='propiedad (pct_captador)';}
+      else if(agtPct!=null){pct=agtPct;origen='agente (comisión por defecto)';}
+      else if(globalPct!=null){pct=globalPct;origen='global';}
+
+      const mon=c.moneda||'USD';
+      if(pct==null){
+        previewBox.innerHTML=`<div class="cierre-warn">No se pudo resolver el porcentaje — ningún nivel de la cascada (cotización, propiedad, agente, global) tiene valor.</div>`;
+      } else {
+        const monto=subtotal*pct/100;
+        previewBox.innerHTML=`<div class="com-preview-box">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <span style="color:var(--gray);font-size:.72rem;">Comisión estimada</span>
+            <span class="big">${fmtMoney(monto,mon)}</span>
+          </div>
+          <div style="font-size:.7rem;color:var(--gray);margin-top:.35rem;">${pct}% de ${fmtMoney(subtotal,mon)} (subtotal sin IVA) · origen: ${esc(origen)}</div>
+          ${!c.propiedad_id?'<div style="font-size:.7rem;color:#F0C040;margin-top:.35rem;">Sin propiedad vinculada — el agente no se puede resolver automáticamente; selecciona uno manualmente.</div>':''}
+        </div>`;
+      }
+    }catch(e){
+      previewBox.innerHTML=`<div style="color:#E08080;font-size:.75rem;">Error al calcular: ${esc(e.message)}</div>`;
+    }
+  }
+
+  async function doCaptacion(){
+    const cotId=document.getElementById('cap-cot-id').value;
+    const agenteOv=document.getElementById('cap-agente-override').value;
+    const btn=document.getElementById('btn-do-captacion');
+    btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';
+    try{
+      const body={cotizacion_id:Number(cotId)};
+      if(agenteOv) body.agente_id=Number(agenteOv);
+      await apiFetch('/api/comisiones/captacion',{method:'POST',body:JSON.stringify(body)});
+      document.getElementById('captacionComisionModal').classList.remove('open');
+      showToast('✅ Comisión de captación creada');
+      loadCotizaciones();
+    }catch(e){
+      showToast('Error: '+e.message);
+      btn.disabled=false; btn.innerHTML='<i class="fas fa-check"></i> Crear Comisión';
+    }
+  }
+
+  /* ── Comisión de referido ── */
+  async function openReferidaModal(cotId){
+    const c=_cotizacionesCache[cotId]; if(!c) return showToast('Cotización no encontrada');
+    const cliData=c.cliente_id?_cotCliList.find(x=>String(x.id)===String(c.cliente_id)):null;
+    const refAgenteId=cliData?.referido_por_agente_id;
+    if(!refAgenteId) return showToast('El cliente no tiene agente referidor vinculado (referido_por_agente_id)');
+
+    document.getElementById('ref-cot-id').value=cotId;
+    document.getElementById('ref-agente-id').value=refAgenteId;
+    document.getElementById('ref-warning').style.display='none';
+    document.getElementById('btn-do-referida').disabled=false;
+    const previewBox=document.getElementById('ref-preview-box');
+    previewBox.innerHTML='<div style="color:var(--gray);font-size:.75rem;"><i class="fas fa-spinner fa-spin"></i> Calculando...</div>';
+    document.getElementById('referidaComisionModal').classList.add('open');
+
+    try{
+      // Check for existing commission
+      const existing=await apiFetch('/api/comisiones?tipo=cotizacion_referida&cotizacion_id='+cotId);
+      if(existing.length){
+        previewBox.innerHTML='<div class="cierre-warn">Ya existe una comisión de referido para esta cotización.</div>';
+        document.getElementById('btn-do-referida').disabled=true;
+        return;
+      }
+
+      const dj=c.detalles_json||{};
+      const subtotal=Number(dj.subtotal||0);
+      if(!subtotal){
+        previewBox.innerHTML='<div class="cierre-warn">La cotización no tiene subtotal calculado.</div>';
+        document.getElementById('btn-do-referida').disabled=true;
+        return;
+      }
+
+      const cfg=await apiFetch('/api/config/public').catch(()=>[]);
+      const globalPct=(()=>{const g=Array.isArray(cfg)?cfg.find(x=>x.clave==='comision_global_pct'):null;return g?Number(g.valor):null;})();
+
+      const agente=_agentesCache[refAgenteId]||await apiFetch('/api/agentes/'+refAgenteId).catch(()=>null);
+      if(!agente) return;
+
+      const cotPct=c.pct_agente!=null?Number(c.pct_agente):null;
+      const agtPct=agente.comision!=null?Number(agente.comision):null;
+      let pct=null, origen='';
+      if(cotPct!=null){pct=cotPct;origen='cotización (pct_agente)';}
+      else if(agtPct!=null){pct=agtPct;origen='agente (comisión por defecto)';}
+      else if(globalPct!=null){pct=globalPct;origen='global';}
+
+      const mon=c.moneda||'USD';
+      previewBox.innerHTML=`<div class="com-preview-box">
+        <div style="font-size:.72rem;color:var(--gray);margin-bottom:.4rem;">Agente referidor: <b style="color:var(--text);">${esc(agente.nombre||'—')}</b></div>
+        ${pct!=null?`
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <span style="color:var(--gray);font-size:.72rem;">Comisión estimada</span>
+            <span class="big">${fmtMoney(subtotal*pct/100,mon)}</span>
+          </div>
+          <div style="font-size:.7rem;color:var(--gray);margin-top:.35rem;">${pct}% de ${fmtMoney(subtotal,mon)} (subtotal sin IVA) · origen: ${esc(origen)}</div>
+        `:`<div class="cierre-warn" style="margin-top:.5rem;">No se pudo resolver el porcentaje — ningún nivel de la cascada tiene valor.</div>`}
+      </div>`;
+    }catch(e){
+      previewBox.innerHTML=`<div style="color:#E08080;font-size:.75rem;">Error al calcular: ${esc(e.message)}</div>`;
+    }
+  }
+
+  async function doReferida(){
+    const cotId=document.getElementById('ref-cot-id').value;
+    const agenteId=document.getElementById('ref-agente-id').value;
+    const btn=document.getElementById('btn-do-referida');
+    btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';
+    try{
+      await apiFetch('/api/comisiones/referida',{method:'POST',body:JSON.stringify({cotizacion_id:Number(cotId),agente_id:Number(agenteId)})});
+      document.getElementById('referidaComisionModal').classList.remove('open');
+      showToast('✅ Comisión de referido creada');
+      loadCotizaciones();
+    }catch(e){
+      showToast('Error: '+e.message);
+      btn.disabled=false; btn.innerHTML='<i class="fas fa-check"></i> Crear Comisión';
+    }
   }
 
   function verDetalleCotizacion(id){
@@ -4783,26 +5040,37 @@
   async function loadAgentes(){
     const tbody=document.getElementById('agentes-tbody');
     if(!tbody)return;
-    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
+    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:1.5rem;"><i class="fas fa-spinner fa-spin"></i> Cargando...</td></tr>';
     try{
-      const items=await apiFetch('/api/agentes');
+      const [items, portalUsers] = await Promise.all([
+        apiFetch('/api/agentes'),
+        apiFetch('/api/agentes/usuarios-portal').catch(()=>[]),
+      ]);
       _agentesCache={}; items.forEach(a=>_agentesCache[a.id]=a);
+      const portalByAgente={};
+      for(const u of portalUsers) if(u.agente_id) portalByAgente[u.agente_id]=u;
       const elActivos=document.getElementById('kpi-agt-activos'); if(elActivos) elActivos.textContent=items.filter(a=>a.estado==='Activo').length;
       const elTotal=document.getElementById('kpi-agt-total'); if(elTotal) elTotal.textContent=items.length;
-      if(!items.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:2rem;">No hay agentes. ¡Crea el primero!</td></tr>';return;}
+      if(!items.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--gray);padding:2rem;">No hay agentes. ¡Crea el primero!</td></tr>';return;}
       const BADGE={'Activo':'badge-active','Inactivo':'badge-lost'};
-      tbody.innerHTML=items.map(a=>`<tr>
-        <td style="color:var(--gray);font-size:.72rem;">${a.id}</td>
-        <td class="td-bold">${a.nombre||'—'}</td>
-        <td style="color:var(--gray);">${a.email||'—'}</td>
-        <td class="td-gold">${a.comision!=null?a.comision+'%':'—'}</td>
-        <td><span class="badge ${BADGE[a.estado]||'badge-active'}">${a.estado||'—'}</span></td>
-        <td><div class="action-btns">
-          <button class="act-btn" title="Editar" onclick="editAgente(${a.id})"><i class="fas fa-pencil-alt"></i></button>
-          <button class="act-btn danger" onclick="deleteAgente(${a.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
-        </div></td>
-      </tr>`).join('');
-    }catch(e){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:#E08080;padding:2rem;">Error: ${e.message}</td></tr>`;}
+      tbody.innerHTML=items.map(a=>{
+        const pu=portalByAgente[a.id];
+        return `<tr>
+          <td style="color:var(--gray);font-size:.72rem;">${a.id}</td>
+          <td class="td-bold">${esc(a.nombre||'—')}${pu?`<div style="font-size:.62rem;color:var(--gold);margin-top:.12rem;"><i class="fas fa-user-circle"></i> ${esc(pu.nombre||pu.email)}</div>`:''}
+          </td>
+          <td style="color:var(--gray);">${esc(a.email||'—')}</td>
+          <td class="td-gold">${a.comision!=null?a.comision+'%':'<span style="color:var(--gray);font-size:.7rem;">Global</span>'}</td>
+          <td><span class="badge ${BADGE[a.estado]||'badge-active'}">${esc(a.estado||'—')}</span></td>
+          <td style="font-family:monospace;font-size:.72rem;color:var(--gold);">${esc(a.codigo||'—')}</td>
+          <td><div class="action-btns">
+            <button class="act-btn" title="Editar" onclick="editAgente(${a.id})"><i class="fas fa-pencil-alt"></i></button>
+            <button class="act-btn" title="Ver comisiones" style="color:#C1925A;" onclick="irComisionesAgente(${a.id})"><i class="fas fa-dollar-sign"></i></button>
+            <button class="act-btn danger" onclick="deleteAgente(${a.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
+          </div></td>
+        </tr>`;
+      }).join('');
+    }catch(e){tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;color:#E08080;padding:2rem;">Error: ${esc(e.message)}</td></tr>`;}
   }
   function editAgente(id){
     const a=_agentesCache[id]; if(!a)return;
@@ -4811,7 +5079,11 @@
     document.getElementById('agt-email').value=a.email||'';
     document.getElementById('agt-comision').value=a.comision!=null?a.comision:'';
     document.getElementById('agt-estado').value=a.estado||'Activo';
+    document.getElementById('agt-codigo').value=a.codigo||'';
+    document.getElementById('agt-resumen-box').style.display='none';
     const t=document.getElementById('modal-agente-title'); if(t)t.textContent='Editar Agente #'+id;
+    _cargarUsuariosPortalSelect(a.usuario_id);
+    _cargarResumenAgente(id);
     document.getElementById('agenteModal').classList.add('open');
   }
   async function deleteAgente(id){
@@ -4824,18 +5096,32 @@
     const t=document.getElementById('modal-agente-title'); if(t)t.textContent='Nuevo Agente';
     const comEl=document.getElementById('agt-comision');
     if(comEl && !comEl.value) comEl.value = getComisionGlobal();
+    document.getElementById('agt-codigo').value='';
+    document.getElementById('agt-resumen-box').style.display='none';
+    _cargarUsuariosPortalSelect(null);
     document.getElementById('agenteModal').classList.add('open');
   }
   function closeAgenteModal(){
     _editAgenteId=null;
     document.getElementById('agenteModal').classList.remove('open');
-    ['agt-nombre','agt-email','agt-comision'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    ['agt-nombre','agt-email','agt-comision','agt-codigo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    const spEl=document.getElementById('agt-usuario-portal'); if(spEl)spEl.value='';
+    const rb=document.getElementById('agt-resumen-box'); if(rb)rb.style.display='none';
   }
   async function saveAgente(){
     const nombre=document.getElementById('agt-nombre').value.trim();
     const email=document.getElementById('agt-email').value.trim();
     if(!nombre||!email){showToast('Nombre y email son requeridos');return;}
-    const payload={nombre,email,comision:Number(document.getElementById('agt-comision').value)||0,estado:document.getElementById('agt-estado').value};
+    const comisionVal=document.getElementById('agt-comision').value;
+    const codigoVal=document.getElementById('agt-codigo').value.trim().toUpperCase()||undefined;
+    const portalVal=document.getElementById('agt-usuario-portal').value;
+    const payload={
+      nombre, email,
+      comision: comisionVal!==''&&comisionVal!=null?Number(comisionVal):null,
+      estado: document.getElementById('agt-estado').value,
+      codigo: codigoVal||undefined,
+      usuario_id: portalVal?Number(portalVal):null,
+    };
     try{
       if(_editAgenteId){
         await apiFetch('/api/agentes/'+_editAgenteId,{method:'PUT',body:JSON.stringify(payload)});
@@ -4846,6 +5132,52 @@
       }
       closeAgenteModal();loadAgentes();
     }catch(e){showToast('Error: '+e.message);}
+  }
+
+  async function _cargarUsuariosPortalSelect(currentUsuarioId){
+    const sel=document.getElementById('agt-usuario-portal'); if(!sel)return;
+    sel.innerHTML='<option value="">— Sin vincular —</option>';
+    try{
+      const users=await apiFetch('/api/agentes/usuarios-portal');
+      for(const u of users){
+        const isLinked=u.agente_id!=null && String(u.agente_id)!==String(_editAgenteId);
+        const opt=document.createElement('option');
+        opt.value=u.id;
+        opt.textContent=`${u.nombre||'Usuario #'+u.id} — ${u.email}${isLinked?' (vinculado)':''}`;
+        if(isLinked) opt.disabled=true;
+        if(String(u.id)===String(currentUsuarioId)) opt.selected=true;
+        sel.appendChild(opt);
+      }
+    }catch(e){ sel.innerHTML='<option value="">Error cargando usuarios</option>'; }
+  }
+
+  async function _cargarResumenAgente(id){
+    const box=document.getElementById('agt-resumen-box'); if(!box)return;
+    box.style.display='none';
+    try{
+      const rows=await apiFetch('/api/agentes/'+id+'/resumen');
+      if(!rows.length)return;
+      const byMon={};
+      for(const r of rows){
+        if(!byMon[r.moneda]) byMon[r.moneda]={pend:0,pp:0,pag:0};
+        const g=byMon[r.moneda];
+        if(r.estado==='no_validada'||r.estado==='pendiente') g.pend+=r.total;
+        else if(r.estado==='por_pagar') g.pp+=r.total;
+        else if(r.estado==='pagada') g.pag+=r.total;
+      }
+      box.innerHTML='<div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:var(--gold);font-weight:600;margin-bottom:.35rem;">Comisiones</div>'+
+        Object.entries(byMon).map(([mon,v])=>
+          `<div>${mon}: <span style="color:#F0C040;">Pend ${fmtMoney(v.pend,mon)}</span> · <span style="color:#6EAAFF;">P/Pagar ${fmtMoney(v.pp,mon)}</span> · <span style="color:#5AE08A;">Pagado ${fmtMoney(v.pag,mon)}</span></div>`
+        ).join('');
+      box.style.display='';
+    }catch(e){}
+  }
+
+  function irComisionesAgente(agtId){
+    const navEl=document.getElementById('nav-comisiones');
+    showView('comisiones', navEl||document.querySelector('[onclick*="comisiones"]'));
+    const filtAgt=document.getElementById('com-filter-agente');
+    if(filtAgt){ filtAgt.value=agtId; loadComisiones(1); }
   }
 
   /* ── SOLICITUDES DE AGENTE ──────────────────────────────── */
@@ -5367,7 +5699,8 @@
       if(e.target===this) cerrarFormPropiedad();
     });
     ['clienteModal','proyectoModal','cotizacionModal','agenteModal','permisoModal','usuarioModal','constructorModal',
-     'comValidarModal','comPorPagarModal','comPagarModal','comRechazarModal','comRevertirModal','cierreCobroModal','reactivarPropModal'].forEach(id=>{
+     'comValidarModal','comPorPagarModal','comPagarModal','comRechazarModal','comRevertirModal','cierreCobroModal','reactivarPropModal',
+     'captacionComisionModal','referidaComisionModal'].forEach(id=>{
       const el=document.getElementById(id);
       if(el) el.addEventListener('click',function(e){if(e.target===this) this.classList.remove('open');});
     });

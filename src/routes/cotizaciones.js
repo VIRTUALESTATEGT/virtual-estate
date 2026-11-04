@@ -66,7 +66,16 @@ router.post('/', async (req, res) => {
       tipo_servicio, canal, moneda,
       detalles_json,
       ubicacion_calle, ubicacion_zona, ubicacion_ciudad, ubicacion_completa,
+      propiedad_id, pct_agente,
     } = req.body;
+
+    if (pct_agente != null && (Number(pct_agente) < 0 || Number(pct_agente) > 100))
+      return res.status(400).json({ error: 'pct_agente debe estar entre 0 y 100' });
+
+    if (propiedad_id) {
+      const { data: prop } = await supabase.from('propiedades').select('id').eq('id', propiedad_id).maybeSingle();
+      if (!prop) return res.status(400).json({ error: `Propiedad ${propiedad_id} no encontrada` });
+    }
 
     const insert = {
       cliente_id:         cliente_id || null,
@@ -83,6 +92,8 @@ router.post('/', async (req, res) => {
       ubicacion_zona:     ubicacion_zona || null,
       ubicacion_ciudad:   ubicacion_ciudad || null,
       ubicacion_completa: ubicacion_completa || null,
+      propiedad_id:       propiedad_id || null,
+      pct_agente:         pct_agente != null ? Number(pct_agente) : null,
     };
 
     const { data: inserted, error } = await supabase
@@ -117,7 +128,16 @@ router.put('/:id', async (req, res) => {
       tipo_servicio, canal, moneda,
       detalles_json,
       ubicacion_calle, ubicacion_zona, ubicacion_ciudad, ubicacion_completa,
+      propiedad_id, pct_agente,
     } = req.body;
+
+    if (pct_agente !== undefined && pct_agente != null && (Number(pct_agente) < 0 || Number(pct_agente) > 100))
+      return res.status(400).json({ error: 'pct_agente debe estar entre 0 y 100' });
+
+    if (propiedad_id !== undefined && propiedad_id) {
+      const { data: prop } = await supabase.from('propiedades').select('id').eq('id', propiedad_id).maybeSingle();
+      if (!prop) return res.status(400).json({ error: `Propiedad ${propiedad_id} no encontrada` });
+    }
 
     const update = { cliente_id, proyecto_id, monto, anticipo, estado };
     if (lead_id            !== undefined) update.lead_id            = lead_id;
@@ -132,6 +152,8 @@ router.put('/:id', async (req, res) => {
     if (ubicacion_zona     !== undefined) update.ubicacion_zona     = ubicacion_zona;
     if (ubicacion_ciudad   !== undefined) update.ubicacion_ciudad   = ubicacion_ciudad;
     if (ubicacion_completa !== undefined) update.ubicacion_completa = ubicacion_completa;
+    if (propiedad_id       !== undefined) update.propiedad_id       = propiedad_id || null;
+    if (pct_agente         !== undefined) update.pct_agente         = pct_agente != null ? Number(pct_agente) : null;
 
     // [DIAG] Log para diagnosticar documento_url
     console.log('[PUT cot] id:', req.params.id, '| detalles_json presente:', detalles_json !== undefined);

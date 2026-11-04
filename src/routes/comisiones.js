@@ -97,7 +97,7 @@ router.get('/kpis', async (req, res) => {
 // GET /api/comisiones
 router.get('/', async (req, res) => {
   try {
-    const { estado, tipo, agente_id, page = 1, limit: rawLimit = 50 } = req.query;
+    const { estado, tipo, agente_id, cotizacion_id, page = 1, limit: rawLimit = 50 } = req.query;
     const limit = Math.min(Number(rawLimit), 100);
     const from  = (Number(page) - 1) * limit;
     let q = supabase
@@ -114,9 +114,10 @@ router.get('/', async (req, res) => {
       .order('id', { ascending: false })
       .range(from, from + limit - 1);
 
-    if (estado)    q = q.eq('estado', estado);
-    if (tipo)      q = q.eq('tipo', tipo);
-    if (agente_id) q = q.eq('agente_id', Number(agente_id));
+    if (estado)       q = q.eq('estado', estado);
+    if (tipo)         q = q.eq('tipo', tipo);
+    if (agente_id)    q = q.eq('agente_id', Number(agente_id));
+    if (cotizacion_id) q = q.eq('cotizacion_id', Number(cotizacion_id));
 
     const { data, error } = await q;
     if (error) throw error;
