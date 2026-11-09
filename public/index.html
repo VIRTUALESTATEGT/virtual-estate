@@ -812,11 +812,21 @@
     </p>
     <div style="position:relative;width:100%;padding-bottom:56.25%;border-radius:var(--r,6px);overflow:hidden;background:#0a0a0a;box-shadow:0 8px 40px rgba(0,0,0,.55);">
       <iframe id="tour-iframe"
-        src=""
+        src="about:blank"
         allow="xr-spatial-tracking"
         style="position:absolute;inset:0;width:100%;height:100%;border:none;"
         loading="lazy">
       </iframe>
+      <div id="tour-home-poster" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="startHomeTour()">
+        <div style="position:absolute;inset:0;background:rgba(10,10,10,.92);"></div>
+        <div style="position:relative;z-index:1;text-align:center;padding:1rem;">
+          <img src="/media/logo-ve-blanco.png" alt="Virtual Estate" style="width:140px;height:auto;opacity:.85;display:block;margin:0 auto 1.6rem;">
+          <i class="fas fa-vr-cardboard" style="font-size:2.5rem;color:var(--gold);display:block;margin-bottom:1rem;"></i>
+          <button class="btn btn-gold" style="pointer-events:none;font-size:.7rem;">
+            <i class="fas fa-play-circle"></i> Iniciar recorrido 3D
+          </button>
+        </div>
+      </div>
     </div>
     <p style="text-align:center;margin-top:1.2rem;font-size:.72rem;color:var(--gray);">
       <i class="fas fa-expand-arrows-alt" style="color:var(--gold);margin-right:.35rem;"></i>Usá el botón de pantalla completa para una experiencia inmersiva completa.
@@ -1756,18 +1766,45 @@ document.querySelectorAll('.js-vid').forEach(v=>vidObs.observe(v));
     const r = await fetch('/api/config/public');
     if (!r.ok) return;
     const cfg = await r.json();
-    const url = (cfg.tour_demo_url || '').trim();
-    if (!url) return;
+    const raw = (cfg.tour_demo_url || '').trim();
+    if (!raw) return;
+    try {
+      const u = new URL(raw);
+      if (u.protocol !== 'https:') return;
+      const h = u.hostname;
+      if (h !== 'my.matterport.com' && h !== 'matterport.com') return;
+      if (!u.pathname.startsWith('/show')) return;
+    } catch { return; }
+    window._homeTourUrl = raw;
     const sec = document.getElementById('tour-virtual');
-    const fr  = document.getElementById('tour-iframe');
-    if (!sec || !fr) return;
-    const _u = new URL(url); _u.searchParams.set('nt', '1');
-    fr.src = _u.toString();
+    if (!sec) return;
     sec.style.display = '';
-    if (window.veWrapTour) veWrapTour(fr);
     obs.observe(sec.querySelector('.reveal'));
   } catch {}
 })();
+
+function startHomeTour() {
+  const url = window._homeTourUrl;
+  if (!url) return;
+  const poster = document.getElementById('tour-home-poster');
+  const fr     = document.getElementById('tour-iframe');
+  if (!fr) return;
+  if (poster) poster.style.display = 'none';
+  if (window.veWrapTour) veWrapTour(fr, {
+    startFullOnMobile: true,
+    onMobileExit: function () {
+      /* fully unwrap so next tap re-wraps and re-enters fullscreen cleanly */
+      var vf = fr.closest ? fr.closest('.ve-tour-frame') : null;
+      if (vf && window.veUnwrapTour) veUnwrapTour(vf);
+      fr.src = 'about:blank';
+      if (poster) poster.style.display = 'flex';
+    },
+  });
+  const _u = new URL(url);
+  _u.searchParams.set('nt', '1');
+  _u.searchParams.set('play', '1');
+  fr.src = _u.toString();
+}
 
 /* ── REAL ESTATE PREVIEW ─────────────────────────────── */
 (async function loadPreview() {

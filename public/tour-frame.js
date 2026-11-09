@@ -50,6 +50,16 @@
   var _iosCloseBtn = null;
 
   function _iosEnter(frame, stage) {
+    /* Move frame to document.body to escape any transform-containing ancestor.
+       CSS position:fixed is relative to the nearest transformed ancestor, not the
+       viewport, so a parent with transform:translateY(0) would confine the frame. */
+    if (!frame._vePlaceholder) {
+      var ph = document.createComment('ve-tour-ph');
+      frame.parentNode.insertBefore(ph, frame);
+      frame._vePlaceholder = ph;
+      document.body.appendChild(frame);
+    }
+
     frame.classList.add('ve-tour-ios-full');
     document.body.style.overflow = 'hidden';
 
@@ -81,11 +91,24 @@
 
   function _iosExit(frame, stage) {
     frame.classList.remove('ve-tour-ios-full');
+    /* restore frame to its original DOM position using the saved placeholder */
+    if (frame._vePlaceholder) {
+      var ph = frame._vePlaceholder;
+      ph.parentNode.insertBefore(frame, ph);
+      ph.parentNode.removeChild(ph);
+      frame._vePlaceholder = null;
+    }
     document.body.style.overflow = '';
     if (_iosCloseBtn && _iosCloseBtn.parentNode) _iosCloseBtn.parentNode.removeChild(_iosCloseBtn);
     if (frame._iosEscHandler) {
       document.removeEventListener('keydown', frame._iosEscHandler);
       frame._iosEscHandler = null;
+    }
+    /* fire caller-supplied callback (e.g. destroy iframe and restore poster) */
+    if (typeof frame._veOnMobileExit === 'function') {
+      var cb = frame._veOnMobileExit;
+      frame._veOnMobileExit = null;
+      cb();
     }
   }
 
@@ -195,11 +218,27 @@
     /* run all stored cleanup (fs listeners + wm observer) */
     if (typeof frame._veCleanup === 'function') frame._veCleanup();
 
+    /* disarm mobile-exit callback to prevent re-entry if called from outside _iosExit */
+    frame._veOnMobileExit = null;
+
     /* exit iOS fullscreen if still active */
     if (frame.classList.contains('ve-tour-ios-full')) {
       frame.classList.remove('ve-tour-ios-full');
       document.body.style.overflow = '';
       if (_iosCloseBtn && _iosCloseBtn.parentNode) _iosCloseBtn.parentNode.removeChild(_iosCloseBtn);
+      if (frame._iosEscHandler) {
+        document.removeEventListener('keydown', frame._iosEscHandler);
+        frame._iosEscHandler = null;
+      }
+    }
+
+    /* if frame was moved to body to escape a transform ancestor, restore it first
+       so the subsequent stageEl re-insertion goes back to the correct parent */
+    if (frame._vePlaceholder) {
+      var ph = frame._vePlaceholder;
+      ph.parentNode.insertBefore(frame, ph);
+      ph.parentNode.removeChild(ph);
+      frame._vePlaceholder = null;
     }
 
     var stageEl = frame.querySelector('[data-ve-stage]');
@@ -222,8 +261,9 @@
   };
 
   /* ── veWrapTour ───────────────────────────────────────────────────────── */
-  window.veWrapTour = function (iframe) {
+  window.veWrapTour = function (iframe, opts) {
     if (!iframe || iframe.dataset.veWrapped) return;
+    opts = opts || {};
     iframe.dataset.veWrapped = '1';
 
     /* strip native fullscreen capability from the iframe */
@@ -257,5 +297,12 @@
       if (fsBtn._cleanupFsListeners) fsBtn._cleanupFsListeners();
       wmWatch.disconnect();
     };
+
+    /* mobile: enter full-screen NOW so iframe has its final size when src loads */
+    if (opts.onMobileExit) frame._veOnMobileExit = opts.onMobileExit;
+    if (opts.startFullOnMobile) {
+      var isMobile = window.matchMedia('(max-width:767px),(pointer:coarse)').matches;
+      if (isMobile) _iosEnter(frame, stage);
+    }
   };
 }());

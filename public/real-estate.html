@@ -1392,13 +1392,19 @@ function startDetailTour() {
   wrap.style.cssText = 'position:relative;width:100%;padding-bottom:56.25%;';
   const fr = document.createElement('iframe');
   fr.id = 'detail-tour-iframe';
-  const _u = new URL(url); _u.searchParams.set('nt', '1');
-  fr.src = _u.toString();
   fr.setAttribute('allow', 'xr-spatial-tracking');
   fr.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:none;';
   wrap.appendChild(fr);
   stage.appendChild(wrap);
-  if (window.veWrapTour) veWrapTour(fr);
+  /* On mobile: veWrapTour enters full-screen before src loads so Matterport sees full size */
+  if (window.veWrapTour) veWrapTour(fr, {
+    startFullOnMobile: true,
+    onMobileExit: _destroyDetailTourIframe,
+  });
+  const _u = new URL(url);
+  _u.searchParams.set('nt', '1');
+  _u.searchParams.set('play', '1');
+  fr.src = _u.toString();
 }
 
 function _destroyDetailTourIframe() {
