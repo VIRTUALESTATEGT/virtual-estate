@@ -3,19 +3,19 @@
   'use strict';
 
   var LOGO_WHITE = '/media/logo-ve-blanco.png';
-  var LOGO_GRAY  = '/media/logo-ve-gris.png';
-  var COPY       = '© Virtual Estate Guatemala';
+  var LOGO_TILE  = '/media/logo-ve-tile.png';
+  var COPY       = '© Virtual Estate GT · Prohibida su reproducción';
 
   /* ── watermark overlay ────────────────────────────────────────────────── */
   function _makeWm() {
-    var wm   = document.createElement('div');
+    var wm = document.createElement('div');
     wm.className = 've-tour-wm';
     wm.setAttribute('data-ve-wm', '1');
     wm.setAttribute('aria-hidden', 'true');
 
     var tile = document.createElement('div');
     tile.className = 've-tour-wm-tile';
-    tile.style.backgroundImage = 'url(' + LOGO_GRAY + ')';
+    tile.style.backgroundImage = 'url(' + LOGO_TILE + ')';
 
     var corner = document.createElement('img');
     corner.className = 've-tour-wm-corner';
@@ -62,15 +62,31 @@
     }
     document.body.appendChild(_iosCloseBtn);
 
-    _iosCloseBtn.onclick = function () {
-      _iosExit(frame, stage);
-    };
+    _iosCloseBtn.onclick = function () { _iosExit(frame, stage); };
+
+    /* Esc key exits iOS fullscreen */
+    function _escHandler(e) {
+      if (e.key === 'Escape' || e.keyCode === 27) {
+        _iosExit(frame, stage);
+        document.removeEventListener('keydown', _escHandler);
+        frame._iosEscHandler = null;
+      }
+    }
+    if (frame._iosEscHandler) {
+      document.removeEventListener('keydown', frame._iosEscHandler);
+    }
+    frame._iosEscHandler = _escHandler;
+    document.addEventListener('keydown', _escHandler);
   }
 
   function _iosExit(frame, stage) {
     frame.classList.remove('ve-tour-ios-full');
     document.body.style.overflow = '';
     if (_iosCloseBtn && _iosCloseBtn.parentNode) _iosCloseBtn.parentNode.removeChild(_iosCloseBtn);
+    if (frame._iosEscHandler) {
+      document.removeEventListener('keydown', frame._iosEscHandler);
+      frame._iosEscHandler = null;
+    }
   }
 
   /* ── fullscreen button ────────────────────────────────────────────────── */
@@ -82,10 +98,12 @@
     btn.innerHTML = '<i class="fas fa-expand"></i>';
 
     function _tryNative() {
-      var el = frame;
-      var req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+      var el  = frame;
+      var req = el.requestFullscreen || el.webkitRequestFullscreen
+              || el.mozRequestFullScreen || el.msRequestFullscreen;
       if (req) {
-        req.call(el).catch(function () { _iosEnter(frame, stage); });
+        var r = req.call(el);
+        if (r && r.catch) r.catch(function () { _iosEnter(frame, stage); });
         return true;
       }
       return false;
@@ -101,52 +119,109 @@
     });
 
     /* update icon on native fullscreen change */
-    document.addEventListener('fullscreenchange', function () {
+    function _fsHandler() {
       var inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
       btn.innerHTML = inFs ? '<i class="fas fa-compress"></i>' : '<i class="fas fa-expand"></i>';
-    });
-    document.addEventListener('webkitfullscreenchange', function () {
-      var inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
-      btn.innerHTML = inFs ? '<i class="fas fa-compress"></i>' : '<i class="fas fa-expand"></i>';
-    });
+    }
+    document.addEventListener('fullscreenchange',        _fsHandler);
+    document.addEventListener('webkitfullscreenchange',  _fsHandler);
+
+    /* stored so veUnwrapTour can remove them */
+    btn._cleanupFsListeners = function () {
+      document.removeEventListener('fullscreenchange',       _fsHandler);
+      document.removeEventListener('webkitfullscreenchange', _fsHandler);
+    };
 
     return btn;
   }
 
   /* ── anti-tamper: MutationObserver ───────────────────────────────────── */
   function _watchWm(stage) {
-    if (!window.MutationObserver) return;
-
-    function _restore() {
-      /* check if watermark is missing */
-      if (!stage.querySelector('[data-ve-wm]')) {
-        stage.appendChild(_makeWm());
-        _watch(); /* re-attach observer */
-      }
-    }
+    if (!window.MutationObserver) return { disconnect: function () {} };
 
     var obs;
-    function _watch() {
-      if (obs) obs.disconnect();
+
+    function _doRestore() {
+      obs.disconnect();                                    /* pause before touching DOM */
+      var old = stage.querySelector('[data-ve-wm]');
+      if (old && old.parentNode) old.parentNode.removeChild(old);
+      stage.appendChild(_makeWm());
+      _attach();                                           /* resume observation */
+    }
+
+    function _attach() {
       obs = new MutationObserver(function (muts) {
         for (var i = 0; i < muts.length; i++) {
-          if (muts[i].removedNodes.length) { _restore(); return; }
-        }
-        /* attribute change on the wm itself */
-        var wm = stage.querySelector('[data-ve-wm]');
-        if (wm) {
-          obs.observe(wm, { attributes: true, attributeFilter: ['style', 'class'] });
+          var m = muts[i];
+          /* wm removed from stage */
+          if (m.type === 'childList' && m.target === stage) {
+            if (!stage.querySelector('[data-ve-wm]')) { _doRestore(); return; }
+          }
+          /* corner (or other child) removed from wm */
+          if (m.type === 'childList' && m.target && m.target.getAttribute
+              && m.target.getAttribute('data-ve-wm') === '1') {
+            _doRestore(); return;
+          }
+          /* attribute tampered on wm or corner (style / class / hidden) */
+          if (m.type === 'attributes') { _doRestore(); return; }
         }
       });
       obs.observe(stage, { childList: true });
       var wm = stage.querySelector('[data-ve-wm]');
-      if (wm) obs.observe(wm, { attributes: true, attributeFilter: ['style', 'class'] });
+      if (wm) {
+        obs.observe(wm, {
+          attributes: true,
+          attributeFilter: ['style', 'class', 'hidden'],
+          childList: true,
+        });
+        var corner = wm.querySelector('.ve-tour-wm-corner');
+        if (corner) {
+          obs.observe(corner, {
+            attributes: true,
+            attributeFilter: ['style', 'class', 'hidden'],
+          });
+        }
+      }
     }
 
-    _watch();
+    _attach();
+    return { disconnect: function () { if (obs) obs.disconnect(); } };
   }
 
-  /* ── main export ──────────────────────────────────────────────────────── */
+  /* ── veUnwrapTour ─────────────────────────────────────────────────────── */
+  window.veUnwrapTour = function (frame) {
+    if (!frame || !frame.classList.contains('ve-tour-frame')) return;
+
+    /* run all stored cleanup (fs listeners + wm observer) */
+    if (typeof frame._veCleanup === 'function') frame._veCleanup();
+
+    /* exit iOS fullscreen if still active */
+    if (frame.classList.contains('ve-tour-ios-full')) {
+      frame.classList.remove('ve-tour-ios-full');
+      document.body.style.overflow = '';
+      if (_iosCloseBtn && _iosCloseBtn.parentNode) _iosCloseBtn.parentNode.removeChild(_iosCloseBtn);
+    }
+
+    var stageEl = frame.querySelector('[data-ve-stage]');
+    if (stageEl && frame.parentNode) {
+      /* remove ve-injected overlays */
+      var wm    = stageEl.querySelector('[data-ve-wm]');
+      var fsBtn = stageEl.querySelector('.ve-tour-fs-btn');
+      if (wm)    stageEl.removeChild(wm);
+      if (fsBtn) stageEl.removeChild(fsBtn);
+      /* clear wrapped flag on iframe so it can be re-wrapped later */
+      var fr = stageEl.querySelector('iframe[data-ve-wrapped]');
+      if (fr) delete fr.dataset.veWrapped;
+      stageEl.removeAttribute('data-ve-stage');
+      /* move stageEl back to its original parent (before frame) */
+      frame.parentNode.insertBefore(stageEl, frame);
+    }
+
+    /* remove the frame div (bar goes with it) */
+    if (frame.parentNode) frame.parentNode.removeChild(frame);
+  };
+
+  /* ── veWrapTour ───────────────────────────────────────────────────────── */
   window.veWrapTour = function (iframe) {
     if (!iframe || iframe.dataset.veWrapped) return;
     iframe.dataset.veWrapped = '1';
@@ -170,10 +245,17 @@
 
     /* add watermark, fullscreen button, brand bar */
     stage.appendChild(_makeWm());
-    stage.appendChild(_makeFsBtn(frame, stage));
+    var fsBtn = _makeFsBtn(frame, stage);
+    stage.appendChild(fsBtn);
     frame.appendChild(_makeBar());
 
-    /* guard against watermark removal */
-    _watchWm(stage);
+    /* guard against watermark removal / attribute tampering */
+    var wmWatch = _watchWm(stage);
+
+    /* store cleanup so veUnwrapTour can release everything */
+    frame._veCleanup = function () {
+      if (fsBtn._cleanupFsListeners) fsBtn._cleanupFsListeners();
+      wmWatch.disconnect();
+    };
   };
 }());

@@ -1386,18 +1386,31 @@ function startDetailTour() {
   const poster = document.getElementById('detail-tour-poster');
   if (!stage) return;
   if (poster) poster.style.display = 'none';
+  /* Create a 16:9 container so veWrapTour wraps it, not #detail-tour-stage */
+  const wrap = document.createElement('div');
+  wrap.setAttribute('data-detail-tour-wrap', '1');
+  wrap.style.cssText = 'position:relative;width:100%;padding-bottom:56.25%;';
   const fr = document.createElement('iframe');
   fr.id = 'detail-tour-iframe';
-  fr.src = url;
+  const _u = new URL(url); _u.searchParams.set('nt', '1');
+  fr.src = _u.toString();
   fr.setAttribute('allow', 'xr-spatial-tracking');
   fr.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:none;';
-  stage.appendChild(fr);
+  wrap.appendChild(fr);
+  stage.appendChild(wrap);
   if (window.veWrapTour) veWrapTour(fr);
 }
 
 function _destroyDetailTourIframe() {
-  const fr = document.getElementById('detail-tour-iframe');
-  if (fr && fr.parentNode) fr.parentNode.removeChild(fr);
+  const stage = document.getElementById('detail-tour-stage');
+  if (stage) {
+    /* veUnwrapTour cleans listeners + observer, then removes .ve-tour-frame */
+    const frame = stage.querySelector('.ve-tour-frame');
+    if (frame && window.veUnwrapTour) veUnwrapTour(frame);
+    /* remove the wrapper container (veUnwrapTour moves stage el back before frame) */
+    const wrap = stage.querySelector('[data-detail-tour-wrap]');
+    if (wrap && wrap.parentNode) wrap.parentNode.removeChild(wrap);
+  }
   const poster = document.getElementById('detail-tour-poster');
   if (poster) poster.style.display = 'flex';
   window._currentDetailTourUrl = null;
