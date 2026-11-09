@@ -122,7 +122,7 @@ function initCatalog(cfg) {
     </div>
     <div class="prop-foot">
       ${p.linktour3d
-        ? `<a href="${p.linktour3d}" target="_blank" class="prop-link">Ver tour 3D <i class="fas fa-arrow-right"></i></a>`
+        ? `<button type="button" class="prop-link" style="background:none;border:none;cursor:pointer;font-family:inherit;font-size:inherit;padding:0;color:inherit;" title="Ver ficha y recorrido 3D">Ver tour 3D <i class="fas fa-arrow-right"></i></button>`
         : `<a href="index.html#cotizador" class="prop-link" onclick="if(window.onAgendarCard){event.preventDefault();window.onAgendarCard(${p.id});}">Agendar visita <i class="fas fa-arrow-right"></i></a>`}
       <i class="far fa-heart prop-heart" data-code="${code}" data-propid="${p.id}" title="Guardar en favoritos"></i>
     </div>

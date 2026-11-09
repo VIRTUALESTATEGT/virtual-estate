@@ -2330,7 +2330,11 @@
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Link Tour Virtual 3D</label>
-        <input type="url" class="form-control" id="prop-tour" placeholder="https://matterport.com/..."/>
+        <div style="display:flex;gap:.4rem;">
+          <input type="url" class="form-control" id="prop-tour" placeholder="https://my.matterport.com/show/?m=..." style="flex:1;min-width:0;"/>
+          <button type="button" class="btn btn-outline" style="font-size:.6rem;padding:.35rem .7rem;white-space:nowrap;flex-shrink:0;" onclick="_probarTourLink()"><i class="fas fa-external-link-alt"></i> Probar</button>
+        </div>
+        <div style="font-size:.62rem;color:var(--gray);margin-top:.35rem;line-height:1.5;">Pega el enlace de Matterport. Se muestra dentro de la ficha con el marco de Virtual Estate.</div>
       </div>
       <div class="form-group">
         <label class="form-label">Video / Drone (YouTube)</label>
@@ -3661,6 +3665,11 @@
     document.getElementById('propModalOverlay').classList.add('open');
     cargarAdicionalesCRM(false);
   }
+  function _probarTourLink() {
+    const v = document.getElementById('prop-tour')?.value.trim();
+    if (!v) { showToast('El campo de tour está vacío'); return; }
+    window.open(v, '_blank', 'noopener');
+  }
   function cerrarFormPropiedad(){
     _editPropiedadId=null;
     _propFotos=[];
@@ -3685,6 +3694,13 @@
     const disponibilidad = ['vacia','habitada','airbnb','en_construccion']
       .filter(v => document.getElementById('disp-'+v.replace('_','-'))?.checked);
     const _n = id => { const v=document.getElementById(id)?.value; return v?Number(v):null; };
+    const _tourRaw = document.getElementById('prop-tour')?.value.trim() || '';
+    if (_tourRaw) {
+      const _MATT_ERR = 'El link del tour debe ser de Matterport (https://my.matterport.com/show/?m=...)';
+      let _tourOk = false;
+      try { const _u = new URL(_tourRaw); _tourOk = _u.protocol === 'https:' && (_u.hostname === 'my.matterport.com' || _u.hostname === 'matterport.com') && _u.pathname.startsWith('/show'); } catch {}
+      if (!_tourOk) { showToast(_MATT_ERR); return; }
+    }
     const payload = {
       nombre, tipo,
       modalidad: ['venta','renta'].filter(v => document.getElementById('mod-'+v)?.checked),

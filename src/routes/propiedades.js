@@ -19,6 +19,21 @@ const fotoUpload = multer({
   },
 });
 
+// ── Matterport URL validation ─────────────────────────────────────────────────
+const _MATTERPORT_ERR = 'El link del tour debe ser de Matterport (https://my.matterport.com/show/?m=...)';
+
+function _validateTourUrl(raw) {
+  if (!raw) return null;
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== 'https:') return _MATTERPORT_ERR;
+    const h = u.hostname;
+    if (h !== 'my.matterport.com' && h !== 'matterport.com') return _MATTERPORT_ERR;
+    if (!u.pathname.startsWith('/show')) return _MATTERPORT_ERR;
+    return null;
+  } catch { return _MATTERPORT_ERR; }
+}
+
 // ── Propiedades CRUD ──────────────────────────────────────────────────────────
 
 // GET / — list with optional filters (CRM). select(*) picks up foto_principal_url automatically.
@@ -115,6 +130,8 @@ function _validateForPublicacion(body) {
 router.post('/', verificarPermiso('crear_propiedad'), async (req, res) => {
   const faltantes = _validateForPublicacion(req.body);
   if (faltantes) return res.status(400).json({ error: `Para publicar completá: ${faltantes.join(', ')}` });
+  const tourErr = _validateTourUrl(req.body.linkTour3D || null);
+  if (tourErr) return res.status(400).json({ error: tourErr });
   try {
     const { data, error } = await supabase
       .from('propiedades')
@@ -129,6 +146,8 @@ router.post('/', verificarPermiso('crear_propiedad'), async (req, res) => {
 router.put('/:id', verificarPermiso('editar_propiedad'), async (req, res) => {
   const faltantes = _validateForPublicacion(req.body);
   if (faltantes) return res.status(400).json({ error: `Para publicar completá: ${faltantes.join(', ')}` });
+  const tourErr = _validateTourUrl(req.body.linkTour3D || null);
+  if (tourErr) return res.status(400).json({ error: tourErr });
   try {
     const { data, error } = await supabase
       .from('propiedades')
