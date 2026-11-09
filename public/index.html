@@ -817,11 +817,10 @@
         style="position:absolute;inset:0;width:100%;height:100%;border:none;"
         loading="lazy">
       </iframe>
-      <div id="tour-home-poster" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="startHomeTour()">
-        <div style="position:absolute;inset:0;background:rgba(10,10,10,.92);"></div>
-        <div style="position:relative;z-index:1;text-align:center;padding:1rem;">
-          <img src="/media/logo-ve-blanco.png" alt="Virtual Estate" style="width:140px;height:auto;opacity:.85;display:block;margin:0 auto 1.6rem;">
-          <i class="fas fa-vr-cardboard" style="font-size:2.5rem;color:var(--gold);display:block;margin-bottom:1rem;"></i>
+      <div id="tour-home-poster" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#0a0a0a;background-size:cover;background-position:center;" onclick="startHomeTour()">
+        <div style="position:absolute;inset:0;background:rgba(10,10,10,.35);"></div>
+        <img src="/media/logo-ve-blanco.png" alt="Virtual Estate" style="position:absolute;top:14px;left:16px;width:90px;height:auto;opacity:.85;z-index:1;">
+        <div style="position:relative;z-index:1;">
           <button class="btn btn-gold" style="pointer-events:none;font-size:.7rem;">
             <i class="fas fa-play-circle"></i> Iniciar recorrido 3D
           </button>
@@ -1776,6 +1775,33 @@ document.querySelectorAll('.js-vid').forEach(v=>vidObs.observe(v));
       if (!u.pathname.startsWith('/show')) return;
     } catch { return; }
     window._homeTourUrl = raw;
+    /* try to find a matching property photo for the poster background */
+    (function () {
+      try {
+        const demoM = (new URL(raw).searchParams.get('m') || '').toLowerCase();
+        if (!demoM) return;
+        fetch('/api/propiedades/public?limit=50&foto_first=true')
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (data) {
+            if (!data) return;
+            const props = Array.isArray(data) ? data : (data.propiedades || data.data || []);
+            const match = props.find(function (p) {
+              if (!p.linktour3d) return false;
+              try { return (new URL(p.linktour3d).searchParams.get('m') || '').toLowerCase() === demoM; }
+              catch (e) { return false; }
+            });
+            if (!match || !match.foto_principal_url) return;
+            const img = new Image();
+            img.onload = function () {
+              const poster = document.getElementById('tour-home-poster');
+              if (!poster) return;
+              poster.style.backgroundImage = 'url("' + match.foto_principal_url.replace(/"/g, '%22') + '")';
+            };
+            img.src = match.foto_principal_url;
+          })
+          .catch(function () {});
+      } catch (e) {}
+    }());
     const sec = document.getElementById('tour-virtual');
     if (!sec) return;
     sec.style.display = '';
