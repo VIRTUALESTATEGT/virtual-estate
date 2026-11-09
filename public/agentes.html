@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Programa de Agentes | Virtual Estate GT</title>
+  <meta name="description" content="Genera ingresos con tu código de agente referido. Virtual Estate GT — Visualización Digital Premium en Guatemala."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+  /* ─── TOKENS ──────────────────────────────────────────── */
+  :root{
+    --bg:#0D1A14; --bg2:#0E1615; --bg3:#1E3028; --bg4:#162820;
+    --gold:#C19259; --gold-lt:#D4A96A; --gold-dk:#9A7240;
+    --white:#F5F0E8; --gray:#8A9990; --gray-lt:#B0BEB8;
+    --border:rgba(193,146,89,.18);
+    --tr:.4s cubic-bezier(.25,.46,.45,.94);
+    --r:4px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  #about,#divisiones,#valores,#proceso,#cotizador,#contacto{scroll-margin-top:110px;}
+  body{
+    background:var(--bg); color:var(--white);
+    font-family:'Montserrat',sans-serif; font-weight:300; line-height:1.6;
+    overflow-x:hidden;
+  }
+  img{display:block;width:100%;object-fit:cover;}
+  a{text-decoration:none;color:inherit;}
+  button{cursor:pointer;font-family:'Montserrat',sans-serif;}
+  ul{list-style:none;}
+
+  /* ─── TYPOGRAPHY ──────────────────────────────────────── */
+  h1,h2,h3,h4{font-family:'Raleway',sans-serif;font-weight:600;line-height:1.15;}
+  .label{font-size:.65rem;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);font-weight:600;}
+
+  /* ─── UTILITIES ───────────────────────────────────────── */
+  .container{width:min(1280px,92vw);margin-inline:auto;}
+  .gold{color:var(--gold);}
+  .section-pad{padding:110px 0;}
+  .divider{width:48px;height:2px;background:var(--gold);margin:1.2rem 0;}
+  .divider.center{margin-inline:auto;}
+  .btn{
+    display:inline-flex;align-items:center;gap:.5rem;
+    padding:.8rem 2rem;border-radius:var(--r);
+    font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;
+    font-weight:600;transition:var(--tr);font-family:'Montserrat',sans-serif;
+  }
+  .btn-gold{background:var(--gold);color:var(--bg);}
+  .btn-gold:hover{background:var(--gold-lt);transform:translateY(-2px);}
+  .btn-outline{border:1.5px solid var(--gold);color:var(--gold);background:transparent;}
+  .btn-outline:hover{background:var(--gold);color:var(--bg);transform:translateY(-2px);}
+
+  /* ─── REVEAL ──────────────────────────────────────────── */
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease;}
+  .reveal.visible{opacity:1;transform:translateY(0);}
+
+  /* ─── NAV ─────────────────────────────────────────────── */
+  #nav{
+    position:fixed;top:0;left:0;right:0;z-index:1000;
+    padding:1.1rem 0;transition:background .4s,padding .4s,border-bottom .4s;
+  }
+  #nav.scrolled{background:rgba(13,26,20,.96);backdrop-filter:blur(18px);padding:.7rem 0;border-bottom:1px solid var(--border);}
+  .nav-inner{display:grid;grid-template-columns:220px 1fr auto;align-items:center;}
+  .nav-logo{display:flex;align-items:center;justify-content:flex-start;}
+  .nav-logo img{height:87px;width:auto;object-fit:contain;max-width:210px;}
+  .nav-links{display:flex;gap:2rem;align-items:center;}
+  .nav-links a{
+    font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;font-weight:500;
+    color:rgba(245,240,232,.7);transition:color .25s;position:relative;
+  }
+  .nav-links a::after{
+    content:'';position:absolute;bottom:-4px;left:0;right:0;height:1.5px;
+    background:var(--gold);transform:scaleX(0);transform-origin:right;transition:transform .3s;
+  }
+  .nav-links a:hover{color:var(--white);}
+  .nav-links a:hover::after{transform:scaleX(1);transform-origin:left;}
+  .nav-links a.active{color:var(--gold);}
+  .nav-links a.active::after{transform:scaleX(1);}
+  .nav-portal{
+    padding:.5rem 1.4rem;border:1.5px solid var(--gold);border-radius:var(--r);
+    font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--gold);font-weight:600;transition:var(--tr);
+  }
+  .nav-portal:hover{background:var(--gold);color:var(--bg);}
+  .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;}
+  .hamburger span{display:block;width:24px;height:1.5px;background:var(--white);transition:var(--tr);}
+
+  /* ─── ABOUT ───────────────────────────────────────────── */
+  #about{background:var(--bg2);}
+  .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:center;}
+  .about-stats{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2.5rem;}
+  .stat-card{border:1px solid var(--border);padding:1.3rem;border-radius:var(--r);}
+  .stat-num{font-family:'Raleway',sans-serif;font-size:2.2rem;font-weight:700;color:var(--gold);}
+  .stat-label{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gray);margin-top:.2rem;font-weight:500;}
+  .values-list{display:flex;flex-direction:column;gap:.55rem;margin-top:1.2rem;}
+  .value-item{
+    display:flex;align-items:center;gap:.8rem;
+    font-size:.82rem;color:rgba(245,240,232,.8);font-weight:400;
+  }
+  .value-item::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;}
+
+  /* ─── MISION / VISION ─────────────────────────────────── */
+  #valores{background:var(--bg2);}
+  .mv-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;margin-bottom:5rem;}
+  .mv-card{border-left:3px solid var(--gold);padding-left:2rem;}
+  .mv-label{font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:.8rem;}
+  .mv-title{font-size:1.3rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.9rem;}
+  .mv-text{font-size:.83rem;color:rgba(245,240,232,.65);line-height:1.8;font-weight:400;}
+  .valores-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;}
+  .valor-card{
+    text-align:center;padding:2rem 1.4rem;
+    border:1px solid var(--border);border-radius:var(--r);transition:var(--tr);
+  }
+  .valor-card:hover{border-color:rgba(193,146,89,.4);background:var(--bg3);}
+  .valor-icon{font-size:1.3rem;color:var(--gold);margin-bottom:.8rem;}
+  .valor-name{font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;}
+
+  /* ─── COTIZADOR ───────────────────────────────────────── */
+  #cotizador{background:var(--bg);}
+  .cotizador-wrap{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start;}
+  .cot-intro h2{font-size:clamp(1.6rem,3vw,2.5rem);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem;}
+  .cot-intro p{font-size:.83rem;color:var(--gray);line-height:1.8;margin-bottom:1.6rem;font-weight:400;}
+  .cot-form{
+    background:var(--bg2);border:1px solid var(--border);
+    border-radius:var(--r);padding:2.2rem;
+  }
+  .form-group{margin-bottom:1.2rem;}
+  .form-label{
+    display:block;font-size:.62rem;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--gold);margin-bottom:.5rem;font-weight:600;
+  }
+  .form-control{
+    width:100%;padding:.75rem .95rem;
+    background:rgba(255,255,255,.04);border:1px solid var(--border);
+    border-radius:var(--r);color:var(--white);
+    font-family:'Montserrat',sans-serif;font-size:.82rem;transition:border-color .25s;
+  }
+  .form-control:focus{outline:none;border-color:var(--gold);}
+  .form-control option{background:var(--bg2);}
+  textarea.form-control{resize:vertical;min-height:80px;}
+
+  /* ─── CONTACTO ────────────────────────────────────────── */
+  #contacto{background:var(--bg2);}
+  .contacto-wrap{display:grid;grid-template-columns:1fr 1.3fr;gap:5rem;align-items:start;}
+  .contacto-info h2{font-size:clamp(1.8rem,3vw,2.6rem);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem;}
+  .contacto-info p{font-size:.83rem;color:var(--gray);line-height:1.8;margin-bottom:2.2rem;font-weight:400;}
+  .info-items{display:flex;flex-direction:column;gap:1.2rem;}
+  .info-item{display:flex;gap:1rem;align-items:flex-start;}
+  .info-icon{
+    width:38px;height:38px;border:1px solid var(--border);
+    border-radius:50%;display:flex;align-items:center;justify-content:center;
+    color:var(--gold);font-size:.85rem;flex-shrink:0;
+  }
+  .info-text{font-size:.82rem;color:var(--gray);line-height:1.5;}
+  .info-text strong{display:block;color:var(--white);font-weight:600;margin-bottom:.15rem;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+  .form-check{
+    display:flex;align-items:flex-start;gap:.6rem;
+    font-size:.75rem;color:var(--gray);line-height:1.5;font-weight:400;
+  }
+  .form-check input{margin-top:.2rem;accent-color:var(--gold);}
+  .form-check a{color:var(--gold);}
+
+  /* ─── CHAT WIDGET ───────────────────────────────────────── */
+  .chat-toggle{
+    position:fixed;bottom:2rem;right:5.2rem;z-index:999;
+    width:52px;height:52px;border-radius:50%;background:var(--gold);color:var(--bg);
+    border:none;font-size:1.1rem;cursor:pointer;
+    box-shadow:0 6px 28px rgba(193,146,89,.5);transition:var(--tr);
+    display:flex;align-items:center;justify-content:center;position:relative;
+  }
+  .chat-toggle:hover{background:var(--gold-lt);transform:scale(1.08);}
+  .chat-dot-live{position:absolute;top:5px;right:5px;width:10px;height:10px;border-radius:50%;background:#5AE08A;border:2px solid var(--bg);animation:pulse-dot 2s infinite;}
+  .chat-panel{
+    position:fixed;bottom:6.2rem;right:5.2rem;z-index:999;
+    width:340px;
+    background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+    box-shadow:0 16px 48px rgba(0,0,0,.55);display:none;flex-direction:column;overflow:hidden;
+  }
+  .chat-panel.open{display:flex;}
+  .chat-header{background:var(--bg3);border-bottom:1px solid var(--border);padding:.85rem 1.1rem;display:flex;align-items:center;gap:.75rem;}
+  .chat-avatar{width:36px;height:36px;border-radius:50%;background:rgba(193,146,89,.15);border:1.5px solid var(--gold);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:.9rem;flex-shrink:0;}
+  .chat-hname{font-size:.82rem;font-weight:700;color:var(--white);}
+  .chat-hstatus{font-size:.6rem;color:#5AE08A;display:flex;align-items:center;gap:.3rem;margin-top:.1rem;}
+  .chat-messages{flex:1;overflow-y:auto;padding:.9rem;display:flex;flex-direction:column;gap:.65rem;max-height:290px;}
+  .cmsg{display:flex;flex-direction:column;max-width:88%;}
+  .cmsg.bot{align-self:flex-start;} .cmsg.usr{align-self:flex-end;}
+  .cmsg-bubble{padding:.55rem .85rem;border-radius:var(--r);font-size:.75rem;line-height:1.55;}
+  .cmsg.bot .cmsg-bubble{background:var(--bg3);color:var(--white);}
+  .cmsg.usr .cmsg-bubble{background:var(--gold);color:var(--bg);font-weight:500;}
+  .cmsg-time{font-size:.56rem;color:var(--gray);margin-top:.18rem;}
+  .cmsg.usr .cmsg-time{text-align:right;}
+  .chat-chips{display:flex;flex-wrap:wrap;gap:.4rem;padding:.55rem .9rem;border-top:1px solid var(--border);}
+  .chip{padding:.28rem .65rem;background:rgba(193,146,89,.1);border:1px solid var(--border);border-radius:20px;font-size:.62rem;color:var(--gold);cursor:pointer;transition:.2s;font-family:'Montserrat',sans-serif;}
+  .chip:hover{background:rgba(193,146,89,.2);border-color:var(--gold);}
+  .chat-input-row{display:flex;gap:.5rem;padding:.65rem .9rem;border-top:1px solid var(--border);}
+  .chat-inp{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:var(--r);padding:.48rem .75rem;color:var(--white);font-family:'Montserrat',sans-serif;font-size:.74rem;}
+  .chat-inp:focus{outline:none;border-color:var(--gold);}
+  .chat-send{width:34px;height:34px;border-radius:50%;background:var(--gold);color:var(--bg);border:none;cursor:pointer;font-size:.72rem;transition:.2s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .chat-send:hover{background:var(--gold-lt);}
+
+  /* ─── SOCIAL FLOAT ────────────────────────────────────── */
+  .social-float{
+    position:fixed;right:1.5rem;top:50%;transform:translateY(-50%);
+    z-index:999;display:flex;flex-direction:column;gap:.6rem;
+  }
+  .social-btn{
+    width:36px;height:36px;border-radius:50%;
+    border:1px solid var(--border);background:rgba(13,26,20,.85);
+    backdrop-filter:blur(8px);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--gray);font-size:.82rem;transition:var(--tr);
+  }
+  .social-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(193,146,89,.1);}
+  .social-btn.whatsapp:hover{border-color:#25D366;color:#25D366;}
+
+  /* ─── SCROLL TOP ──────────────────────────────────────── */
+  #scroll-top{
+    position:fixed;bottom:2rem;right:1.5rem;
+    width:40px;height:40px;border-radius:50%;
+    background:var(--gold);color:var(--bg);
+    display:flex;align-items:center;justify-content:center;
+    font-size:.85rem;z-index:997;border:none;
+    opacity:0;pointer-events:none;transition:var(--tr);
+  }
+  #scroll-top.visible{opacity:1;pointer-events:all;}
+  #scroll-top:hover{background:var(--gold-lt);transform:translateY(-3px);}
+
+  /* ─── TOAST ───────────────────────────────────────────── */
+  .toast{
+    position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--bg3);border:1px solid var(--gold);color:var(--white);
+    padding:.9rem 1.8rem;border-radius:var(--r);font-size:.8rem;
+    z-index:9999;transition:transform .4s;font-weight:500;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0);}
+
+  /* ─── MOBILE MENU ─────────────────────────────────────── */
+  .mobile-menu{
+    display:none;position:fixed;inset:0;z-index:1100;
+    background:rgba(13,26,20,.98);backdrop-filter:blur(16px);
+    flex-direction:column;align-items:center;justify-content:center;gap:1.8rem;
+  }
+  .mobile-menu.open{display:flex;}
+  .mobile-menu a{font-size:1.2rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;}
+  .mobile-close{position:absolute;top:1.5rem;right:1.5rem;background:none;border:none;color:var(--gold);font-size:1.3rem;}
+
+  /* ─── FOOTER ──────────────────────────────────────────── */
+  footer{background:#07100A;border-top:1px solid var(--border);padding:4rem 0 1.8rem;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:3rem;padding-bottom:2.5rem;border-bottom:1px solid var(--border);margin-bottom:1.6rem;}
+  .footer-logo img{height:56px;width:auto;object-fit:contain;margin-bottom:.8rem;}
+  .footer-tagline{font-size:.78rem;color:var(--gray);line-height:1.7;max-width:260px;font-weight:400;}
+  .footer-col-title{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;font-weight:600;}
+  .footer-links{display:flex;flex-direction:column;gap:.5rem;}
+  .footer-link{font-size:.78rem;color:var(--gray);transition:color .2s;font-weight:400;}
+  .footer-link:hover{color:var(--white);}
+  .footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;font-size:.68rem;color:var(--gray);}
+
+  /* ─── RESPONSIVE-READY CLASSES ─────────────────────────── */
+  .agentes-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;}
+
+  /* ─── RESPONSIVE ──────────────────────────────────────── */
+  @media(max-width:1024px){
+    .footer-grid{grid-template-columns:1fr 1fr;}
+  }
+  @media(max-width:768px){
+    .nav-inner{display:flex;justify-content:space-between;align-items:center;}
+    .nav-links{display:none;}
+    .hamburger{display:flex;}
+    .contacto-wrap{grid-template-columns:1fr;}
+    .form-row{grid-template-columns:1fr;}
+    .footer-grid{grid-template-columns:1fr;}
+    .social-float{display:none;}
+    .chat-toggle{right:1.5rem;bottom:5.5rem;}
+    .chat-panel{width:calc(100vw - 2rem);right:1rem;bottom:6.5rem;}
+    .agentes-grid{grid-template-columns:1fr;gap:2rem;}
+  }
+  @media(max-width:600px){
+    .label{font-size:.75rem;}
+    .footer-col-title{font-size:.75rem;}
+    .footer-bottom{font-size:.75rem;}
+    .chip{font-size:.75rem;}
+    .btn{font-size:.78rem;}
+  }
+  @keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:.3;}}
+  </style>
+</head>
+<body>
+
+<!-- ─── SOCIAL FLOAT ──────────────────────────────────── -->
+<div class="social-float">
+  <a href="https://wa.me/50239902399" target="_blank" class="social-btn whatsapp" title="WhatsApp">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+  <a href="https://www.instagram.com/virtualestategt" target="_blank" class="social-btn" title="Instagram">
+    <i class="fab fa-instagram"></i>
+  </a>
+  <a href="https://www.facebook.com/virtualestategt" target="_blank" class="social-btn" title="Facebook">
+    <i class="fab fa-facebook-f"></i>
+  </a>
+</div>
+
+<!-- ─── CHAT WIDGET ─────────────────────────────────────── -->
+<button class="chat-toggle" id="chatToggle" onclick="toggleChat()" title="Asistente Virtual 24/7">
+  <div class="chat-dot-live"></div>
+  <i class="fas fa-comment-dots" id="chatIcon"></i>
+</button>
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <div class="chat-avatar"><i class="fas fa-robot"></i></div>
+    <div style="flex:1;">
+      <div class="chat-hname">Asistente Virtual VE</div>
+      <div class="chat-hstatus"><span style="width:6px;height:6px;border-radius:50%;background:#5AE08A;display:inline-block;flex-shrink:0;"></span> En línea · 24/7</div>
+    </div>
+    <button onclick="toggleChat()" style="background:none;border:none;color:var(--gray);cursor:pointer;font-size:.9rem;padding:.2rem;"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-chips" id="chatChips">
+    <button class="chip" onclick="sendChip('Servicios disponibles')">Servicios</button>
+    <button class="chip" onclick="sendChip('¿Cuánto cuesta?')">Precios</button>
+    <button class="chip" onclick="sendChip('¿Cómo agendar?')">Agendar</button>
+    <button class="chip" onclick="sendChip('Información de contacto')">Contacto</button>
+    <button class="chip" onclick="sendChip('Programa de agentes')">Agentes</button>
+  </div>
+  <div class="chat-input-row">
+    <input type="text" class="chat-inp" id="chatInput" placeholder="Escribe tu pregunta..." onkeydown="if(event.key==='Enter')sendChatMsg()"/>
+    <button class="chat-send" onclick="sendChatMsg()"><i class="fas fa-paper-plane"></i></button>
+  </div>
+</div>
+
+<!-- ─── SCROLL TOP ────────────────────────────────────── -->
+<button id="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <i class="fas fa-chevron-up"></i>
+</button>
+
+<!-- ─── TOAST ─────────────────────────────────────────── -->
+<div class="toast" id="toast"></div>
+
+<!-- ─── MOBILE MENU ───────────────────────────────────── -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" onclick="closeMobile()"><i class="fas fa-times"></i></button>
+  <a href="real-estate.html" onclick="closeMobile()">Real Estate</a>
+  <a href="as-built.html" onclick="closeMobile()">AS Built</a>
+  <a href="construccion.html" onclick="closeMobile()">Construcción</a>
+  <a href="agentes.html" onclick="closeMobile()" style="color:var(--gold);">Agentes</a>
+  <a href="nosotros.html" onclick="closeMobile()">Nosotros</a>
+  <a href="contacto.html" onclick="closeMobile()">Contacto</a>
+  <a href="portal.html" style="color:var(--gold);" onclick="closeMobile()">Portal</a>
+</div>
+
+<!-- ─── NAV ───────────────────────────────────────────── -->
+<nav id="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="assets/logo-letras.png" alt="Virtual Estate"/>
+    </a>
+    <div class="nav-links">
+      <a href="real-estate.html">Real Estate</a>
+      <a href="as-built.html">AS Built</a>
+      <a href="construccion.html">Construcción</a>
+      <a href="agentes.html" class="active">Agentes</a>
+      <a href="nosotros.html">Nosotros</a>
+      <a href="contacto.html">Contacto</a>
+      <span style="width:1px;height:18px;background:var(--border);flex-shrink:0;"></span>
+      <a href="portal.html" class="nav-portal">Portal</a>
+    </div>
+    <div class="hamburger" onclick="document.getElementById('mobileMenu').classList.add('open')">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── AGENTES ─────────────────────────────────────────── -->
+<section id="agentes" style="background:var(--bg3);padding:120px 0 70px;border-top:1px solid var(--border);">
+  <div class="container">
+    <div class="agentes-grid reveal">
+      <div>
+        <span class="label">Programa de Agentes</span>
+        <div class="divider"></div>
+        <h2 style="font-size:clamp(1.6rem,3vw,2.4rem);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem;">
+          Genera ingresos con tu código de referido
+        </h2>
+        <p style="font-size:.85rem;color:var(--gray);line-height:1.85;margin-bottom:1.4rem;font-weight:400;">
+          ¿Conoces a alguien que necesite nuestros servicios? Solicita tu código de agente personalizado
+          y recibe una comisión por cada proyecto que recomiendes. Sin compromisos, sin cuotas.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.8rem;">
+          <div style="display:flex;align-items:center;gap:.8rem;font-size:.82rem;color:rgba(245,240,232,.8);font-weight:400;">
+            <i class="fas fa-check-circle" style="color:var(--gold);flex-shrink:0;"></i>
+            Código único y personalizado con tu nombre
+          </div>
+          <div style="display:flex;align-items:center;gap:.8rem;font-size:.82rem;color:rgba(245,240,232,.8);font-weight:400;">
+            <i class="fas fa-check-circle" style="color:var(--gold);flex-shrink:0;"></i>
+            Comisión por cada proyecto cerrado con tu código
+          </div>
+          <div style="display:flex;align-items:center;gap:.8rem;font-size:.82rem;color:rgba(245,240,232,.8);font-weight:400;">
+            <i class="fas fa-clock" style="color:var(--gold);flex-shrink:0;opacity:.8;"></i>
+            Seguimiento de comisiones — próximamente en tu portal
+          </div>
+          <div style="display:flex;align-items:center;gap:.8rem;font-size:.82rem;color:rgba(245,240,232,.8);font-weight:400;">
+            <i class="fas fa-check-circle" style="color:var(--gold);flex-shrink:0;"></i>
+            Aprobación rápida — sin requisitos complicados
+          </div>
+        </div>
+        <div style="display:flex;gap:.8rem;flex-wrap:wrap;">
+          <a href="portal.html#agente" class="btn btn-gold">
+            <i class="fas fa-id-badge"></i> Solicitar mi código de agente
+          </a>
+          <a href="https://wa.me/50239902399?text=Hola,%20me%20interesa%20ser%20agente%20de%20Virtual%20Estate" target="_blank" class="btn btn-outline">
+            <i class="fab fa-whatsapp"></i> Consultar por WhatsApp
+          </a>
+        </div>
+      </div>
+      <div style="border:1px solid var(--border);border-radius:var(--r);padding:2.2rem;background:var(--bg2);">
+        <div style="text-align:center;margin-bottom:1.8rem;">
+          <div style="width:64px;height:64px;border-radius:50%;background:rgba(193,146,89,.12);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+            <i class="fas fa-id-badge" style="font-size:1.6rem;color:var(--gold);"></i>
+          </div>
+          <div style="font-family:'Raleway',sans-serif;font-size:1.2rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Tu código de agente</div>
+          <p style="font-size:.78rem;color:var(--gray);margin-top:.4rem;font-weight:400;">Así funcionará tu código personalizado</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.9rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:.75rem;background:rgba(193,146,89,.06);border:1px solid var(--border);border-radius:var(--r);">
+            <span style="font-size:.72rem;color:var(--gray);text-transform:uppercase;letter-spacing:.1em;">Tu código</span>
+            <span style="font-family:'Raleway',sans-serif;font-size:1rem;font-weight:700;color:var(--gold);letter-spacing:.14em;">AGT-0001</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:.6rem .75rem;font-size:.78rem;color:var(--gray);">
+            <span>Estado</span><span style="color:#5AE08A;font-weight:600;">● Activo</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:.6rem .75rem;font-size:.78rem;color:var(--gray);">
+            <span>Referidos realizados</span><span style="color:var(--white);font-weight:600;">–</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:.6rem .75rem;font-size:.78rem;color:var(--gray);">
+            <span>Comisiones generadas</span><span style="color:var(--white);font-weight:600;">–</span>
+          </div>
+        </div>
+        <p style="font-size:.7rem;color:var(--gray);margin-top:1.4rem;line-height:1.6;text-align:center;font-weight:400;">
+          Solicita tu código y accede a tu panel de agente desde el portal de cliente.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">
+          <img src="assets/logo-letras.png" alt="Virtual Estate"/>
+        </div>
+        <p class="footer-tagline">
+          Transformamos espacios físicos en experiencias digitales que venden, documentan y proyectan.
+        </p>
+        <div style="display:flex;gap:.7rem;margin-top:1.2rem;">
+          <a href="https://wa.me/50239902399" target="_blank" class="social-btn" style="position:static;width:30px;height:30px;font-size:.72rem;">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+          <a href="https://www.instagram.com/virtualestategt" target="_blank" class="social-btn" style="position:static;width:30px;height:30px;font-size:.72rem;">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="https://www.facebook.com/virtualestategt" target="_blank" class="social-btn" style="position:static;width:30px;height:30px;font-size:.72rem;">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Servicios</div>
+        <div class="footer-links">
+          <a href="index.html#divisiones" class="footer-link">Escaneo 3D y Tours Virtuales</a>
+          <a href="index.html#divisiones" class="footer-link">AS BUILT / Documentación</a>
+          <a href="index.html#divisiones" class="footer-link">Construcción y Remodelación</a>
+          <a href="real-estate.html" class="footer-link">Real Estate</a>
+          <a href="contacto.html" class="footer-link">Cotizador</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Empresa</div>
+        <div class="footer-links">
+          <a href="nosotros.html" class="footer-link">Quiénes Somos</a>
+          <a href="nosotros.html#valores" class="footer-link">Misión y Visión</a>
+          <a href="index.html#proceso" class="footer-link">Nuestro Proceso</a>
+          <a href="contacto.html" class="footer-link">Contacto</a>
+          <a href="portal.html" class="footer-link">Portal de Clientes</a>
+        </div>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Legal</div>
+        <div class="footer-links">
+          <a href="#" class="footer-link" onclick="abrirTerminos(event)">Términos y Condiciones</a>
+          <a href="#" class="footer-link" onclick="abrirPrivacidad(event)">Política de Privacidad</a>
+          <a href="#" class="footer-link" onclick="abrirAcuerdoAgente(event)">Acuerdo de Agente Referido</a>
+          <a href="#" class="footer-link" onclick="abrirReqAsbuilt(event)">Requisitos AS BUILT</a>
+          <a href="#" class="footer-link" onclick="abrirReqRealestate(event)">Requisitos Real Estate</a>
+        </div>
+        <div style="margin-top:1.2rem;padding:1rem;border:1px solid var(--border);border-radius:var(--r);">
+          <div class="footer-col-title" style="margin-bottom:.4rem;">Contacto</div>
+          <p style="font-size:.72rem;color:var(--gray);line-height:1.7;">
+            +502 3990-2399<br/>
+            info@virtualestategt.com<br/>
+            Zona 10, Guatemala
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;padding:.6rem 0;border-top:1px solid var(--border);margin-bottom:0;">
+      <span style="font-size:.65rem;letter-spacing:.12em;color:var(--gray);font-weight:400;">Paramétrica S.A.</span>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Virtual Estate Guatemala. Todos los derechos reservados.</span>
+      <span>@virtualestategt</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ── NAV ─────────────────────────────────────────────── */
+const nav = document.getElementById('nav');
+const scrollTopBtn = document.getElementById('scroll-top');
+window.addEventListener('scroll',()=>{
+  nav.classList.toggle('scrolled',window.scrollY>60);
+  scrollTopBtn.classList.toggle('visible',window.scrollY>500);
+});
+function closeMobile(){document.getElementById('mobileMenu').classList.remove('open');}
+
+/* ── REVEAL ──────────────────────────────────────────── */
+const obs = new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
+},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+/* ── TOAST ───────────────────────────────────────────── */
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+/* ── CHAT WIDGET ─────────────────────────────────────── */
+let chatOpen=false;
+const BOTS=[
+  {k:['hola','buenos','buenas','hey','buen dia','buen día'],r:'¡Hola! Bienvenido a Virtual Estate GT 👋 ¿En qué puedo ayudarte hoy?'},
+  {k:['tour','virtual','360','recorrido','matterport'],r:'Creamos tours virtuales 3D inmersivos con tecnología Matterport. El cliente recorre el espacio en 360° desde cualquier dispositivo. ¿Es para una propiedad residencial o comercial?'},
+  {k:['as built','asbuilt','levantamiento','documentacion','documentación','planos','plano'],r:'Nuestro servicio AS BUILT documenta fielmente el estado real de una construcción: plantas 2D, modelo 3D y cuadro de áreas. Entrega en 6–8 días hábiles. ¿Residencial, comercial u oficinas?'},
+  {k:['construccion','construcción','remodelacion','remodelación','acabado','obra','tablayeso'],r:'Servicios de construcción y remodelación: tablayeso, acabados, instalaciones, carpintería y mobiliario. Trabajamos en residencias, locales y oficinas. ¿Tienes un proyecto en mente?'},
+  {k:['real estate','propiedad','propiedades','apartamento','casa','venta','renta','compra'],r:'Portafolio de propiedades premium con tour 3D, fotografía profesional y ficha técnica. ¿Buscas comprar, rentar o enlistar tu propiedad? <a href="real-estate.html" style="color:var(--gold);">Ver propiedades →</a>'},
+  {k:['precio','costo','cuanto','cuánto','tarifa','cotizacion','cotización','presupuesto'],r:'Los precios varían según servicio y metraje. Usa el <a href="contacto.html" style="color:var(--gold);">cotizador</a> para un estimado inmediato, o pedimos cotización formal lista en 1–2 días hábiles sin compromiso.'},
+  {k:['agendar','cita','visita','reunion','reunión','appointment','calendario'],r:'Puedes agendar desde la sección <a href="contacto.html" style="color:var(--gold);">Contacto</a> o directamente por <a href="https://wa.me/50239902399" target="_blank" style="color:#25D366;">WhatsApp +502 3990-2399</a>.'},
+  {k:['contacto','telefono','teléfono','whatsapp','correo','email','direccion','dirección'],r:'📞 <a href="https://wa.me/50239902399" target="_blank" style="color:#25D366;">+502 3990-2399</a> (WhatsApp)<br/>📧 info@virtualestategt.com<br/>📍 Guatemala, Guatemala<br/>Respondemos en menos de 24 hrs hábiles.'},
+  {k:['drone','aereo','aéreo','video','fotografia','fotografía','foto'],r:'Ofrecemos fotografía profesional y video aéreo con drone 4K. Ideal para propiedades, AS BUILT y presentaciones corporativas.'},
+  {k:['agente','referido','comision','comisión','codigo','código','referir'],r:'Con nuestro programa de agentes puedes ganar comisiones referiendo clientes. La comisión sale de la comisión interna de VE — el precio al cliente no cambia. Regístrate en el <a href="portal.html" style="color:var(--gold);">Portal →</a>'},
+  {k:['portal','cuenta','login','registro','perfil'],r:'El Portal de Clientes permite gestionar propiedades guardadas, cotizaciones, pagos y código de agente. <a href="portal.html" style="color:var(--gold);">Acceder →</a>'},
+  {k:['paquete','basico','básico','intermedio','premium','plan'],r:'Tenemos 3 paquetes: Básico (fotos 360° + tour), Intermedio (+ gemelo 3D + planos PDF) y Premium (+ fotografía + drone + DWG). <a href="contacto.html" style="color:var(--gold);">Ver cotizador →</a>'},
+  {k:['gracias','perfecto','excelente','genial','ok','listo','entendido'],r:'¡Con gusto! Para lo que necesites, aquí estoy. También nos puedes escribir al <a href="https://wa.me/50239902399" target="_blank" style="color:#25D366;">WhatsApp</a> directamente.'},
+  {k:['adios','adiós','bye','chao','hasta','cuida'],r:'¡Hasta pronto! Seguimos disponibles 24/7. 👋'},
+];
+function botAnswer(txt){
+  const l=txt.toLowerCase();
+  for(const {k,r} of BOTS) if(k.some(w=>l.includes(w))) return r;
+  return 'Gracias por tu mensaje. Para atención personalizada escríbenos por <a href="https://wa.me/50239902399" target="_blank" style="color:#25D366;">WhatsApp +502 3990-2399</a> o llena el <a href="contacto.html" style="color:var(--gold);">formulario de contacto</a>.';
+}
+function addChatMsg(txt,isUser){
+  const box=document.getElementById('chatMessages');if(!box)return;
+  const now=new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+  const d=document.createElement('div');d.className='cmsg '+(isUser?'usr':'bot');
+  d.innerHTML=`<div class="cmsg-bubble">${txt}</div><div class="cmsg-time">${now}</div>`;
+  box.appendChild(d);box.scrollTop=box.scrollHeight;
+}
+function sendChatMsg(){
+  const inp=document.getElementById('chatInput');if(!inp)return;
+  const t=inp.value.trim();if(!t)return;
+  addChatMsg(t,true);inp.value='';
+  setTimeout(()=>addChatMsg(botAnswer(t),false),650);
+}
+function sendChip(t){addChatMsg(t,true);setTimeout(()=>addChatMsg(botAnswer(t),false),500);}
+function toggleChat(){
+  chatOpen=!chatOpen;
+  const panel=document.getElementById('chatPanel');
+  const icon=document.getElementById('chatIcon');
+  panel.classList.toggle('open',chatOpen);
+  if(icon)icon.className=chatOpen?'fas fa-times':'fas fa-comment-dots';
+  if(chatOpen&&document.getElementById('chatMessages').children.length===0){
+    setTimeout(()=>addChatMsg('👋 ¡Hola! Soy el Asistente Virtual de Virtual Estate. ¿En qué puedo ayudarte hoy?',false),300);
+  }
+}
+function abrirAcuerdoAgente(e) {
+  e.preventDefault();
+  document.getElementById('acuerdo-overlay').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function cerrarAcuerdoAgente() {
+  document.getElementById('acuerdo-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+function abrirTerminos(e) {
+  e.preventDefault();
+  document.getElementById('terminos-overlay').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function cerrarTerminos() {
+  document.getElementById('terminos-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+function abrirPrivacidad(e) {
+  e.preventDefault();
+  document.getElementById('privacidad-overlay').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function cerrarPrivacidad() {
+  document.getElementById('privacidad-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+function abrirReqAsbuilt(e) {
+  e.preventDefault();
+  document.getElementById('req-asbuilt-overlay').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function cerrarReqAsbuilt() {
+  document.getElementById('req-asbuilt-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+function abrirReqRealestate(e) {
+  e.preventDefault();
+  document.getElementById('req-realestate-overlay').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function cerrarReqRealestate() {
+  document.getElementById('req-realestate-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+</script>
+
+<!-- Modal: Acuerdo de Agente Referido -->
+<div id="acuerdo-overlay" onclick="if(event.target===this)cerrarAcuerdoAgente()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#0D1A14;border:1px solid rgba(193,146,89,.3);border-radius:8px;width:100%;max-width:780px;max-height:88vh;overflow-y:auto;padding:2.5rem 2rem;position:relative;">
+    <button onclick="cerrarAcuerdoAgente()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer;"><i class="fas fa-times"></i></button>
+    <div style="font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:#C19259;font-weight:600;margin-bottom:.5rem;">Virtual Estate GT — Documento Legal</div>
+    <h2 style="font-family:'Raleway',sans-serif;font-size:1.3rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#fff;margin-bottom:1.5rem;">Acuerdo de Agente Referido</h2>
+    <div style="font-size:.78rem;color:#8A9A8F;line-height:1.85;">
+      <p style="margin-bottom:1rem;">El presente acuerdo regula la relación entre <strong style="color:#fff;">Virtual Estate GT</strong> (Paramétrica S.A., en adelante "la Empresa") y cualquier persona física que solicite y obtenga un código de agente referido a través del portal de clientes (en adelante "el Agente Referido").</p>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">1. NATURALEZA NO LABORAL</p>
+      <p style="margin-bottom:.8rem;">El presente instrumento constituye un acuerdo de colaboración por referidos y en ningún caso crea una relación laboral, patronal, societaria ni de representación legal entre las partes. El Agente Referido actúa de manera independiente, por cuenta propia y bajo su exclusiva responsabilidad. No existe subordinación, horario fijo, ni obligación de exclusividad. Virtual Estate GT no asume ninguna de las obligaciones propias de un empleador.</p>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">2. CÓDIGO DE REFERIDO</p>
+      <p style="margin-bottom:.8rem;">La Empresa asignará al Agente Referido aprobado un código alfanumérico único e intransferible con formato <strong style="color:#fff;">AGT-AÑO-XXXXX</strong>. Dicho código identifica las referencias realizadas por el Agente pero no le otorga poder de representación, autoridad para contratar en nombre de la Empresa ni para comprometer sus recursos o imagen de ninguna forma.</p>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">3. RESTRICCIONES DE USO DE MARCA</p>
+      <p style="margin-bottom:.4rem;">El Agente Referido <strong style="color:#fff;">NO está autorizado</strong> a:</p>
+      <ul style="padding-left:1.2rem;margin-bottom:.8rem;">
+        <li style="margin-bottom:.3rem;">Usar el nombre, logotipo, eslogan o identidad visual de Virtual Estate GT en materiales publicitarios propios sin aprobación escrita y previa de la Empresa.</li>
+        <li style="margin-bottom:.3rem;">Crear perfiles en redes sociales, páginas web, grupos de mensajería o cualquier canal digital que pueda confundirse con canales oficiales de la Empresa.</li>
+        <li style="margin-bottom:.3rem;">Firmar contratos, cotizaciones, presupuestos o documentos de cualquier tipo en nombre de Virtual Estate GT.</li>
+        <li style="margin-bottom:.3rem;">Cobrar dinero, anticipos o cualquier tipo de pago a clientes a nombre de la Empresa.</li>
+        <li style="margin-bottom:.3rem;">Ofrecer descuentos, condiciones especiales o términos distintos a los publicados oficialmente, sin autorización expresa.</li>
+      </ul>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">4. COMISIONES</p>
+      <p style="margin-bottom:.8rem;">El Agente Referido recibirá una comisión únicamente por proyectos efectivamente cerrados, facturados y cobrados por la Empresa, en los que su código de referido haya sido registrado <strong style="color:#fff;">antes del inicio del proyecto</strong>. La comisión proviene exclusivamente de la comisión interna que ya percibe Virtual Estate GT — el precio al cliente final nunca se modifica. Los pagos se realizan a la cuenta bancaria registrada en el proceso de solicitud, dentro del ciclo de pago establecido por la Empresa. Virtual Estate GT se reserva el derecho de modificar las tasas de comisión con 30 días de aviso previo.</p>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">5. CONFIDENCIALIDAD</p>
+      <p style="margin-bottom:.8rem;">El Agente Referido se compromete a mantener estricta confidencialidad sobre las tarifas, procesos internos, estructura de precios, base de clientes, proveedores y cualquier información no pública de Virtual Estate GT. Esta obligación permanece vigente durante toda la relación y por un período de <strong style="color:#fff;">dos (2) años</strong> contados desde la fecha de terminación del presente acuerdo.</p>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">6. PROHIBICIONES</p>
+      <p style="margin-bottom:.4rem;">Queda estrictamente prohibido:</p>
+      <ul style="padding-left:1.2rem;margin-bottom:.8rem;">
+        <li style="margin-bottom:.3rem;">Prometer al cliente condiciones, plazos o precios que no hayan sido expresamente autorizados por la Empresa.</li>
+        <li style="margin-bottom:.3rem;">Hablar negativamente o denigrar a Virtual Estate GT, sus empleados o sus servicios ante clientes actuales o potenciales.</li>
+        <li style="margin-bottom:.3rem;">Captar o redirigir clientes hacia empresas competidoras utilizando información, contactos o relaciones obtenidas a través de este acuerdo.</li>
+        <li style="margin-bottom:.3rem;">Falsificar, alterar o manipular capturas de pantalla, documentos, cotizaciones o cualquier material de Virtual Estate GT.</li>
+        <li style="margin-bottom:.3rem;">Transferir, vender o ceder el código de referido a terceros.</li>
+      </ul>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">7. TERMINACIÓN</p>
+      <p style="margin-bottom:.8rem;">Cualquiera de las partes puede dar por terminado el presente acuerdo en cualquier momento y sin expresión de causa, mediante notificación escrita (correo electrónico a la dirección oficial de la Empresa o viceversa). Las comisiones por proyectos ya cerrados y facturados antes de la terminación serán pagadas según lo pactado. El código de referido quedará inactivo de forma inmediata al comunicarse la terminación.</p>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">8. RESPONSABILIDAD</p>
+      <p style="margin-bottom:.8rem;">Virtual Estate GT no será responsable por declaraciones, promesas, compromisos u ofertas realizadas por el Agente Referido que no hayan sido expresamente autorizadas por escrito. El Agente Referido asumirá de manera exclusiva y total toda responsabilidad civil, penal, laboral, fiscal o de cualquier otra naturaleza derivada de su actuación independiente en el marco de este acuerdo.</p>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">9. VERIFICACIÓN DE IDENTIDAD</p>
+      <p style="margin-bottom:.8rem;">Como condición para la aprobación del código de agente, el solicitante consiente expresamente la verificación de su identidad mediante la presentación del Documento Personal de Identificación (DPI) y la captura de una fotografía en tiempo real. Dichos datos se utilizan exclusivamente para fines de seguridad interna y prevención de fraude, son tratados bajo estricta confidencialidad y nunca son compartidos con terceros salvo requerimiento legal expreso de autoridad competente.</p>
+
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">10. LEY APLICABLE Y JURISDICCIÓN</p>
+      <p style="margin-bottom:1.5rem;">El presente acuerdo se rige por las leyes vigentes de la República de Guatemala. Cualquier controversia, disputa o reclamación derivada del mismo se someterá a la jurisdicción y competencia de los tribunales ordinarios guatemaltecos, renunciando expresamente las partes a cualquier otro fuero que pudiera corresponderles.</p>
+
+      <div style="border-top:1px solid rgba(193,146,89,.25);padding-top:1rem;font-size:.72rem;color:#6A7A6F;">
+        <strong style="color:#C19259;">Virtual Estate GT</strong> — Paramétrica S.A. · info@virtualestategt.com · +502 3990-2399 · Zona 10, Guatemala City<br/>
+        Este documento es informativo. La versión vinculante es la aceptada electrónicamente durante el proceso de solicitud de código de agente en el portal de clientes.
+      </div>
+    </div>
+    <button onclick="cerrarAcuerdoAgente()" style="margin-top:1.5rem;width:100%;padding:.7rem;background:#C19259;color:#0D1A14;border:none;border-radius:6px;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;">
+      Cerrar documento
+    </button>
+  </div>
+</div>
+
+<!-- Modal: Términos y Condiciones -->
+<div id="terminos-overlay" onclick="if(event.target===this)cerrarTerminos()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#0D1A14;border:1px solid rgba(193,146,89,.3);border-radius:8px;width:100%;max-width:780px;max-height:88vh;overflow-y:auto;padding:2.5rem 2rem;position:relative;">
+    <button onclick="cerrarTerminos()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer;"><i class="fas fa-times"></i></button>
+    <div style="font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:#C19259;font-weight:600;margin-bottom:.5rem;">Virtual Estate GT — Documento Legal</div>
+    <h2 style="font-family:'Raleway',sans-serif;font-size:1.3rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#fff;margin-bottom:1.5rem;">Términos y Condiciones</h2>
+    <div style="font-size:.78rem;color:#8A9A8F;line-height:1.85;">
+      <p style="margin-bottom:1rem;">Virtual Estate GT — Última actualización: mayo 2026</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">1. ACEPTACIÓN DE TÉRMINOS</p>
+      <p style="margin-bottom:.8rem;">Al utilizar los servicios de Virtual Estate GT, usted acepta estos términos. Si no está de acuerdo, por favor no utilice nuestros servicios.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">2. DESCRIPCIÓN DEL SERVICIO</p>
+      <p style="margin-bottom:.8rem;">Virtual Estate GT ofrece servicios de fotografía inmobiliaria profesional, escaneo 3D, tours virtuales y producción de contenido visual para el sector inmobiliario en Guatemala.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">3. USO ACEPTABLE</p>
+      <p style="margin-bottom:.8rem;">Usted se compromete a utilizar nuestros servicios únicamente para fines legales y a no reproducir, distribuir o utilizar comercialmente el contenido producido por Virtual Estate GT sin autorización escrita previa.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">4. PROPIEDAD INTELECTUAL</p>
+      <p style="margin-bottom:.8rem;">Todo el contenido producido por Virtual Estate GT (fotografías, modelos 3D, videos) es propiedad de Virtual Estate GT hasta la entrega y pago completo del servicio contratado, momento en que los derechos de uso se transfieren al cliente según lo acordado.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">5. PAGOS Y CANCELACIONES</p>
+      <p style="margin-bottom:.8rem;">Los términos de pago, anticipos y políticas de cancelación se establecen en la cotización o contrato individual de cada proyecto.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">6. LIMITACIÓN DE RESPONSABILIDAD</p>
+      <p style="margin-bottom:.8rem;">Virtual Estate GT no será responsable por daños indirectos, incidentales o consecuentes derivados del uso de nuestros servicios más allá del monto pagado por el servicio específico.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">7. MODIFICACIONES</p>
+      <p style="margin-bottom:.8rem;">Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios serán publicados en esta página.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">8. CONTACTO</p>
+      <p style="margin-bottom:1.5rem;">Para consultas sobre estos términos: <strong style="color:#fff;">info@virtualestategt.com</strong></p>
+      <div style="border-top:1px solid rgba(193,146,89,.25);padding-top:1rem;font-size:.72rem;color:#6A7A6F;">
+        <strong style="color:#C19259;">Virtual Estate GT</strong> — Paramétrica S.A. / Ciconsa S.A. · info@virtualestategt.com · +502 3990-2399 · Zona 10, Guatemala City
+      </div>
+    </div>
+    <div style="display:flex;gap:.7rem;margin-top:1.5rem;">
+      <button onclick="cerrarTerminos()" style="flex:1;padding:.7rem;background:transparent;color:#C19259;border:1px solid rgba(193,146,89,.5);border-radius:6px;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;">Cerrar</button>
+      <a href="/documentos/terminos-y-condiciones.pdf" download target="_blank" style="flex:1;padding:.7rem;background:#C19259;color:#0D1A14;border:none;border-radius:6px;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.4rem;"><i class="fas fa-download"></i>Descargar PDF</a>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Política de Privacidad -->
+<div id="privacidad-overlay" onclick="if(event.target===this)cerrarPrivacidad()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#0D1A14;border:1px solid rgba(193,146,89,.3);border-radius:8px;width:100%;max-width:780px;max-height:88vh;overflow-y:auto;padding:2.5rem 2rem;position:relative;">
+    <button onclick="cerrarPrivacidad()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer;"><i class="fas fa-times"></i></button>
+    <div style="font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:#C19259;font-weight:600;margin-bottom:.5rem;">Virtual Estate GT — Documento Legal</div>
+    <h2 style="font-family:'Raleway',sans-serif;font-size:1.3rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#fff;margin-bottom:1.5rem;">Política de Privacidad</h2>
+    <div style="font-size:.78rem;color:#8A9A8F;line-height:1.85;">
+      <p style="margin-bottom:1rem;">Virtual Estate GT (Paramétrica S.A. y Ciconsa S.A.) respeta su privacidad y se compromete a proteger los datos personales que usted comparte con nosotros. Última actualización: <strong style="color:#fff;">15 de junio de 2026</strong>.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">1. QUIÉNES SOMOS</p>
+      <p style="margin-bottom:.8rem;">Empresa guatemalteca especializada en escaneo 3D, tours virtuales y documentación digital de propiedades para los sectores inmobiliario y de construcción. Sitio web: virtualestategt.com.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">2. INFORMACIÓN QUE RECOPILAMOS</p>
+      <p style="margin-bottom:.8rem;">Nombre, apellido y datos de contacto (correo, teléfono); información del proyecto o propiedad para cotizaciones; mensajes enviados por WhatsApp, Instagram, Facebook o formularios web; datos técnicos básicos de navegación (dispositivo, páginas visitadas).</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">3. CÓMO USAMOS SU INFORMACIÓN</p>
+      <p style="margin-bottom:.8rem;">Exclusivamente para: responder consultas (incluyendo respuestas automatizadas asistidas por IA), elaborar cotizaciones, gestionar la relación comercial y mejorar nuestros servicios. <strong style="color:#fff;">No vendemos, alquilamos ni compartimos sus datos con terceros para fines de marketing.</strong></p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">4. USO DE INTELIGENCIA ARTIFICIAL</p>
+      <p style="margin-bottom:.8rem;">Algunos mensajes pueden ser generados por un sistema de IA para agilizar la atención. Este sistema procesa el contenido de su consulta únicamente para generar una respuesta relevante. Siempre puede solicitar atención de una persona del equipo.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">5. CON QUIÉN COMPARTIMOS INFORMACIÓN</p>
+      <p style="margin-bottom:.8rem;">Solo con proveedores de servicios que nos ayudan a operar bajo obligaciones de confidencialidad: plataformas de mensajería Meta (WhatsApp, Instagram, Facebook), proveedores de infraestructura tecnológica y proveedores de servicios de IA. También si la ley lo requiere.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">6. RETENCIÓN DE DATOS</p>
+      <p style="margin-bottom:.8rem;">Conservamos su información durante el tiempo necesario para cumplir los fines descritos y nuestras obligaciones legales. Cuando ya no sea necesaria, la eliminamos o anonimizamos de forma segura.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">7. SEGURIDAD</p>
+      <p style="margin-bottom:.8rem;">Aplicamos medidas técnicas y organizativas razonables para proteger su información contra acceso no autorizado, pérdida o alteración. El acceso a los datos está restringido al personal autorizado.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">8. SUS DERECHOS</p>
+      <p style="margin-bottom:.8rem;">Puede solicitar el acceso, corrección o eliminación de sus datos personales, así como retirar su consentimiento en cualquier momento. Contáctenos en info@virtualestategt.com.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">9. DATOS DE MENORES</p>
+      <p style="margin-bottom:.8rem;">Nuestros servicios están dirigidos a personas mayores de edad. No recopilamos intencionalmente información de menores.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">10. CAMBIOS A ESTA POLÍTICA</p>
+      <p style="margin-bottom:.8rem;">Podemos actualizar esta política ocasionalmente. La versión vigente siempre estará publicada en esta página con su fecha de última actualización.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">11. CONTACTO</p>
+      <p style="margin-bottom:1.5rem;"><strong style="color:#fff;">Virtual Estate GT</strong> · info@virtualestategt.com · virtualestategt.com · Edificio Zona Pradera, Torre 4, Oficina 704, Zona 10, Ciudad de Guatemala.</p>
+      <div style="border-top:1px solid rgba(193,146,89,.25);padding-top:1rem;font-size:.72rem;color:#6A7A6F;">
+        <strong style="color:#C19259;">Virtual Estate GT</strong> — Paramétrica S.A. / Ciconsa S.A. · info@virtualestategt.com · +502 3990-2399 · Zona 10, Guatemala City
+      </div>
+    </div>
+    <div style="display:flex;gap:.7rem;margin-top:1.5rem;">
+      <button onclick="cerrarPrivacidad()" style="flex:1;padding:.7rem;background:transparent;color:#C19259;border:1px solid rgba(193,146,89,.5);border-radius:6px;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;">Cerrar</button>
+      <a href="/documentos/politica-de-privacidad.pdf" download target="_blank" style="flex:1;padding:.7rem;background:#C19259;color:#0D1A14;border:none;border-radius:6px;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.4rem;"><i class="fas fa-download"></i>Descargar PDF</a>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Requisitos AS BUILT -->
+<div id="req-asbuilt-overlay" onclick="if(event.target===this)cerrarReqAsbuilt()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#0D1A14;border:1px solid rgba(193,146,89,.3);border-radius:8px;width:100%;max-width:780px;max-height:88vh;overflow-y:auto;padding:2.5rem 2rem;position:relative;">
+    <button onclick="cerrarReqAsbuilt()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer;"><i class="fas fa-times"></i></button>
+    <div style="font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:#C19259;font-weight:600;margin-bottom:.5rem;">Virtual Estate GT — Escaneo 3D · AS BUILT / Construcción</div>
+    <h2 style="font-family:'Raleway',sans-serif;font-size:1.3rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#fff;margin-bottom:1.5rem;">Requisitos AS BUILT</h2>
+    <div style="font-size:.78rem;color:#8A9A8F;line-height:1.85;">
+      <p style="margin-bottom:1rem;">Sigue esta lista antes de la visita técnica para documentar la construcción con precisión y seguridad. <strong style="color:#fff;">Lo que se ve, queda</strong> — el escáner registra todo lo visible; cualquier objeto que no se retire aparecerá en el modelo 3D final.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">01. ACCESOS Y PERMISOS</p>
+      <ul style="padding-left:1.2rem;margin-bottom:.8rem;">
+        <li style="margin-bottom:.3rem;">Autorización del propietario o encargado para el escaneo 3D.</li>
+        <li style="margin-bottom:.3rem;">Acceso total a todas las áreas del servicio contratado; todos los ambientes abiertos y sin llave.</li>
+        <li style="margin-bottom:.3rem;">Acceso autorizado a áreas comunes, garitas y controles.</li>
+        <li style="margin-bottom:.3rem;">Avisar al personal y contar con visto bueno de seguridad industrial.</li>
+        <li style="margin-bottom:.3rem;">Parqueo disponible para el equipo (lo cubre el cliente); horario flexible para la captura.</li>
+      </ul>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">02. CONDICIONES DEL ÁREA</p>
+      <ul style="padding-left:1.2rem;margin-bottom:.8rem;">
+        <li style="margin-bottom:.3rem;">Sin maquinaria en operación; áreas libres de polvo y suciedad excesiva.</li>
+        <li style="margin-bottom:.3rem;">Sin basura, ripio, materiales ni herramientas que obstruyan.</li>
+        <li style="margin-bottom:.3rem;">Cables retirados, objetos personales guardados.</li>
+        <li style="margin-bottom:.3rem;">Ambientes bien iluminados (preferible luz natural); muros, pisos, puertas y ventanas visibles, sin plásticos ni cintas.</li>
+      </ul>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">03. DURANTE EL ESCANEO</p>
+      <ul style="padding-left:1.2rem;margin-bottom:.8rem;">
+        <li style="margin-bottom:.3rem;">Nadie en el área mientras se escanea; suspender actividades que interfieran.</li>
+        <li style="margin-bottom:.3rem;">Puertas definidas (abiertas/cerradas) no se mueven hasta terminar.</li>
+        <li style="margin-bottom:.3rem;">Ventanas y corredizas al exterior cerradas; ventiladores apagados.</li>
+      </ul>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">04. SEGURIDAD</p>
+      <ul style="padding-left:1.2rem;margin-bottom:.8rem;">
+        <li style="margin-bottom:.3rem;">Recorrido previo para analizar condiciones; condiciones mínimas de seguridad y estabilidad.</li>
+        <li style="margin-bottom:.3rem;">Eliminar cualquier objeto que pueda caer; un encargado presente en el sitio.</li>
+        <li style="margin-bottom:.3rem;">Objetos de valor retirados y guardados. Reclamos, antes de que el equipo se retire.</li>
+      </ul>
+      <div style="background:rgba(193,146,89,.08);border:1px solid rgba(193,146,89,.2);border-radius:6px;padding:.9rem;margin-bottom:1.5rem;">
+        <p style="color:#C19259;font-weight:700;font-size:.75rem;margin-bottom:.3rem;">SI LA PROPIEDAD NO ESTÁ LISTA</p>
+        <p style="margin-bottom:0;">Si al llegar el inmueble no cumple las condiciones, Virtual Estate podrá: (1) reprogramar el servicio con cargo adicional, (2) ejecutar bajo las condiciones existentes sin responsabilidad sobre el resultado visual, o (3) suspender por razones técnicas o de seguridad.</p>
+      </div>
+      <div style="border-top:1px solid rgba(193,146,89,.25);padding-top:1rem;font-size:.72rem;color:#6A7A6F;">
+        <strong style="color:#C19259;">Virtual Estate GT</strong> — Descarga la guía completa en PDF para imprimirla y compartirla con tu equipo.
+      </div>
+    </div>
+    <div style="display:flex;gap:.7rem;margin-top:1.5rem;">
+      <button onclick="cerrarReqAsbuilt()" style="flex:1;padding:.7rem;background:transparent;color:#C19259;border:1px solid rgba(193,146,89,.5);border-radius:6px;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;">Cerrar</button>
+      <a href="/documentos/requisitos-as-built.pdf" download target="_blank" style="flex:1;padding:.7rem;background:#C19259;color:#0D1A14;border:none;border-radius:6px;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.4rem;"><i class="fas fa-download"></i>Descargar PDF</a>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Requisitos Real Estate -->
+<div id="req-realestate-overlay" onclick="if(event.target===this)cerrarReqRealestate()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:#0D1A14;border:1px solid rgba(193,146,89,.3);border-radius:8px;width:100%;max-width:780px;max-height:88vh;overflow-y:auto;padding:2.5rem 2rem;position:relative;">
+    <button onclick="cerrarReqRealestate()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer;"><i class="fas fa-times"></i></button>
+    <div style="font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:#C19259;font-weight:600;margin-bottom:.5rem;">Virtual Estate GT — Escaneo 3D · Bienes Raíces</div>
+    <h2 style="font-family:'Raleway',sans-serif;font-size:1.3rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#fff;margin-bottom:1.5rem;">Requisitos Real Estate</h2>
+    <div style="font-size:.78rem;color:#8A9A8F;line-height:1.85;">
+      <p style="margin-bottom:1rem;">Sigue esta lista antes de la visita técnica para lograr un tour virtual impecable, sin reprocesos. <strong style="color:#fff;">Lo que se ve, queda</strong> — el escáner registra todo lo visible; cualquier objeto que no se retire aparecerá en el modelo 3D final.</p>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">01. ACCESOS Y PERMISOS</p>
+      <ul style="padding-left:1.2rem;margin-bottom:.8rem;">
+        <li style="margin-bottom:.3rem;">Autorización del propietario o encargado para el escaneo 3D.</li>
+        <li style="margin-bottom:.3rem;">Acceso total a todas las áreas del servicio contratado; todos los ambientes abiertos y sin llave.</li>
+        <li style="margin-bottom:.3rem;">Acceso autorizado a áreas comunes, garitas y controles.</li>
+        <li style="margin-bottom:.3rem;">Avisar al personal interno sobre la visita; parqueo disponible para el equipo (lo cubre el cliente).</li>
+      </ul>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">02. LIMPIEZA Y PRESENTACIÓN</p>
+      <ul style="padding-left:1.2rem;margin-bottom:.8rem;">
+        <li style="margin-bottom:.3rem;">Propiedad completamente limpia y ordenada; áreas libres de suciedad y sin basura.</li>
+        <li style="margin-bottom:.3rem;">Cables retirados (extensiones, regletas, cargadores); objetos personales guardados.</li>
+      </ul>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">03. ORDEN Y STAGING</p>
+      <ul style="padding-left:1.2rem;margin-bottom:.8rem;">
+        <li style="margin-bottom:.3rem;">Lista para fotografía comercial; mobiliario ordenado y bien colocado.</li>
+        <li style="margin-bottom:.3rem;">Camas tendidas, cocina y baños presentables; espejos y vidrios limpios.</li>
+        <li style="margin-bottom:.3rem;">Escritorios despejados; cortinas abiertas.</li>
+      </ul>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">04. ILUMINACIÓN</p>
+      <ul style="padding-left:1.2rem;margin-bottom:.8rem;">
+        <li style="margin-bottom:.3rem;">Todas las luminarias funcionando y encendidas; electricidad activa en todo momento.</li>
+        <li style="margin-bottom:.3rem;">TV y pantallas de computadora apagadas.</li>
+      </ul>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">05. DURANTE EL ESCANEO</p>
+      <ul style="padding-left:1.2rem;margin-bottom:.8rem;">
+        <li style="margin-bottom:.3rem;">Nadie en el área mientras se escanea; mascotas retiradas y resguardadas.</li>
+        <li style="margin-bottom:.3rem;">Puertas y ventanas definidas no se mueven hasta terminar; ventiladores apagados.</li>
+      </ul>
+      <p style="color:#C19259;font-weight:700;font-size:.8rem;margin-bottom:.4rem;margin-top:1.2rem;">06. EXTERIOR</p>
+      <ul style="padding-left:1.2rem;margin-bottom:.8rem;">
+        <li style="margin-bottom:.3rem;">Jardines limpios (sin basura, desechos ni juguetes); vehículos removidos del encuadre.</li>
+        <li style="margin-bottom:.3rem;">Portones sin llave y operables al momento.</li>
+      </ul>
+      <div style="background:rgba(193,146,89,.08);border:1px solid rgba(193,146,89,.2);border-radius:6px;padding:.9rem;margin-bottom:1.5rem;">
+        <p style="color:#C19259;font-weight:700;font-size:.75rem;margin-bottom:.3rem;">SI LA PROPIEDAD NO ESTÁ LISTA</p>
+        <p style="margin-bottom:0;">Si al llegar el inmueble no cumple las condiciones, Virtual Estate podrá: (1) reprogramar el servicio con cargo adicional, (2) ejecutar bajo las condiciones existentes sin responsabilidad sobre el resultado visual, o (3) suspender por razones técnicas o de seguridad.</p>
+      </div>
+      <div style="border-top:1px solid rgba(193,146,89,.25);padding-top:1rem;font-size:.72rem;color:#6A7A6F;">
+        <strong style="color:#C19259;">Virtual Estate GT</strong> — Descarga la guía completa en PDF para imprimirla y compartirla con tu equipo.
+      </div>
+    </div>
+    <div style="display:flex;gap:.7rem;margin-top:1.5rem;">
+      <button onclick="cerrarReqRealestate()" style="flex:1;padding:.7rem;background:transparent;color:#C19259;border:1px solid rgba(193,146,89,.5);border-radius:6px;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;">Cerrar</button>
+      <a href="/documentos/requisitos-real-estate.pdf" download target="_blank" style="flex:1;padding:.7rem;background:#C19259;color:#0D1A14;border:none;border-radius:6px;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:.4rem;"><i class="fas fa-download"></i>Descargar PDF</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

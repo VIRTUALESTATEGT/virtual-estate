@@ -556,7 +556,7 @@
         <button class="w-btn w-btn-out" onclick="setTab('favoritos')">
           <i class="fas fa-heart"></i> Mis favoritos
         </button>
-        <button class="w-btn w-btn-gold" onclick="window.open('index.html#cotizador','_blank')">
+        <button class="w-btn w-btn-gold" onclick="window.open('contacto.html','_blank')">
           <i class="fas fa-file-invoice"></i> Solicitar cotización
         </button>
       </div>
@@ -670,7 +670,7 @@
           <div style="font-size:.75rem;color:var(--gray);line-height:1.5;font-weight:400;">
             Puedes ver las fotografías directamente desde tu portal. Para acceder al recorrido virtual 3D exclusivo de cada propiedad, es necesario agendar una reunión con nuestro equipo — recibirás un acceso único y personalizado.
           </div>
-          <a href="index.html#contacto" style="display:inline-flex;align-items:center;gap:.35rem;margin-top:.6rem;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--gold);">
+          <a href="contacto.html" style="display:inline-flex;align-items:center;gap:.35rem;margin-top:.6rem;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--gold);">
             <i class="fas fa-calendar-check"></i> Agendar reunión
           </a>
         </div>
@@ -703,7 +703,7 @@
             <span class="label">Mis cotizaciones de servicios</span>
             <div style="font-size:.78rem;color:var(--gray);margin-top:.2rem;font-weight:400;">Cotizaciones de servicios que has solicitado directamente a Virtual Estate.</div>
           </div>
-          <button class="w-btn w-btn-gold" onclick="window.open('index.html#cotizador','_blank')">
+          <button class="w-btn w-btn-gold" onclick="window.open('contacto.html','_blank')">
             <i class="fas fa-plus"></i> Nueva cotización
           </button>
         </div>
@@ -1283,13 +1283,13 @@
       <p style="font-size:.8rem;color:var(--gray);line-height:1.7;margin-bottom:1.4rem;font-weight:400;" id="pmod-desc">—</p>
       <div style="background:rgba(193,146,89,.06);border:1px solid var(--border);border-radius:var(--r);padding:.9rem 1.1rem;display:flex;align-items:center;gap:.7rem;margin-bottom:1.4rem;">
         <i class="fas fa-vr-cardboard" style="color:var(--gold);font-size:1rem;flex-shrink:0;"></i>
-        <p style="font-size:.72rem;color:var(--gray);line-height:1.5;font-weight:400;">Tour virtual 3D disponible exclusivamente con una reunión agendada. <a href="index.html#contacto" style="color:var(--gold);font-weight:600;">Agendar ahora →</a></p>
+        <p style="font-size:.72rem;color:var(--gray);line-height:1.5;font-weight:400;">Tour virtual 3D disponible exclusivamente con una reunión agendada. <a href="contacto.html" style="color:var(--gold);font-weight:600;">Agendar ahora →</a></p>
       </div>
       <div style="display:flex;gap:.8rem;flex-wrap:wrap;">
         <button onclick="agendarTour(document.getElementById('pmod-code').textContent)" class="w-btn w-btn-gold">
           <i class="fas fa-calendar-check"></i> Agendar reunión
         </button>
-        <button onclick="window.open('index.html#cotizador','_blank')" class="w-btn w-btn-out">
+        <button onclick="window.open('contacto.html','_blank')" class="w-btn w-btn-out">
           <i class="fas fa-file-invoice-dollar"></i> Solicitar cotización
         </button>
         <button onclick="removeFav(modalPropId);closePropModal()" style="background:none;border:none;color:var(--gray);font-size:.72rem;cursor:pointer;display:flex;align-items:center;gap:.3rem;padding:.5rem;transition:.2s;" onmouseover="this.style.color='#E08080'" onmouseout="this.style.color='var(--gray)'">
@@ -1819,7 +1819,7 @@ function renderPromos() {
 }
 
 /* ── MISC ───────────────────────────────────────────────── */
-function agendarTour(name) { showToast('Redirigiendo para agendar acceso al tour 3D...'); setTimeout(() => window.open('index.html#contacto','_blank'), 800); }
+function agendarTour(name) { showToast('Redirigiendo para agendar acceso al tour 3D...'); setTimeout(() => window.open('contacto.html','_blank'), 800); }
 
 function togglePw(inputId, btn) {
   const input = document.getElementById(inputId);
