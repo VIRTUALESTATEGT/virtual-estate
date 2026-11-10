@@ -4,7 +4,7 @@ const router   = express.Router();
 const supabase = require('../config/supabase');
 const Anthropic = require('@anthropic-ai/sdk');
 
-const claude  = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
+const claude  = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY, maxRetries: 1 });
 const HEX_RE  = /^#[0-9A-Fa-f]{6}$/;
 
 // ── System prompt para plantillas compuestas (2 paneles) ──────────────────────
@@ -482,7 +482,12 @@ Genera el prompt mejorado.`;
 
     const prompt = msg.content.find(b => b.type === 'text')?.text?.trim() ?? '';
     res.json({ prompt });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    console.error('[prompt-studio]', e.status, e.name, e.message);
+    if (e.name === 'APIConnectionTimeoutError' || e.status === 429 || e.status === 529)
+      return res.status(503).json({ error: 'El generador tardó demasiado o está saturado. Intenta de nuevo en unos segundos.' });
+    res.status(500).json({ error: e.message });
+  }
 });
 
 router.post('/prompt-studio/modificar', async (req, res) => {
@@ -523,7 +528,12 @@ router.post('/prompt-studio/modificar', async (req, res) => {
       })
     );
     res.json({ tipo: 'multi', clips: updatedClips });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    console.error('[prompt-studio]', e.status, e.name, e.message);
+    if (e.name === 'APIConnectionTimeoutError' || e.status === 429 || e.status === 529)
+      return res.status(503).json({ error: 'El generador tardó demasiado o está saturado. Intenta de nuevo en unos segundos.' });
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // ── Video con Gemini Omni 1.1 Flash ──────────────────────────────────────────
