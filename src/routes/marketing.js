@@ -453,7 +453,7 @@ Genera el JSON de video.`;
           system:     buildSystemVideoStudio(Boolean(permitir_voces), Boolean(usar_marca)),
           messages:   [{ role: 'user', content: userMsg }]
         },
-        { timeout: 25000 }
+        { timeout: 45000, maxRetries: 0 }
       );
 
       const raw = msg.content.find(b => b.type === 'text')?.text ?? '';
@@ -477,14 +477,15 @@ Genera el prompt mejorado.`;
         system:     buildSystemPromptStudio(Boolean(usar_marca)),
         messages:   [{ role: 'user', content: userMsg }]
       },
-      { timeout: 20000 }
+      { timeout: 45000, maxRetries: 0 }
     );
 
     const prompt = msg.content.find(b => b.type === 'text')?.text?.trim() ?? '';
     res.json({ prompt });
   } catch (e) {
+    const esTimeout = e instanceof Anthropic.APIConnectionTimeoutError || /timed? ?out/i.test(e.message);
     console.error('[prompt-studio]', e.status, e.name, e.message);
-    if (e.name === 'APIConnectionTimeoutError' || e.status === 429 || e.status === 529)
+    if (esTimeout || e.status === 429 || e.status === 529)
       return res.status(503).json({ error: 'El generador tardó demasiado o está saturado. Intenta de nuevo en unos segundos.' });
     res.status(500).json({ error: e.message });
   }
@@ -529,8 +530,9 @@ router.post('/prompt-studio/modificar', async (req, res) => {
     );
     res.json({ tipo: 'multi', clips: updatedClips });
   } catch (e) {
+    const esTimeout = e instanceof Anthropic.APIConnectionTimeoutError || /timed? ?out/i.test(e.message);
     console.error('[prompt-studio]', e.status, e.name, e.message);
-    if (e.name === 'APIConnectionTimeoutError' || e.status === 429 || e.status === 529)
+    if (esTimeout || e.status === 429 || e.status === 529)
       return res.status(503).json({ error: 'El generador tardó demasiado o está saturado. Intenta de nuevo en unos segundos.' });
     res.status(500).json({ error: e.message });
   }
